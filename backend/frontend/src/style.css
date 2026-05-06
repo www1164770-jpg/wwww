@@ -11,3 +11,61 @@ body, html {
 * {
   box-sizing: border-box;
 }
+/* 1. 响应式字体缩放 (基于 rem 的根节点控制) */
+html {
+  font-size: 16px; /* 默认桌面端 16px */
+}
+
+@media (max-width: 1024px) {
+  html { 
+    font-size: 15px; /* 平板端适当缩小 */
+  }
+}
+
+@media (max-width: 768px) {
+  html { 
+    font-size: 14px; /* 手机端进一步缩小，避免文字挤占空间 */
+  }
+}
+
+/* 2. 触摸优化：苹果规范要求可点击元素最小 44x44px */
+button, 
+a, 
+input[type="button"],
+input[type="submit"] {
+  min-height: 44px;
+  min-width: 44px;
+  /* 加上平滑过渡，让移动端点按更柔和 */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* ========================================== */
+/* 1. 全局响应式字体缩放 (基于 rem)              */
+/* ========================================== */
+html {
+  font-size: 16px; /* 默认桌面端 16px */
+}
+
+@media (max-width: 1024px) {
+  html { 
+    font-size: 15px; /* 平板端适当缩小 */
+  }
+}
+
+@media (max-width: 768px) {
+  html { 
+    font-size: 14px; /* 手机端进一步缩小，避免文字拥挤 */
+  }
+}
+
+/* ========================================== */
+/* 2. 苹果/安卓标准规范：可点击元素最小 44x44px    */
+/* ========================================== */
+button, 
+a, 
+input[type="button"],
+input[type="submit"] {
+  min-height: 44px;
+  min-width: 44px;
+  /* 增加平滑过渡，让移动端点按更顺滑 */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

@@ -8,6 +8,10 @@ from models import db, User, Category, Website, ClickLog
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import json
+import re
+from urllib.parse import urlparse
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, verify_jwt_in_request
+from flask_bcrypt import Bcrypt
 
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
 load_dotenv()
@@ -17,14 +21,53 @@ app = Flask(__name__)
 CORS(app)
 
 # 配置数据库连接 URL (MySQL)
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}?charset=utf8mb4"
+# 获取环境变量，如果 .env 中没有，则使用默认值
+db_user = os.getenv('DB_USER', 'root')
+db_pass = os.getenv('DB_PASSWORD', '')
+db_host = os.getenv('DB_HOST', '127.0.0.1')
+db_port = os.getenv('DB_PORT', '3306')
+db_name = os.getenv('DB_NAME', 'nav_site')
+
+# 配置数据库连接 URL (MySQL)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'fallback-secret')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)   # Access Token 1小时过期
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # Refresh Token 30天过期
+
+class UserFavorite(db.Model):
+    __tablename__ = 'user_favorites'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    website_id = db.Column(db.BigInteger, nullable=False) # 使用 BigInteger 容纳 Date.now()
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 db.init_app(app)
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+def is_valid_url(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
+# --- 无感刷新 Token 接口 ---
+@app.route('/api/refresh', methods=['POST', 'OPTIONS'])
+def refresh():
+    if request.method == 'OPTIONS':
+        return jsonify({"message": "OK"}), 200
+    
+    # 注意这里：验证的是 refresh_token
+    verify_jwt_in_request(refresh=True)
+    
+    # 获取当前用户 ID，签发新的 access_token
+    current_user = get_jwt_identity()
+    new_token = create_access_token(identity=current_user)
+    
+    return jsonify(access_token=new_token), 200
 # ================= 示例路由：获取所有导航数据 =================
-# backend/app.py
-
 @app.route('/api/nav-data', methods=['GET'])
 def get_nav_data():
     try:
@@ -153,6 +196,75 @@ websites_db = [
     {"id": 518, "category_id": 5, "name": "智谱清言", "url": "https://chatglm.cn", "logo_url": "", "clicks": 290},
 ]
 
+
+# ================= 🛡️ 用户认证与 JWT API =================
+
+# 1. 注册接口
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not username or not email or not password:
+        return jsonify({"error": "用户名、邮箱和密码不能为空"}), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "用户名已被占用"}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "邮箱已被注册"}), 400
+
+    # ✨ 核心：使用 bcrypt 哈希密码
+    pw_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+    new_user = User(username=username, email=email, password_hash=pw_hash)
+    
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "注册成功，请登录"}), 201
+
+# 2. 登录接口
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    email = data.get('email')
+    password = data.get('password')
+
+    # 根据邮箱查找用户
+    user = User.query.filter_by(email=email).first()
+    
+    # ✨ 核心：校验哈希密码
+    if not user or not bcrypt.check_password_hash(user.password_hash, password):
+        return jsonify({"error": "邮箱或密码错误"}), 401
+
+    # 生成双 Token (把 user.id 作为身份标识存入 token)
+    access_token = create_access_token(identity=str(user.id))
+    refresh_token = create_refresh_token(identity=str(user.id))
+
+    return jsonify({
+        "message": "登录成功",
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    }), 200
+# ================= 🔒 受保护的管理后台路由示例 =================
+
+@app.route('/api/admin/dashboard', methods=['GET'])
+@jwt_required() # ✨ 这个装饰器要求请求头必须带 Authorization: Bearer <access_token>
+def admin_dashboard():
+    # 只有合法用户能走到这一步
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    
+    return jsonify({
+        "message": f"欢迎尊贵的管理员 {user.username}！",
+        "secret_data": "这是只有登录用户才能看到的后台数据统计。"
+    }), 200
 # ================= 2. 基础 API 路由 (保持不变) =================
 
 @app.route('/api/data', methods=['GET'])
@@ -400,6 +512,47 @@ def cache_logo():
         return jsonify({"status": "success", "logo_url": logo_url})
     return jsonify({"status": "error", "message": "无效的 URL"})
 
+# --- 1. 获取收藏列表 API ---
+# 加上 OPTIONS 方法，让浏览器的跨域预检顺利通过
+@app.route('/api/favorites', methods=['GET', 'OPTIONS'])
+def get_favorites():
+    # 如果是跨域预检请求，直接放行
+    if request.method == 'OPTIONS':
+        return jsonify({"message": "OK"}), 200
+        
+    # 验证 Token
+    verify_jwt_in_request() 
+    user_id = get_jwt_identity()
+    favorites = UserFavorite.query.filter_by(user_id=user_id).all()
+    fav_ids = [fav.website_id for fav in favorites]
+    return jsonify(fav_ids), 200
+
+# --- 2. 切换收藏状态 API ---
+@app.route('/api/favorites', methods=['POST', 'OPTIONS'])
+def toggle_favorite():
+    if request.method == 'OPTIONS':
+        return jsonify({"message": "OK"}), 200
+        
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    website_id = data.get('website_id')
+
+    if not website_id:
+        return jsonify({"error": "缺少 website_id"}), 400
+
+    existing_fav = UserFavorite.query.filter_by(user_id=user_id, website_id=website_id).first()
+    
+    if existing_fav:
+        db.session.delete(existing_fav)
+        db.session.commit()
+        return jsonify({"status": "removed", "message": "已取消收藏"}), 200
+    else:
+        new_fav = UserFavorite(user_id=user_id, website_id=website_id)
+        db.session.add(new_fav)
+        db.session.commit()
+        return jsonify({"status": "added", "message": "收藏成功"}), 201
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.json
@@ -459,8 +612,97 @@ def github_callback():
     print(f"🎉 GitHub 登录成功！用户: {username}")
     return redirect(frontend_url)
 
+# ================= 网站资源 RESTful API =================
+
+# 1. 获取列表 (GET) - 支持分页、分类筛选、搜索
+@app.route('/api/websites', methods=['GET'])
+def get_websites():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    category_id = request.args.get('category', type=int)
+    search = request.args.get('search', type=str)
+
+    query = Website.query
+
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+    if search:
+        query = query.filter(Website.name.ilike(f'%{search}%'))
+
+    # 使用 SQLAlchemy 自带的分页 (基于 LIMIT 和 OFFSET)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        "data": [{
+            "id": s.id, "name": s.name, "url": s.url, 
+            "category_id": s.category_id, "clicks": s.clicks
+        } for s in pagination.items],
+        "total": pagination.total,
+        "page": pagination.page,
+        "per_page": pagination.per_page
+    })
+
+# 2. 新增网站 (POST)
+@app.route('/api/websites', methods=['POST'])
+def create_website():
+    data = request.json
+    name = data.get('name')
+    url = data.get('url')
+    category_id = data.get('category') 
+
+    # 字段校验
+    if not name or not url:
+        return jsonify({"error": "name和url为必填项"}), 400
+    if not is_valid_url(url):
+        return jsonify({"error": "URL格式不正确，需包含http/https"}), 400
+
+    new_site = Website(name=name, url=url, category_id=category_id)
+    db.session.add(new_site)
+    db.session.commit()
+    return jsonify({"message": "创建成功", "id": new_site.id}), 201
+
+# 3. 获取单个详情 (GET)
+@app.route('/api/websites/<int:id>', methods=['GET'])
+def get_website(id):
+    site = Website.query.get(id)
+    if not site:
+        return jsonify({"error": "网站不存在"}), 404
+    return jsonify({"id": site.id, "name": site.name, "url": site.url, "category_id": site.category_id})
+
+# 4. 更新网站 (PUT)
+@app.route('/api/websites/<int:id>', methods=['PUT'])
+def update_website(id):
+    site = Website.query.get(id)
+    if not site:
+        return jsonify({"error": "网站不存在"}), 404
+        
+    data = request.json
+    if 'name' in data: 
+        site.name = data['name']
+    if 'url' in data:
+        if not is_valid_url(data['url']):
+            return jsonify({"error": "URL格式不正确"}), 400
+        site.url = data['url']
+    if 'category_id' in data: 
+        site.category_id = data['category_id']
+
+    db.session.commit()
+    return jsonify({"message": "更新成功"})
+
+# 5. 删除网站 (DELETE)
+@app.route('/api/websites/<int:id>', methods=['DELETE'])
+def delete_website(id):
+    site = Website.query.get(id)
+    if not site:
+        return jsonify({"message": "该网站不存在，无法删除"}), 404
+        
+    db.session.delete(site)
+    db.session.commit()
+    return jsonify({"message": "删除成功"})
+
 if __name__ == '__main__':
     with app.app_context():
+        db.create_all()
         # 启动时自动同步所有分类和网站到数据库
         try:
             from init_db import all_categories, all_sites, get_logo_url
