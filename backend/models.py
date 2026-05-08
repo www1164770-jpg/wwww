@@ -39,6 +39,12 @@ class Website(db.Model):
     logo_url = db.Column(db.String(500))
     clicks = db.Column(db.Integer, default=0)
     #created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.String(500), nullable=True)
+    # 状态：'approved' (已发布), 'pending' (待审核), 'rejected' (已拒绝)
+    status = db.Column(db.String(20), default='approved') 
+    
+    # 来源：打个标记，比如 'admin', 'hackernews', 'github'
+    source = db.Column(db.String(50), default='admin')
 
 class ClickLog(db.Model):
     __tablename__ = 'click_logs'

@@ -1,6 +1,6 @@
 <template>
   <!-- ✨ 修复 1：在 class 和 style 之间加上空格 -->
-  <div class="layout" :class="{ 'dark-theme': isDarkMode }" :style="dynamicBgStyle">
+  <div class="layout" :class="{ 'dark-theme': isDarkMode }" :style="dynamicBgStyle" @click="closeAllDropdowns">
     
     <!-- ✨ 修复 2：补上缺失的 <header> 标签 -->
     <header class="header-block block-shadow">
@@ -49,37 +49,44 @@
     <div v-if="currentPage === 'home'" class="main-container">
       <main class="content">
         <div class="center-action-area">
-          <div class="category-tabs-wrapper">
-            <!-- ✨ 新增：置顶的“我的收藏”分类 (仅登录后可见) -->
-            <div v-if="isLoggedIn" 
-                 class="nav-tab-box fav-tab" 
-                 :class="{ 'active': activeCategoryId === 'favorites' }" 
-                 @mouseenter="activeCategoryId = 'favorites'"
-                 @click="activeCategoryId = 'favorites'">
+            <div class="category-tabs-wrapper"
+               ref="scrollTrack"
+               @mousedown="startDrag" 
+               @mouseleave="stopDrag" 
+               @mouseup="stopDrag" 
+               @mousemove="onDrag">
+            
+             <div v-if="isLoggedIn" 
+                class="nav-tab-box fav-tab" 
+                :class="{ 'active': activeCategoryId === 'favorites' }" 
+                @click="activeCategoryId = 'favorites'"
+                @mouseenter="hoverCategory('favorites')"> 
               ⭐ 我的收藏
             </div>
-            <div class="nav-tab-box" :class="{ 'active': activeCategoryId === 'all' }" @mouseenter="activeCategoryId = 'all'">
-              全部分类
+
+            <div v-for="cat in categories" 
+                 :key="cat.id" 
+                 class="nav-tab-box" 
+                 :class="{ 'active': activeCategoryId === cat.id }" 
+                 @click="activeCategoryId = cat.id"
+                 @contextmenu.prevent="openCategoryContextMenu($event, cat)"
+                 @mouseenter="hoverCategory(cat.id)"> 
+              <span class="cat-name">{{ cat.name }}</span>
             </div>
-            <div v-for="cat in visibleCategories" :key="cat.id" class="nav-tab-box" :class="{ 'active': activeCategoryId === cat.id }" @mouseenter="activeCategoryId = cat.id">
-              {{ cat.name }}
-            </div>
-            <!-- 1. 在这里插入添加分类按钮 -->
-            <div class="nav-tab-box add-category-btn" @click="showAddCategoryModal = true">
-              + 添加分类
-            </div>
-            <!-- 隐藏的文件选择框 -->
+
             <input type="file" accept=".html" class="hidden-file-input" ref="bookmarkInputRef" @change="handleBookmarkImport">
             
-            <!-- ✨ 新增：导入书签按钮 -->
-            <div class="nav-tab-box import-btn" @click="triggerBookmarkImport" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px dashed #10b981;">
-              📥 导入浏览器书签
-            </div>
-            <div class="more-dropdown-wrapper" v-if="hiddenCategories.length > 0">
-              <div class="nav-tab-box more-btn">更多 <span class="arrow-down">▼</span></div>
+            <div class="more-dropdown-wrapper">
+              <div class="nav-tab-box more-btn">
+                更多选项 <span class="arrow-down" style="font-size: 10px; margin-left: 2px;">▼</span>
+              </div>
+              
               <div class="dropdown-menu">
-                <div v-for="cat in hiddenCategories" :key="cat.id" class="dropdown-item" :class="{ 'active': activeCategoryId === cat.id }" @mouseenter="activeCategoryId = cat.id">
-                  {{ cat.name }}
+                <div class="dropdown-item" @click="showAddCategoryModal = true">
+                  ➕ 添加新分类
+                </div>
+                <div class="dropdown-item" @click="triggerBookmarkImport">
+                  📥 导入浏览器书签
                 </div>
               </div>
             </div>
@@ -122,10 +129,24 @@
                       <span>⚡ 网站直达</span>
                     </div>
                     <div class="suggestion-list">
-                      <div v-for="site in localSuggestions" :key="'sugg-'+site.id" class="suggestion-item" @click="handleSiteClick(site)">
-                        <img :src="site.logo_url || getLogoUrl(site.url)" class="sugg-logo" @error="handleIconError($event, site)">
-                        <span class="sugg-name">{{ site.name }}</span>
-                        <span class="sugg-url">{{ site.url.replace(/^https?:\/\//, '') }}</span>
+                      <div 
+                        v-for="site in localSuggestions" 
+                        :key="'sugg-' + site.id" 
+                        class="suggestion-item" 
+                        @click="handleSiteClick(site)"
+                      >
+                        <img 
+                          :src="site.logo_url || getLogoUrl(site.url)" 
+                          class="sugg-logo" 
+                          @error="handleIconError($event, site)"
+                        >
+                        
+                        <div class="sugg-info">
+                          <span class="sugg-name" 
+                                v-html="(site._formatted && site._formatted.name) ? site._formatted.name : site.name">
+                          </span>
+                          <span class="sugg-url" v-html="site._formatted?.url || site.url"></span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -162,45 +183,116 @@
             <div class="skeleton-text skeleton-box"></div>
           </div>
         </div>
+        <div v-else-if="filteredWebsites.length === 0 && activeCategoryId === 'favorites'" class="treasure-map-empty">
+          <div class="map-title-row">
+            <span>🏴‍☠️ 这些宝藏水手们都在用，一键纳入你的宝库：</span>
+            <button class="refresh-map-btn" @click="refreshTreasures" title="换一批宝藏">
+              🔄 换一批
+            </button>
+          </div>
+          
+          <div class="map-container">
+            <svg class="map-path" viewBox="0 0 500 150" preserveAspectRatio="none">
+              <path d="M 50,80 Q 150,10 250,80 T 450,50" fill="transparent" stroke="currentColor" stroke-width="2" stroke-dasharray="6 6" />
+            </svg>
+            
+            <div v-for="(island, index) in treasureIslands" 
+                 :key="island.id"
+                 class="treasure-island"
+                 :class="'island-' + index"
+                 @click.stop="claimTreasure(island)">
+              <div class="island-icon">
+                <img :src="island.logo_url || getLogoUrl(island.url)" :alt="island.name" @error="handleIconError($event, island)" />
+              </div>
+              <div class="island-name">{{ island.name }}</div>
+              <div class="add-badge">➕</div>
+            </div>
+          </div>
+        </div>
+
         <div v-else-if="filteredWebsites.length === 0" class="empty-state-container">
           <div class="empty-icon">📭</div>
           <h3 class="empty-title">哎呀，这里空空如也</h3>
           <p class="empty-desc">没有找到相关网站，不如点击下方添加一个吧？</p>
           <button class="btn-primary" @click="openAddSiteModal">+ 立即添加网站</button>
         </div>
-        <div v-else class="site-grid">
-          <!-- 1. 正常渲染网站列表 (支持拖拽、右键、点击) -->
+        <TransitionGroup v-else name="fade-grid" tag="div" class="site-grid">
+          
           <div v-for="site in filteredWebsites" :key="site.id" class="site-card block-shadow" 
-               draggable="true"
-               @dragstart="onDragStart($event, site)"
-               @dragover="onDragOver($event)"
-               @drop="onDrop($event, site)"
-               @dragend="onDragEnd"
-               @click="handleSiteClick(site)" 
-               @contextmenu.prevent="openContextMenu($event, site)">
+              draggable="true"
+              @dragstart="onDragStart($event, site)"
+              @dragover="onDragOver($event)"
+              @drop="onDrop($event, site)"
+              @dragend="onDragEnd"
+              @click="handleSiteClick(site)" 
+              @contextmenu.prevent="openContextMenu($event, site)">
             
-            <!-- ✨ 新增：右上角的收藏星星 -->
-            <!-- 使用 .includes 替换 .has，使用 @click.stop 阻止冒泡 -->
-              <div class="favorite-btn" @click.stop="toggleFavorite(site)" :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '加入收藏'">
-                <span v-if="favoriteSiteIds.includes(site.id)" class="star-solid">★</span>
-                <span v-else class="star-empty">☆</span>
-              </div>
+            <div class="favorite-btn" @click.stop="toggleFavorite(site)" :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '加入收藏'">
+              <span v-if="favoriteSiteIds.includes(site.id)" class="star-solid">★</span>
+              <span v-else class="star-empty">☆</span>
+            </div>
 
             <div class="logo-wrapper">
-               <img class="site-logo" :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
+              <img class="site-logo" :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
             </div>
-            <span class="site-name">{{ site.name }}</span>
+            <span class="site-name" v-html="(site._formatted && site._formatted.name) ? site._formatted.name : site.name"></span>
           </div>
 
-          <!-- 2. 添加网站卡片 -->
-          <div class="site-card add-site-card" @click="openAddSiteModal">
+          <div key="add-site-btn" class="site-card add-site-card" @click="openAddSiteModal">
             <div class="logo-wrapper add-icon-wrapper"><span class="plus-icon">+</span></div>
             <span class="site-name">添加网站</span>
           </div>
-        </div>
+
+        </TransitionGroup>
       </main>
 
       <aside class="sidebar-right">
+        <div class="sidebar-box trending-box block-shadow">
+          <div class="box-header">
+            <h3 class="box-title">🔥 今日排行</h3>
+            <span class="box-subtitle">在线热度涨跌</span>
+          </div>
+          <div class="scroll-viewport">
+            <div v-if="isLoading" class="scroll-track" style="animation: none;">
+              <div v-for="i in 6" :key="'rank-skel-'+i" class="trending-item" style="pointer-events: none; border: none;">
+                <div class="rank-badge skeleton-box" style="background: transparent; box-shadow: none;"></div>
+                <div class="skeleton-text skeleton-box" style="width: 80px; margin: 0; height: 16px;"></div>
+                <div class="skeleton-text skeleton-box" style="width: 40px; margin-left: auto; height: 14px;"></div>
+              </div>
+            </div>
+
+            <TransitionGroup v-else name="rank-list" tag="div" class="scroll-track">
+              <a v-for="site in sortedLeaderboard" :key="site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
+                <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
+                <span class="site-name">{{ site.name }}</span>
+                <span class="click-count">
+                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">
+                      ↑ {{ site.growth_rate }}%
+                    </span>
+                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">
+                      ↓ {{ Math.abs(site.growth_rate) }}%
+                    </span>
+                    <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
+                </span>
+              </a>
+              
+              <a v-for="site in sortedLeaderboard" :key="'dup-'+site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
+                <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
+                <span class="site-name">{{ site.name }}</span>
+                <span class="click-count">
+                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">
+                      ↑ {{ site.growth_rate }}%
+                    </span>
+                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">
+                      ↓ {{ Math.abs(site.growth_rate) }}%
+                    </span>
+                    <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
+                </span>
+              </a>
+            </TransitionGroup>
+          </div>
+        </div>
+
         <div class="widget block-shadow ai-widget">
           <div class="widget-header">
             <h3>✨ AI 建议</h3>
@@ -218,56 +310,6 @@
             <button class="btn-send" @click="sendMessage" :disabled="isAiThinking">发送</button>
           </div>
         </div>
-
-        <div class="sidebar-box trending-box block-shadow">
-          <div class="box-header">
-            <h3 class="box-title">🔥 今日排行</h3>
-            <span class="box-subtitle">在线热度涨跌</span>
-          </div>
-          <div class="scroll-viewport">
-            <!-- ✨ 新增：排行榜骨架屏 -->
-            <div v-if="isLoading" class="scroll-track" style="animation: none;">
-              <div v-for="i in 6" :key="'rank-skel-'+i" class="trending-item" style="pointer-events: none; border: none;">
-                <div class="rank-badge skeleton-box" style="background: transparent; box-shadow: none;"></div>
-                <div class="skeleton-text skeleton-box" style="width: 80px; margin: 0; height: 16px;"></div>
-                <div class="skeleton-text skeleton-box" style="width: 40px; margin-left: auto; height: 14px;"></div>
-              </div>
-            </div>
-
-            <!-- 原有的真实数据渲染 -->
-            <TransitionGroup v-else name="rank-list" tag="div" class="scroll-track">
-              <!-- 排行榜数据渲染 -->
-              <a v-for="site in sortedLeaderboard" :key="site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
-                <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
-                <span class="site-name">{{ site.name }}</span>
-                <span class="click-count">
-                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">
-                      ↑ {{ site.growth_rate }}%
-                    </span>
-                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">
-                      ↓ {{ Math.abs(site.growth_rate) }}%
-                    </span>
-                    <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
-                </span>
-              </a>
-              
-              <!-- 复制列表 (用于无缝滚动) -->
-              <a v-for="site in sortedLeaderboard" :key="'dup-'+site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
-                <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
-                <span class="site-name">{{ site.name }}</span>
-                <span class="click-count">
-                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">
-                      ↑ {{ site.growth_rate }}%
-                    </span>
-                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">
-                      ↓ {{ Math.abs(site.growth_rate) }}%
-                    </span>
-                    <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
-                </span>
-              </a>
-            </TransitionGroup>
-          </div>
-        </div>
       </aside>
     </div>
 
@@ -281,33 +323,6 @@
         </div>
 
         <div class="profile-cards-gap">
-          <!-- ✨ 新增：我的收藏卡片模块 -->
-          <div class="info-card-box block-shadow">
-            <div class="card-head">
-              <h2>⭐ 我的收藏夹</h2>
-              <span>你最常访问的专属站点</span>
-            </div>
-            
-            <div class="favorites-container">
-              <div v-if="favoritedSitesList.length === 0" class="empty-favorites">
-                <span style="font-size: 30px; margin-bottom: 10px;">🌌</span>
-                <p>你还没有收藏任何网站哦，快去主页探索吧！</p>
-              </div>
-              
-              <!-- 收藏列表展示 -->
-              <div v-else class="favorite-grid">
-                <div v-for="site in favoritedSitesList" :key="'fav-'+site.id" class="site-card block-shadow mini-fav-card" @click="handleSiteClick(site)">
-                  <div class="favorite-btn" @click="toggleFavorite(site, $event)">
-                    <span class="star-solid">★</span>
-                  </div>
-                  <div class="logo-wrapper mini-logo">
-                     <img class="site-logo" :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
-                  </div>
-                  <span class="site-name">{{ site.name }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
           <div class="info-card-box block-shadow">
             <div class="card-head"><h2>基本信息</h2><span>部分信息可能对其他用户可见</span></div>
             
@@ -471,18 +486,22 @@
 
   </div>
 
+
   <!-- 添加网站弹窗 -->
 <div v-if="showAddSiteModal" class="auth-overlay" @click="showAddSiteModal = false">
   <div class="auth-modal edit-modal" @click.stop>
     <button class="close-btn" @click="showAddSiteModal = false">×</button>
-    <h2 class="modal-title">✨ 推荐新网站</h2>
+    
+    <h2 class="modal-title">{{ isEditingSite ? '✏️ 编辑网站信息' : '✨ 推荐新网站' }}</h2>
+    
     <div class="vertical-layout">
       <input type="text" v-model="newSiteForm.name" placeholder="网站名称" class="auth-input">
       <input type="text" v-model="newSiteForm.url" placeholder="网站链接" class="auth-input">
       <select v-model="newSiteForm.category_id" class="auth-input custom-select">
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
       </select>
-      <button class="btn-submit" @click="submitNewSite">立即添加</button>
+      
+      <button class="btn-submit" @click="submitNewSite">{{ isEditingSite ? '保存修改' : '立即添加' }}</button>
     </div>
   </div>
 </div>
@@ -511,31 +530,12 @@
            :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" 
            @click.stop>
         <div class="context-header">管理 {{ contextMenu.site?.name }}</div>
-        <!-- 右键菜单 -->
         <div class="context-item" @click="editSite">✏️ 编辑此网站</div>
-
-        <!-- 添加/编辑 网站弹窗 -->
-        <div v-if="showAddSiteModal" class="auth-overlay" @click="showAddSiteModal = false">
-          <div class="auth-modal edit-modal" @click.stop>
-            <button class="close-btn" @click="showAddSiteModal = false">×</button>
-            <!-- ✨ 根据状态动态显示标题 -->
-            <h2 class="modal-title">{{ isEditingSite ? '✏️ 编辑网站' : '✨ 推荐新网站' }}</h2>
-            <div class="vertical-layout">
-              <input type="text" v-model="newSiteForm.name" placeholder="网站名称" class="auth-input">
-              <input type="text" v-model="newSiteForm.url" placeholder="网站链接" class="auth-input">
-              <select v-model="newSiteForm.category_id" class="auth-input custom-select">
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
-              <!-- ✨ 根据状态动态显示按钮文字 -->
-              <button class="btn-submit" @click="submitNewSite">{{ isEditingSite ? '保存修改' : '立即添加' }}</button>
-            </div>
-          </div>
-        </div>
+        
         <div class="context-item danger" @click="deleteSite">🗑️ 移除此网站</div>
       </div>
     </transition>
 <!-- ✨ 常用搜索设置弹窗 -->
-    <!-- ================= 搜索引擎设置弹窗 ================= -->
     <!-- ================= 搜索引擎设置弹窗 ================= -->
     <div v-if="showEngineModal" class="auth-overlay" @click="showEngineModal = false">
       <div class="auth-modal engine-modal" @click.stop>
@@ -633,7 +633,46 @@
 
       </div>
     </div>
+<Transition name="modal">
+  <div v-if="showCategoryModal" class="auth-overlay" @click="showCategoryModal = false">
+    <div class="auth-modal" @click.stop>
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">{{ editingCategory.id ? '✏️ 编辑分类' : '✨ 新建分类' }}</h3>
+        <button class="close-btn" @click="showCategoryModal = false">×</button>
+      </div>
+      
+      <div class="vertical-layout">
+        <div class="form-group">
+          <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">分类名称</label>
+          <input v-model="editingCategory.name" type="text" class="auth-input" placeholder="例如：前端开发" />
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; margin-top: 25px;">
+        <button v-if="editingCategory.id" class="btn-danger" @click="deleteCategory">删除分类</button>
+        <div style="display: flex; gap: 10px; margin-left: auto;">
+          <button class="btn-cancel" @click="showCategoryModal = false">取消</button>
+          <button class="btn-primary" @click="saveCategory">保存修改</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Transition>
     <!-- ================= 弹窗结束 ================= -->
+     <Transition name="fade">
+      <div v-if="catContextMenu.show" 
+           class="custom-context-menu"
+           :style="{ top: catContextMenu.y + 'px', left: catContextMenu.x + 'px' }"
+           @click.stop>
+        <div class="context-menu-item" @click="handleEditFromMenu">
+          ✏️ 编辑分类
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" @click="handleDeleteFromMenu">
+          🗑️ 删除分类
+        </div>
+      </div>
+    </Transition>
 </template>
 
 <script setup>
@@ -642,6 +681,58 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch} from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 
+
+// 确保这两行存在
+const showCategoryModal = ref(false); // 控制弹窗显示/隐藏
+const editingCategory = ref({ id: null, name: '', icon: '' }); // 存储当前正在编辑的分类
+
+// 在 script setup 中添加这个函数
+const openCategoryModal = (cat) => {
+  console.log("点击了齿轮，准备打开弹窗", cat); // 调试用
+  if (cat) {
+    // 如果传了分类，就是编辑模式
+    editingCategory.value = { ...cat }; 
+  } else {
+    // 如果没传，就是新建模式
+    editingCategory.value = { id: null, name: '', icon: '🌟' };
+  }
+  showCategoryModal.value = true; // 🌟 关键：这里设为 true 弹窗才会显示
+};
+
+// ================= 分类智能切换与横向拖拽逻辑 =================
+const scrollTrack = ref(null);
+let isDragging = false;
+let startX = 0;
+let scrollLeft = 0;
+
+// ✨ 核心：只有在没有拖拽的情况下，鼠标碰到分类才直接切换！
+const hoverCategory = (categoryId) => {
+  if (!isDragging) {
+    activeCategoryId.value = categoryId;
+  }
+};
+
+// 鼠标按下：开始拖拽
+const startDrag = (e) => {
+  if (!scrollTrack.value) return;
+  isDragging = true;
+  startX = e.pageX - scrollTrack.value.offsetLeft;
+  scrollLeft = scrollTrack.value.scrollLeft;
+};
+
+// 鼠标松开：停止拖拽
+const stopDrag = () => {
+  isDragging = false;
+};
+
+// 鼠标移动：实时滑动滑轨
+const onDrag = (e) => {
+  if (!isDragging || !scrollTrack.value) return;
+  e.preventDefault();
+  const x = e.pageX - scrollTrack.value.offsetLeft;
+  const walk = (x - startX) * 1.5; 
+  scrollTrack.value.scrollLeft = scrollLeft - walk;
+};
 // ================= 全局请求拦截器：无感刷新 Token =================
 axios.interceptors.response.use(
   (response) => {
@@ -685,6 +776,14 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ================= 分类右键小窗口逻辑 =================
+const catContextMenu = ref({
+  show: false,
+  x: 0,
+  y: 0,
+  category: null
+});
 
 const router = useRouter();
 
@@ -771,28 +870,34 @@ const openAddSiteModal = () => {
   showAddSiteModal.value = true;
 };
 
-// ✨ 新增：打开编辑弹窗的逻辑 (从右键菜单触发)
-const editSite = () => {
-  if (!contextMenu.value.site) return;
-  isEditingSite.value = true;
-  // 深拷贝当前网站的数据到表单中
-  newSiteForm.value = { ...contextMenu.value.site };
-  showAddSiteModal.value = true;
-  closeContextMenu();
-};
-
-const submitNewSite = async () => {
+// ================= 修复：网站保存与更新逻辑 =================
+const submitNewSite = () => {
   if (!newSiteForm.value.name.trim() || !newSiteForm.value.url.trim()) return alert("请填写完整！");
-  const newSite = {
-    id: Date.now(),
-    name: newSiteForm.value.name,
-    url: newSiteForm.value.url.startsWith('http') ? newSiteForm.value.url : 'https://' + newSiteForm.value.url,
-    category_id: newSiteForm.value.category_id,
-    clicks: 0
-  };
-  websites.value.unshift(newSite);
-  showAddSiteModal.value = false;
-  activeCategoryId.value = newSite.category_id;
+  
+  let finalUrl = newSiteForm.value.url.trim();
+  if (!finalUrl.startsWith('http')) finalUrl = 'https://' + finalUrl;
+
+  if (isEditingSite.value) {
+    // ✨ 编辑模式：找到原来的网站数据并覆盖
+    const index = websites.value.findIndex(s => s.id === newSiteForm.value.id);
+    if (index !== -1) {
+      websites.value[index] = { ...newSiteForm.value, url: finalUrl };
+    }
+    if(typeof showToast === 'function') showToast('网站修改已成功保存！', 'success');
+  } else {
+    // ✨ 新增模式：创建一个全新的网站
+    const newSite = {
+      id: Date.now(),
+      name: newSiteForm.value.name,
+      url: finalUrl,
+      category_id: newSiteForm.value.category_id,
+      clicks: 0
+    };
+    websites.value.unshift(newSite);
+    activeCategoryId.value = newSite.category_id; // 自动跳转到对应分类
+    if(typeof showToast === 'function') showToast('新网站已添加！', 'success');
+  }
+  showAddSiteModal.value = false; // ✨ 核心：保存完立刻关闭大弹窗
 };
 
 const submitNewCategory = () => {
@@ -803,6 +908,67 @@ const submitNewCategory = () => {
   professionData[currentProfession.value].categories.push(newCat);
   showAddCategoryModal.value = false;
   newCategoryName.value = '';
+};
+
+const closeCategoryModal = () => {
+  showCategoryModal.value = false;
+};
+
+// 2. 保存分类 (新建 / 修改)
+const saveCategory = () => {
+  if (!editingCategory.value.name.trim()) return alert('分类名称不能为空！');
+  
+  const targetArr = professionData[currentProfession.value].categories;
+  if (editingCategory.value.id) {
+    // 编辑现有分类
+    const idx = targetArr.findIndex(c => c.id === editingCategory.value.id);
+    if (idx !== -1) targetArr[idx] = { ...editingCategory.value };
+  } else {
+    // 新增分类
+    targetArr.push({ 
+      id: Date.now(), 
+      name: editingCategory.value.name, 
+      //icon: editingCategory.value.icon || '📁'
+    });
+  }
+  closeCategoryModal();
+};
+
+// 3. 删除分类
+const deleteCategory = () => {
+  if(confirm('确定要删除这个分类吗？')) {
+    const targetArr = professionData[currentProfession.value].categories;
+    professionData[currentProfession.value].categories = targetArr.filter(c => c.id !== editingCategory.value.id);
+    closeCategoryModal();
+    activeCategoryId.value = 'all'; // 删除后切回全部分类
+  }
+};
+
+// ================= 原生拖拽排序逻辑 =================
+const draggedCategory = ref(null);
+
+const onCategoryDragStart = (event, cat) => {
+  draggedCategory.value = cat;
+  event.dataTransfer.effectAllowed = 'move';
+  // 拖起时加个半透明特效
+  setTimeout(() => { event.target.classList.add('dragging-tab'); }, 0);
+};
+
+const onCategoryDrop = (event, targetCat) => {
+  event.target.classList.remove('dragging-tab');
+  // 如果没拖动或者原地放下，直接返回
+  if (!draggedCategory.value || draggedCategory.value.id === targetCat.id) return;
+
+  const targetArr = professionData[currentProfession.value].categories;
+  const fromIndex = targetArr.findIndex(c => c.id === draggedCategory.value.id);
+  const toIndex = targetArr.findIndex(c => c.id === targetCat.id);
+
+  if (fromIndex !== -1 && toIndex !== -1) {
+    // ✨ 核心：纯数组操作，抽出被拖拽项，插入到新位置
+    const [movedItem] = targetArr.splice(fromIndex, 1);
+    targetArr.splice(toIndex, 0, movedItem);
+  }
+  draggedCategory.value = null; // 重置
 };
 // ================= 智能 Logo 获取与容错逻辑 (多级瀑布流版) =================
 
@@ -928,7 +1094,7 @@ const phoneNumber = ref('');
 const verifyCode = ref('');
 
 const switchTo = (stage) => { authStage.value = stage; };
-const handleGithubLogin = () => { window.location.href = AUTH_URLS.GITHUB; };
+const handleGithubLogin = () => { window.location.href = 'http://127.0.0.1:5000/api/login/github'; };
 
 const handleMobileLogin = async () => {
   if (!phoneNumber.value || !verifyCode.value) return alert("请输入手机号和验证码");
@@ -1016,7 +1182,7 @@ const handleAvatarUpload = (event) => {
   if (!file) return;
 
   // 校验格式
-  if (!file.type.startsWith('image/')) {
+  if (!file.te.startsWith('image/')) {
     return alert('只能上传图片文件哦！');
   }
   
@@ -1439,16 +1605,6 @@ const useHistory = (keyword) => {
   doSearch();
 };
 
-// 6. 动态计算本地网站建议 (匹配名称或域名)
-const localSuggestions = computed(() => {
-  const keyword = searchQuery.value.trim().toLowerCase();
-  if (!keyword) return [];
-  return websites.value.filter(site => 
-    site.name.toLowerCase().includes(keyword) || 
-    (site.url && site.url.toLowerCase().includes(keyword))
-  ).slice(0, 5); // 最多只显示 5 个直达网站，避免列表过长
-});
-
 // 7. 【关键修改】：替换你原来的 doSearch 函数！
 // 让它在跳走前，顺便保存一下搜索词
 const doSearch = () => {
@@ -1511,7 +1667,53 @@ const handleBookmarkImport = (event) => {
 // ================= 搜索功能 =================
 // ================= 搜索功能与搜索引擎配置 =================
 const searchQuery = ref('');
+const localSuggestions = ref([]);
 
+// ✨ 监听搜索框输入，使用原生 fetch 绕过报错直连引擎！
+watch(searchQuery, async (newQuery) => {
+  const query = newQuery.trim();
+  
+  if (!query) {
+    localSuggestions.value = [];
+    return;
+  }
+
+  try {
+    // 🚀 直接向 Docker 里的 Meilisearch 发送标准的 HTTP 请求
+/// Home.vue
+const response = await fetch('http://127.0.0.1:7700/indexes/websites/search', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    // 检查一下：你的 Bearer 后面有没有空格？必须有空格！
+    'Authorization': 'Bearer pronav_super_secret_master_key'
+  },
+  body: JSON.stringify({
+    q: query.trim(),// 🚀 只传最基础的 q
+    limit: 6,
+  // 🚀 加回这一行，让搜索关键词在结果里高亮（变色）
+  attributesToHighlight: ['name', 'url']
+  })
+});
+
+searchRes = await response.json();
+console.log("看到这个说明 200 了！结果是:", searchRes);
+
+if (searchRes && searchRes.hits) {
+  // 核心：把结果映射到你的建议列表里
+  localSuggestions.value = searchRes.hits;
+}
+
+    const searchRes = await response.json();
+    
+    // 如果返回了结果，就赋值给下拉列表
+    if (searchRes && searchRes.hits) {
+      localSuggestions.value = searchRes.hits;
+    }
+  } catch (error) {
+    console.error("搜索服务异常:", error);
+  }
+});
 // 1. 所有引擎的完整数据字典 (含名称和真实搜索跳转链接)
 const allEngines = {
   '360': { name: '360', url: 'https://www.so.com/s?q=' },
@@ -1603,29 +1805,50 @@ const sendMessage = async () => {
 };
 const scrollToBottom = () => { nextTick(() => { if (chatWindow.value) chatWindow.value.scrollTop = chatWindow.value.scrollHeight }) };
 
-// ================= 右键菜单 (Context Menu) =================
+// ================= 右键菜单 (Context Menu) 完整逻辑 =================
 const contextMenu = ref({ show: false, x: 0, y: 0, site: null });
 
+// ✨ 1. 终极通用关闭函数：瞬间消灭所有悬浮菜单
+const closeAllDropdowns = () => {
+  if (contextMenu.value) contextMenu.value.show = false;
+  if (catContextMenu.value) catContextMenu.value.show = false;
+};
+
+// ✨ 2. 唤醒网站专属的右键菜单
 const openContextMenu = (e, site) => {
+  closeAllDropdowns(); // 互斥机制：弹窗前，先强制清理屏幕上的其他菜单！
   contextMenu.value = { show: true, x: e.clientX, y: e.clientY, site };
 };
 
-const closeContextMenu = () => { contextMenu.value.show = false; };
-
-// ✨ 新增一个通用关闭函数
-const closeAllDropdowns = () => {
-  closeContextMenu();
+// 3. 动作：编辑此网站
+const editSite = () => {
+  if (!contextMenu.value.site) return;
+  isEditingSite.value = true;
+  newSiteForm.value = { ...contextMenu.value.site }; // 拷入该网站的数据
+  showAddSiteModal.value = true; // 弹出大弹窗
+  closeAllDropdowns(); // 强制收回右键小菜单
 };
+
+// 4. 动作：删除此网站
 const deleteSite = () => {
   if (!contextMenu.value.site) return;
   const siteName = contextMenu.value.site.name;
   websites.value = websites.value.filter(s => s.id !== contextMenu.value.site.id);
-  // 这里假设您已经替换了我们上一轮聊过的 showToast
-  if(typeof showToast === 'function') showToast(`已删除 [${siteName}]`, 'info'); 
-  else alert(`已删除 [${siteName}]`);
-  closeContextMenu();
+  if (typeof showToast === 'function') showToast(`已删除 [${siteName}]`, 'info');
+  closeAllDropdowns(); // 强制收回右键小菜单
 };
 
+// 3. 分类右键菜单动作
+const handleEditFromMenu = () => {
+  openCategoryModal(catContextMenu.value.category); 
+  closeAllDropdowns(); // ✨ 强制收回右键菜单！
+};
+
+const handleDeleteFromMenu = () => {
+  editingCategory.value = catContextMenu.value.category;
+  deleteCategory(); 
+  closeAllDropdowns(); // ✨ 强制收回右键菜单！
+};
 // ================= 🎨 终极外观引擎 (支持图片、颜色、渐变) =================
 const showBgModal = ref(false);
 const customWallpaper = ref('');
@@ -1733,6 +1956,56 @@ const dynamicBgStyle = computed(() => {
 // 1. 改用数组，Vue 响应式最稳定！
 const favoriteSiteIds = ref([]); 
 
+// ================= 藏宝图彩蛋逻辑 (随机刷新版) =================
+// 独立奖池：保证点击某个小岛时，其他小岛不会乱跳
+const currentTreasurePool = ref([]);
+
+// 🎯 核心玩法：随机抽取 3 个未收藏的网站
+const refreshTreasures = () => {
+  const sourceList = typeof websites !== 'undefined' ? websites.value : (typeof allWebsites !== 'undefined' ? allWebsites.value : []);
+  if (!sourceList || sourceList.length === 0) return;
+
+  // 筛出还没被收藏的网站
+  const unFavorited = sourceList.filter(site => !favoriteSiteIds.value.includes(site.id));
+
+  // ✨ 将数组随机打乱 (经典的 Fisher-Yates 洗牌平替法)
+  const shuffled = [...unFavorited].sort(() => 0.5 - Math.random());
+  
+  // 截取前 3 个放入当前奖池
+  currentTreasurePool.value = shuffled.slice(0, 3);
+};
+
+// 监听：当进入“我的收藏”时，如果奖池是空的，就刷一批出来
+watch(() => activeCategoryId.value, (newCat) => {
+  if (newCat === 'favorites' && currentTreasurePool.value.length === 0) {
+    refreshTreasures();
+  }
+});
+
+// 给抽取出的宝藏按顺序分配绝美图标
+// 给抽取出的宝藏分配真实数据
+const treasureIslands = computed(() => {
+  // ✨ 直接返回抽取的网站数据，不再强行塞入 Emoji
+  return currentTreasurePool.value;
+});
+
+// 领取宝藏
+const claimTreasure = async (island) => {
+  console.log("挖掘宝藏:", island.name);
+
+  // ✨ 细节优化：点击后立刻从小岛列表中移除它，制造“被挖走”的视觉效果
+  currentTreasurePool.value = currentTreasurePool.value.filter(s => s.id !== island.id);
+
+  if (typeof toggleFavorite === 'function') {
+    await toggleFavorite(island); // 调用全局收藏，瞬间响应！
+  }
+
+  // ✨ 彩蛋中的彩蛋：如果 3 个小岛都被你挖空了，延迟 0.5 秒自动再刷一批新的出来！
+  if (currentTreasurePool.value.length === 0) {
+    setTimeout(() => { refreshTreasures(); }, 500); 
+  }
+};
+
 // 2. 获取收藏列表
 const fetchFavorites = async () => {
   if (!isLoggedIn.value) {
@@ -1750,32 +2023,55 @@ const fetchFavorites = async () => {
   }
 };
 
-// 3. 切换收藏状态
+// ================= 切换收藏状态 (极致丝滑版) =================
 const toggleFavorite = async (site) => {
-  if (!isLoggedIn.value) {
-    return alert("请先登录后才能收藏哦！");
+  if (!site || !site.id) return;
+
+  // 1. 判断当前是不是已经被收藏了
+  const index = favoriteSiteIds.value.indexOf(site.id);
+  const isCurrentlyFavorited = index !== -1;
+
+  // ✨ 2. 乐观更新魔法：不管后端同不同意，前端立刻做出反应！
+  if (isCurrentlyFavorited) {
+    // 瞬间取消收藏：从前端数组中拔掉它，卡片立马消失/星星立马变空！
+    favoriteSiteIds.value.splice(index, 1);
+    console.log("前端已瞬间取消收藏:", site.name);
+  } else {
+    // 瞬间加入收藏
+    favoriteSiteIds.value.push(site.id);
+    console.log("前端已瞬间加入收藏:", site.name);
   }
 
+  // 3. 静默去跟后端同步数据
   try {
-    const token = localStorage.getItem('access_token');
-    const res = await axios.post('http://127.0.0.1:5000/api/favorites', 
-      { website_id: site.id },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    // 这里是你原本发给后端的 API 请求代码
+    // 比如：await fetch('/api/favorites/toggle', { ... }) 
+    // 👇 请确保下面这行是你真实的后端接口请求（如果没有，可以先注释掉）
+    
+    /* const response = await fetch('/api/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_id: site.id })
+    });
+    if (!response.ok) throw new Error("后端同步失败");
+    */
 
-    if (res.data.status === 'added') {
-      favoriteSiteIds.value.push(site.id); // 数组新增
-      if (typeof showToast === 'function') showToast('⭐ 收藏成功', 'success');
-    } else {
-      // 数组删除
-      favoriteSiteIds.value = favoriteSiteIds.value.filter(id => id !== site.id); 
-      if (typeof showToast === 'function') showToast('已取消收藏', 'info');
-    }
+    // 可以在这里加个成功的小提示（可选）
+    showToast(isCurrentlyFavorited ? '已取消收藏' : '⭐ 收藏成功');
+
   } catch (error) {
-    console.error('操作收藏失败:', error);
+    console.warn("后端同步出错了，但前端体验依然丝滑！", error);
+    
+    // 🛡️ 兜底机制：如果后端真的彻底挂了，为了保证数据不乱，再悄悄把状态改回去
+    // 如果你不需要这么严谨，这段 catch 里的代码甚至可以不写。
+    if (isCurrentlyFavorited) {
+      favoriteSiteIds.value.push(site.id); // 还原回收藏状态
+    } else {
+      const revertIdx = favoriteSiteIds.value.indexOf(site.id);
+      if (revertIdx !== -1) favoriteSiteIds.value.splice(revertIdx, 1); // 还原回未收藏
+    }
   }
 };
-
 // 4. 动态计算收藏列表
 const favoritedSitesList = computed(() => {
   // 使用 .includes 而不是 .has
@@ -1804,8 +2100,33 @@ watch(() => router.currentRoute.value.path, () => {
 });
 
 onMounted(async () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const accessToken = urlParams.get('access_token');
+  const refreshToken = urlParams.get('refresh_token');
+  const username = urlParams.get('username');
+  const avatar = urlParams.get('avatar');
+
+  if (accessToken && refreshToken) {
+    // 把后端签发的钥匙存进保险箱
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    localStorage.setItem('is_logged_in', 'true');
+    
+    localStorage.setItem('user_info', JSON.stringify({
+      username: username || 'GitHub 用户',
+      avatar: avatar || ''
+    }));
+
+    // ✨ 核心清理：清除 URL 里的 token 参数，防止一刷新又走一遍，保护隐私
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // 提示用户并关闭弹窗
+    if (typeof showToast === 'function') showToast('GitHub 授权登录成功！', 'success');
+    showAuthModal.value = false;
+  }
   refreshStatus();
   // 1. 读取所有缓存 (保持不变)
+// 1. 读取所有缓存 (保持不变)
   if (localStorage.getItem('dark_mode') === 'true') isDarkMode.value = true;
   const savedBg = localStorage.getItem('custom_wallpaper');
   if (savedBg) customWallpaper.value = savedBg;
@@ -1814,8 +2135,10 @@ onMounted(async () => {
   const savedEngines = JSON.parse(localStorage.getItem('selected_engines'));
   if (savedEngines && savedEngines.length > 0) selectedEngines.value = savedEngines;
 
-  // 2. 绑定全局快捷键
+  // 2. 绑定全局快捷键与全局点击
+// 2. 绑定全局快捷键与全局鼠标点击（必须绑定，否则菜单不消失）
   document.addEventListener('keydown', handleGlobalKeydown);
+  document.addEventListener('click', closeAllDropdowns);
 
   // 3. 恢复本地登录状态
   const savedUser = localStorage.getItem('user_info');
@@ -1845,6 +2168,8 @@ onMounted(async () => {
       isLoading.value = false; 
     }, 300);
   }
+
+  
 });
 onUnmounted(() => {
   if (pollingTimer) clearInterval(pollingTimer);
@@ -1868,15 +2193,16 @@ onUnmounted(() => {
   --text-muted: #64748b;   
   --border-light: #e2e8f0; 
 }
-/* 沉浸式壁纸 */
+/* 默认纯净背景 (未登录或未设置壁纸时的初始状态) */
 .layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-image: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2070&auto=format&fit=crop');
+  background-color: #f8fafc; /* 清爽护眼的淡灰白底色 */
+  background-image: none;    /* 彻底移除默认的彩色背景图 */
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* ✨ 关键：背景图固定不动 */
+  background-attachment: fixed;
 }
 .layout.dark-theme {
   /* 使用极深蓝黑（非死黑），这样毛玻璃透出的质感会更高级 */
@@ -2001,9 +2327,9 @@ onUnmounted(() => {
 .dropdown-menu { 
   position: absolute; 
   top: 100%; 
-  right: 0; 
+  right: 0; /* 右对齐，防止撑出屏幕 */
   margin-top: 12px; 
-  background: rgba(255, 255, 255, 0.7); /* 统一毛玻璃质感 */
+  background: rgba(255, 255, 255, 0.7); 
   backdrop-filter: blur(20px); 
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.6); 
@@ -2015,7 +2341,8 @@ onUnmounted(() => {
   transform: translateY(-10px); 
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
   z-index: 100; 
-  min-width: 120px;
+  min-width: 160px; /* ✨ 关键：保证能放下“导入浏览器书签”几个字 */
+  text-align: left; /* 菜单里的文字靠左对齐更好看 */
 }
 
 /* 悬浮时平滑展开 */
@@ -2087,11 +2414,34 @@ onUnmounted(() => {
 .search-btn-oval { background: var(--primary-bright); color: #fff; border: none; border-radius: 30px; padding: 10px 28px; cursor: pointer; font-weight: 600; letter-spacing: 1px; transition: 0.3s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); margin-left: 10px; }
 
 /* 分类 Tabs */
-.category-tabs-wrapper { display: flex; gap: 16px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
-.nav-tab-box { cursor: pointer; font-size: 14px; font-weight: 500; padding: 8px 20px; border-radius: 12px; transition: 0.3s; text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
+.category-tabs-wrapper { 
+  display: flex; 
+  gap: 12px; /* 把间距稍微调小一点，显得更紧凑精致 */
+  justify-content: center; /* 确保居中 */
+  margin: 0 auto 25px auto; 
+  flex-wrap: wrap; 
+  max-width: 900px; /* 限制最大宽度，防止在大屏上被拉得太散 */
+}
+.nav-tab-box {
+  cursor: pointer;
+  /* ✨ 核心修改：减小字号和内边距 */
+  font-size: 13px;       /* 从 14px 降到 13px */
+  padding: 6px 14px;     /* 从 8px 20px 缩减到 6px 14px */
+  
+  display: flex;         /* 确保图标和文字对齐 */
+  align-items: center;
+  gap: 5px;              /* 缩小图标和文字的间距 */
+  border-radius: 10px;   /* 圆角也相应调小一点点，更协调 */
+  transition: 0.3s;
+  
+  /* 保持原有的文字投影或背景逻辑 */
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+  white-space: nowrap;   /* 防止文字换行 */
+}
 .layout.dark-theme .nav-tab-box {
   color: var(--text-muted);
   font-weight: 400; /* 未选中态保持轻盈 */
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .layout.dark-theme .nav-tab-box.active {
@@ -2337,6 +2687,10 @@ onUnmounted(() => {
   margin: 0 auto; /* ✨ 关键修复：让网格在父容器中水平居中 */
   gap: 1rem;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  min-height: calc(100vh - 200px); 
+  
+  /* 确保当卡片很少时，它们依然从最上方开始整齐排列，而不会垂直居中乱跑 */
+  align-content: flex-start;
 }
 
 /* 平板端适配 (768px - 1024px) */
@@ -2893,6 +3247,7 @@ textarea.inline-input { resize: none; line-height: 1.5; }
 /* 1. 给根基注入灵魂：确保所有后代元素默认继承当前主题色 */
 .layout {
   color: var(--text-main);
+  overflow-x: hidden;
 }
 
 /* 2. 赋予页面所有常见标签“丝滑变色”的超能力 */
@@ -3346,5 +3701,580 @@ h1, h2, h3, h4, p, span, a, div, button, input, textarea, select {
 .fade-slide-down-leave-to {
   opacity: 0;
   transform: translateY(-15px) scale(0.98);
+}
+
+/* ================= 丝滑网格过渡动画 (TransitionGroup) ================= */
+.site-grid {
+  position: relative; /* 确保子元素 absolute 定位时不乱跑 */
+}
+/* 高亮样式：Meilisearch 默认会给命中的词加 <em> 标签 */
+:deep(em) {
+  font-style: normal;
+  color: #3b82f6; /* 经典的品牌蓝 */
+  font-weight: bold;
+  background-color: rgba(59, 130, 246, 0.1);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.sugg-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* =========================================
+   🌟 场景 1 & 2: 卡片网格 (Fade + Scale + 交错淡入)
+   ========================================= */
+
+/* 1. 基础过渡设置与交错延迟 */
+.grid-move, /* 处理分类切换时的平滑位移（Vue 独有魔法） */
+.grid-enter-active,
+.grid-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 🚀 交错淡入核心：利用模板里绑定的 --i 变量，索引越大的卡片动画越晚执行 */
+.grid-enter-active {
+  transition-delay: calc(var(--i) * 30ms); 
+}
+
+/* 2. 进入前和离开后的状态 (Fade + Scale) */
+.grid-enter-from,
+.grid-leave-to {
+  opacity: 0;
+  transform: scale(0.85); /* 初始缩小一点点 */
+}
+
+/* 3. 关键补丁：离开的元素需要脱离文档流，否则后面的卡片无法顺滑补位 */
+.grid-leave-active {
+  position: absolute; 
+}
+
+
+/* =========================================
+   🌟 场景 3: 模态框 (中心放大弹出)
+   ========================================= */
+
+/* 背景遮罩的淡入淡出 */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+/* 内容面板的弹性放大过渡 */
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 带一点Q弹的曲线 */
+}
+
+/* 初始状态 */
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+/* 内容面板初始状态：缩小 */
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
+  transform: scale(0.5);
+}
+
+
+/* =========================================
+   🌟 场景 4: 通知消息 (右上角滑入)
+   ========================================= */
+
+/* 固定右上角容器 */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* 吐司通知的过渡属性 */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* 滑入时带一点回弹效果 */
+}
+
+/* 进场：从右侧屏幕外滑入 */
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(120%); 
+}
+
+/* 退场：向上飘走并淡出（比向右退场更优雅） */
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+/* ================= 极简丝滑网格过渡 ================= */
+/* 1. 基础过渡：速度极快，曲线柔和 */
+.smooth-grid-move,
+.smooth-grid-enter-active,
+.smooth-grid-leave-active {
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 2. 进入前/离开后：只做透明度和微微下沉 10px 的处理，不做缩放 */
+.smooth-grid-enter-from,
+.smooth-grid-leave-to {
+  opacity: 0;
+  transform: translateY(10px); 
+}
+
+/* 3. 让离开的元素瞬间脱离排版，新元素无缝顶上 */
+.smooth-grid-leave-active {
+  position: absolute;
+  /* 离开时稍微加快一点，防止重叠残留 */
+  transition-duration: 0.15s; 
+}
+/* ================= 进阶丝滑过渡 (Pro-Smooth) ================= */
+
+/* 1. 处理位置移动：当其他卡片挪位时，平滑滑过去 */
+.pro-smooth-move {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* 2. 进入动画：渐显 + 微微向上滑动 15px */
+.pro-smooth-enter-active {
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.pro-smooth-enter-from {
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+/* 3. 离开动画：这是关键！不要位移，只做原地淡出，且时间减半 */
+.pro-smooth-leave-active {
+  transition: opacity 0.2s ease;
+  /* 强制原地淡出，不给它乱跑的机会 */
+  position: absolute; 
+  pointer-events: none;
+}
+
+.pro-smooth-leave-to {
+  opacity: 0;
+}
+/* ================= 分类标签扩展样式 ================= */
+.nav-tab-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  /* 允许拖拽的手型 */
+  cursor: grab; 
+}
+
+.nav-tab-box:active {
+  cursor: grabbing;
+}
+
+.cat-icon {
+  font-size: 14px;       /* 缩小 Emoji 的视觉大小 */
+  line-height: 1;
+  display: inline-block;
+  transform: translateY(-1px); /* 微调位置，让图标和文字视觉居中 */
+}
+
+/* 拖拽时的幽灵半透明状态 */
+.dragging-tab {
+  opacity: 0.4;
+  border: 1px dashed #3b82f6;
+}
+
+/* 补充你代码结尾的弹窗按钮样式 */
+.modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+.action-right { display: flex; gap: 10px; margin-left: auto; }
+.btn-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.btn-danger:hover { background: #ef4444; color: white; }
+.btn-cancel { background: transparent; border: 1px solid var(--border-light); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.btn-save { background: #3b82f6; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+.btn-save:hover { background: #2563eb; transform: translateY(-2px); }
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* 🚀 确保这个数值足够大 */
+  backdrop-filter: blur(4px); /* 增加一点模糊感显得更高级 */
+}
+
+.modal-content {
+  background: var(--bg-card); /* 适配你的深色模式变量 */
+  padding: 24px;
+  border-radius: 16px;
+  width: 350px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+/* ================= 分类齿轮与模态框按钮样式 ================= */
+.nav-tab-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+/* 神奇的齿轮按钮：平时隐藏，悬浮浮现 */
+.cat-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transform: scale(0.5) rotate(-90deg);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0;
+  color: var(--text-muted);
+}
+
+.nav-tab-box:hover .cat-edit-btn {
+  opacity: 1;
+  width: 20px;
+  transform: scale(1) rotate(0deg);
+  margin-left: 4px;
+}
+
+.cat-edit-btn:hover {
+  filter: brightness(1.2);
+  transform: scale(1.2) !important;
+}
+
+/* 弹窗里面的按钮 */
+.modal-actions { display: flex; justify-content: space-between; margin-top: 20px; }
+.action-right { display: flex; gap: 10px; margin-left: auto; }
+.btn-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.btn-danger:hover { background: #ef4444; color: white; }
+.btn-cancel { background: transparent; border: 1px solid var(--border-light); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.add-category-btn {
+  font-size: 12px;       /* 辅助按钮可以更小一点 */
+  padding: 5px 12px;
+  border: 1px dashed var(--border-light);
+  opacity: 0.8;
+}
+/* ================= 藏宝图空状态 ================= */
+.treasure-map-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  margin: 20px auto;
+  width: 100%;
+  max-width: 700px;
+  /* 羊皮纸底色与虚线边框 */
+  background: #fdf8e4; 
+  border: 2px dashed #d4b572;
+  border-radius: 24px;
+  position: relative;
+  /* 用一点内发光制造陈旧感 */
+  box-shadow: inset 0 0 40px rgba(212, 181, 114, 0.3);
+  animation: modalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 适配你的深色模式 */
+.layout.dark-theme .treasure-map-empty {
+  background: rgba(42, 36, 26, 0.8);
+  border-color: #5c4e33;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+}
+
+/* ================= 藏宝图标题与按钮区域 ================= */
+.map-title-row {
+  width: 100%;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  z-index: 2;
+}
+
+.map-title-row span {
+  font-size: 16px;
+  font-weight: bold;
+  color: #8b6b33;
+  letter-spacing: 1px;
+}
+
+.layout.dark-theme .map-title-row span {
+  color: #d4b572;
+}
+
+/* 换一批按钮 */
+.refresh-map-btn {
+  background: rgba(212, 181, 114, 0.2);
+  border: 1px dashed #d4b572;
+  color: #8b6b33;
+  padding: 6px 14px;
+  border-radius: 20px; /* 圆润感 */
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.refresh-map-btn:hover {
+  background: #d4b572;
+  color: #fff;
+  transform: translateY(-2px) rotate(2deg); /* 悬浮时微动感 */
+  box-shadow: 0 4px 10px rgba(212, 181, 114, 0.4);
+}
+
+.layout.dark-theme .refresh-map-btn {
+  background: rgba(92, 78, 51, 0.3);
+  border-color: #5c4e33;
+  color: #d4b572;
+}
+
+.layout.dark-theme .refresh-map-btn:hover {
+  background: #5c4e33;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 160px;
+}
+
+.map-path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  color: #d4b572; /* 航线的颜色 */
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.layout.dark-theme .map-path {
+  color: #5c4e33;
+}
+
+/* 宝藏小岛动画与样式 */
+.treasure-island {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* 海浪般浮动动画 */
+  animation: float-island 3s ease-in-out infinite;
+}
+
+.treasure-island:hover {
+  animation-play-state: paused;
+  transform: translateY(-8px) scale(1.15) !important;
+}
+
+/* ================= 宝藏小岛 Logo 样式 ================= */
+.island-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.3s;
+}
+
+/* 专门针对里面的 img 标签进行美化 */
+.island-icon img {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px; /* 圆角矩形更契合现代 UI，如果想要纯圆可以改成 50% */
+  background-color: #fff;
+  padding: 4px; /* 留出一点白色内边距，像相框一样 */
+  object-fit: contain;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* 加深投影，增强立体感 */
+}
+
+.treasure-island:hover .island-icon img {
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); /* 悬浮时发蓝光 */
+}
+.island-name {
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #5c4e33;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px dashed #d4b572;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.layout.dark-theme .island-name {
+  color: #e4c482;
+  background: rgba(30, 30, 30, 0.9);
+  border-color: #5c4e33;
+}
+
+.add-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  padding: 4px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.treasure-island:hover .add-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 分配三个小岛的具体位置，制造交错感 */
+.island-0 { top: 40px; left: 5%; animation-delay: 0s; }
+.island-1 { top: 80px; left: 45%; animation-delay: 0.5s; }
+.island-2 { top: 10px; left: 80%; animation-delay: 1s; }
+
+/* 浮动关键帧 */
+@keyframes float-island {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+/* ================= 分类右键小窗口样式 ================= */
+.custom-context-menu {
+  position: fixed;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 6px 0;
+  min-width: 130px;
+  z-index: 9999;
+  transform-origin: top left;
+}
+
+.layout.dark-theme .custom-context-menu {
+  background: rgba(40, 40, 40, 0.85);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.context-menu-item {
+  padding: 10px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.context-menu-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.context-menu-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.context-menu-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.06);
+  margin: 4px 0;
+}
+
+.layout.dark-theme .context-menu-divider {
+  background: rgba(255,255,255,0.06);
+}
+
+/* ================= 分类悬浮预览窗样式 ================= */
+.category-hover-tooltip {
+  position: fixed;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+  padding: 12px;
+  width: 170px;
+  z-index: 99999; /* 保证在最上层 */
+  transform: translateX(-50%); /* 中心点对准鼠标 */
+  pointer-events: none; /* ✨ 绝对核心：让鼠标穿透它，完全不影响你的左右拖拽操作 */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+.layout.dark-theme .category-hover-tooltip {
+  background: rgba(40, 40, 40, 0.85);
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.tooltip-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
+
+.layout.dark-theme .tooltip-title {
+  border-bottom-color: rgba(255,255,255,0.1);
+}
+
+.tooltip-site-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tt-site-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tt-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #fff;
+  padding: 1px;
+}
+
+.tt-name {
+  font-size: 13px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tt-more, .tt-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 8px;
 }
 </style>

@@ -12,6 +12,10 @@ import re
 from urllib.parse import urlparse
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, verify_jwt_in_request
 from flask_bcrypt import Bcrypt
+from authlib.integrations.flask_client import OAuth
+import meilisearch
+from flask_apscheduler import APScheduler
+from spider import auto_fetch_hacker_news
 
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
 load_dotenv()
@@ -53,6 +57,38 @@ def is_valid_url(url):
     except ValueError:
         return False
 
+# 1. 连接 Docker 里的引擎
+meili_client = meilisearch.Client('http://127.0.0.1:7700', 'pronav_super_secret_master_key')
+meili_index = meili_client.index('websites')
+
+# 2. 【核心】配置智能排序规则 (建议放在 app 启动处执行一次)
+def setup_search_engine():
+    # 设定可以搜哪些字段
+    meili_index.update_searchable_attributes(['name', 'url'])
+    # 设定排序规则：先看匹配度，再看点击量(clicks)倒序
+    meili_index.update_ranking_rules([
+        "words", "typo", "proximity", "attribute", "sort", "exactness"
+    ])
+    meili_index.update_sortable_attributes(['clicks'])
+
+# 3. 编写一键同步接口 (把 MySQL 数据搬到 Meilisearch)
+@app.route('/api/admin/sync-search', methods=['POST'])
+def sync_search_data():
+    from models import Website # 确保你有这个模型
+    sites = Website.query.all()
+    
+    documents = []
+    for s in sites:
+        documents.append({
+            "id": s.id,
+            "name": s.name,
+            "url": s.url,
+            "clicks": s.clicks or 0
+        })
+    
+    meili_index.add_documents(documents)
+    return jsonify({"message": f"成功同步 {len(documents)} 个网站到搜索引擎！"})
+
 # --- 无感刷新 Token 接口 ---
 @app.route('/api/refresh', methods=['POST', 'OPTIONS'])
 def refresh():
@@ -67,32 +103,50 @@ def refresh():
     new_token = create_access_token(identity=current_user)
     
     return jsonify(access_token=new_token), 200
-# ================= 示例路由：获取所有导航数据 =================
+
 @app.route('/api/nav-data', methods=['GET'])
 def get_nav_data():
-    try:
-        # 1. 查询所有分类，按 sort_order 排序
-        categories = Category.query.order_by(Category.sort_order).all()
-        
-        # 2. 组装成前端需要的嵌套格式
-        result = []
-        for cat in categories:
-            result.append({
-                "id": cat.id,
-                "name": cat.name,
-                "profession_type": cat.profession_type,
-                "sites": [{
-                    "id": site.id,
-                    "category_id": site.category_id,
-                    "name": site.name,
-                    "url": site.url,
-                    "logo_url": site.logo_url,
-                    "clicks": site.clicks
-                } for site in cat.websites]
+    # 直接查库，并按照你的前端所需格式组装
+    categories = Category.query.all()
+    result = []
+    for cat in categories:
+        cat_data = {
+            "id": cat.id,
+            "name": cat.name,
+            "sites": []
+        }
+        # 假设 Category 和 Website 有一对多关联 (backref='category')
+        for site in cat.websites:
+            cat_data["sites"].append({
+                "id": site.id,
+                "category_id": site.category_id,
+                "name": site.name,
+                "url": site.url,
+                "logo_url": site.logo_url,
+                "clicks": site.clicks
             })
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        result.append(cat_data)
+        
+    return jsonify(result), 200
+
+# 配置并启动定时任务
+scheduler = APScheduler()
+scheduler.init_app(app)
+
+# 设定触发器：每天凌晨 3:00 自动执行一次
+@scheduler.task('cron', id='do_hn_spider', hour=3, minute=0)
+def scheduled_spider_task():
+    auto_fetch_hacker_news()
+
+# 启动调度器
+scheduler.start()
+
+# ================= 爬虫手动测试接口 =================
+@app.route('/api/admin/run-spider', methods=['POST'])
+def trigger_spider_manually():
+    # 为了演示直接同步调用。在生产环境中，耗时爬虫建议扔给 Celery 等异步队列
+    auto_fetch_hacker_news(app)
+    return jsonify({"message": "✅ 爬虫执行完毕！快去前端的【审核工作台】看看有没有新货吧！"})
 
 # ================= 1. 模拟数据库 (保持不变) =================
 categories_db = [
@@ -309,6 +363,12 @@ _hotness_cache_time = {}
 
 
 def fetch_online_hotness():
+    global _hotness_cache
+    # 1. 获取当前数据库中所有真实的网站 name (或 ID)
+    current_site_names = {site.name for site in Website.query.all()}
+    
+    # 2. 清理：只保留存在于当前数据库中的网站热度数据
+    _hotness_cache = {name: data for name, data in _hotness_cache.items() if name in current_site_names}
     """从多个公开热榜 API 抓取实时热度，返回 {网站名: 热度分数}"""
     hotness = {}
     hdrs = {
@@ -389,6 +449,7 @@ def fetch_online_hotness():
 
 # ================= 1. 上传/更新配置到云端 =================
 @app.route('/api/user/sync', methods=['POST'])
+@jwt_required()
 def sync_user_settings():
     data = request.json
     username = data.get('username')
@@ -567,6 +628,28 @@ def chat():
         reply = "推荐多看 GitHub 的开源项目，遇到 Bug 直接上 StackOverflow 搜！"
     return jsonify({"reply": reply})
 
+
+# ================= 1. 配置 OAuth =================
+# 注意：在本地测试时，必须允许 HTTP 传输 OAuth token
+os.environ['AUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+oauth = OAuth(app)
+github = oauth.register(
+    name='github',
+    client_id='你的_GITHUB_CLIENT_ID',         # 去 GitHub Developer Settings 获取
+    client_secret='你的_GITHUB_CLIENT_SECRET', # 去 GitHub Developer Settings 获取
+    access_token_url='https://github.com/login/oauth/access_token',
+    authorize_url='https://github.com/login/oauth/authorize',
+    api_base_url='https://api.github.com/',
+    client_kwargs={'scope': 'user:email'},
+)
+
+# ================= 2. 触发登录路由 =================
+@app.route('/api/login/github')
+def login_github():
+    # 生成回调地址，告诉 GitHub 授权完跳回哪里
+    redirect_uri = url_for('github_callback', _external=True)
+    return github.authorize_redirect(redirect_uri)
 # ================= 3. GitHub 回调 (✨ 安全升级版) =================
 @app.route('/api/github/callback', methods=['GET'])
 def github_callback():
@@ -612,6 +695,64 @@ def github_callback():
     print(f"🎉 GitHub 登录成功！用户: {username}")
     return redirect(frontend_url)
 
+
+# 1. 呈递奏章：获取所有待审核的网站
+@app.route('/api/admin/pending-sites', methods=['GET'])
+def get_pending_sites():
+    from models import Website
+    # 只查询 status 为 'pending' 的网站
+    pending_sites = Website.query.filter_by(status='pending').all()
+    
+    data = [{
+        "id": s.id,
+        "name": s.name,
+        "url": s.url,
+        "description": s.description,
+        "source": s.source
+    } for s in pending_sites]
+    
+    return jsonify(data)
+
+@app.route('/api/admin/audit-site/<int:site_id>', methods=['POST'])
+def audit_site(site_id):
+    from models import db, Website
+    site = Website.query.get_or_404(site_id)
+    
+    action = request.json.get('action') # 'approve' 或 'reject'
+    
+    if action == 'approve':
+        # 1. 更新 MySQL 数据库
+        site.status = 'approved'
+        db.session.commit()
+        
+        # 2. ✨ 核心联动：同步推送到 Meilisearch 极速搜索引擎 ✨
+        try:
+            client = meilisearch.Client('http://127.0.0.1:7700', 'pronav_super_secret_master_key')
+            index = client.index('websites')
+            
+            # 组装成搜索引擎需要的格式
+            document = {
+                "id": str(site.id),
+                "name": site.name,
+                "url": site.url,
+                "description": site.description,
+                "clicks": site.clicks or 0
+            }
+            # 推送！
+            index.add_documents([document])
+            print(f"🌍 [引擎同步] 成功将 {site.name} 推送至 Meilisearch!")
+            
+        except Exception as e:
+            print(f"⚠️ [引擎报错] Meilisearch 同步失败: {e}")
+            
+        return jsonify({"message": "已批准上线，并秒级同步至搜索引擎！"})
+        
+    elif action == 'reject':
+        db.session.delete(site)
+        db.session.commit()
+        return jsonify({"message": "已残忍拒绝并销毁！"})
+        
+    return jsonify({"error": "未知操作"}), 400
 # ================= 网站资源 RESTful API =================
 
 # 1. 获取列表 (GET) - 支持分页、分类筛选、搜索
