@@ -16,6 +16,8 @@ from authlib.integrations.flask_client import OAuth
 import meilisearch
 from flask_apscheduler import APScheduler
 from spider import auto_fetch_hacker_news
+from functools import wraps
+from authing import AuthenticationClient
 
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
 load_dotenv()
@@ -70,6 +72,75 @@ def setup_search_engine():
         "words", "typo", "proximity", "attribute", "sort", "exactness"
     ])
     meili_index.update_sortable_attributes(['clicks'])
+
+
+# ================= 1. 配置 Authing 客户端 =================
+# ⚠️ 这里替换为你自己的 Authing 密钥和域名
+AUTHING_APP_ID = '69fdee93f62848c14ce9d3a6'
+AUTHING_APP_SECRET = '381eeae3cd314fb80665a8235a03bc71'
+AUTHING_APP_HOST = 'https://zhihuidh.authing.cn' 
+
+# 初始化认证客户端
+auth_client = AuthenticationClient(
+    app_id=AUTHING_APP_ID,
+    app_secret=AUTHING_APP_SECRET,
+    app_host=AUTHING_APP_HOST
+)
+
+# ================= 2. 编写全局 Token 验证装饰器 =================
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # 1. 检查有没有带请求头
+        auth_header = request.headers.get('Authorization', None)
+        if not auth_header:
+            return jsonify({"error": "未提供 Authorization 凭证"}), 401
+
+        # 2. 检查 Bearer 格式
+        parts = auth_header.split()
+        if parts[0].lower() != 'bearer' or len(parts) != 2:
+            return jsonify({"error": "请求头格式错误，应为 Bearer <token>"}), 401
+
+        token = parts[1]
+
+        try:
+            # 3. 核心：调用 Authing 验证 Token 的合法性和时效性
+            introspection_result = auth_client.introspect_token(token)
+
+            # 4. 检查 active 字段（如果过期或伪造，active 会是 False）
+            if not introspection_result.get('active'):
+                return jsonify({"error": "Token 已失效或过期，请重新登录"}), 401
+
+            # 5. 验证通过！把用户信息挂载到全局变量 g，供后续的接口随意调用
+            g.current_user = introspection_result
+
+        except Exception as e:
+            return jsonify({"error": f"Token 校验失败: {str(e)}"}), 401
+
+        return f(*args, **kwargs)
+    
+    return decorated
+
+
+# ================= 3. 测试接口 =================
+
+# 公开接口（谁都能访问）
+@app.route('/api/public_data', methods=['GET'])
+def public_data():
+    return jsonify({"message": "这是公开数据"})
+
+# 私密接口（带有 @require_auth 的保护盾）
+@app.route('/api/protected/user_profile', methods=['GET'])
+@require_auth
+def protected_profile():
+    # 走到这里，说明 Token 绝对合法，直接从 g 里面拿刚才解析出的用户信息
+    user_data = g.current_user
+    
+    return jsonify({
+        "message": "验证通过，欢迎来到私密领域！",
+        "user_id": user_data.get('sub'),  # Authing 的唯一用户 ID
+        "token_scopes": user_data.get('scope')
+    })
 
 # 3. 编写一键同步接口 (把 MySQL 数据搬到 Meilisearch)
 @app.route('/api/admin/sync-search', methods=['POST'])

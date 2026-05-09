@@ -1,9 +1,8 @@
 <template>
-  <!-- ✨ 修复 1：在 class 和 style 之间加上空格 -->
   <div class="layout" :class="{ 'dark-theme': isDarkMode }" :style="dynamicBgStyle" @click="closeAllDropdowns">
-    
-    <!-- ✨ 修复 2：补上缺失的 <header> 标签 -->
-    <header class="header-block block-shadow">
+
+<div v-show="isFocusMode" class="focus-dark-overlay" :style="focusBgStyle"></div>
+   <header class="header-block block-shadow" style="position: relative; z-index: 10;">
       <div class="header-left">
         <div class="logo">
           <span>🚀 智汇导航</span>
@@ -34,29 +33,33 @@
       </div>
       
       <div class="header-right">
-        <!-- ✨ 个性化背景调色板 -->
         <button class="theme-toggle" @click="showBgModal = true" title="个性化背景">🎨</button>
         <button class="theme-toggle" @click="toggleTheme">{{ isDarkMode ? '☀️' : '🌙' }}</button>
+        <button class="theme-toggle" @click="toggleFocusMode" :title="isFocusMode ? '退回首页' : '专注模式'">
+          {{ isFocusMode ? '↩️' : '✨' }}
+        </button>
         <div v-if="isLoggedIn" class="user-profile-container">
           <img :src="userInfo.avatar" class="header-avatar profile-link" @click="goToProfile" alt="头像" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
         </div>
         <div v-else class="auth-group">
-          <button class="login-btn" @click="goToLogin">登录</button>
-          <button class="btn-primary" @click="showAuthModal = true">免费注册</button>
+          <button class="login-btn btn-primary" @click="goToLogin">登录</button>
         </div>
       </div>
-    </header> <!-- 这个闭合标签现在有对应的开启标签了 -->
-    <div v-if="currentPage === 'home'" class="main-container">
+    </header>
+
+    <div v-if="currentPage === 'home'" class="main-container" style="position: relative; z-index: 10;">
       <main class="content">
         <div class="center-action-area">
-            <div class="category-tabs-wrapper"
+          
+          <div class="category-tabs-wrapper"
+               v-show="!isFocusMode"
                ref="scrollTrack"
                @mousedown="startDrag" 
                @mouseleave="stopDrag" 
                @mouseup="stopDrag" 
                @mousemove="onDrag">
             
-             <div v-if="isLoggedIn" 
+            <div v-if="isLoggedIn" 
                 class="nav-tab-box fav-tab" 
                 :class="{ 'active': activeCategoryId === 'favorites' }" 
                 @click="activeCategoryId = 'favorites'"
@@ -80,21 +83,30 @@
               <div class="nav-tab-box more-btn">
                 更多选项 <span class="arrow-down" style="font-size: 10px; margin-left: 2px;">▼</span>
               </div>
-              
               <div class="dropdown-menu">
-                <div class="dropdown-item" @click="showAddCategoryModal = true">
-                  ➕ 添加新分类
-                </div>
-                <div class="dropdown-item" @click="triggerBookmarkImport">
-                  📥 导入浏览器书签
-                </div>
+                <div class="dropdown-item" @click="showAddCategoryModal = true">➕ 添加新分类</div>
+                <div class="dropdown-item" @click="triggerBookmarkImport">📥 导入浏览器书签</div>
               </div>
             </div>
           </div>
-          <div class="search-section">
-            <!-- ✨ 升级版搜索框 (包含下拉组件) -->
-            <div class="search-box block-shadow" style="position: relative;">
-              <input 
+          
+        <div class="search-section" :class="{ 'focus-center-wrapper': isFocusMode }" style="position: relative;">
+            
+            <div v-show="isFocusMode" class="orbit-center-container">
+  
+  <div v-for="(site, index) in favoriteSites" :key="site.id || site.name" class="orbit-planet" :style="{ '--delay': index, '--total': favoriteSites.length }">
+    
+    <a @click.prevent="handleSiteClick(site)" :href="site.url" class="planet-link" :title="site.name">
+<span v-if="!site.logo_url && !getLogoUrl(site.url)" style="color: var(--text-main); font-weight: bold; font-size: 16px;">
+         {{ site.name ? site.name.charAt(0) : '?' }}
+      </span>
+      <img v-else :src="site.logo_url || getLogoUrl(site.url)" @error="handleIconError($event, site)" class="planet-logo" />
+    </a>
+    
+  </div>
+</div>
+
+<div class="search-box block-shadow" style="position: relative; z-index: 10;" :style="isFocusMode ? 'transform: scale(1.2); box-shadow: 0 0 60px rgba(59,130,246,0.4);' : 'transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);'">              <input 
                 ref="searchInputRef" 
                 :value="searchQuery" 
                 @input="searchQuery = $event.target.value" 
@@ -102,136 +114,96 @@
                 @focus="isSearchFocused = true"
                 @blur="handleSearchBlur"
                 type="text" 
-                :placeholder="`在 ${allEngines[currentEngine]?.name} 中搜索 (Ctrl+K 唤醒)`" 
+                :placeholder="isFocusMode ? '在专注中探索...' : `在 ${allEngines[currentEngine]?.name} 中搜索 (Ctrl+K 唤醒)`" 
               />
               <button @click="doSearch" class="search-btn-oval">搜索</button>
 
-              <!-- ✨ 搜索建议下拉菜单 -->
               <transition name="fade-slide-down">
-                <div v-show="isSearchFocused" class="search-dropdown block-shadow">
-                  
-                  <!-- 情况 1：没有输入时，显示搜索历史 -->
+                <div v-show="isSearchFocused && !isFocusMode" class="search-dropdown block-shadow">
                   <div v-if="!searchQuery && searchHistory.length > 0" class="dropdown-section">
                     <div class="section-header">
                       <span>🕒 最近搜索</span>
                       <span class="clear-btn" @click.stop="clearSearchHistory">清空</span>
                     </div>
                     <div class="history-tags">
-                      <span v-for="item in searchHistory" :key="item" class="history-tag" @click="useHistory(item)">
-                        {{ item }}
-                      </span>
+                      <span v-for="item in searchHistory" :key="item" class="history-tag" @click="useHistory(item)">{{ item }}</span>
                     </div>
                   </div>
 
-                  <!-- 情况 2：有输入时，显示匹配的热门网站 (本地过滤) -->
                   <div v-if="searchQuery && localSuggestions.length > 0" class="dropdown-section">
-                    <div class="section-header">
-                      <span>⚡ 网站直达</span>
-                    </div>
+                    <div class="section-header"><span>⚡ 网站直达</span></div>
                     <div class="suggestion-list">
-                      <div 
-                        v-for="site in localSuggestions" 
-                        :key="'sugg-' + site.id" 
-                        class="suggestion-item" 
-                        @click="handleSiteClick(site)"
-                      >
-                        <img 
-                          :src="site.logo_url || getLogoUrl(site.url)" 
-                          class="sugg-logo" 
-                          @error="handleIconError($event, site)"
-                        >
-                        
+                      <div v-for="site in localSuggestions" :key="'sugg-' + site.id" class="suggestion-item" @click="handleSiteClick(site)">
+                        <img :src="site.logo_url || getLogoUrl(site.url)" class="sugg-logo" @error="handleIconError($event, site)">
                         <div class="sugg-info">
-                          <span class="sugg-name" 
-                                v-html="(site._formatted && site._formatted.name) ? site._formatted.name : site.name">
-                          </span>
+                          <span class="sugg-name" v-html="(site._formatted && site._formatted.name) ? site._formatted.name : site.name"></span>
                           <span class="sugg-url" v-html="site._formatted?.url || site.url"></span>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <!-- 情况 3：引擎搜索引导 (放在底部) -->
                   <div v-if="searchQuery" class="dropdown-section" style="margin-top: 8px; border-top: 1px solid rgba(150,150,150,0.1); padding-top: 8px;">
                     <div class="suggestion-item engine-sugg" @click="doSearch">
                       🔍 在 <span style="font-weight: bold; margin: 0 4px;">{{ allEngines[currentEngine]?.name }}</span> 搜索 "{{ searchQuery }}"
                     </div>
                   </div>
-
                 </div>
               </transition>
             </div>
 
-            <!-- ✨ 完美复刻：搜索框下方的单选按钮区 -->
-            <div class="engine-radio-group">
+            <div class="engine-radio-group" v-show="!isFocusMode">
               <label v-for="engine in activeEnginesList" :key="engine.key" class="engine-radio-label" :class="{ active: currentEngine === engine.key }">
                 <input type="radio" :value="engine.key" v-model="currentEngine" class="hidden-radio">
                 <span class="radio-custom"></span>
                 {{ engine.name }}
               </label>
-              
-              <!-- 设置齿轮图标 -->
-              <!-- 给点击事件加上 .stop 防止冒泡拦截，并打印日志来测试是否真的点到了 -->
-<span class="engine-settings-icon" @click.stop="showEngineModal = true; console.log('齿轮被点击啦！状态变为:', showEngineModal)" title="自定义搜索引擎">⚙️</span>            </div>
+              <span class="engine-settings-icon" @click.stop="showEngineModal = true" title="自定义搜索引擎">⚙️</span>
+            </div>
           </div>
         </div>
-        <!-- 骨架屏占位与真实数据切换 -->
-        <!-- 骨架屏占位与真实数据切换 -->
-        <div v-if="isLoading" class="site-grid">
+
+        <div v-if="isLoading" class="site-grid" v-show="!isFocusMode">
           <div v-for="i in 12" :key="'skeleton-'+i" class="site-card block-shadow skeleton-card">
             <div class="logo-wrapper skeleton-box"></div>
             <div class="skeleton-text skeleton-box"></div>
           </div>
         </div>
-        <div v-else-if="filteredWebsites.length === 0 && activeCategoryId === 'favorites'" class="treasure-map-empty">
+        <div v-else-if="filteredWebsites.length === 0 && activeCategoryId === 'favorites'" class="treasure-map-empty" v-show="!isFocusMode">
           <div class="map-title-row">
             <span>🏴‍☠️ 这些宝藏水手们都在用，一键纳入你的宝库：</span>
-            <button class="refresh-map-btn" @click="refreshTreasures" title="换一批宝藏">
-              🔄 换一批
-            </button>
+            <button class="refresh-map-btn" @click="refreshTreasures" title="换一批宝藏">🔄 换一批</button>
           </div>
-          
           <div class="map-container">
             <svg class="map-path" viewBox="0 0 500 150" preserveAspectRatio="none">
               <path d="M 50,80 Q 150,10 250,80 T 450,50" fill="transparent" stroke="currentColor" stroke-width="2" stroke-dasharray="6 6" />
             </svg>
-            
-            <div v-for="(island, index) in treasureIslands" 
-                 :key="island.id"
-                 class="treasure-island"
-                 :class="'island-' + index"
-                 @click.stop="claimTreasure(island)">
-              <div class="island-icon">
-                <img :src="island.logo_url || getLogoUrl(island.url)" :alt="island.name" @error="handleIconError($event, island)" />
-              </div>
+            <div v-for="(island, index) in treasureIslands" :key="island.id" class="treasure-island" :class="'island-' + index" @click.stop="claimTreasure(island)">
+              <div class="island-icon"><img :src="island.logo_url || getLogoUrl(island.url)" :alt="island.name" @error="handleIconError($event, island)" /></div>
               <div class="island-name">{{ island.name }}</div>
               <div class="add-badge">➕</div>
             </div>
           </div>
         </div>
 
-        <div v-else-if="filteredWebsites.length === 0" class="empty-state-container">
+        <div v-else-if="filteredWebsites.length === 0" class="empty-state-container" v-show="!isFocusMode">
           <div class="empty-icon">📭</div>
           <h3 class="empty-title">哎呀，这里空空如也</h3>
           <p class="empty-desc">没有找到相关网站，不如点击下方添加一个吧？</p>
           <button class="btn-primary" @click="openAddSiteModal">+ 立即添加网站</button>
         </div>
-        <TransitionGroup v-else name="fade-grid" tag="div" class="site-grid">
-          
+        
+        <TransitionGroup v-else name="fade-grid" tag="div" class="site-grid" v-show="!isFocusMode">
           <div v-for="site in filteredWebsites" :key="site.id" class="site-card block-shadow" 
-              draggable="true"
-              @dragstart="onDragStart($event, site)"
-              @dragover="onDragOver($event)"
-              @drop="onDrop($event, site)"
-              @dragend="onDragEnd"
-              @click="handleSiteClick(site)" 
-              @contextmenu.prevent="openContextMenu($event, site)">
-            
+              draggable="true" @dragstart="onDragStart($event, site)" @dragover="onDragOver($event)" @drop="onDrop($event, site)" @dragend="onDragEnd"
+              @click="handleSiteClick(site)" @contextmenu.prevent="openContextMenu($event, site)">
             <div class="favorite-btn" @click.stop="toggleFavorite(site)" :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '加入收藏'">
               <span v-if="favoriteSiteIds.includes(site.id)" class="star-solid">★</span>
               <span v-else class="star-empty">☆</span>
             </div>
-
+            <div v-if="favoriteSites.find(s => s.url === site.url)" class="focus-badge" title="已在专注轨道">
+              🪐
+            </div>
             <div class="logo-wrapper">
               <img class="site-logo" :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
             </div>
@@ -242,11 +214,10 @@
             <div class="logo-wrapper add-icon-wrapper"><span class="plus-icon">+</span></div>
             <span class="site-name">添加网站</span>
           </div>
-
         </TransitionGroup>
       </main>
 
-      <aside class="sidebar-right">
+      <aside class="sidebar-right" v-show="!isFocusMode">
         <div class="sidebar-box trending-box block-shadow">
           <div class="box-header">
             <h3 class="box-title">🔥 今日排行</h3>
@@ -260,32 +231,22 @@
                 <div class="skeleton-text skeleton-box" style="width: 40px; margin-left: auto; height: 14px;"></div>
               </div>
             </div>
-
             <TransitionGroup v-else name="rank-list" tag="div" class="scroll-track">
               <a v-for="site in sortedLeaderboard" :key="site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
                 <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
                 <span class="site-name">{{ site.name }}</span>
                 <span class="click-count">
-                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">
-                      ↑ {{ site.growth_rate }}%
-                    </span>
-                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">
-                      ↓ {{ Math.abs(site.growth_rate) }}%
-                    </span>
+                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">↑ {{ site.growth_rate }}%</span>
+                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">↓ {{ Math.abs(site.growth_rate) }}%</span>
                     <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
                 </span>
               </a>
-              
               <a v-for="site in sortedLeaderboard" :key="'dup-'+site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
                 <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
                 <span class="site-name">{{ site.name }}</span>
                 <span class="click-count">
-                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">
-                      ↑ {{ site.growth_rate }}%
-                    </span>
-                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">
-                      ↓ {{ Math.abs(site.growth_rate) }}%
-                    </span>
+                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">↑ {{ site.growth_rate }}%</span>
+                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">↓ {{ Math.abs(site.growth_rate) }}%</span>
                     <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
                 </span>
               </a>
@@ -294,16 +255,12 @@
         </div>
 
         <div class="widget block-shadow ai-widget">
-          <div class="widget-header">
-            <h3>✨ AI 建议</h3>
-          </div>
+          <div class="widget-header"><h3>✨ AI 建议</h3></div>
           <div class="chat-window" ref="chatWindow">
             <div v-for="(msg, index) in chatMessages" :key="index" :class="['chat-bubble', msg.role]">
               {{ msg.content }}
             </div>
-            <div v-if="isAiThinking" class="chat-bubble ai thinking">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
+            <div v-if="isAiThinking" class="chat-bubble ai thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
           </div>
           <div class="chat-input">
             <input v-model="userInput" @keyup.enter="sendMessage" type="text" placeholder="需要找什么网站？" :disabled="isAiThinking" />
@@ -313,7 +270,6 @@
       </aside>
     </div>
 
-    <!-- ================= 个人中心页 (直接修改版) ================= -->
     <div v-else-if="currentPage === 'profile'" class="profile-fullscreen-wrapper">
       <div class="profile-inner-container">
         <div class="profile-header-section">
@@ -326,32 +282,21 @@
           <div class="info-card-box block-shadow">
             <div class="card-head"><h2>基本信息</h2><span>部分信息可能对其他用户可见</span></div>
             
-            <!-- ✨ 彻底清理后的头像上传行 -->
             <div class="form-row">
               <span class="row-label">个人资料照片</span>
-              
               <div class="row-content avatar-edit-row">
-                <!-- 隐藏的文件输入框 -->
                 <input type="file" accept="image/*" class="hidden-file-input" ref="avatarInputRef" @change="handleAvatarUpload">
-                
-                <!-- 仅保留这个可点击的头像区域 -->
                 <div class="avatar-upload-wrapper" @click="triggerAvatarUpload" title="点击更换头像">
                   <img :src="userInfo.avatar" class="circle-avatar" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
-                  
-                  <!-- 悬浮提示遮罩 -->
-                  <div class="avatar-hover-mask">
-                    <span>更换头像</span>
-                  </div>
+                  <div class="avatar-hover-mask"><span>更换头像</span></div>
                 </div>
-
-                <!-- 💡 右边的文字和按钮已经彻底删除 -->
               </div>
             </div>
             
             <div class="form-row">
               <span class="row-label">名称</span>
               <div class="row-content">
-                <input type="text" v-model="userInfo.username" class="inline-input" placeholder="请输入名称">
+                <input type="text" v-model="userInfo.username" class="inline-input">
               </div>
             </div>
             
@@ -390,14 +335,12 @@
             </div>
           </div>
         </div>
-        <!-- 底部操作区 -->
         <div class="bottom-sticky-area">
           <button class="save-action-btn" @click="saveProfileDirectly">保存所有修改</button>
           <button class="logout-action-btn" @click="handleLogout">退出当前账号</button>
         </div>
       </div>
     </div>
-    <!-- ================= 个人中心页结束 ================= -->
 
     <div v-if="showAuthModal" class="auth-overlay" @click="showAuthModal = false">
       <div class="auth-modal" @click.stop>
@@ -431,16 +374,11 @@
       </div>
     </div>
 
-    <!-- 动态单项修改弹窗 -->
     <div v-if="showEditModal" class="auth-overlay" @click="showEditModal = false">
       <div class="auth-modal edit-modal" @click.stop>
         <button class="close-btn" @click="showEditModal = false">×</button>
-        <!-- 标题动态变化 -->
         <h2 class="modal-title">{{ editingTitle }}</h2>
-        
         <div class="edit-form-container">
-          
-          <!-- 情况1：修改头像 -->
           <div v-if="editingField === 'avatar'" class="avatar-edit-section">
             <div class="avatar-preview-wrapper" style="margin: 0 auto 15px auto;">
               <img :src="editForm.avatar || userInfo.avatar" class="avatar-img" alt="头像" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
@@ -448,13 +386,9 @@
             <input type="text" v-model="editForm.avatar" placeholder="请输入新的头像图片链接 URL" class="auth-input">
             <p style="font-size:12px; color:#64748b; margin-top:8px; text-align:center;">暂不支持本地上传，请输入网络图片地址</p>
           </div>
-
-          <!-- 情况2：修改名称 -->
           <div v-else-if="editingField === 'username'" class="input-group">
             <input type="text" v-model="editForm.username" placeholder="请输入新名称" class="auth-input">
           </div>
-
-          <!-- 情况3：修改性别 -->
           <div v-else-if="editingField === 'gender'" class="input-group">
             <select v-model="editForm.gender" class="auth-input custom-select">
               <option value="男">男</option>
@@ -462,139 +396,102 @@
               <option value="保密">保密</option>
             </select>
           </div>
-
-          <!-- 情况4：修改生日 -->
           <div v-else-if="editingField === 'birthday'" class="input-group">
             <input type="date" v-model="editForm.birthday" class="auth-input">
           </div>
-
-          <!-- 情况5：修改邮箱 -->
           <div v-else-if="editingField === 'email'" class="input-group">
             <input type="email" v-model="editForm.email" placeholder="例如: name@example.com" class="auth-input">
           </div>
-
-          <!-- 情况6：修改签名 -->
           <div v-else-if="editingField === 'bio'" class="input-group">
             <textarea v-model="editForm.bio" placeholder="介绍一下你自己吧..." class="auth-input" rows="3" maxlength="50"></textarea>
             <span class="char-counter">{{ editForm.bio?.length || 0 }}/50</span>
           </div>
-
           <button class="btn-submit" @click="saveProfile">保存修改</button>
         </div>
       </div>
     </div>
 
-  </div>
-
-
-  <!-- 添加网站弹窗 -->
-<div v-if="showAddSiteModal" class="auth-overlay" @click="showAddSiteModal = false">
-  <div class="auth-modal edit-modal" @click.stop>
-    <button class="close-btn" @click="showAddSiteModal = false">×</button>
-    
-    <h2 class="modal-title">{{ isEditingSite ? '✏️ 编辑网站信息' : '✨ 推荐新网站' }}</h2>
-    
-    <div class="vertical-layout">
-      <input type="text" v-model="newSiteForm.name" placeholder="网站名称" class="auth-input">
-      <input type="text" v-model="newSiteForm.url" placeholder="网站链接" class="auth-input">
-      <select v-model="newSiteForm.category_id" class="auth-input custom-select">
-        <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-      </select>
-      
-      <button class="btn-submit" @click="submitNewSite">{{ isEditingSite ? '保存修改' : '立即添加' }}</button>
+    <div v-if="showAddSiteModal" class="auth-overlay" @click="showAddSiteModal = false">
+      <div class="auth-modal edit-modal" @click.stop>
+        <button class="close-btn" @click="showAddSiteModal = false">×</button>
+        <h2 class="modal-title">{{ isEditingSite ? '✏️ 编辑网站信息' : '✨ 推荐新网站' }}</h2>
+        <div class="vertical-layout">
+          <input type="text" v-model="newSiteForm.name" placeholder="网站名称" class="auth-input">
+          <input type="text" v-model="newSiteForm.url" placeholder="网站链接" class="auth-input">
+          <select v-model="newSiteForm.category_id" class="auth-input custom-select">
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+          </select>
+          <button class="btn-submit" @click="submitNewSite">{{ isEditingSite ? '保存修改' : '立即添加' }}</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- 添加分类弹窗 -->
-<div v-if="showAddCategoryModal" class="auth-overlay" @click="showAddCategoryModal = false">
-  <div class="auth-modal edit-modal" @click.stop>
-    <button class="close-btn" @click="showAddCategoryModal = false">×</button>
-    <h2 class="modal-title">✨ 新建分类</h2>
-    <div class="vertical-layout">
-      <input type="text" v-model="newCategoryName" placeholder="分类名称" class="auth-input">
-      <button class="btn-submit" @click="submitNewCategory">确定添加</button>
+    <div v-if="showAddCategoryModal" class="auth-overlay" @click="showAddCategoryModal = false">
+      <div class="auth-modal edit-modal" @click.stop>
+        <button class="close-btn" @click="showAddCategoryModal = false">×</button>
+        <h2 class="modal-title">✨ 新建分类</h2>
+        <div class="vertical-layout">
+          <input type="text" v-model="newCategoryName" placeholder="分类名称" class="auth-input">
+          <button class="btn-submit" @click="submitNewCategory">确定添加</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-<!-- 优雅的全局轻提示 Toast -->
+
     <transition name="toast-fade">
       <div v-if="toast.show" class="toast-message block-shadow" :class="toast.type">
         <span class="toast-icon">{{ toast.type === 'success' ? '✨' : '⚠️' }}</span>
         <span>{{ toast.message }}</span>
       </div>
     </transition>
-    <!-- 桌面级右键菜单 -->
-    <transition name="fade-slide">
-      <div v-show="contextMenu.show" class="context-menu block-shadow" 
-           :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" 
-           @click.stop>
-        <div class="context-header">管理 {{ contextMenu.site?.name }}</div>
-        <div class="context-item" @click="editSite">✏️ 编辑此网站</div>
-        
-        <div class="context-item danger" @click="deleteSite">🗑️ 移除此网站</div>
-      </div>
-    </transition>
-<!-- ✨ 常用搜索设置弹窗 -->
-    <!-- ================= 搜索引擎设置弹窗 ================= -->
+<transition name="fade-slide">
+  <div v-show="contextMenu.show" class="context-menu block-shadow" :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" @click.stop>
+    <div class="context-header">管理 {{ contextMenu.site?.name }}</div>
+    
+    <div class="context-item" @click="toggleSiteToFocus(contextMenu.site); contextMenu.show = false">
+      {{ favoriteSites.find(s => s.url === contextMenu.site?.url) ? '🚀 从专注轨道收回' : '🚀 设为专注模式常用' }}
+    </div>
+    
+    <div class="context-divider"></div> <div class="context-item" @click="editSite">✏️ 编辑此网站</div>
+    <div class="context-item danger" @click="deleteSite">🗑️ 移除此网站</div>
+  </div>
+</transition>
+
     <div v-if="showEngineModal" class="auth-overlay" @click="showEngineModal = false">
       <div class="auth-modal engine-modal" @click.stop>
-        
-        <!-- 弹窗头部 -->
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h3 style="margin: 0;">常用搜索设置 ({{ selectedEngines.length }}/{{ searchEngines.length }})</h3>
           <button class="close-btn" @click="showEngineModal = false">×</button>
         </div>
-
-        <!-- 顶部：已选中的胶囊标签区域 -->
         <div class="selected-tags-area">
-          <span 
-            v-for="id in selectedEngines" 
-            :key="id" 
-            class="engine-tag"
-          >
+          <span v-for="id in selectedEngines" :key="id" class="engine-tag">
             {{ getEngineName(id) }}
             <span class="tag-close" @click="removeEngine(id)">×</span>
           </span>
         </div>
-
-        <!-- 渐变分割线 -->
         <div class="modal-divider"></div>
-
-        <!-- 底部：所有可选引擎的复选框网格 -->
-        <!-- 底部：全新的果冻块状按钮网格 -->
         <div class="engine-checkbox-grid">
-          <label 
-            v-for="item in searchEngines" 
-            :key="item.id" 
-            class="engine-toggle-card" 
-            :class="{ 'is-active': selectedEngines.includes(item.id) }"
-          >
-            <!-- 隐藏的原生复选框，负责数据绑定 -->
-            <input 
-              type="checkbox" 
-              class="hidden-checkbox" 
-              :value="item.id" 
-              v-model="selectedEngines"
-            >
-            <!-- 直接显示居中的名称 -->
-            <span class="engine-name">{{ item.name }}</span>
+          <label v-for="item in searchEngines" :key="item.id" class="engine-toggle-card" :class="{ 'is-active': selectedEngines.includes(item.id) }">
+            <input type="checkbox" class="hidden-checkbox" :value="item.id" v-model="selectedEngines">
+            <span class="engine-name">
+              {{ item.name }}</span>
           </label>
         </div>
-
       </div>
     </div>
-    <!-- ================= 🎨 个性化背景设置弹窗 ================= -->
+
     <div v-if="showBgModal" class="auth-overlay" @click="showBgModal = false">
       <div class="auth-modal engine-modal" @click.stop>
-        
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h3 style="margin: 0;">✨ 个性化外观</h3>
           <button class="close-btn" @click="showBgModal = false">×</button>
+          
         </div>
-
+        <div class="bg-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1);">
+  <h4>🚀 专注模式星球管理</h4>
+  <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">自定义公转轨道上的常用网站</p>
+  <button class="btn-primary w-full" @click="showFocusManageModal = true">管理我的常用网站</button>
+</div>
         <div class="bg-options-container">
-          <!-- 1. 纯色定制 -->
           <div class="bg-section">
             <h4>🎨 纯色定制</h4>
             <div class="color-picker-wrapper block-shadow">
@@ -602,21 +499,17 @@
               <span style="font-weight: 600; font-family: monospace;">{{ customColorPicker.toUpperCase() }}</span>
             </div>
           </div>
-
-          <!-- 2. 绝美渐变 -->
           <div class="bg-section">
             <h4>🌈 绝美渐变 (推荐)</h4>
             <div class="gradient-grid">
-              <div v-for="(grad, index) in presetGradients" :key="index"
-                   class="gradient-swatch"
-                   :style="{ background: grad }"
-                   @click="applyGradientBg(grad)"
-                   :class="{'is-active': customWallpaper === grad}">
+              
+              <div v-for="(grad, index) in presetGradients" :key="index" class="gradient-swatch-wrapper">
+                <div class="gradient-swatch" :style="{ background: grad }" @click="applyGradientBg(grad)" :class="{'is-active': customWallpaper === grad}"></div>
+                
+                <button class="set-focus-bg-btn" @click.stop="applyFocusBg(grad)" title="设为专注模式背景">✨</button>
               </div>
-            </div>
+              </div>
           </div>
-
-          <!-- 3. 本地上传 -->
           <div class="bg-section">
             <h4>🖼️ 图片壁纸</h4>
             <div class="upload-btn-group">
@@ -624,55 +517,86 @@
               <input type="file" accept="image/*" class="hidden-file-input" ref="wallpaperInputRef" @change="handleWallpaperUpload">
             </div>
           </div>
-
-          <!-- 恢复默认 -->
           <div class="bg-section" style="margin-top: 15px;" v-if="customWallpaper">
-            <button class="logout-action-btn w-full" @click="clearBackground" style="text-align: center;">🗑️ 恢复默认动态背景</button>
+            <div class="bg-section" style="margin-top: 15px; display: flex; gap: 10px;">
+            <button v-if="customWallpaper" class="logout-action-btn w-full" @click="clearBackground" style="text-align: center;">🗑️ 恢复首页默认</button>
+            <button v-if="focusWallpaper" class="logout-action-btn w-full" @click="clearFocusBg" style="text-align: center;">🗑️ 恢复专注默认</button>
+          </div>
           </div>
         </div>
-
       </div>
     </div>
-<Transition name="modal">
-  <div v-if="showCategoryModal" class="auth-overlay" @click="showCategoryModal = false">
-    <div class="auth-modal" @click.stop>
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0;">{{ editingCategory.id ? '✏️ 编辑分类' : '✨ 新建分类' }}</h3>
-        <button class="close-btn" @click="showCategoryModal = false">×</button>
-      </div>
-      
-      <div class="vertical-layout">
-        <div class="form-group">
-          <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">分类名称</label>
-          <input v-model="editingCategory.name" type="text" class="auth-input" placeholder="例如：前端开发" />
-        </div>
-      </div>
 
-      <div class="modal-footer" style="display: flex; justify-content: space-between; margin-top: 25px;">
-        <button v-if="editingCategory.id" class="btn-danger" @click="deleteCategory">删除分类</button>
-        <div style="display: flex; gap: 10px; margin-left: auto;">
-          <button class="btn-cancel" @click="showCategoryModal = false">取消</button>
-          <button class="btn-primary" @click="saveCategory">保存修改</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</Transition>
-    <!-- ================= 弹窗结束 ================= -->
-     <Transition name="fade">
-      <div v-if="catContextMenu.show" 
-           class="custom-context-menu"
-           :style="{ top: catContextMenu.y + 'px', left: catContextMenu.x + 'px' }"
-           @click.stop>
-        <div class="context-menu-item" @click="handleEditFromMenu">
-          ✏️ 编辑分类
-        </div>
-        <div class="context-menu-divider"></div>
-        <div class="context-menu-item danger" @click="handleDeleteFromMenu">
-          🗑️ 删除分类
+    <Transition name="modal">
+      <div v-if="showCategoryModal" class="auth-overlay" @click="showCategoryModal = false">
+        <div class="auth-modal" @click.stop>
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">{{ editingCategory.id ? '✏️ 编辑分类' : '✨ 新建分类' }}</h3>
+            <button class="close-btn" @click="showCategoryModal = false">×</button>
+          </div>
+          <div class="vertical-layout">
+            <div class="form-group">
+              <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600;">分类名称</label>
+              <input v-model="editingCategory.name" type="text" class="auth-input" placeholder="例如：前端开发" />
+            </div>
+          </div>
+          <div class="modal-footer" style="display: flex; justify-content: space-between; margin-top: 25px;">
+            <button v-if="editingCategory.id" class="btn-danger" @click="deleteCategory">删除分类</button>
+            <div style="display: flex; gap: 10px; margin-left: auto;">
+              <button class="btn-cancel" @click="showCategoryModal = false">取消</button>
+              <button class="btn-primary" @click="saveCategory">保存修改</button>
+            </div>
+          </div>
         </div>
       </div>
     </Transition>
+
+    <Transition name="fade">
+      <div v-if="catContextMenu.show" class="custom-context-menu" :style="{ top: catContextMenu.y + 'px', left: catContextMenu.x + 'px' }" @click.stop>
+        <div class="context-menu-item" @click="handleEditFromMenu">✏️ 编辑分类</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" @click="handleDeleteFromMenu">🗑️ 删除分类</div>
+      </div>
+    </Transition>
+
+  </div>
+  <div v-if="showFocusManageModal" class="auth-overlay" @click="showFocusManageModal = false">
+  <div class="auth-modal engine-modal" @click.stop style="max-width: 450px;">
+    <div class="modal-header">
+      <h3 style="margin: 0;">🚀 星球管理 ({{ favoriteSites.length }}/8)</h3>
+      <button class="close-btn" @click="showFocusManageModal = false">×</button>
+    </div>
+
+    <div class="focus-sites-list" style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+      <div v-for="(site, index) in favoriteSites" :key="index" class="focus-site-item">
+        <div class="site-icon-preview" style="overflow: hidden;">
+          <img v-if="site.icon && (site.icon.startsWith('http') || site.icon.startsWith('data:'))" :src="site.icon" style="width: 100%; height: 100%; object-fit: contain; padding: 4px;" />
+          <span v-else>{{ site.icon }}</span>
+        </div>
+        <div class="site-detail">
+          <div class="site-name-text">{{ site.name }}</div>
+          <div class="site-url-text">{{ site.url }}</div>
+        </div>
+        <button class="delete-site-btn" @click="removeFocusSite(index)">🗑️</button>
+      </div>
+    </div>
+
+    <div class="modal-divider"></div>
+
+    <div class="add-focus-form" v-if="favoriteSites.length < 8">
+      <h4 style="margin-bottom: 10px; font-size: 14px;">✨ 添加新星球</h4>
+      <div class="vertical-layout">
+        <div style="display: flex; gap: 8px;">
+          <input type="text" v-model="newFocusSite.icon" placeholder="图标/Emoji" class="auth-input" style="width: 80px;">
+          <input type="text" v-model="newFocusSite.name" placeholder="网站名称" class="auth-input">
+        </div>
+        <input type="text" v-model="newFocusSite.url" placeholder="网站链接 (https://...)" class="auth-input">
+        <button class="btn-primary w-full" @click="addFocusSite">确认添加</button>
+      </div>
+    </div>
+    <p v-else style="text-align: center; color: #94a3b8; font-size: 12px;">轨道已满，请删除部分后再添加</p>
+  </div>
+</div>
 </template>
 
 <script setup>
@@ -787,6 +711,64 @@ const catContextMenu = ref({
 
 const router = useRouter();
 
+// 在原有的 const router = useRouter() 等代码下面加上：
+const isFocusMode = ref(false);
+
+const toggleFocusMode = () => {
+  isFocusMode.value = !isFocusMode.value;
+};
+
+// 你最常用的6个网站（专注模式下公转的星球）
+const favoriteSites = ref([
+  { name: 'GitHub', icon: '🐙', url: 'https://github.com' },
+  { name: 'Vue.js', icon: '💚', url: 'https://vuejs.org' },
+  { name: 'BearPi', icon: '🐻', url: '#' },
+  { name: 'Tailwind', icon: '🌊', url: 'https://tailwindcss.com' },
+  { name: 'MySQL', icon: '🐬', url: '#' },
+  { name: 'ChatGPT', icon: '🤖', url: 'https://chat.openai.com' }
+]);
+
+// 2. 控制“管理常用网站”的小窗口显示
+const showFocusManageModal = ref(false);
+
+// 3. 新增网站的临时表单
+const newFocusSite = ref({ name: '', url: '', icon: '' });
+
+// 4. 保存到本地
+const saveFocusSites = () => {
+  localStorage.setItem('focus_sites', JSON.stringify(favoriteSites.value));
+  showToast('✨ 常用网站已保存', 'success');
+};
+
+// 5. 添加新星球
+const addFocusSite = () => {
+  if (!newFocusSite.value.name || !newFocusSite.value.url) {
+    showToast('⚠️ 请填写名称和链接', 'warning');
+    return;
+  }
+  // 简单提取首字母作为默认图标（如果没有输入 emoji）
+  if (!newFocusSite.value.icon) {
+    newFocusSite.value.icon = newFocusSite.value.name.charAt(0).toUpperCase();
+  }
+  favoriteSites.value.push({ ...newFocusSite.value });
+  newFocusSite.value = { name: '', url: '', icon: '' };
+  saveFocusSites();
+};
+
+// 6. 删除星球
+const removeFocusSite = (index) => {
+  favoriteSites.value.splice(index, 1);
+  saveFocusSites();
+};
+// ✨ 动态计算公转星球：智能切换
+const orbitSites = computed(() => {
+  // 如果用户有自己的收藏（favoritedSitesList），优先提取他收藏的前 6 个网站
+  // 如果没收藏，就使用预设的 favoriteSites 数组
+  const sites = favoritedSitesList.value.length > 0 ? favoritedSitesList.value : favoriteSites.value;
+  
+  // 截取前 6 个，保证轨道上最多只有 6 颗星球，维持完美的视觉间距
+  return sites.slice(0, 6); 
+});
 const goToLogin = () => {
   router.push('/login'); // 点击按钮，瞬间跳到我们刚刚画好的登录页！
 };
@@ -1120,6 +1102,35 @@ const handleLogout = () => {
   localStorage.removeItem('user_info');
   localStorage.removeItem('is_logged_in');
   alert("已安全退出账号");
+};
+
+// ✨ 核心逻辑：将网站一键送入/移出专注轨道
+const toggleSiteToFocus = (site) => {
+  // 检查是否已经在轨道里（通过 URL 判断唯一性）
+  const index = favoriteSites.value.findIndex(s => s.url === site.url);
+  
+  if (index > -1) {
+    // 如果已存在，则移除
+    favoriteSites.value.splice(index, 1);
+    showToast('收回成功：已从专注轨道移除', 'success');
+  } else {
+    // 如果不存在，检查是否超过 8 个限制
+    if (favoriteSites.value.length >= 8) {
+      showToast('⚠️ 轨道已满（最多8个），请先删除部分', 'warning');
+      return;
+    }
+    // 添加到轨道（转换数据格式以适配星球渲染）
+    favoriteSites.value.push({
+      id: site.id,
+      name: site.name,
+      url: site.url,
+      icon: site.logo_url || getLogoUrl(site.url) // 优先使用原有 logo
+    });
+    showToast('✨ 成功：已发射到专注轨道', 'success');
+  }
+  
+  // 别忘了持久化保存到本地
+  localStorage.setItem('focus_sites', JSON.stringify(favoriteSites.value));
 };
 
 // ================= 个人信息管理 =================
@@ -1805,6 +1816,13 @@ const sendMessage = async () => {
 };
 const scrollToBottom = () => { nextTick(() => { if (chatWindow.value) chatWindow.value.scrollTop = chatWindow.value.scrollHeight }) };
 
+const token = localStorage.getItem('access_token');
+axios.get('http://127.0.0.1:5000/api/protected/user_profile', {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+})
+
 // ================= 右键菜单 (Context Menu) 完整逻辑 =================
 const contextMenu = ref({ show: false, x: 0, y: 0, site: null });
 
@@ -1852,6 +1870,40 @@ const handleDeleteFromMenu = () => {
 // ================= 🎨 终极外观引擎 (支持图片、颜色、渐变) =================
 const showBgModal = ref(false);
 const customWallpaper = ref('');
+// ================= 专注模式专属背景逻辑 (与首页彻底分离) =================
+const focusWallpaper = ref(localStorage.getItem('focus_wallpaper') || '');
+
+// 设置专注背景
+const applyFocusBg = (bg) => {
+  focusWallpaper.value = bg;
+  localStorage.setItem('focus_wallpaper', bg);
+  if (typeof showToast === 'function') showToast('✨ 专注背景设置成功', 'success');
+};
+
+// 清除专注背景
+const clearFocusBg = () => {
+  focusWallpaper.value = '';
+  localStorage.removeItem('focus_wallpaper');
+  if (typeof showToast === 'function') showToast('🗑️ 已恢复专注模式默认底色', 'success');
+};
+
+// 计算专注模式样式 (不再借用首页壁纸！)
+const focusBgStyle = computed(() => {
+  // ✨ 核心断开点：如果没有设置专注背景，直接返回空，使用 CSS 自带的经典白/深空黑
+  if (!focusWallpaper.value) return {}; 
+
+  const bg = focusWallpaper.value;
+  const overlay = isDarkMode.value ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)';
+  const isImage = bg.startsWith('http') || bg.startsWith('data:');
+  
+  return {
+    backgroundImage: isImage 
+      ? `linear-gradient(${overlay}, ${overlay}), url(${bg})`
+      : `linear-gradient(${overlay}, ${overlay}), ${bg}`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center'
+  };
+});
 const customColorPicker = ref('#3b82f6');
 const wallpaperInputRef = ref(null);
 
@@ -4276,5 +4328,278 @@ h1, h2, h3, h4, p, span, a, div, button, input, textarea, select {
   color: #94a3b8;
   text-align: center;
   margin-top: 8px;
+}
+/* 定义公转轨道动画 */
+.orbit-planet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: -28px; 
+  margin-left: -28px; 
+
+  /* 🚀 1. 以后想改速度，只需修改这里的时间 (比如 30s, 40s) */
+  --duration: 40s;
+  animation: orbit var(--duration) linear infinite;
+
+  /* ✨ 2. 终极自适应魔法：不管你时间改多少，星球数量有几个，这里会自动计算完美均分的角度！永远不乱！ */
+  animation-delay: calc(-1 * var(--duration) / var(--total) * var(--delay));
+}
+
+/* 🚀 3. 以后想改轨道大小，只需修改这里的像素 (我已经帮你加到了 480px，绝对碰不到搜索框) */
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(480px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(480px) rotate(-360deg); }
+}
+
+/* 鼠标悬浮时暂停公转 */
+.orbit-planet:hover {
+  animation-play-state: paused;
+  z-index: 50;
+}
+
+/* 鼠标悬浮时暂停公转 */
+.orbit-planet:hover {
+  animation-play-state: paused;
+  z-index: 50;
+}
+
+/* ✨ 专注模式下的全屏居中容器 */
+.focus-center-wrapper {
+  position: fixed !important; 
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important; /* 🚀 核心魔法：打破原有的 650px 最大宽度结界！ */
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center;     
+  z-index: 100;            
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;    
+}
+
+.focus-center-wrapper .search-box {
+  pointer-events: auto;    
+  max-width: 650px !important; /* 🚀 确保外壳全屏后，内部的搜索框依然保持完美比例不被拉爆 */
+}
+/* 优化星球旋转中心 */
+.focus-center-wrapper .orbit-planet {
+  /* 在全屏居中模式下，确保旋转轴心依然是屏幕中心 */
+  top: 50%;
+  left: 50%;
+}
+/* ================= 专注模式：星球专属样式 ================= */
+
+/* 星球的外层玻璃球容器 */
+.planet-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;           /* 严格限制外圈大小 */
+  height: 56px;
+  border-radius: 50%;    /* 变成完美的圆形 */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+  pointer-events: auto;  /* 恢复鼠标点击响应 */
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+}
+
+/* 鼠标悬浮时：玻璃球变大且发光 */
+.planet-link:hover {
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+}
+
+/* 内部真实的 Logo 图片 */
+.planet-logo {
+  width: 32px;           /* 严格限制 Logo 本身的大小 */
+  height: 32px;
+  object-fit: contain;   /* 保证图片比例不被拉伸 */
+  border-radius: 6px;    /* 稍微带一点圆角 */
+  transition: transform 0.3s ease;
+  background: transparent;
+}
+
+/* 鼠标悬浮时：里面的 Logo 跟着微微放大 */
+.planet-link:hover .planet-logo {
+  transform: scale(1.1);
+}
+/* ================= ✨ 专注模式：纯 CSS 终极修复版 ✨ ================= */
+
+/* 专注模式遮罩：默认经典白，暗色模式自动变黑 */
+.focus-dark-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(255, 255, 255, 0.9); /* ✨ 默认的经典白底 */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  z-index: 5;
+  transition: all 0.7s ease;
+}
+.layout.dark-theme .focus-dark-overlay {
+  background: rgba(15, 23, 42, 0.85); /* 暗色模式时的深空黑 */
+}
+/* 2. 星系公转中心锚点：改为 fixed 确保绝对居中不受上下流影响 */
+.orbit-center-container {
+  position: fixed; 
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 1; /* 保证在搜索框之下，遮罩之上 */
+  pointer-events: none;
+  transition: opacity 1s;
+}
+
+/* 3. 🚀 缩小公转轨道半径：调整到 360px，更紧凑精致 */
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(250px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(250px) rotate(-360deg); }
+}
+
+.orbit-planet {
+  position: absolute;
+  top: 0; left: 0;
+  margin-top: -24px; /* ✨ 匹配新尺寸 48px 的一半，保持绝对居中 */
+  margin-left: -24px; 
+  --duration: 40s;
+  animation: orbit var(--duration) linear infinite;
+  animation-delay: calc(-1 * var(--duration) / var(--total) * var(--delay));
+}
+/* 鼠标悬浮时，整个星系暂停运转 */
+.orbit-planet:hover {
+  animation-play-state: paused;
+  z-index: 50;
+}
+
+/* 4. 星球的高级玻璃球外壳：缩小容器 (56px -> 48px) */
+.planet-link {
+  display: flex; align-items: center; justify-content: center;
+  width: 50px; height: 50px; /* ✨ 容器减小 */
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6); /* 白底专属的半透明毛玻璃 */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.08); /* 极淡的灰边框勾勒轮廓 */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* 柔和清新的投影 */
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+}
+/* 暗色模式下恢复深色质感 */
+.layout.dark-theme .planet-link {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 悬浮时的质感反馈 */
+.planet-link:hover {
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+}
+
+/* 5. 内部真实的 Logo 尺寸：缩小 (30px -> 24px) */
+.planet-logo {
+  width: 24px; /* ✨ Logo 变小，显得更小巧精致 */
+  height: 24px;
+  object-fit: contain; border-radius: 4px;
+  transition: transform 0.3s ease; background: transparent;
+}
+.planet-link:hover .planet-logo {
+  transform: scale(1.15);
+}
+.gradient-swatch-wrapper {
+  position: relative;
+}
+.set-focus-bg-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  border: 1px solid #eee;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.set-focus-bg-btn:hover {
+  transform: scale(1.2);
+  background: #f0f9ff;
+}
+.focus-site-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: rgba(0,0,0,0.03);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+.site-icon-preview {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.site-detail {
+  flex: 1;
+  overflow: hidden;
+}
+.site-name-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.site-url-text {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.delete-site-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.delete-site-btn:hover {
+  opacity: 1;
+}
+.focus-badge {
+  position: absolute;
+  top: 6px;
+  right: 32px; /* 避开收藏星星的位置 */
+  font-size: 12px;
+  filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.5));
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.7; }
 }
 </style>
