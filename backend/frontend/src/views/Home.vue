@@ -1,8 +1,15 @@
 <template>
-  <div class="layout" :class="{ 'dark-theme': isDarkMode }" :style="dynamicBgStyle" @click="closeAllDropdowns">
+  <div class="layout" :class="[{ 'dark-theme': isDarkMode }, uiState]" @click="closeAllDropdowns">
+    
+    <transition name="space-fade">
+      <div v-if="isSpaceIntroPlaying" class="space-particle-wrapper">
+        <canvas ref="particleCanvas" class="particle-canvas"></canvas>
+      </div>
+    </transition>
 
-<div v-show="isFocusMode" class="focus-dark-overlay" :style="focusBgStyle"></div>
-   <header class="header-block block-shadow" style="position: relative; z-index: 10;">
+    <div v-show="isFocusMode" class="focus-dark-overlay" :style="focusBgStyle"></div>
+    
+    <header class="header-block block-shadow" style="position: relative; z-index: 10;">
       <div class="header-left">
         <div class="logo">
           <span>🚀 智汇导航</span>
@@ -38,6 +45,7 @@
         <button class="theme-toggle" @click="toggleFocusMode" :title="isFocusMode ? '退回首页' : '专注模式'">
           {{ isFocusMode ? '↩️' : '✨' }}
         </button>
+        <button class="theme-toggle" @click="openReviewModal" title="采集审核池">📡</button>
         <div v-if="isLoggedIn" class="user-profile-container">
           <img :src="userInfo.avatar" class="header-avatar profile-link" @click="goToProfile" alt="头像" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
         </div>
@@ -254,6 +262,28 @@
           </div>
         </div>
 
+        <div class="sidebar-box news-box block-shadow">
+          <div class="box-header">
+            <h3 class="box-title">📰 行业前沿</h3>
+            <button class="refresh-news-btn" @click="fetchIndustryNews" :class="{ 'spinning': isLoadingNews }">↻</button>
+          </div>
+
+          <div class="news-list-container">
+            <div class="news-list" v-if="!isLoadingNews && newsList.length > 0">
+              <a v-for="(news, index) in newsList" :key="index" :href="news.link" target="_blank" class="news-item">
+                <div class="news-dot"></div>
+                <div class="news-content">
+                  <div class="news-title">{{ news.title }}</div>
+                  <div class="news-meta">{{ news.source }}</div>
+                </div>
+              </a>
+            </div>
+            
+            <div v-else class="news-loading-skeleton">
+              <div class="skeleton-pulse" v-for="i in 5" :key="i"></div>
+            </div>
+          </div>
+        </div>
         <div class="widget block-shadow ai-widget">
           <div class="widget-header"><h3>✨ AI 建议</h3></div>
           <div class="chat-window" ref="chatWindow">
@@ -444,17 +474,28 @@
       </div>
     </transition>
 <transition name="fade-slide">
-  <div v-show="contextMenu.show" class="context-menu block-shadow" :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" @click.stop>
-    <div class="context-header">管理 {{ contextMenu.site?.name }}</div>
-    
-    <div class="context-item" @click="toggleSiteToFocus(contextMenu.site); contextMenu.show = false">
-      {{ favoriteSites.find(s => s.url === contextMenu.site?.url) ? '🚀 从专注轨道收回' : '🚀 设为专注模式常用' }}
-    </div>
-    
-    <div class="context-divider"></div> <div class="context-item" @click="editSite">✏️ 编辑此网站</div>
-    <div class="context-item danger" @click="deleteSite">🗑️ 移除此网站</div>
-  </div>
-</transition>
+      <div v-show="contextMenu.show" class="context-menu block-shadow" :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" @click.stop>
+        
+        <template v-if="contextMenu.site">
+          <div class="context-header">管理 {{ contextMenu.site.name }}</div>
+          
+          <div class="context-item" @click="toggleSiteToFocus(contextMenu.site); contextMenu.show = false">
+            {{ favoriteSites.find(s => s.url === contextMenu.site.url) ? '🚀 从专注轨道收回' : '🚀 设为专注模式常用' }}
+          </div>
+          <div class="context-menu-divider"></div>
+          
+          <div class="context-item" @click="editSite">✏️ 编辑此网站</div>
+          <div class="context-item danger" @click="deleteSite">🗑️ 移除此网站</div>
+        </template>
+
+        <template v-else>
+          <div class="context-header">管理分类</div>
+          <div class="context-item" @click="editCategory">✏️ 编辑分类</div>
+          <div class="context-item danger" @click="deleteCategory">🗑️ 移除分类</div>
+        </template>
+
+      </div>
+    </transition>
 
     <div v-if="showEngineModal" class="auth-overlay" @click="showEngineModal = false">
       <div class="auth-modal engine-modal" @click.stop>
@@ -597,6 +638,43 @@
     <p v-else style="text-align: center; color: #94a3b8; font-size: 12px;">轨道已满，请删除部分后再添加</p>
   </div>
 </div>
+<div v-if="showReviewModal" class="auth-overlay" @click="showReviewModal = false">
+  <div class="auth-modal engine-modal" @click.stop style="max-width: 600px;">
+    <div class="modal-header">
+      <h3 style="margin: 0;">📡 采集审核池 ({{ pendingSites.length }})</h3>
+      <button class="close-btn" @click="showReviewModal = false">×</button>
+    </div>
+
+    <button 
+      class="btn-primary w-full" 
+      style="margin: 15px 0; background: #0f172a;" 
+      @click="triggerCrawl" 
+      :disabled="isCrawling"
+    >
+      {{ isCrawling ? '🕷️ 爬虫采集中...' : '🕷️ 一键抓取 Hacker News 热门' }}
+    </button>
+
+    <div style="max-height: 400px; overflow-y: auto;">
+      <div v-if="pendingSites.length === 0" style="text-align: center; color: #94a3b8; padding: 20px;">
+        当前没有待审核的站点，快派出爬虫去寻找吧！
+      </div>
+      
+      <div v-for="site in pendingSites" :key="site.id" class="focus-site-item" style="flex-direction: column; align-items: flex-start;">
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+          <div>
+            <div class="site-name-text" style="color: #3b82f6;">[{{ site.source }}]</div>
+            <div class="site-name-text" style="font-size: 16px;">{{ site.name }}</div>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button @click="handleReview(site.id, 'approve')" style="background: #22c55e; color: white; border: none; padding: 5px 15px; border-radius: 6px; cursor: pointer;">✅ 采用</button>
+            <button @click="handleReview(site.id, 'reject')" style="background: #ef4444; color: white; border: none; padding: 5px 15px; border-radius: 6px; cursor: pointer;">❌ 丢弃</button>
+          </div>
+        </div>
+        <a :href="site.url" target="_blank" class="site-url-text" style="margin-top: 5px; text-decoration: underline;">{{ site.url }}</a>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <script setup>
@@ -657,6 +735,69 @@ const onDrag = (e) => {
   const walk = (x - startX) * 1.5; 
   scrollTrack.value.scrollLeft = scrollLeft - walk;
 };
+
+// ================= 自动采集与审核逻辑 =================
+const showReviewModal = ref(false);
+const pendingSites = ref([]);
+const isCrawling = ref(false);
+
+// 拉取待审核列表
+const fetchPendingSites = async () => {
+  try {
+    const res = await axios.get('http://127.0.0.1:5000/api/admin/pending_sites');
+    pendingSites.value = res.data;
+  } catch (error) {
+    console.error('获取待审核列表失败:', error);
+  }
+};
+
+// 打开审核面板
+const openReviewModal = () => {
+  showReviewModal.value = true;
+  fetchPendingSites();
+};
+
+// 手动触发采集爬虫
+const triggerCrawl = async () => {
+  isCrawling.value = true;
+  showToast('正在向 Hacker News 派出爬虫，请稍候...', 'success');
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/admin/crawl_hn');
+    showToast(res.data.message, 'success');
+    fetchPendingSites(); // 采集完刷新列表
+  } catch (error) {
+    showToast('采集失败', 'error');
+  } finally {
+    isCrawling.value = false;
+  }
+};
+
+// 处理审核 (通过 / 拒绝)
+// ================= 修复版：处理审核 (通过 / 拒绝) =================
+const handleReview = async (siteId, action) => {
+  try {
+    // ✨ 智能容错：如果当前选中的是"全部分类(all)"或"我的收藏(favorites)"，
+    // 数据库无法识别字母 ID，默认把它塞进 ID 为 1 的分类里
+    let targetCategoryId = activeCategoryId.value;
+    if (targetCategoryId === 'all' || targetCategoryId === 'favorites') {
+      targetCategoryId = 1; 
+    }
+
+    await axios.post('http://127.0.0.1:5000/api/admin/review_site', {
+      id: siteId,
+      action: action,
+      category_id: targetCategoryId 
+    });
+    
+    showToast(action === 'approve' ? '✅ 已通过并发布' : '🗑️ 已拒绝并丢弃', 'success');
+    fetchPendingSites(); // 刷新审核池列表
+    fetchNavData();      // ✨ 修正：调用你真实的首页数据刷新函数！
+    
+  } catch (error) {
+    console.error('审核报错详情:', error);
+    showToast('操作失败，请看控制台', 'error');
+  }
+};
 // ================= 全局请求拦截器：无感刷新 Token =================
 axios.interceptors.response.use(
   (response) => {
@@ -701,6 +842,7 @@ axios.interceptors.response.use(
   }
 );
 
+
 // ================= 分类右键小窗口逻辑 =================
 const catContextMenu = ref({
   show: false,
@@ -709,32 +851,111 @@ const catContextMenu = ref({
   category: null
 });
 
+const openCategoryContextMenu = (e, cat) => {
+  closeAllDropdowns(); // 弹窗前，先关掉屏幕上其他的菜单
+  catContextMenu.value = { 
+    show: true, 
+    x: e.clientX, 
+    y: e.clientY, 
+    category: cat 
+  };
+};
 const router = useRouter();
+// ================= 🌌 空间生成粒子引擎 (极致慢速显现版) =================
+const isSpaceIntroPlaying = ref(false);
+const uiState = ref(''); // 控制真实网页的隐藏与慢速显现
+const particleCanvas = ref(null);
 
-// 在原有的 const router = useRouter() 等代码下面加上：
-const isFocusMode = ref(false);
+const playParticleIntro = async () => {
+  if (sessionStorage.getItem('space_intro_played')) return;
+  
+  isSpaceIntroPlaying.value = true;
+  uiState.value = 'intro-hidden'; // ✨ 初始让真实网页完全隐身
+  sessionStorage.setItem('space_intro_played', 'true');
+  
+  await nextTick();
+  const canvas = particleCanvas.value;
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const phantomTargets = [];
+  // 1. 模拟顶部导航栏
+  for(let i=0; i<30; i++) phantomTargets.push({x: canvas.width * (i/30), y: 30 + Math.random()*20});
+  // 2. 模拟搜索框
+  for(let i=0; i<40; i++) phantomTargets.push({x: canvas.width/2 - 250 + Math.random()*500, y: 150 + Math.random()*40});
+  // 3. 模拟网格卡片
+  const cols = Math.floor(canvas.width / 200);
+  for(let row=0; row<3; row++) {
+    for(let col=0; col<cols; col++) {
+      for(let i=0; i<10; i++) {
+        phantomTargets.push({
+           x: (col+0.5) * (canvas.width/cols) + (Math.random()-0.5)*120,
+           y: 300 + row * 180 + (Math.random()-0.5)*80
+        });
+      }
+    }
+  }
 
-const toggleFocusMode = () => {
-  isFocusMode.value = !isFocusMode.value;
+  const particles = [];
+  for (let i = 0; i < 400; i++) {
+    const startX = Math.random() > 0.5 ? Math.random() * canvas.width : (Math.random() > 0.5 ? -100 : canvas.width + 100);
+    const startY = Math.random() > 0.5 ? (Math.random() > 0.5 ? -100 : canvas.height + 100) : Math.random() * canvas.height;
+    const target = phantomTargets[i % phantomTargets.length];
+    
+    particles.push({
+      x: startX, y: startY,
+      tx: target ? target.x : canvas.width/2,
+      ty: target ? target.y : canvas.height/2,
+      size: Math.random() * 2 + 0.5,
+      speed: 0.015 + Math.random() * 0.015 // ✨ 降低速度，让汇聚过程更像慢动作
+    });
+  }
+  
+  let frame = 0;
+  
+  const render = () => {
+    frame++;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    particles.forEach(p => {
+      p.x += (p.tx - p.x) * p.speed;
+      p.y += (p.ty - p.y) * p.speed;
+      
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#38bdf8';
+      ctx.fill();
+    });
+    
+    // ✨ 汇聚时间加长到 160 帧（接近 2.5 秒）
+    if (frame === 160) {
+      isSpaceIntroPlaying.value = false; // 触发黑色遮罩淡出
+      uiState.value = 'intro-revealing'; // 触发真实网页超慢速浮现
+    }
+    
+    // ✨ 核心修复：即使开始淡出了，Canvas 也要继续跑！这样光点才不会冻结
+    if (frame < 350) { 
+      requestAnimationFrame(render);
+    } else {
+      uiState.value = ''; // 动画彻底跑完，清理状态
+    }
+  };
+  
+  render();
 };
 
-// 你最常用的6个网站（专注模式下公转的星球）
-const favoriteSites = ref([
-  { name: 'GitHub', icon: '🐙', url: 'https://github.com' },
-  { name: 'Vue.js', icon: '💚', url: 'https://vuejs.org' },
-  { name: 'BearPi', icon: '🐻', url: '#' },
-  { name: 'Tailwind', icon: '🌊', url: 'https://tailwindcss.com' },
-  { name: 'MySQL', icon: '🐬', url: '#' },
-  { name: 'ChatGPT', icon: '🤖', url: 'https://chat.openai.com' }
-]);
-
-// 2. 控制“管理常用网站”的小窗口显示
+// ================= 🚑 紧急恢复：被误删的专注模式核心变量 =================
+const isFocusMode = ref(false);
+const toggleFocusMode = () => { isFocusMode.value = !isFocusMode.value; };
 const showFocusManageModal = ref(false);
-
-// 3. 新增网站的临时表单
+const favoriteSites = ref(JSON.parse(localStorage.getItem('focus_sites')) || []);
 const newFocusSite = ref({ name: '', url: '', icon: '' });
-
-// 4. 保存到本地
 const saveFocusSites = () => {
   localStorage.setItem('focus_sites', JSON.stringify(favoriteSites.value));
   showToast('✨ 常用网站已保存', 'success');
@@ -1313,6 +1534,30 @@ const selectProfession = (key) => {
   // 切换职业后，默认选中该职业下的“全部分类”或第一个分类
   activeCategoryId.value = 'all'; 
 };
+
+
+// ================= 📰 行业前沿资讯流 =================
+const newsList = ref([]);
+const isLoadingNews = ref(false);
+
+const fetchIndustryNews = async () => {
+  isLoadingNews.value = true;
+  try {
+    // 动态传入当前的行业分类参数，让后端返回精准数据
+    const res = await axios.get(`http://127.0.0.1:5000/api/news?prof=${currentProfession.value}`);
+    newsList.value = res.data;
+  } catch (error) {
+    console.error('获取行业资讯失败:', error);
+  } finally {
+    isLoadingNews.value = false;
+  }
+};
+
+// 监听行业分类变化，一旦用户切换身份，立刻刷新资讯流！
+watch(currentProfession, () => {
+  fetchIndustryNews();
+});
+
 const maxVisibleCategories = 4;
 const visibleCategories = computed(() => categories.value.slice(0, maxVisibleCategories));
 const hiddenCategories = computed(() => categories.value.slice(maxVisibleCategories));
@@ -1691,34 +1936,24 @@ watch(searchQuery, async (newQuery) => {
 
   try {
     // 🚀 直接向 Docker 里的 Meilisearch 发送标准的 HTTP 请求
-/// Home.vue
-const response = await fetch('http://127.0.0.1:7700/indexes/websites/search', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    // 检查一下：你的 Bearer 后面有没有空格？必须有空格！
-    'Authorization': 'Bearer pronav_super_secret_master_key'
-  },
-  body: JSON.stringify({
-    q: query.trim(),// 🚀 只传最基础的 q
-    limit: 6,
-  // 🚀 加回这一行，让搜索关键词在结果里高亮（变色）
-  attributesToHighlight: ['name', 'url']
-  })
-});
+    const response = await fetch('http://127.0.0.1:7700/indexes/websites/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer pronav_super_secret_master_key'
+      },
+      body: JSON.stringify({
+        q: query,
+        limit: 6,
+        attributesToHighlight: ['name', 'url']
+      })
+    });
 
-searchRes = await response.json();
-console.log("看到这个说明 200 了！结果是:", searchRes);
-
-if (searchRes && searchRes.hits) {
-  // 核心：把结果映射到你的建议列表里
-  localSuggestions.value = searchRes.hits;
-}
-
+    // ✨ 修正：只保留这一个干净的声明，删掉多余的重复代码
     const searchRes = await response.json();
-    
-    // 如果返回了结果，就赋值给下拉列表
+
     if (searchRes && searchRes.hits) {
+      // 核心：把结果映射到你的建议列表里
       localSuggestions.value = searchRes.hits;
     }
   } catch (error) {
@@ -1816,12 +2051,6 @@ const sendMessage = async () => {
 };
 const scrollToBottom = () => { nextTick(() => { if (chatWindow.value) chatWindow.value.scrollTop = chatWindow.value.scrollHeight }) };
 
-const token = localStorage.getItem('access_token');
-axios.get('http://127.0.0.1:5000/api/protected/user_profile', {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-})
 
 // ================= 右键菜单 (Context Menu) 完整逻辑 =================
 const contextMenu = ref({ show: false, x: 0, y: 0, site: null });
@@ -2142,7 +2371,7 @@ const refreshStatus = () => {
     fetchFavorites(); // ✨ 登录成功后，立刻拉取收藏列表
   } else {
     isLoggedIn.value = false;
-    favoriteSiteIds.value.clear(); // 退出登录时清空本地收藏展示
+    favoriteSiteIds.value = [];
   }
 };
 
@@ -2158,6 +2387,7 @@ onMounted(async () => {
   const username = urlParams.get('username');
   const avatar = urlParams.get('avatar');
 
+  playParticleIntro(); // ✨ 启动粒子动画！
   if (accessToken && refreshToken) {
     // 把后端签发的钥匙存进保险箱
     localStorage.setItem('access_token', accessToken);
@@ -2177,6 +2407,7 @@ onMounted(async () => {
     showAuthModal.value = false;
   }
   refreshStatus();
+  fetchIndustryNews();
   // 1. 读取所有缓存 (保持不变)
 // 1. 读取所有缓存 (保持不变)
   if (localStorage.getItem('dark_mode') === 'true') isDarkMode.value = true;
@@ -2453,9 +2684,9 @@ onUnmounted(() => {
 }
 
 /* ================= 3. 主体内容与搜索区 ================= */
-.main-container { display: flex; flex: 1; overflow: hidden; padding: 25px; gap: 25px; }
+.main-container { display: flex; flex: 1; padding: 25px; gap: 25px; }
 /* ✨ 修复排版收缩的关键：给 content 加上 width: 100% */
-.content { flex: 1; width: 100%; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 10px 20px; }
+.content { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px 20px; }
 .center-action-area { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; margin-top: 10px; }
 
 /* 搜索框完美尺寸 */
@@ -2827,7 +3058,20 @@ onUnmounted(() => {
   border-color: rgba(96, 165, 250, 0.4);
 }
 /* ================= 6. 侧边栏与骨架屏 ================= */
-.sidebar-right { width: 300px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; }
+.sidebar-right {
+  position: sticky;        /* ✨ 核心：开启吸顶悬浮 */
+  top: 85px;               /* ✨ 核心：距离顶部保留导航栏的距离 */
+  height: calc(100vh - 110px); /* ✨ 核心：锁死右侧高度，防止被撑长 */
+  
+  width: 280px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
 .widget, .sidebar-box { height: 380px; display: flex; flex-direction: column; overflow: hidden; }
 .widget-header, .box-header { padding: 15px 20px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
 .widget-header h3, .box-title { margin: 0; font-size: 15px; font-weight: 800; }
@@ -4601,5 +4845,301 @@ h1, h2, h3, h4, p, span, a, div, button, input, textarea, select {
   0% { transform: scale(1); opacity: 0.7; }
   50% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1); opacity: 0.7; }
+}
+/* ================= 🌌 极简空间粒子遮罩 ================= */
+.space-particle-wrapper {
+  position: fixed;
+  inset: 0;
+  background: #0f172a; 
+  z-index: 99999;
+}
+
+/* 遮罩缓慢消失，时间拉长到 3 秒 */
+.space-fade-leave-active {
+  transition: opacity 3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.space-fade-leave-to {
+  opacity: 0;
+}
+
+/* ================= 🌌 真实网页超慢速浮现 ================= */
+/* 1. 隐藏阶段：全透明、强模糊、微微缩小 */
+.intro-hidden .header-block,
+.intro-hidden .search-section,
+.intro-hidden .category-tabs-wrapper,
+.intro-hidden .site-grid,
+.intro-hidden .sidebar-right {
+  opacity: 0 !important;
+  filter: blur(15px);
+  transform: scale(0.95);
+}
+
+/* 2. 显现阶段：用长达 3 秒的时间慢慢清晰，且带有错位延迟 */
+.intro-revealing .header-block,
+.intro-revealing .search-section,
+.intro-revealing .category-tabs-wrapper,
+.intro-revealing .site-grid,
+.intro-revealing .sidebar-right {
+  opacity: 1 !important;
+  filter: blur(0);
+  transform: scale(1);
+  transition: all 3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 给各个模块加上不同的延迟，产生“从上到下依次亮起”的优雅层次感 */
+.intro-revealing .header-block { transition-delay: 0s; }
+.intro-revealing .search-section { transition-delay: 0.2s; }
+.intro-revealing .category-tabs-wrapper { transition-delay: 0.4s; }
+.intro-revealing .site-grid { transition-delay: 0.6s; }
+.intro-revealing .sidebar-right { transition-delay: 0.8s; }
+
+/* ================= 📰 资讯看板样式 ================= */
+.sidebar-right {
+  width: 280px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* 如果是在深色模式下 */
+}
+.dark-theme .sidebar-right {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.news-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  padding-bottom: 10px;
+}
+.dark-theme .news-header { border-color: rgba(255,255,255,0.05); }
+
+.refresh-news-btn {
+  background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; transition: 0.3s;
+}
+.refresh-news-btn:hover { color: #3b82f6; }
+.refresh-news-btn.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.news-list { display: flex; flex-direction: column; gap: 12px; }
+.news-item {
+  display: flex; align-items: flex-start; gap: 10px; text-decoration: none; color: inherit;
+  padding: 8px; border-radius: 8px; transition: 0.2s;
+}
+.news-item:hover { background: rgba(59, 130, 246, 0.1); transform: translateX(5px); }
+
+.news-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; margin-top: 6px; flex-shrink: 0;
+}
+.news-title {
+  font-size: 13px; line-height: 1.5; font-weight: 500;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.dark-theme .news-title { color: #e2e8f0; }
+
+.news-meta { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+/* 骨架屏动画 */
+.news-loading-skeleton { display: flex; flex-direction: column; gap: 15px; }
+.skeleton-pulse { height: 40px; border-radius: 8px; background: rgba(0,0,0,0.05); animation: pulse 1.5s infinite; }
+.dark-theme .skeleton-pulse { background: rgba(255,255,255,0.05); }
+
+/* ================= 🚀 终极一屏排版：左侧滑动，右侧固定 ================= */
+
+/* 1. 锁死全局网页，彻底消灭浏览器外层大滚动条 */
+.layout {
+  height: 100vh !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* 2. 中间大盒子必须限制高度，允许内部滑动 */
+.main-container {
+  flex: 1 !important;
+  overflow: hidden !important;
+  min-height: 0 !important; /* 关键魔法：允许 flex 子元素收缩 */
+}
+
+/* 3. 左侧网站卡片区：开启独立的内部丝滑滚动 */
+.content {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+  padding-right: 5px !important;
+  scroll-behavior: smooth;
+}
+
+/* 4. 右侧边栏：解除原来 380px 的高度死锁，让 3 个模块弹性平分！ */
+.sidebar-right {
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.widget, .sidebar-box {
+  height: auto !important;
+  flex: 1 !important;
+  min-height: 0 !important; /* 允许模块在高度不够时触发各自的内部滚动 */
+}
+
+/* 5. 附赠：苹果风透明悬浮滚动条，让内部滑动极其优雅 */
+.content::-webkit-scrollbar,
+.news-list-container::-webkit-scrollbar,
+.scroll-viewport::-webkit-scrollbar,
+.chat-window::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.content::-webkit-scrollbar-track,
+.news-list-container::-webkit-scrollbar-track,
+.scroll-viewport::-webkit-scrollbar-track,
+.chat-window::-webkit-scrollbar-track {
+  background: transparent;
+}
+.content::-webkit-scrollbar-thumb,
+.news-list-container::-webkit-scrollbar-thumb,
+.scroll-viewport::-webkit-scrollbar-thumb,
+.chat-window::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+}
+.content::-webkit-scrollbar-thumb:hover,
+.news-list-container::-webkit-scrollbar-thumb:hover,
+.scroll-viewport::-webkit-scrollbar-thumb:hover,
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* 6. 修复卡片被压扁的问题：禁止网格被强行压缩 */
+.site-grid {
+  flex-shrink: 0 !important;       /* ✨ 核心：宁死不屈，绝对不许被压扁！ */
+  height: max-content !important;  /* ✨ 核心：高度由里面的卡片数量真实决定 */
+  padding-bottom: 40px !important; /* 底部留一点呼吸空间，滑到底才好看 */
+}
+
+/* 顺手给卡片加个基础高度保护 */
+.site-card {
+  min-height: 130px !important;
+  flex-shrink: 0 !important;
+}
+
+/* ================= 🚀 终极打磨：搜索框固定，仅网站卡片区滚动 ================= */
+
+/* 1. 收回中间大盒子的滚动权，让它变成纯粹的固定不变的框架 */
+.content {
+  overflow: hidden !important; 
+}
+
+/* 2. 保护搜索框和分类标签，绝对不许被压扁，稳稳固定在卡片上方 */
+.search-section, 
+.category-tabs-wrapper {
+  flex-shrink: 0 !important;
+  padding-bottom: 10px !important; /* 留出一点缝隙，别让卡片滚上来时贴得太死 */
+}
+
+/* 3. ✨ 见证奇迹：把滚动权全权移交给卡片网格自己！ */
+.site-grid {
+  flex: 1 !important;             /* 自动填满搜索框下方的所有剩余高度 */
+  height: auto !important;        /* 解除之前的 max-content 限制 */
+  overflow-y: auto !important;    /* ✨ 核心：全网页只有卡片在这里滑动 */
+  overflow-x: hidden !important;
+  align-content: start !important;/* 卡片数量少时，依然整齐地靠上对齐 */
+  padding-right: 5px !important;  
+  padding-bottom: 40px !important;
+  scroll-behavior: smooth;
+}
+
+/* 4. 把刚才的高级透明滚动条，转移给网格区域 */
+.site-grid::-webkit-scrollbar {
+  width: 6px;
+}
+.site-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+.site-grid::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+}
+.site-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+.layout.dark-theme .site-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.layout.dark-theme .site-grid::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ================= 🚀 视觉终极舒展：释放网格空间，修复滚动条悬空 ================= */
+
+/* 1. 让左侧主容器“拥抱全屏”，不再强行把所有东西往中间挤 */
+.content {
+  align-items: stretch !important; 
+  padding-right: 5px !important;
+}
+
+/* 2. 单独保护顶部的分类和搜索框，让它们依然保持完美的居中 */
+.center-action-area {
+  width: 100% !important;
+  max-width: 900px !important;         /* 控制搜索区域的最佳阅读宽度 */
+  margin: 0 auto 20px auto !important; /* 强制水平居中 */
+}
+
+/* 3. ✨ 彻底砸碎网格的宽度封印，让它像水一样填满左侧所有的空白！ */
+.site-grid {
+  max-width: none !important;     /* 核心：打破原来的 1000px 限制 */
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 10px !important;  
+  padding-right: 15px !important; /* 让滚动条优雅地贴在最右侧边缘，不再悬空 */
+}
+
+/* 顺手把半透明滚动条再稍微优化一下，更加贴边和纤细 */
+.site-grid::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+/* ================= 🚀 终极修复：消除 Vue 吞卡片 Bug，保证数量 100% 完整 ================= */
+
+/* 1. 正常的入场和移动动画，保持丝滑 */
+.fade-grid-move,
+.fade-grid-enter-active {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.fade-grid-enter-from {
+  opacity: 0 !important;
+  transform: translateY(15px) scale(0.95) !important;
+}
+
+/* 2. ✨ 核心解药：绝对不能用 display: none！
+   使用 transition: none 让 Vue 瞬间走完销毁流程，卡片绝对不会再被“吃掉”！ */
+.fade-grid-leave-active {
+  position: absolute !important; 
+  opacity: 0 !important; 
+  transition: none !important; /* 核心魔法：0毫秒瞬间安全退场，不留残影 */
+  pointer-events: none !important;
+}
+
+.fade-grid-leave-to {
+  opacity: 0 !important;
+}
+
+/* 3. 给网格容器加上“宽度金钟罩”，防止任何横向抖动 */
+.site-grid {
+  width: 100% !important;
+  min-width: 100% !important;
+  overflow-x: hidden !important; 
+}
+
+/* 4. 确保每张卡片死死撑满自己的格子，绝不妥协 */
+.site-card {
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 </style>

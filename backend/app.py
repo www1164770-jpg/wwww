@@ -18,6 +18,8 @@ from flask_apscheduler import APScheduler
 from spider import auto_fetch_hacker_news
 from functools import wraps
 from authing import AuthenticationClient
+from sqlalchemy import text
+import feedparser
 
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
 load_dotenv()
@@ -212,6 +214,48 @@ def scheduled_spider_task():
 # 启动调度器
 scheduler.start()
 
+# ================= 4. 垂直资讯流聚合 (RSS 穿透防火墙版) =================
+@app.route('/api/news', methods=['GET'])
+def get_industry_news():
+    prof = request.args.get('prof', 'all')
+    
+    rss_map = {
+        'frontend': 'https://v2ex.com/feed/programmer.xml', 
+        'product': 'https://v2ex.com/feed/create.xml',       
+        'ui': 'https://v2ex.com/feed/design.xml',            
+        'all': 'https://v2ex.com/index.xml'                  
+    }
+    
+    url = rss_map.get(prof, rss_map['all'])
+    
+    try:
+        # ✨ 1. 挂上本地代理 (如果你的代理不是 7890，请改成你自己的端口)
+        my_proxies = {
+            'http': 'http://127.0.0.1:7890',
+            'https': 'http://127.0.0.1:7890'
+        }
+        
+        # ✨ 2. 先用 requests 强行穿透墙壁拉取 XML 文本
+        import requests
+        response = requests.get(url, proxies=my_proxies, timeout=10)
+        xml_data = response.text
+        
+        # ✨ 3. 再把拉到的纯文本喂给 feedparser 进行解析
+        feed = feedparser.parse(xml_data)
+        
+        news_list = []
+        for entry in feed.entries[:8]:
+            news_list.append({
+                'title': entry.title,
+                'link': entry.link,
+                'source': feed.feed.title if hasattr(feed.feed, 'title') else '行业快讯'
+            })
+            
+        return jsonify(news_list), 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc() # 在终端打印真实报错原因
+        return jsonify({'error': str(e)}), 500
 # ================= 爬虫手动测试接口 =================
 @app.route('/api/admin/run-spider', methods=['POST'])
 def trigger_spider_manually():
@@ -396,9 +440,95 @@ def admin_dashboard():
 def get_data():
     return jsonify({"categories": categories_db, "websites": websites_db})
 
-# backend/app.py
+# ================= 1. 自动抓取 Hacker News 热门站点 (SQLAlchemy 版) =================
+@app.route('/api/admin/crawl_hn', methods=['POST'])
+def crawl_hacker_news():
+    try:
+        my_proxies = {
+            'http': 'http://127.0.0.1:7890',
+            'https': 'http://127.0.0.1:7890'
+        }
+        # 获取 HN 最热的 30 篇文章 ID
+        top_stories_url = "https://hacker-news.firebaseio.com/v0/topstories.json"
+        story_ids = requests.get(top_stories_url).json()[:30]
+        
+        added_count = 0
+        
+        for story_id in story_ids:
+            story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+            story_info = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json").json()
+            
+            if story_info and 'url' in story_info:
+                url = story_info['url']
+                title = story_info.get('title', '未知站点')
+                
+                # 查重 1：检查待审核表
+                is_in_pending = db.session.execute(text("SELECT id FROM pending_sites WHERE url = :url"), {'url': url}).fetchone()
+                
+                # ✨ 完美融合：直接用你现成的 Website 模型去正式表里查重！
+                is_in_sites = Website.query.filter_by(url=url).first()
+                
+                if not is_in_pending and not is_in_sites:
+                    # 写入待审核库
+                    db.session.execute(
+                        text("INSERT INTO pending_sites (name, url, description, source) VALUES (:name, :url, :desc, :source)"),
+                        {'name': title, 'url': url, 'desc': title, 'source': 'Hacker News'}
+                    )
+                    added_count += 1
+        
+        db.session.commit()
+        return jsonify({'message': f'抓取完成！成功发现 {added_count} 个新站点待审核。'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
-# ✨ 1. 在路由上方定义好“全网基础热度大字典”
+# ================= 2. 获取待审核站点列表 =================
+@app.route('/api/admin/pending_sites', methods=['GET'])
+def get_pending_sites():
+    try:
+        result = db.session.execute(text("SELECT id, name, url, description, source FROM pending_sites WHERE status = 'pending' ORDER BY created_at DESC"))
+        sites = []
+        for row in result:
+            sites.append({
+                'id': row[0],
+                'name': row[1],
+                'url': row[2],
+                'description': row[3],
+                'source': row[4]
+            })
+        return jsonify(sites), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ================= 3. 审核操作 (通过 或 拒绝) =================
+@app.route('/api/admin/review_site', methods=['POST'])
+def review_site():
+    data = request.json
+    site_id = data.get('id')
+    action = data.get('action')
+    category_id = data.get('category_id', 1)
+    
+    try:
+        if action == 'approve':
+            # 1. 查出待审核数据
+            site_row = db.session.execute(text("SELECT name, url, description FROM pending_sites WHERE id = :id"), {'id': site_id}).fetchone()
+            if site_row:
+                # ✨ 完美融合：直接实例化你的 Website 模型，让它按照你的规则生成数据！
+                new_site = Website(name=site_row[0], url=site_row[1], category_id=category_id)
+                db.session.add(new_site)
+                
+                # 更新待审核表状态
+                db.session.execute(text("UPDATE pending_sites SET status = 'approved' WHERE id = :id"), {'id': site_id})
+        
+        elif action == 'reject':
+            db.session.execute(text("UPDATE pending_sites SET status = 'rejected' WHERE id = :id"), {'id': site_id})
+            
+        db.session.commit()
+        return jsonify({'message': '审核操作成功'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+# backend/app.py
 # ✨ 1. 全网基础热度（保持不变）
 BASE_HOTNESS = {
     # 常用推荐
@@ -766,23 +896,6 @@ def github_callback():
     print(f"🎉 GitHub 登录成功！用户: {username}")
     return redirect(frontend_url)
 
-
-# 1. 呈递奏章：获取所有待审核的网站
-@app.route('/api/admin/pending-sites', methods=['GET'])
-def get_pending_sites():
-    from models import Website
-    # 只查询 status 为 'pending' 的网站
-    pending_sites = Website.query.filter_by(status='pending').all()
-    
-    data = [{
-        "id": s.id,
-        "name": s.name,
-        "url": s.url,
-        "description": s.description,
-        "source": s.source
-    } for s in pending_sites]
-    
-    return jsonify(data)
 
 @app.route('/api/admin/audit-site/<int:site_id>', methods=['POST'])
 def audit_site(site_id):
