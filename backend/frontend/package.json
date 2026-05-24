@@ -12,6 +12,7 @@
     "@authing/guard": "^5.3.9",
     "@authing/vue-ui-components": "^4.5.47-bg.18",
     "axios": "^1.15.0",
+    "flexsearch": "^0.8.212",
     "install": "^0.13.0",
     "meilisearch": "^0.58.0",
     "vue": "^3.5.32",

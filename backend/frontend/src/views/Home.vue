@@ -97,9 +97,18 @@
               </div>
             </div>
           </div>
-          
-        <div class="search-section" :class="{ 'focus-center-wrapper': isFocusMode }" style="position: relative;">
-            
+          <div class="search-section">
+  <input v-model="searchText" placeholder="输入标题、标签或内容搜索..." @focus="showDropdown = true" />
+  
+  <transition name="fade">
+    <div v-if="searchText && searchResults.length" class="search-dropdown">
+      <div v-for="site in searchResults" :key="site.id" class="search-item">
+        <div v-html="highlight(site.title)" class="title"></div>
+        <div class="tags">{{ site.tags.join(', ') }}</div>
+      </div>
+    </div>
+  </transition>
+
             <div v-show="isFocusMode" class="orbit-center-container">
   
   <div v-for="(site, index) in favoriteSites" :key="site.id || site.name" class="orbit-planet" :style="{ '--delay': index, '--total': favoriteSites.length }">
@@ -682,6 +691,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch} from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import FlexSearch from 'flexsearch'
 
 
 // 确保这两行存在
@@ -772,6 +782,33 @@ const triggerCrawl = async () => {
   }
 };
 
+// 1. 初始化引擎
+const index = new FlexSearch.Document({
+  document: {
+    id: "id",
+    index: ["title", "tags", "content"], // 支持按标题、标签、内容索引
+  },
+  tokenize: "forward" // 前缀匹配，适合搜索建议
+});
+
+// 2. 存入你的网站数据
+sitesList.forEach(site => index.add(site));
+
+// 3. 搜索与高亮
+const searchText = ref('');
+const searchResults = computed(() => {
+  if (!searchText.value) return [];
+  const results = index.search(searchText.value);
+  // 获取完整的搜索结果对象
+  return results.flatMap(res => res.result.map(id => sitesList.find(s => s.id === id)));
+});
+
+// 高亮方法
+const highlight = (text) => {
+  if (!searchText.value) return text;
+  const regex = new RegExp(`(${searchText.value})`, 'gi');
+  return text.replace(regex, '<span class="highlight">$1</span>');
+};
 // 处理审核 (通过 / 拒绝)
 // ================= 修复版：处理审核 (通过 / 拒绝) =================
 const handleReview = async (siteId, action) => {
@@ -5142,4 +5179,27 @@ h1, h2, h3, h4, p, span, a, div, button, input, textarea, select {
   width: 100% !important;
   box-sizing: border-box !important;
 }
+
+.search-section { position: relative; }
+
+/* 搜索结果高亮样式 */
+.highlight {
+  color: #3b82f6;
+  font-weight: bold;
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* 搜索建议浮层 */
+.search-dropdown {
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: var(--bg-glass);
+  backdrop-filter: blur(15px);
+  border-radius: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
 </style>
