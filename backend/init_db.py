@@ -1,11 +1,29 @@
+"""
+数据库初始化脚本：一键同步分类和网站数据到 MySQL。
+
+功能说明：
+  1. 将 all_categories 中定义的所有分类写入 categories 表（已存在则更新）。
+  2. 将 all_sites 中定义的所有网站写入 websites 表（已存在则跳过，避免重复）。
+  3. 网站 Logo 通过 Google Favicon 接口自动获取，无需手动上传图片。
+
+使用方式：
+  直接运行 `python init_db.py` 即可完成数据初始化。
+"""
 import pymysql
 
+# 数据库连接配置，指向本地 MySQL 实例的 nav_site 数据库
 DB_CONFIG = {
     'host': '127.0.0.1', 'user': 'root', 'password': 'weiyijie748',
     'database': 'nav_site', 'charset': 'utf8mb4'
 }
 
 # ===== 需要确保数据库中存在的所有分类 =====
+# 每条记录格式：(id, profession_type, name, sort_order)
+#   id            - 分类唯一 ID（手动指定，便于与 all_sites 中的 cat 字段对应）
+#   profession_type - 职业类型标识，用于前端按人群筛选分类
+#                     可选值：general（综合）/ frontend（前端）/ designer（设计）/ product（产品）
+#   name          - 分类显示名称
+#   sort_order    - 同一职业类型下的排列顺序，数字越小越靠前
 all_categories = [
     # 综合导航
     (1,   'general',  '常用推荐',   0),
@@ -31,6 +49,10 @@ all_categories = [
 ]
 
 # 把你想加的网站全部丢进来，只要有网址就行
+# 每条记录格式：{"name": 网站名称, "url": 网站地址, "cat": 所属分类 ID}
+#   name - 网站显示名称，对应 websites.name
+#   url  - 网站完整 URL，对应 websites.url，同时用于自动生成 logo_url
+#   cat  - 所属分类 ID，必须与 all_categories 中的 id 对应
 all_sites = [
     # ===== 分类 1：常用推荐 =====
     {"name": "哔哩哔哩", "url": "https://www.bilibili.com", "cat": 1},
@@ -638,15 +660,38 @@ all_sites = [
 ]
 
 def get_logo_url(url):
-    """直接返回 Google Favicon 接口地址，无需网络请求，前端自动加载"""
-    domain = url.split('//')[-1].split('/')[0]
+    """
+    根据网站 URL 生成对应的 Logo 图片地址。
+
+    利用 Google Favicon 服务（s2/favicons）自动获取网站图标，
+    无需本地存储图片，前端直接加载该 URL 即可显示 Logo。
+
+    参数：
+        url (str): 网站完整地址，如 "https://github.com"
+
+    返回：
+        str: Google Favicon 接口 URL，图标尺寸固定为 128x128
+    """
+    domain = url.split('//')[-1].split('/')[0]  # 从 URL 中提取域名，如 "github.com"
     return f"https://www.google.com/s2/favicons?domain={domain}&sz=128"
 
 def run():
-    conn = pymysql.connect(**DB_CONFIG)
+    """
+    执行数据库初始化的主函数。
+
+    步骤：
+      1. 连接 MySQL 数据库。
+      2. 同步所有分类：使用 INSERT ... ON DUPLICATE KEY UPDATE，
+         保证分类存在且数据最新，不会因重复运行而报错。
+      3. 批量插入网站：先查询是否已存在同名同分类的记录，
+         存在则跳过，不存在则插入并自动生成 Logo URL。
+      4. 提交事务并关闭连接，打印执行结果统计。
+    """
+    conn = pymysql.connect(**DB_CONFIG)   # 建立数据库连接
     cursor = conn.cursor()
 
-    # 1. 确保所有分类存在
+    # 步骤 1：同步所有分类到 categories 表
+    # 使用 ON DUPLICATE KEY UPDATE 实现"有则更新，无则插入"，保证幂等性
     for cat in all_categories:
         cat_id, profession, name, sort = cat
         cursor.execute(
@@ -657,27 +702,29 @@ def run():
     conn.commit()
     print(f"✅ 分类同步完成（共 {len(all_categories)} 个）")
 
-    # 2. 批量插入网站（跳过已存在的，logo 用 Google Favicon 接口）
-    inserted = 0
-    skipped = 0
+    # 步骤 2：批量插入网站到 websites 表
+    # 先查重，避免重复插入同名同分类的网站；Logo 通过 get_logo_url 自动生成
+    inserted = 0   # 本次新增的网站数量
+    skipped = 0    # 已存在、跳过的网站数量
     total = len(all_sites)
     for site in all_sites:
+        # 检查同一分类下是否已存在同名网站
         cursor.execute(
             "SELECT id FROM websites WHERE name=%s AND category_id=%s",
             (site['name'], site['cat'])
         )
         if cursor.fetchone():
-            skipped += 1
+            skipped += 1   # 已存在，跳过不重复插入
             continue
-        logo = get_logo_url(site['url'])
+        logo = get_logo_url(site['url'])   # 根据 URL 生成 Google Favicon 地址
         cursor.execute(
             "INSERT INTO websites (category_id, name, url, logo_url) VALUES (%s, %s, %s, %s)",
             (site['cat'], site['name'], site['url'], logo)
         )
         inserted += 1
 
-    conn.commit()
-    conn.close()
+    conn.commit()   # 提交所有插入操作
+    conn.close()    # 关闭数据库连接
     print(f"✅ 全部完成！新增 {inserted} 个，跳过 {skipped} 个，共 {total} 个网站")
 
 if __name__ == "__main__":

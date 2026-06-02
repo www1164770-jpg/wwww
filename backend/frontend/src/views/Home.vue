@@ -1,6 +1,5 @@
 <template>
-  <div class="layout" :class="[{ 'dark-theme': isDarkMode }, uiState]" @click="closeAllDropdowns">
-    
+<div class="layout" :class="[{ 'dark-theme': isDarkMode }, uiState]" :style="dynamicBgStyle" @click="closeAllDropdowns">    
     <transition name="space-fade">
       <div v-if="isSpaceIntroPlaying" class="space-particle-wrapper">
         <canvas ref="particleCanvas" class="particle-canvas"></canvas>
@@ -29,11 +28,18 @@
               class="prof-item"
               :class="{ active: currentProfession === key }"
               @click="selectProfession(key)"
+              @contextmenu.prevent="openProfContextMenu($event, key, data)" 
             >
               <span class="item-icon">{{ data.icon }}</span>
               <div class="item-info">
                 <span class="item-name">{{ data.name }}</span>
               </div>
+            </div>
+
+            <div class="prof-divider"></div>
+            <div class="prof-item add-prof-trigger" @click="openAddModal">
+              <span class="item-icon">➕</span>
+              <div class="item-info"><span class="item-name">添加自定义职业</span></div>
             </div>
           </div>
         </div>
@@ -98,16 +104,6 @@
             </div>
           </div>
           <div class="search-section">
-  <input v-model="searchText" placeholder="输入标题、标签或内容搜索..." @focus="showDropdown = true" />
-  
-  <transition name="fade">
-    <div v-if="searchText && searchResults.length" class="search-dropdown">
-      <div v-for="site in searchResults" :key="site.id" class="search-item">
-        <div v-html="highlight(site.title)" class="title"></div>
-        <div class="tags">{{ site.tags.join(', ') }}</div>
-      </div>
-    </div>
-  </transition>
 
             <div v-show="isFocusMode" class="orbit-center-container">
   
@@ -235,72 +231,73 @@
       </main>
 
       <aside class="sidebar-right" v-show="!isFocusMode">
-        <div class="sidebar-box trending-box block-shadow">
-          <div class="box-header">
-            <h3 class="box-title">🔥 今日排行</h3>
-            <span class="box-subtitle">在线热度涨跌</span>
+        
+        <div class="sidebar-box combined-box block-shadow">
+          <div class="box-header tabs-header">
+            <div class="sidebar-tabs">
+              <h3 class="box-title tab-title" :class="{ active: activeSidebarTab === 'ranking' }" @click="activeSidebarTab = 'ranking'">🔥 今日排行</h3>
+              <h3 class="box-title tab-title" :class="{ active: activeSidebarTab === 'news' }" @click="activeSidebarTab = 'news'">📰 行业前沿</h3>
+            </div>
           </div>
-          <div class="scroll-viewport">
-            <div v-if="isLoading" class="scroll-track" style="animation: none;">
-              <div v-for="i in 6" :key="'rank-skel-'+i" class="trending-item" style="pointer-events: none; border: none;">
-                <div class="rank-badge skeleton-box" style="background: transparent; box-shadow: none;"></div>
-                <div class="skeleton-text skeleton-box" style="width: 80px; margin: 0; height: 16px;"></div>
-                <div class="skeleton-text skeleton-box" style="width: 40px; margin-left: auto; height: 14px;"></div>
+
+          <div class="tab-content-container">
+            <div v-show="activeSidebarTab === 'ranking'" class="scroll-viewport">
+              
+              <div v-if="isLoading" class="scroll-track" style="animation: none;">
+                <div v-for="i in 6" :key="'rank-skel-'+i" class="trending-item" style="pointer-events: none; border: none;">
+                  <div class="rank-badge skeleton-box" style="background: transparent; box-shadow: none;"></div>
+                  <div class="skeleton-text skeleton-box" style="width: 80px; margin: 0; height: 16px;"></div>
+                </div>
+              </div>
+              
+              <div v-else-if="!rawLeaderboard || rawLeaderboard.length === 0" class="empty-ranking-state">
+                <div class="empty-rank-icon">📊</div>
+                <div class="empty-rank-title">暂无真实排位数据</div>
+                <div class="empty-rank-desc">快去左侧点击网站，积累全网热度吧！</div>
+              </div>
+
+              <TransitionGroup v-else name="rank-list" tag="div" class="scroll-track">
+                <a v-for="(site, index) in rawLeaderboard" :key="site.id" :href="`/go/${site.id}`" target="_blank" class="trending-item">
+                  <span class="rank-badge" :class="'rank-' + (index + 1)">{{ index + 1 }}</span>
+                  <span class="site-name">{{ site.title || site.name }}</span>
+                  <span class="click-count">
+                      <span v-if="site.growth_rate > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">↑ {{ site.growth_rate }}%</span>
+                      <span v-else-if="site.growth_rate < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">↓ {{ Math.abs(site.growth_rate) }}%</span>
+                      <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
+                  </span>
+                </a>
+              </TransitionGroup>
+            </div>
+
+            <div v-show="activeSidebarTab === 'news'" class="news-list-container" style="padding-top: 10px;">
+              <div class="news-list" v-if="!isLoadingNews && newsList.length > 0">
+                <a v-for="(news, index) in newsList" :key="index" :href="news.link" target="_blank" class="news-item">
+                  <div class="news-dot"></div>
+                  <div class="news-content">
+                    <div class="news-title">{{ news.title }}</div>
+                    <div class="news-meta">{{ news.source }}</div>
+                  </div>
+                </a>
+              </div>
+              <div v-else class="news-loading-skeleton">
+                <div class="skeleton-pulse" v-for="i in 5" :key="i"></div>
               </div>
             </div>
-            <TransitionGroup v-else name="rank-list" tag="div" class="scroll-track">
-              <a v-for="site in sortedLeaderboard" :key="site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
-                <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
-                <span class="site-name">{{ site.name }}</span>
-                <span class="click-count">
-                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">↑ {{ site.growth_rate }}%</span>
-                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">↓ {{ Math.abs(site.growth_rate) }}%</span>
-                    <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
-                </span>
-              </a>
-              <a v-for="site in sortedLeaderboard" :key="'dup-'+site.id" @click.prevent="handleSiteClick(site)" class="trending-item">
-                <span class="rank-badge" :class="'rank-' + site.rank">{{ site.rank }}</span>
-                <span class="site-name">{{ site.name }}</span>
-                <span class="click-count">
-                    <span v-if="site.delta > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">↑ {{ site.growth_rate }}%</span>
-                    <span v-else-if="site.delta < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">↓ {{ Math.abs(site.growth_rate) }}%</span>
-                    <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
-                </span>
-              </a>
-            </TransitionGroup>
           </div>
         </div>
 
-        <div class="sidebar-box news-box block-shadow">
-          <div class="box-header">
-            <h3 class="box-title">📰 行业前沿</h3>
-            <button class="refresh-news-btn" @click="fetchIndustryNews" :class="{ 'spinning': isLoadingNews }">↻</button>
-          </div>
-
-          <div class="news-list-container">
-            <div class="news-list" v-if="!isLoadingNews && newsList.length > 0">
-              <a v-for="(news, index) in newsList" :key="index" :href="news.link" target="_blank" class="news-item">
-                <div class="news-dot"></div>
-                <div class="news-content">
-                  <div class="news-title">{{ news.title }}</div>
-                  <div class="news-meta">{{ news.source }}</div>
-                </div>
-              </a>
-            </div>
-            
-            <div v-else class="news-loading-skeleton">
-              <div class="skeleton-pulse" v-for="i in 5" :key="i"></div>
-            </div>
-          </div>
-        </div>
         <div class="widget block-shadow ai-widget">
           <div class="widget-header"><h3>✨ AI 建议</h3></div>
+          
           <div class="chat-window" ref="chatWindow">
             <div v-for="(msg, index) in chatMessages" :key="index" :class="['chat-bubble', msg.role]">
-              {{ msg.content }}
+              <div v-html="msg.content"></div>
             </div>
-            <div v-if="isAiThinking" class="chat-bubble ai thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <div v-if="isAiThinking" class="chat-bubble ai thinking">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
           </div>
+          
           <div class="chat-input">
             <input v-model="userInput" @keyup.enter="sendMessage" type="text" placeholder="需要找什么网站？" :disabled="isAiThinking" />
             <button class="btn-send" @click="sendMessage" :disabled="isAiThinking">发送</button>
@@ -310,74 +307,305 @@
     </div>
 
     <div v-else-if="currentPage === 'profile'" class="profile-fullscreen-wrapper">
-      <div class="profile-inner-container">
-        <div class="profile-header-section">
-          <button class="nav-back-btn" @click="goHome">← 返回</button>
-          <h1 class="main-title">个人信息</h1>
-          <p class="sub-title">在这里直接修改您的资料，点击底部保存即可生效</p>
-        </div>
+      <div class="profile-layout-container block-shadow">
+        
+        <aside class="profile-sidebar">
+          <div class="sidebar-header">
+            <button class="nav-back-btn" @click="goHome">← 返回首页</button>
+          </div>
+          <div class="sidebar-user-brief">
+            <img :src="userInfo.avatar" class="brief-avatar" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
+            <div class="brief-info">
+              <span class="brief-name">{{ userInfo.username }}</span>
+              <span class="brief-role">UID: 8848123</span>
+            </div>
+          </div>
+          <nav class="sidebar-menu">
+            <a :class="{ active: activeProfileTab === 'homepage' }" @click="activeProfileTab = 'homepage'">🏠 个人主页</a>
+            <a :class="{ active: activeProfileTab === 'settings' }" @click="activeProfileTab = 'settings'">⚙️ 基础资料</a>
+            <a :class="{ active: activeProfileTab === 'security' }" @click="activeProfileTab = 'security'">🛡️ 安全设置</a>
+            <a :class="{ active: activeProfileTab === 'privacy' }" @click="activeProfileTab = 'privacy'">👁️ 隐私偏好</a>
+            <a :class="{ active: activeProfileTab === 'content' }" @click="activeProfileTab = 'content'">📝 内容管理</a>
+            <a :class="{ active: activeProfileTab === 'history' }" @click="activeProfileTab = 'history'">👣 互动足迹</a>
+          </nav>
+          <div class="sidebar-footer">
+            <button class="logout-action-btn w-full" @click="handleLogout">退出当前账号</button>
+          </div>
+        </aside>
 
-        <div class="profile-cards-gap">
-          <div class="info-card-box block-shadow">
-            <div class="card-head"><h2>基本信息</h2><span>部分信息可能对其他用户可见</span></div>
+        <main class="profile-content-area">
+          
+          <div v-if="activeProfileTab === 'homepage'" class="tab-panel animate-fade-in">
+            <div class="bento-layout">
+              
+              <div class="bento-item bento-profile block-shadow">
+                <div class="avatar-container">
+                  <img :src="userInfo.avatar" class="bento-avatar" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
+                  <div class="online-status-dot" title="当前在线"></div>
+                </div>
+                <div class="profile-info-core">
+                  <div class="name-row">
+                    <h2>{{ userInfo.username }}</h2>
+                    <span class="pro-badge">PRO Developer</span>
+                  </div>
+                  <p class="uid-text">UID: 8848123</p>
+                  <p class="bio-text">{{ userInfo.bio || '探索代码边界，专注极致交互与高性能架构。' }}</p>
+                  <div class="tech-stack-tags">
+                    <span class="tech-tag vue">Vue 3</span>
+                    <span class="tech-tag flask">Flask</span>
+                    <span class="tech-tag db">MySQL</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bento-item bento-stats block-shadow">
+                <div class="stat-row">
+                  <div class="stat-icon-wrapper blue">👁️</div>
+                  <div class="stat-data">
+                    <strong>{{ profileStats.views || 0 }}</strong>
+                    <span>总阅读量</span>
+                  </div>
+                </div>
+                <div class="stat-row">
+                  <div class="stat-icon-wrapper orange">📝</div>
+                  <div class="stat-data">
+                    <strong>{{ profileStats.posts || 0 }}</strong>
+                    <span>发布内容</span>
+                  </div>
+                </div>
+                <div class="stat-row">
+                  <div class="stat-icon-wrapper purple">👥</div>
+                  <div class="stat-data">
+                    <strong>{{ profileStats.followers || 0 }}</strong>
+                    <span>关注者</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bento-item bento-project block-shadow">
+                <div class="bento-header">
+                  <h3>🚀 最新发布内容</h3>
+                </div>
+                <div class="project-cards-container">
+                  <div v-if="!myContents || myContents.length === 0" style="color: #94a3b8; font-size: 13px; text-align: center; padding: 20px;">
+                    暂无发布的文章或项目
+                  </div>
+                  
+                  <div v-else v-for="item in myContents.slice(0, 2)" :key="item.id" class="proj-card" @click="$router.push(`/article/${item.id}`)" style="cursor: pointer;">                    <div class="proj-details">
+                      <h4>{{ item.title }}</h4>
+                      <p>发布于 {{ item.time }} · {{ item.views }} 浏览 · {{ item.likes }} 赞</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bento-item bento-feed block-shadow">
+                <div class="bento-header">
+                  <h3>⚡ 最新动态</h3>
+                <button class="btn-icon-only" title="发布新动态" @click="$router.push('/publish')">➕</button>                </div>
+                <div class="mini-feed-list">
+                  <div v-if="!flatHistory || flatHistory.length === 0" style="color: #94a3b8; font-size: 13px; text-align: center; padding: 20px;">
+                    暂无动态
+                  </div>
+
+                  <div v-else v-for="(item, index) in flatHistory.slice(0, 3)" :key="index" class="mini-feed-item">
+                    <div class="feed-dot"></div>
+                    <div class="feed-content">
+                      <p>
+                        <span style="color: #64748b;">{{ item.action }}了</span> 
+                        <a :href="item.url" target="_blank" style="color: #3b82f6; font-weight: 600; text-decoration: none;">
+                          {{ item.target_name }}
+                        </a>
+                      </p>
+                      <span class="feed-time">{{ item.date }} {{ item.time }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bento-item bento-lab block-shadow">
+                <div class="lab-content">
+                  <div class="lab-text">
+                    <h3>🔬 视觉体验实验室</h3>
+                    <p>一键开启极致暗黑模式，体验更深邃、更专注的沉浸式编码视觉环境。</p>
+                  </div>
+                  <button class="btn-primary lab-btn" @click="isDarkMode = !isDarkMode; toggleTheme()">
+                    <span class="icon">{{ isDarkMode ? '☀️' : '🌙' }}</span> 
+                    {{ isDarkMode ? '切换回明亮模式' : '开启暗黑模式体验' }}
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div v-else-if="activeProfileTab === 'settings'" class="tab-panel animate-fade-in">
+            <h2 class="panel-title">基础资料</h2>
+            <div class="info-card-box block-shadow" style="box-shadow: none;">
+              <div class="form-row">
+                <span class="row-label">个人头像</span>
+                <div class="row-content avatar-edit-row">
+                  <input type="file" accept="image/*" class="hidden-file-input" ref="avatarInputRef" @change="handleAvatarUpload">
+                  <div class="avatar-upload-wrapper" @click="triggerAvatarUpload" title="点击更换头像">
+                    <img :src="userInfo.avatar" class="circle-avatar" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
+                    <div class="avatar-hover-mask"><span>更换头像</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row"><span class="row-label">名称</span><div class="row-content"><input type="text" v-model="userInfo.username" class="inline-input"></div></div>
+              <div class="form-row"><span class="row-label">性别</span>
+                <div class="row-content">
+                  <select v-model="userInfo.gender" class="inline-input"><option value="男">男</option><option value="女">女</option><option value="保密">保密</option></select>
+                </div>
+              </div>
+              <div class="form-row"><span class="row-label">生日</span><div class="row-content"><input type="date" v-model="userInfo.birthday" class="inline-input"></div></div>
+              <div class="form-row align-top"><span class="row-label">个性签名</span><div class="row-content"><textarea v-model="userInfo.bio" class="inline-input" rows="3"></textarea></div></div>
+            </div>
+            <div class="panel-actions"><button class="btn-primary" @click="saveProfileDirectly">保存基础资料</button></div>
+          </div>
+
+          <div v-else-if="activeProfileTab === 'security'" class="tab-panel animate-fade-in">
+            <h2 class="panel-title">安全设置</h2>
             
-            <div class="form-row">
-              <span class="row-label">个人资料照片</span>
-              <div class="row-content avatar-edit-row">
-                <input type="file" accept="image/*" class="hidden-file-input" ref="avatarInputRef" @change="handleAvatarUpload">
-                <div class="avatar-upload-wrapper" @click="triggerAvatarUpload" title="点击更换头像">
-                  <img :src="userInfo.avatar" class="circle-avatar" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
-                  <div class="avatar-hover-mask"><span>更换头像</span></div>
+            <div class="security-list">
+              <div class="security-item">
+                <div class="sec-info"><h3>登录密码</h3><p>已设置。建议定期更换密码以提高安全性。</p></div>
+                <button class="btn-cancel" @click="showToast('这里将弹窗让用户输入旧密码修改', 'info')">修改</button>
+              </div>
+              <div class="security-item">
+                <div class="sec-info"><h3>绑定邮箱</h3><p>{{ userInfo.email || '未绑定' }}</p></div>
+                <button class="btn-cancel">换绑</button>
+              </div>
+              <div class="security-item">
+                <div class="sec-info"><h3>绑定手机</h3><p>{{ userInfo.phone || '未绑定，绑定后可用于快速找回账号' }}</p></div>
+                <button class="btn-primary">去绑定</button>
+              </div>
+            </div>
+
+            <h3 class="panel-subtitle" style="margin-top: 30px;">登录设备管理</h3>
+            <div class="device-list">
+              <div v-for="dev in loginDevices" :key="dev.id" class="device-item">
+                <div class="dev-icon">{{ dev.type === 'pc' ? '💻' : '📱' }}</div>
+                <div class="dev-detail">
+                  <span class="dev-name">{{ dev.name }} <span v-if="dev.isCurrent" class="dev-tag">当前设备</span></span>
+                  <span class="dev-meta">{{ dev.location }} · {{ dev.time }}</span>
+                </div>
+                <button v-if="!dev.isCurrent" class="btn-danger-text" @click="showToast('已强制下线该设备', 'success')">下线</button>
+              </div>
+            </div>
+
+            <div class="danger-zone" style="margin-top: 40px; border-top: 1px solid #ef4444; padding-top: 20px;">
+              <h3 style="color: #ef4444; margin-bottom: 10px;">危险区域</h3>
+              <p style="font-size: 13px; color: #64748b; margin-bottom: 15px;">彻底注销您的账号。系统将保留 15 天冷静期，期间再次登录可撤销注销操作。</p>
+              <button class="btn-danger" @click="showToast('已发起注销申请，请在15天内确认', 'error')">申请永久注销账号</button>
+            </div>
+          </div>
+
+          <div v-else-if="activeProfileTab === 'privacy'" class="tab-panel animate-fade-in">
+            <h2 class="panel-title">隐私与偏好</h2>
+            <div class="security-list">
+              <div class="security-item">
+                <div class="sec-info"><h3>公开我的收藏夹</h3><p>允许其他人在你的个人主页查看你的收藏</p></div>
+                <label class="switch"><input type="checkbox" v-model="privacySettings.publicFavorites"><span class="slider round"></span></label>
+              </div>
+              <div class="security-item">
+                <div class="sec-info"><h3>在排行榜隐藏我的足迹</h3><p>你的点击和浏览将不会被记入全网热度公开展示</p></div>
+                <label class="switch"><input type="checkbox" v-model="privacySettings.hideFootprint"><span class="slider round"></span></label>
+              </div>
+              <div class="security-item">
+                <div class="sec-info"><h3>外观偏好 (暗黑模式)</h3><p>全局颜色主题随系统自动切换或固定</p></div>
+                <label class="switch"><input type="checkbox" v-model="isDarkMode" @change="toggleTheme"><span class="slider round"></span></label>
+              </div>
+              <div class="security-item">
+                <div class="sec-info"><h3>界面语言</h3><p>当前系统默认语言</p></div>
+                <select class="inline-input" style="width: 120px;"><option>简体中文</option><option>English</option></select>
+              </div>
+            </div>
+          </div>
+
+          <div v-else-if="activeProfileTab === 'content'" class="tab-panel animate-fade-in">
+            <h2 class="panel-title">内容管理</h2>
+            <div class="content-status-tabs">
+              <span :class="{ active: contentTab === 'published' }" @click="contentTab = 'published'">已发布</span>
+              <span :class="{ active: contentTab === 'reviewing' }" @click="contentTab = 'reviewing'">审核中</span>
+              <span :class="{ active: contentTab === 'draft' }" @click="contentTab = 'draft'">草稿箱</span>
+            </div>
+            
+            <div class="content-list">
+              <div v-if="!myContents || myContents.length === 0" class="empty-state-container" style="padding: 30px 0;">
+                <div class="empty-icon">📭</div>
+                <p class="empty-desc">当前状态下没有内容哦~</p>
+              </div>
+              
+              <div v-else v-for="item in myContents" :key="item.id" class="my-content-item block-shadow">
+                <div class="mc-info">
+                  <h4>{{ item.title }}</h4>
+                  <p>{{ item.time }} · 浏览 {{ item.views || 0 }} · 点赞 {{ item.likes || 0 }}</p>
+                </div>
+                <div class="mc-actions">
+                  <button class="btn-cancel">编辑</button>
+                  <button class="btn-danger-text" @click="deleteMyContent(item.id)">删除</button>
                 </div>
               </div>
             </div>
-            
-            <div class="form-row">
-              <span class="row-label">名称</span>
-              <div class="row-content">
-                <input type="text" v-model="userInfo.username" class="inline-input">
-              </div>
+          </div>
+
+          <div v-else-if="activeProfileTab === 'history'" class="tab-panel animate-fade-in">
+            <div class="panel-header-row">
+              <h2 class="panel-title" style="margin: 0;">互动足迹</h2>
+              <button class="btn-cancel" @click="clearHistory">🗑️ 清除历史</button>
             </div>
             
-            <div class="form-row">
-              <span class="row-label">性别</span>
-              <div class="row-content">
-                <select v-model="userInfo.gender" class="inline-input">
-                  <option value="男">男</option>
-                  <option value="女">女</option>
-                  <option value="保密">保密</option>
-                </select>
+            <div class="history-timeline">
+              <div v-if="!interactionHistory || interactionHistory.length === 0" class="empty-state-container">
+                <p class="empty-desc">暂无任何互动足迹</p>
               </div>
-            </div>
-            
-            <div class="form-row">
-              <span class="row-label">生日</span>
-              <div class="row-content">
-                <input type="date" v-model="userInfo.birthday" class="inline-input">
+
+              <div v-else v-for="group in interactionHistory" :key="group.date" class="timeline-day">
+                <h4 class="day-title">{{ group.date }}</h4>
+                <div v-for="item in group.items" :key="item.id" class="timeline-item">
+                  <span class="tl-time">{{ item.time }}</span>
+                  <span class="tl-action" :class="{ 'highlight': item.action === '点赞', 'highlight-star': item.action === '收藏' }">
+                    {{ item.action }}了
+                  </span>
+                  <span class="tl-target" @click="window.open(item.url, '_blank')">{{ item.target_name }}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="info-card-box block-shadow">
-            <div class="card-head"><h2>联系方式与个性化</h2></div>
-            <div class="form-row">
-              <span class="row-label">电子邮箱</span>
-              <div class="row-content">
-                <input type="email" v-model="userInfo.email" class="inline-input" placeholder="例如: name@example.com">
-              </div>
+          <div v-else-if="activeProfileTab === 'history'" class="tab-panel animate-fade-in">
+            <div class="panel-header-row">
+              <h2 class="panel-title" style="margin: 0;">互动足迹</h2>
+              <button class="btn-cancel" @click="showToast('历史记录已清空', 'success')">🗑️ 清除历史</button>
             </div>
-            <div class="form-row align-top">
-              <span class="row-label">个性签名</span>
-              <div class="row-content">
-                <textarea v-model="userInfo.bio" class="inline-input" rows="3" placeholder="介绍一下你自己吧..."></textarea>
+            
+            <div class="history-timeline">
+              <div class="timeline-day">
+                <h4 class="day-title">今天</h4>
+                <div class="timeline-item">
+                  <span class="tl-time">10:24</span>
+                  <span class="tl-action highlight">点赞了</span>
+                  <span class="tl-target">文章《2026 前端发展趋势预测》</span>
+                </div>
+                <div class="timeline-item">
+                  <span class="tl-time">09:12</span>
+                  <span class="tl-action">浏览了</span>
+                  <span class="tl-target">网站 [GitHub]</span>
+                </div>
+              </div>
+              <div class="timeline-day">
+                <h4 class="day-title">昨天</h4>
+                <div class="timeline-item">
+                  <span class="tl-time">18:30</span>
+                  <span class="tl-action highlight-star">收藏了</span>
+                  <span class="tl-target">网站 [DeepSeek]</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="bottom-sticky-area">
-          <button class="save-action-btn" @click="saveProfileDirectly">保存所有修改</button>
-          <button class="logout-action-btn" @click="handleLogout">退出当前账号</button>
-        </div>
+
+        </main>
       </div>
     </div>
 
@@ -390,6 +618,7 @@
             <button class="method-btn github" @click="handleGithubLogin">🐱 GitHub 登录</button>
             <button class="method-btn phone" @click="switchTo('mobile')">📱 手机号验证码</button>
             <button class="method-btn email" @click="switchTo('email')">✉️ 邮箱密码登录</button>
+            <button class="method-btn register" @click="switchTo('register')" style="margin-top: 10px; border-color: #3b82f6; color: #3b82f6;">✨ 新用户注册</button>
           </div>
           <div v-else-if="authStage === 'mobile'" key="mobile" class="vertical-layout">
             <h2 class="modal-title">手机号登录</h2>
@@ -406,6 +635,34 @@
             <input type="email" placeholder="请输入邮箱地址" class="auth-input">
             <input type="password" placeholder="请输入密码" class="auth-input">
             <button class="btn-submit">确认登录</button>
+            <button class="link-btn" @click="switchTo('methods')">返回其他方式</button>
+          </div>
+          <!-- ✨ 新增：用户注册面板 -->
+          <div v-else-if="authStage === 'register'" key="register" class="vertical-layout">
+            <h2 class="modal-title">新用户注册</h2>
+            
+            <input type="text" v-model="regForm.username" placeholder="给你的账号起个好听的名字" class="auth-input">
+            <input type="email" v-model="regForm.email" placeholder="请输入常用邮箱" class="auth-input">
+            
+            <div class="verify-code-row">
+              <input type="text" v-model="regForm.code" placeholder="6位验证码" class="auth-input small">
+              <!-- ✨ 倒计时核心按钮 -->
+              <button class="get-code-btn" :disabled="countdown > 0" @click="sendCode">
+                {{ countdown > 0 ? `${countdown}s 后重发` : '获取验证码' }}
+              </button>
+            </div>
+            
+            <input type="password" v-model="regForm.password" placeholder="设置一个强密码" class="auth-input">
+            
+            <!-- ✨ 用户协议勾选框 -->
+            <div class="terms-row" style="margin-top: 5px;">
+              <label class="terms-label" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748b; cursor: pointer;">
+                <input type="checkbox" v-model="regForm.agreeTerms" style="width: 14px; height: 14px; cursor: pointer;">
+                <span>我已阅读并同意 <a href="/terms" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: bold;">用户协议</a> 与 <a href="/privacy" target="_blank" style="color: #3b82f6; text-decoration: none; font-weight: bold;">隐私政策</a></span>
+              </label>
+            </div>
+            
+            <button class="btn-submit" @click="handleRegister">立即注册</button>
             <button class="link-btn" @click="switchTo('methods')">返回其他方式</button>
           </div>
         </transition>
@@ -472,6 +729,20 @@
         <div class="vertical-layout">
           <input type="text" v-model="newCategoryName" placeholder="分类名称" class="auth-input">
           <button class="btn-submit" @click="submitNewCategory">确定添加</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showAddProfModal" class="auth-overlay" @click="showAddProfModal = false">
+      <div class="auth-modal edit-modal" @click.stop>
+        <button class="close-btn" @click="showAddProfModal = false">×</button>
+        <h2 class="modal-title">{{ isEditingProf ? '✏️ 编辑职业' : '✨ 自定义新职业' }}</h2>
+        <div class="vertical-layout">
+          <input type="text" v-model="newProf.name" placeholder="输入职业名称" class="auth-input">
+          <input type="text" v-model="newProf.icon" placeholder="输入图标 (Emoji)" class="auth-input">
+          <button class="btn-submit" @click="handleConfirmAdd">
+            {{ isEditingProf ? '保存修改' : '确认创建' }}
+          </button>
         </div>
       </div>
     </div>
@@ -567,11 +838,9 @@
               <input type="file" accept="image/*" class="hidden-file-input" ref="wallpaperInputRef" @change="handleWallpaperUpload">
             </div>
           </div>
-          <div class="bg-section" style="margin-top: 15px;" v-if="customWallpaper">
-            <div class="bg-section" style="margin-top: 15px; display: flex; gap: 10px;">
+          <div class="bg-section" style="margin-top: 15px; display: flex; gap: 10px;" v-if="customWallpaper || focusWallpaper">
             <button v-if="customWallpaper" class="logout-action-btn w-full" @click="clearBackground" style="text-align: center;">🗑️ 恢复首页默认</button>
             <button v-if="focusWallpaper" class="logout-action-btn w-full" @click="clearFocusBg" style="text-align: center;">🗑️ 恢复专注默认</button>
-          </div>
           </div>
         </div>
       </div>
@@ -608,10 +877,16 @@
         <div class="context-menu-item danger" @click="handleDeleteFromMenu">🗑️ 删除分类</div>
       </div>
     </Transition>
+    <Transition name="fade">
+      <div v-if="profContextMenu.show" class="custom-context-menu" :style="{ top: profContextMenu.y + 'px', left: profContextMenu.x + 'px' }" @click.stop>
+        <div class="context-menu-item" @click="handleEditProfFromMenu">✏️ 编辑职业</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" @click="handleDeleteProfFromMenu">🗑️ 删除职业</div>
+      </div>
+    </Transition>
 
-  </div>
-  <div v-if="showFocusManageModal" class="auth-overlay" @click="showFocusManageModal = false">
-  <div class="auth-modal engine-modal" @click.stop style="max-width: 450px;">
+    <div v-if="showFocusManageModal" class="auth-overlay" @click="showFocusManageModal = false">
+    <div class="auth-modal engine-modal" @click.stop style="max-width: 450px;">
     <div class="modal-header">
       <h3 style="margin: 0;">🚀 星球管理 ({{ favoriteSites.length }}/8)</h3>
       <button class="close-btn" @click="showFocusManageModal = false">×</button>
@@ -645,54 +920,59 @@
       </div>
     </div>
     <p v-else style="text-align: center; color: #94a3b8; font-size: 12px;">轨道已满，请删除部分后再添加</p>
-  </div>
-</div>
-<div v-if="showReviewModal" class="auth-overlay" @click="showReviewModal = false">
-  <div class="auth-modal engine-modal" @click.stop style="max-width: 600px;">
-    <div class="modal-header">
-      <h3 style="margin: 0;">📡 采集审核池 ({{ pendingSites.length }})</h3>
-      <button class="close-btn" @click="showReviewModal = false">×</button>
+    </div>
     </div>
 
-    <button 
-      class="btn-primary w-full" 
-      style="margin: 15px 0; background: #0f172a;" 
-      @click="triggerCrawl" 
-      :disabled="isCrawling"
-    >
-      {{ isCrawling ? '🕷️ 爬虫采集中...' : '🕷️ 一键抓取 Hacker News 热门' }}
-    </button>
+    <div v-if="showReviewModal" class="auth-overlay" @click="showReviewModal = false">
+      <div class="auth-modal engine-modal" @click.stop style="max-width: 600px;">
+        <div class="modal-header">
+          <h3 style="margin: 0;">📡 采集审核池 ({{ pendingSites.length }})</h3>
+          <button class="close-btn" @click="showReviewModal = false">×</button>
+        </div>
 
-    <div style="max-height: 400px; overflow-y: auto;">
-      <div v-if="pendingSites.length === 0" style="text-align: center; color: #94a3b8; padding: 20px;">
-        当前没有待审核的站点，快派出爬虫去寻找吧！
-      </div>
-      
-      <div v-for="site in pendingSites" :key="site.id" class="focus-site-item" style="flex-direction: column; align-items: flex-start;">
-        <div style="display: flex; justify-content: space-between; width: 100%;">
-          <div>
-            <div class="site-name-text" style="color: #3b82f6;">[{{ site.source }}]</div>
-            <div class="site-name-text" style="font-size: 16px;">{{ site.name }}</div>
+        <button 
+          class="btn-primary w-full" 
+          style="margin: 15px 0; background: #0f172a;" 
+          @click="triggerCrawl" 
+          :disabled="isCrawling"
+        >
+          {{ isCrawling ? '🕷️ 爬虫采集中...' : '🕷️ 一键抓取 Hacker News 热门' }}
+        </button>
+
+        <div style="max-height: 400px; overflow-y: auto;">
+          <div v-if="pendingSites.length === 0" style="text-align: center; color: #94a3b8; padding: 20px;">
+            当前没有待审核的站点，快派出爬虫去寻找吧！
           </div>
-          <div style="display: flex; gap: 10px;">
-            <button @click="handleReview(site.id, 'approve')" style="background: #22c55e; color: white; border: none; padding: 5px 15px; border-radius: 6px; cursor: pointer;">✅ 采用</button>
-            <button @click="handleReview(site.id, 'reject')" style="background: #ef4444; color: white; border: none; padding: 5px 15px; border-radius: 6px; cursor: pointer;">❌ 丢弃</button>
+          
+          <div v-for="site in pendingSites" :key="site.id" class="focus-site-item" style="flex-direction: column; align-items: flex-start;">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <div>
+                <div class="site-name-text" style="color: #3b82f6;">[{{ site.source }}]</div>
+                <div class="site-name-text" style="font-size: 16px;">{{ site.name }}</div>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button @click="handleReview(site.id, 'approve')" style="background: #22c55e; color: white; border: none; padding: 5px 15px; border-radius: 6px; cursor: pointer;">✅ 采用</button>
+                <button @click="handleReview(site.id, 'reject')" style="background: #ef4444; color: white; border: none; padding: 5px 15px; border-radius: 6px; cursor: pointer;">❌ 丢弃</button>
+              </div>
+            </div>
+            <a :href="site.url" target="_blank" class="site-url-text" style="margin-top: 5px; text-decoration: underline;">{{ site.url }}</a>
           </div>
         </div>
-        <a :href="site.url" target="_blank" class="site-url-text" style="margin-top: 5px; text-decoration: underline;">{{ site.url }}</a>
       </div>
     </div>
-  </div>
+
 </div>
 </template>
 
 <script setup>
 // 修改引入
-import { ref, computed, onMounted, onUnmounted, nextTick, watch} from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch, reactive} from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import FlexSearch from 'flexsearch'
 
+// ================= 右侧边栏二合一选项卡 =================
+const activeSidebarTab = ref('ranking'); // 默认显示排行 ('ranking' 或 'news')
 
 // 确保这两行存在
 const showCategoryModal = ref(false); // 控制弹窗显示/隐藏
@@ -782,33 +1062,6 @@ const triggerCrawl = async () => {
   }
 };
 
-// 1. 初始化引擎
-const index = new FlexSearch.Document({
-  document: {
-    id: "id",
-    index: ["title", "tags", "content"], // 支持按标题、标签、内容索引
-  },
-  tokenize: "forward" // 前缀匹配，适合搜索建议
-});
-
-// 2. 存入你的网站数据
-sitesList.forEach(site => index.add(site));
-
-// 3. 搜索与高亮
-const searchText = ref('');
-const searchResults = computed(() => {
-  if (!searchText.value) return [];
-  const results = index.search(searchText.value);
-  // 获取完整的搜索结果对象
-  return results.flatMap(res => res.result.map(id => sitesList.find(s => s.id === id)));
-});
-
-// 高亮方法
-const highlight = (text) => {
-  if (!searchText.value) return text;
-  const regex = new RegExp(`(${searchText.value})`, 'gi');
-  return text.replace(regex, '<span class="highlight">$1</span>');
-};
 // 处理审核 (通过 / 拒绝)
 // ================= 修复版：处理审核 (通过 / 拒绝) =================
 const handleReview = async (siteId, action) => {
@@ -1065,6 +1318,63 @@ const newCategoryName = ref('');
 const newSiteForm = ref({ id: null, name: '', url: '', category_id: '' });
 const isEditingSite = ref(false); // ✨ 新增：标识当前是添加还是编辑
 
+// ================= 🚀 注册与倒计时逻辑 =================
+const regForm = ref({ username: '', email: '', password: '', code: '', agreeTerms: false });
+const countdown = ref(0);
+let timer = null;
+
+// 1. 发送验证码逻辑
+const sendCode = async () => {
+  if (!regForm.value.email.includes('@')) return alert('⚠️ 请输入有效的邮箱格式！');
+  
+  // 开启 60 秒倒计时
+  countdown.value = 60;
+  timer = setInterval(() => {
+    countdown.value--;
+    if (countdown.value <= 0) clearInterval(timer);
+  }, 1000);
+
+  // 向 Flask 后端发起请求
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/auth/send-code', { email: regForm.value.email });
+    if (res.data.code === 0) {
+      if(typeof showToast === 'function') showToast('📧 验证码已发送，请查收邮箱', 'success');
+    } else {
+      throw new Error(res.data.msg);
+    }
+  } catch (error) {
+    // 如果发送失败，立刻重置倒计时
+    clearInterval(timer);
+    countdown.value = 0;
+    alert('发送失败：' + (error.message || '请检查后端 SMTP 是否配置正确'));
+  }
+};
+
+// 2. 提交注册逻辑
+const handleRegister = async () => {
+  // 前端实时拦截
+  if (!regForm.value.agreeTerms) return alert('⚠️ 请先阅读并勾选用户协议和隐私政策！');
+  if (!regForm.value.username || !regForm.value.email || !regForm.value.password || !regForm.value.code) {
+    return alert('⚠️ 请填写完整的注册信息！');
+  }
+  
+  // 向 Flask 后端提交注册数据
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/auth/register', regForm.value);
+    
+    if (res.data.code === 0) {
+      if(typeof showToast === 'function') showToast('🎉 注册成功！快去登录吧', 'success');
+      // 注册成功后，自动清空表单并跳转到邮箱登录面板
+      regForm.value = { username: '', email: '', password: '', code: '', agreeTerms: false };
+      switchTo('email'); 
+    } else {
+      alert('❌ 注册失败：' + res.data.msg);
+    }
+  } catch (error) {
+    alert('❌ 网络或服务错误：' + (error.response?.data?.msg || '请检查控制台'));
+  }
+};
+
 // ================= 全局轻提示 Toast 逻辑 =================
 const toast = ref({ show: false, message: '', type: 'success' });
 let toastTimer = null;
@@ -1143,9 +1453,12 @@ const submitNewSite = () => {
 const submitNewCategory = () => {
   if (!newCategoryName.value.trim()) return alert("请填写名称！");
   const newCat = { id: Date.now(), name: newCategoryName.value };
-  // 注意：由于 categories 是基于 professionData 计算出来的，
-  // 这里建议直接推入 professionData[currentProfession.value].categories
+  
   professionData[currentProfession.value].categories.push(newCat);
+  
+  // ✨ 核心修复：强制将新数组赋值给 categories.value，瞬间触发页面渲染
+  categories.value = [...professionData[currentProfession.value].categories];
+  
   showAddCategoryModal.value = false;
   newCategoryName.value = '';
 };
@@ -1154,7 +1467,7 @@ const closeCategoryModal = () => {
   showCategoryModal.value = false;
 };
 
-// 2. 保存分类 (新建 / 修改)
+// 2. 修复：保存分类 (修改/新建弹窗)
 const saveCategory = () => {
   if (!editingCategory.value.name.trim()) return alert('分类名称不能为空！');
   
@@ -1168,9 +1481,12 @@ const saveCategory = () => {
     targetArr.push({ 
       id: Date.now(), 
       name: editingCategory.value.name, 
-      //icon: editingCategory.value.icon || '📁'
     });
   }
+  
+  // ✨ 核心修复：重新解构赋值，通知 Vue 界面需要重绘
+  categories.value = [...targetArr]; 
+  
   closeCategoryModal();
 };
 
@@ -1178,7 +1494,16 @@ const saveCategory = () => {
 const deleteCategory = () => {
   if(confirm('确定要删除这个分类吗？')) {
     const targetArr = professionData[currentProfession.value].categories;
-    professionData[currentProfession.value].categories = targetArr.filter(c => c.id !== editingCategory.value.id);
+    
+    // 过滤掉要删除的分类，生成新数组
+    const newArr = targetArr.filter(c => c.id !== editingCategory.value.id);
+    
+    // 更新数据源
+    professionData[currentProfession.value].categories = newArr;
+    
+    // ✨ 核心修复：把更新后的数组直接塞给 categories，分类标签会立刻消失！
+    categories.value = newArr; 
+    
     closeCategoryModal();
     activeCategoryId.value = 'all'; // 删除后切回全部分类
   }
@@ -1254,77 +1579,45 @@ const handleIconError = (e, site) => {
     e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(site.name)}&backgroundColor=f1f5f9&textColor=0f172a&fontWeight=700`;
   }
 };
-// ================= 排行榜逻辑 =================
+
+// ================= 📊 排行榜逻辑 (终极修复版) =================
 const rawLeaderboard = ref([]);
 
 const fetchRankingData = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:5000/api/ranking');
-    rawLeaderboard.value = response.data; 
-  } catch (error) { 
-    console.warn('获取排行数据失败，已启用本地模拟数据'); 
-    if (rawLeaderboard.value.length === 0) {
-      // ✨ 补全了每个网站的 url 字段
-      rawLeaderboard.value = [
-        { id: 101, name: '哔哩哔哩', url: 'https://www.bilibili.com', clicks: 1250 },
-        { id: 201, name: 'GitHub', url: 'https://github.com', clicks: 980 },
-        { id: 102, name: '知乎', url: 'https://www.zhihu.com', clicks: 856 },
-        { id: 501, name: 'ChatGPT', url: 'https://chat.openai.com', clicks: 760 },
-        { id: 301, name: '抖音', url: 'https://www.douyin.com', clicks: 520 },
-        { id: 204, name: '掘金', url: 'https://juejin.cn', clicks: 430 }
-      ];
+    // ✨ 修复 1：这里必须是请求 5000 端口的 ranking 接口！
+    const response = await axios.get('http://127.0.0.1:5000/api/ranking/growth');
+    
+    // ✨ 修复 2：使用正确的 axios 解析格式
+    if (response.data && response.data.code === 0) {
+      rawLeaderboard.value = response.data.data;
+    } else {
+      rawLeaderboard.value = [];
     }
+  } catch (error) { 
+    console.error('获取排行榜失败:', error); 
+    rawLeaderboard.value = [];
   }
 };
 
-const sortedLeaderboard = computed(() => {
-  let sorted = [...rawLeaderboard.value].sort((a, b) => b.clicks - a.clicks);
-  return sorted.map((item, index) => ({ ...item, rank: index + 1 }));
-});
+// 兼容原有的旧变量
+const sortedLeaderboard = computed(() => rawLeaderboard.value);
 
-// ================= 核心：网站点击处理 (完美合并原逻辑) =================
-// ================= 核心：网站点击处理 (增加前端即时排序) =================
-// frontend/src/App.vue 或相关组件
-
+// ================= 🖱️ 核心：网站点击处理 (极简无冲突版) =================
 const handleSiteClick = async (site) => {
-  // 1. 立即在新窗口打开目标网址，不耽误用户时间
+  // 1. 立即在新窗口打开网址，保持丝滑
   window.open(site.url, '_blank');
   
-  // 2. 静默发送点击统计请求
+  // 2. 静默发送请求给后端，写入 click_log 数据库
   try {
     await axios.post('http://127.0.0.1:5000/api/click', { id: site.id });
     
-    // 3. 统计完成后，刷新排行榜数据（fetchRankingData）
-    // 这样用户回到页面时，就能看到排行榜实时变化了
+    // 3. 记录完成后，立刻拉取最新排行榜数据
     fetchRankingData(); 
   } catch (error) {
     console.error('统计点击失败:', error);
   }
-  
-  // 1. 前端乐观更新 (立刻 +1)
-  site.clicks = (site.clicks || 0) + 1; 
-  
-  const rankItem = rawLeaderboard.value.find(item => item.id === site.id);
-  if (rankItem) {
-    rankItem.clicks += 1;
-  } else {
-    fetchRankingData();
-  }
-
-  try {
-    // 2. 发送真实请求给后端
-    await axios.post(`http://127.0.0.1:5000/api/click/${site.id}`);
-
-    // 3. 缓存 Logo
-    if (site.id && (!site.logo_url || !site.logo_url.startsWith('data:image'))) {
-      const response = await axios.post('http://127.0.0.1:5000/api/cache_logo', { id: site.id, url: site.url });
-      if (response.data.status === 'success') {
-        site.logo_url = response.data.logo_url;
-      }
-    }
-  } catch (error) { console.error('处理点击失败:', error); }
 };
-
 
 // ================= 生命周期与轮询 (同步全网数据) =================
 let pollingTimer = null; // 轮询定时器
@@ -1395,6 +1688,112 @@ const toggleSiteToFocus = (site) => {
 const goToProfile = () => { currentPage.value = 'profile'; };
 const goHome = () => { currentPage.value = 'home'; };
 
+// ================= 🚀 个人中心 (真实数据接入版) =================
+const activeProfileTab = ref('homepage');
+const contentTab = ref('published'); 
+
+// 1. 响应式空容器，等待后端数据注入
+const profileStats = ref({ views: 0, followers: 0, posts: 0 });
+const privacySettings = ref({ publicFavorites: true, hideFootprint: false });
+const loginDevices = ref([]);
+const myContents = ref([]);
+const interactionHistory = ref([]);
+
+// ================= 🚀 处理展示在首页动态流的真实数据 =================
+// 因为后端返回的 history 是按日期分组的：[{ date: '今天', items: [...] }]
+// 我们在首页百宝箱里只需要平铺的最近 3 条记录，所以用 computed 打平它：
+const flatHistory = computed(() => {
+  if (!interactionHistory.value || interactionHistory.value.length === 0) return [];
+  
+  let list = [];
+  interactionHistory.value.forEach(group => {
+    group.items.forEach(item => {
+      // 把外层的日期塞进每一条数据里，方便展示
+      list.push({ ...item, date: group.date });
+    });
+  });
+  return list;
+});
+
+// 2. 核心：从 Flask 后端拉取所有个人中心真实数据
+const loadProfileData = async () => {
+  if (!isLoggedIn.value || !userInfo.value.username) return;
+  const token = localStorage.getItem('access_token');
+  const headers = { Authorization: `Bearer ${token}` };
+
+  try {
+    // 💡 请求：主页数据概览 (获赞/粉丝/文章数)
+    const statsRes = await axios.get(`http://127.0.0.1:5000/api/user/stats?username=${userInfo.value.username}`, { headers });
+    if (statsRes.data.code === 0) profileStats.value = statsRes.data.data;
+
+    // 💡 请求：安全设置-登录设备列表
+    const devRes = await axios.get('http://127.0.0.1:5000/api/user/devices', { headers });
+    if (devRes.data.code === 0) loginDevices.value = devRes.data.data;
+
+    // 💡 请求：互动足迹记录
+    const histRes = await axios.get('http://127.0.0.1:5000/api/user/history', { headers });
+    if (histRes.data.code === 0) interactionHistory.value = histRes.data.data;
+    
+  } catch (error) {
+    console.warn('获取个人中心部分真实数据失败，请确保后端接口已部署', error);
+  }
+};
+
+// 3. 动态加载内容管理列表 (跟随 Tabs 切换)
+const fetchUserContents = async () => {
+  const token = localStorage.getItem('access_token');
+  try {
+    // 💡 接口附带参数 status (published/reviewing/draft)
+    const res = await axios.get(`http://127.0.0.1:5000/api/user/contents?status=${contentTab.value}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.data.code === 0) myContents.value = res.data.data;
+    else myContents.value = [];
+  } catch (e) {
+    myContents.value = [];
+  }
+};
+
+// 监听动作 1：用户切换了内容状态 Tab 时，立刻向后端请求该状态的数据
+watch(contentTab, () => {
+  fetchUserContents();
+});
+
+// 监听动作 2：用户打开个人中心页面时，触发全局数据拉取
+watch(currentPage, (newPage) => {
+  if (newPage === 'profile') {
+    loadProfileData();
+    fetchUserContents(); // 默认拉取“已发布”列表
+  }
+});
+
+// ================= 删除与清理接口 =================
+const deleteMyContent = async (id) => {
+  if (!confirm('确定要永久删除这条内容吗？')) return;
+  try {
+    await axios.post('http://127.0.0.1:5000/api/user/contents/delete', { id }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+    });
+    showToast('删除成功', 'success');
+    fetchUserContents(); // 刷新真实列表
+  } catch (e) {
+    showToast('删除失败', 'error');
+  }
+};
+
+const clearHistory = async () => {
+  if (!confirm('确定要清空所有互动足迹吗？此操作不可恢复！')) return;
+  try {
+    await axios.post('http://127.0.0.1:5000/api/user/history/clear', {}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+    });
+    interactionHistory.value = []; // 清空前端数组
+    showToast('足迹已清空', 'success');
+  } catch (e) {
+    showToast('清空失败', 'error');
+  }
+};
+
 const editingField = ref(''); 
 const editingTitle = ref('');
 const openEditModal = (field, title) => {
@@ -1451,9 +1850,9 @@ const handleAvatarUpload = (event) => {
   if (!file) return;
 
   // 校验格式
-  if (!file.te.startsWith('image/')) {
-    return alert('只能上传图片文件哦！');
-  }
+  if (!file.type.startsWith('image/')) {
+  return alert('只能上传图片文件哦！');
+}
   
   // 校验大小 (防止 Base64 过大撑爆 localStorage，限制在 2MB)
   if (file.size > 2 * 1024 * 1024) {
@@ -1518,40 +1917,67 @@ const loadSettingsFromCloud = async (username) => {
 const activeCategoryId = ref('all') 
 const toggleTheme = () => { isDarkMode.value = !isDarkMode.value }
 
-// 1. 定义所有职业及该职业下的分类映射
-const professionData = {
+// ================= 1. 定义默认职业数据 =================
+const defaultProfessionData = {
   general: {
-    name: '综合导航',
-    icon: '🌐',
+    name: '综合导航', icon: '🌐',
     categories: [
       { id: 1, name: '常用推荐' }, { id: 2, name: '开发社区' },
       { id: 3, name: '摸鱼娱乐' }, { id: 4, name: '实用工具' }, { id: 5, name: 'AI 神器' }
     ]
   },
   frontend: {
-    name: '前端开发',
-    icon: '🎨',
+    name: '前端开发', icon: '🎨',
     categories: [
       { id: 201, name: '框架文档' }, { id: 202, name: 'UI 组件库' },
       { id: 203, name: '可视化/3D' }, { id: 204, name: '工具/构建' }
     ]
   },
   designer: {
-    name: 'UI 设计师',
-    icon: '🖌️',
+    name: 'UI 设计师', icon: '🖌️',
     categories: [
       { id: 301, name: '灵感采集' }, { id: 302, name: '素材资源' },
       { id: 303, name: '在线工具' }, { id: 304, name: '字体/配色' }
     ]
   },
   product: {
-    name: '产品经理',
-    icon: '📋',
+    name: '产品经理', icon: '📋',
     categories: [
       { id: 401, name: '原型设计' }, { id: 402, name: '文档办公' },
       { id: 403, name: '数据分析' }, { id: 404, name: '竞品调研' }
     ]
   }
+};
+
+// ================= 2. 读取缓存并初始化响应式对象 =================
+const loadProfessionData = () => {
+  const savedData = localStorage.getItem('pro_nav_professions');
+  if (savedData) {
+    try {
+      return JSON.parse(savedData);
+    } catch (e) {
+      console.error("读取本地职业数据失败", e);
+      return defaultProfessionData;
+    }
+  }
+  return defaultProfessionData;
+};
+
+const professionData = reactive(loadProfessionData());
+
+// ================= 3. 开启深度监听保存 =================
+watch(professionData, (newVal) => {
+  localStorage.setItem('pro_nav_professions', JSON.stringify(newVal));
+}, { deep: true });
+
+// 添加用户自定义职业
+const addNewProfession = (name, icon, initialSites = []) => {
+  const newKey = 'custom_' + Date.now();
+  professionData.value[newKey] = {
+    name: name,
+    icon: icon || '✨',
+    sites: initialSites
+  };
 };
 
 // 2. 当前选中的职业（默认全能）
@@ -1571,7 +1997,6 @@ const selectProfession = (key) => {
   // 切换职业后，默认选中该职业下的“全部分类”或第一个分类
   activeCategoryId.value = 'all'; 
 };
-
 
 // ================= 📰 行业前沿资讯流 =================
 const newsList = ref([]);
@@ -1957,46 +2382,66 @@ const handleBookmarkImport = (event) => {
   };
   reader.readAsText(file); // 以文本方式读取 HTML 文件
 };
-// ================= 搜索功能 =================
+
+
 // ================= 搜索功能与搜索引擎配置 =================
 const searchQuery = ref('');
 const localSuggestions = ref([]);
 
-// ✨ 监听搜索框输入，使用原生 fetch 绕过报错直连引擎！
-watch(searchQuery, async (newQuery) => {
+// 1. 初始化纯前端搜索引擎 (使用 let 允许我们在数据变化时重置它)
+let searchIndex = new FlexSearch.Document({
+  document: { id: "id", index: ["name", "url"] },
+  tokenize: "forward" // 前缀匹配模式，输入 "b" 就能搜出 "bilibili"
+});
+
+// 2. 监听全局网站数据变化，自动更新搜索索引库
+watch(websites, (newVal) => {
+  // 每次有新数据时，直接创建一个新的干净索引，避免旧数据残留和 removeAll 报错
+  searchIndex = new FlexSearch.Document({
+    document: { id: "id", index: ["name", "url"] },
+    tokenize: "forward"
+  });
+  // 把最新的网站数据极速装载入搜索引擎
+  newVal.forEach(site => searchIndex.add(site));
+}, { immediate: true, deep: true });
+
+// 3. 监听用户输入，执行前端秒搜 (替代了原来的 fetch 远程请求)
+watch(searchQuery, (newQuery) => {
   const query = newQuery.trim();
   
+  // 如果清空了输入框，立刻清空建议列表
   if (!query) {
     localSuggestions.value = [];
     return;
   }
 
-  try {
-    // 🚀 直接向 Docker 里的 Meilisearch 发送标准的 HTTP 请求
-    const response = await fetch('http://127.0.0.1:7700/indexes/websites/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer pronav_super_secret_master_key'
-      },
-      body: JSON.stringify({
-        q: query,
-        limit: 6,
-        attributesToHighlight: ['name', 'url']
-      })
-    });
-
-    // ✨ 修正：只保留这一个干净的声明，删掉多余的重复代码
-    const searchRes = await response.json();
-
-    if (searchRes && searchRes.hits) {
-      // 核心：把结果映射到你的建议列表里
-      localSuggestions.value = searchRes.hits;
-    }
-  } catch (error) {
-    console.error("搜索服务异常:", error);
-  }
+  // 在浏览器内存中极速搜索，最多返回 6 条结果
+  const results = searchIndex.search(query, { limit: 6 });
+  
+  // 提取搜到的网站 ID
+  const ids = results.flatMap(res => res.result);
+  
+  // 组装结果，并完美兼容你现有的 HTML 模板
+  localSuggestions.value = ids.map(id => {
+    const site = websites.value.find(s => s.id === id);
+    if (!site) return null;
+    
+    // 动态生成高亮标签，包裹匹配到的关键字 (完美对应你 CSS 里的 <em> 样式)
+    const regex = new RegExp(`(${query})`, 'gi');
+    const highlightedName = site.name.replace(regex, '<em>$1</em>');
+    const highlightedUrl = site.url ? site.url.replace(regex, '<em>$1</em>') : '';
+    
+    return {
+      ...site, // 继承原本的数据
+      _formatted: { // 伪装成 Meilisearch 的格式结构，这样你的 HTML 完全不用改！
+        name: highlightedName,
+        url: highlightedUrl
+      }
+    };
+  }).filter(Boolean); // 过滤掉无效的空结果
 });
+
+
 // 1. 所有引擎的完整数据字典 (含名称和真实搜索跳转链接)
 const allEngines = {
   '360': { name: '360', url: 'https://www.so.com/s?q=' },
@@ -2068,24 +2513,55 @@ const chatMessages = ref([{ role: 'ai', content: '你好！我是导航助手，
 const userInput = ref('');
 const isAiThinking = ref(false);
 
+// ================= 🤖 核心：AI 智能建议请求 (直连 DeepSeek) =================
 const sendMessage = async () => {
-  const text = userInput.value.trim()
-  if (!text || isAiThinking.value) return
-  chatMessages.value.push({ role: 'user', content: text })
-  userInput.value = ''
-  isAiThinking.value = true
-  scrollToBottom()
+  const text = userInput.value.trim();
+  if (!text || isAiThinking.value) return;
+  
+  // 1. 把用户的输入展示在界面上
+  chatMessages.value.push({ role: 'user', content: text });
+  userInput.value = '';
+  isAiThinking.value = true;
+  scrollToBottom();
 
+  // 🔽 开始尝试 (try)
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/chat', { message: text })
-    chatMessages.value.push({ role: 'ai', content: res.data.reply })
-  } catch (error) {
-    chatMessages.value.push({ role: 'ai', content: '网络走神了，请稍后再试！' })
-  } finally {
-    isAiThinking.value = false
-    scrollToBottom()
+    const res = await axios.get(`http://127.0.0.1:5001/api/ai/suggest?q=${encodeURIComponent(text)}`);
+    
+    if (res.data.code === 0 && res.data.data.length > 0) {
+      let replyHtml = '为您找到以下精选网站（点击名称直达）：<br>';
+      
+      res.data.data.forEach((site) => {
+        replyHtml += `
+          <div class="ai-site-card" style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; transition: all 0.2s ease;">
+            <a href="${site.url}" target="_blank" class="ai-site-link" style="color: #60a5fa; font-weight: bold; text-decoration: none;">
+              🔗 ${site.title}
+            </a>
+            <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">${site.snippet}</div>
+          </div>
+        `;
+      });
+      
+      chatMessages.value.push({ role: 'ai', content: replyHtml });
+    } else {
+      chatMessages.value.push({ role: 'ai', content: '抱歉，没有找到匹配的推荐。' });
+    }
+  } 
+  // 🔽 如果出错就捕获 (catch) —— 你刚才很可能就是漏掉了这里！
+  catch (error) {
+    if (error.response && error.response.status === 429) {
+      chatMessages.value.push({ role: 'ai', content: '⚠️ 思考太快啦，请休息一分钟再试！' });
+    } else {
+      chatMessages.value.push({ role: 'ai', content: '⚠️ 网络走神了，请检查 5001 端口是否启动。' });
+    }
+  } 
+  // 🔽 最终必须执行 (finally)
+  finally {
+    isAiThinking.value = false;
+    scrollToBottom();
   }
 };
+// 🔼 函数完整结束
 const scrollToBottom = () => { nextTick(() => { if (chatWindow.value) chatWindow.value.scrollTop = chatWindow.value.scrollHeight }) };
 
 
@@ -2096,6 +2572,7 @@ const contextMenu = ref({ show: false, x: 0, y: 0, site: null });
 const closeAllDropdowns = () => {
   if (contextMenu.value) contextMenu.value.show = false;
   if (catContextMenu.value) catContextMenu.value.show = false;
+  if (profContextMenu.value) profContextMenu.value.show = false; // ✨ 新增这一行
 };
 
 // ✨ 2. 唤醒网站专属的右键菜单
@@ -2341,6 +2818,87 @@ const fetchFavorites = async () => {
   }
 };
 
+// ================= 职业操作与右键菜单逻辑 =================
+const showAddProfModal = ref(false);
+const newProf = ref({ name: '', icon: '' });
+const isEditingProf = ref(false); // 标识是否处于编辑模式
+const editingProfKey = ref(null); // 记录当前正在编辑的职业 Key
+
+// 职业右键菜单状态
+const profContextMenu = ref({ show: false, x: 0, y: 0, profKey: null, profData: null });
+
+// 1. 点击“+ 添加职业”按钮
+const openAddModal = () => {
+  isEditingProf.value = false;
+  editingProfKey.value = null;
+  newProf.value = { name: '', icon: '' };
+  showAddProfModal.value = true;
+};
+
+// 2. 右键唤醒菜单
+const openProfContextMenu = (e, key, data) => {
+  closeAllDropdowns();
+  profContextMenu.value = { show: true, x: e.clientX, y: e.clientY, profKey: key, profData: data };
+};
+
+// 3. 点击菜单中的“编辑”
+const handleEditProfFromMenu = () => {
+  isEditingProf.value = true;
+  editingProfKey.value = profContextMenu.value.profKey;
+  // 拷贝现有数据到输入框
+  newProf.value = { name: profContextMenu.value.profData.name, icon: profContextMenu.value.profData.icon };
+  showAddProfModal.value = true;
+  closeAllDropdowns();
+};
+
+// 4. 点击菜单中的“删除”
+const handleDeleteProfFromMenu = () => {
+  const key = profContextMenu.value.profKey;
+  
+  // 给内置职业加个保护锁
+  if (['general', 'frontend', 'designer', 'product'].includes(key)) {
+    alert('系统预设职业无法删除！');
+    closeAllDropdowns();
+    return;
+  }
+
+  if (confirm(`确定要删除职业 [${profContextMenu.value.profData.name}] 吗？`)) {
+    delete professionData[key]; // 从数据源中剔除
+    
+    // 如果删除的正是当前正在看的职业，自动切回综合导航
+    if (currentProfession.value === key) {
+      currentProfession.value = 'general';
+    }
+  }
+  closeAllDropdowns();
+};
+
+// 5. 核心保存逻辑（兼容新增与修改）
+const handleConfirmAdd = () => {
+  if (!newProf.value.name) return;
+
+  if (isEditingProf.value && editingProfKey.value) {
+    // ✨ 修改模式：直接更新原有属性，保留其 categories 列表不变
+    professionData[editingProfKey.value].name = newProf.value.name;
+    professionData[editingProfKey.value].icon = newProf.value.icon || '✨';
+  } else {
+    // ✨ 新增模式：创建新属性
+    const newKey = 'prof_' + Date.now();
+    professionData[newKey] = {
+      name: newProf.value.name,
+      icon: newProf.value.icon || '✨',
+      categories: [{ id: 999, name: '默认分类' }]
+    };
+    currentProfession.value = newKey; // 切到新职业
+  }
+
+  // 状态复原
+  showAddProfModal.value = false;
+  isEditingProf.value = false;
+  editingProfKey.value = null;
+  newProf.value = { name: '', icon: '' };
+};
+
 // ================= 切换收藏状态 (极致丝滑版) =================
 const toggleFavorite = async (site) => {
   if (!site || !site.id) return;
@@ -2394,6 +2952,16 @@ const toggleFavorite = async (site) => {
 const favoritedSitesList = computed(() => {
   // 使用 .includes 而不是 .has
   return websites.value.filter(site => favoriteSiteIds.value.includes(site.id));
+});
+
+// 核心逻辑：动态筛选
+const filteredSites = computed(() => {
+  const currentSites = professionData.value[currentProfession.value].sites;
+  // 如果当前职业的 sites 列表为空，或者你想实现基于算法的推送：
+  // 可以根据 currentSites 里的标签去 websites 总库中搜索匹配
+  return websites.value.filter(site => 
+    currentSites.includes(site.name) || site.tags.some(t => currentSites.includes(t))
+  );
 });
 
 // --- 💡 关键：确保在 refreshStatus() 函数里调用它 ---
@@ -2535,17 +3103,7 @@ onUnmounted(() => {
   --text-muted: #94a3b8;   
   --border-light: rgba(255, 255, 255, 0.05); 
 }
-/* 修改原有的 .layout 样式块，或者在底部追加 */
-.layout.dark-theme {
-  /* 移除图片背景，改用丝滑的纯色深邃渐变 */
-  background-image: radial-gradient(circle at top right, #1a1a1a, #000000) !important;
-  background-color: #000000;
-}
 
-/* 移除我们之前加的深色半透明遮罩 ::before，因为背景已经是黑色了 */
-.layout.dark-theme::before {
-  display: none;
-}
 /* 核心毛玻璃质感 (Glassmorphism) */
 .block-shadow, .widget, .sidebar-box, .info-card-box, .site-card, .search-box, .header-block, .prof-dropdown, .engine-modal, .context-menu {
   background: rgba(255, 255, 255, 0.4) !important;
@@ -2601,14 +3159,7 @@ onUnmounted(() => {
 .layout.dark-theme .trending-item:hover {
   background: rgba(255, 255, 255, 0.03);
 }
-.layout.dark-theme::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(2, 6, 23, 0.4); /* 给背景图蒙上一层深色薄纱 */
-  z-index: -1; /* 放在背景图之上，内容之下 */
-  pointer-events: none;
-}
+
 
 /* 🌙 让网页滚动条也适配暗色 */
 .layout.dark-theme {
@@ -5202,4 +5753,1029 @@ h1, h2, h3, h4, p, span, a, div, button, input, textarea, select {
   z-index: 100;
 }
 
+/* ================= 🚀 强制修复：提升职业选择器层级 ================= */
+
+.header-block {
+  /* 确保 header 本身具备足够的上下文 */
+  position: relative !important;
+  z-index: 20 !important; 
+}
+
+.profession-selector {
+  position: relative !important;
+  z-index: 100 !important; /* 必须高于 header 的 z-index */
+  cursor: pointer !important;
+  pointer-events: auto !important; /* 确保能响应点击 */
+}
+
+/* 确保下拉菜单不会被遮挡 */
+.prof-dropdown {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  z-index: 1000 !important;
+  background: white; /* 确保背景色不是透明，否则无法触发点击 */
+}
+
+/* 1. 分割线样式 */
+.prof-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.05);
+  margin: 5px 10px;
+}
+
+/* 2. 添加按钮的特殊样式 */
+.add-prof-trigger {
+  color: #3b82f6 !important; /* 给一个品牌色，突出可点击性 */
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.add-prof-trigger:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+  cursor: pointer;
+}
+/* ================= 🎨 网站栏全透明/极简悬浮接管 ================= */
+
+/* 1. 让网站卡片本身完全透明，移除遮挡的毛玻璃底色和阴影 */
+.site-grid .site-card {
+  background: transparent !important;          /* 彻底去掉白底，100% 透明 */
+  backdrop-filter: none !important;            /* 关掉毛玻璃模糊，不遮挡壁纸角色 */
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid transparent !important;    /* 隐去边框 */
+  box-shadow: none !important;                 /* 隐去阴影 */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* 2. 精致的悬浮（Hover）反馈：当鼠标放上去时，卡片再亮起微光 */
+.site-grid .site-card:hover {
+  background: rgba(255, 255, 255, 0.2) !important; /* 鼠标悬浮时呈现一层晶莹剔透的小果冻块 */
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-6px) scale(1.05) !important; /* 保持原有的灵动浮动效果 */
+}
+
+/* 3. 暗色主题下的悬浮反馈适配 */
+.layout.dark-theme .site-grid .site-card:hover {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 4. 优化文字可读性：给透明卡片下的文字加上清晰的微投影，防止遇到浅色壁纸时看不清字 */
+.site-grid .site-name {
+  color: #ffffff !important; /* 强制为白色或明亮色 */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important; /* 浓郁的黑投影，确保在任何壁纸上字迹都绝对锐利 */
+  font-weight: 700 !important;
+}
+
+/* 5. 顺手把“添加网站”虚线卡片也变透明 */
+.site-grid .site-card.add-site-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 2px dashed rgba(255, 255, 255, 0.4) !important;
+}
+.site-grid .site-card.add-site-card:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: #ffffff !important;
+}
+/* ================= 🌌 智汇导航：全站极客纯净透明流接管 ================= */
+
+/* 1. 顶栏全透明：移除白底与重度模糊，让壁纸延伸到最顶部 */
+.header-block {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: none !important;
+}
+
+/* 2. 右侧边栏主容器完全透明 */
+.sidebar-right {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* 3. 右侧三个小组件（排行、前沿、AI）全面剥离底色与边框 */
+.sidebar-right .sidebar-box,
+.sidebar-right .widget.ai-widget {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 4. 优化右侧组件的标题分割线：使其隐约可见，维持空间感 */
+.sidebar-right .widget-header, 
+.sidebar-right .box-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 10px 0 !important; /* 稍微内缩，更精致 */
+}
+
+/* 5. 优化排行列表条目：去掉硬边框，改为悬浮时晶莹剔透的白润感 */
+.sidebar-right .trending-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.25s ease !important;
+}
+.sidebar-right .trending-item:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px;
+}
+
+/* 6. AI 建议面板深度透明化适配 */
+.sidebar-right .chat-window {
+  background: transparent !important;
+}
+/* AI 底部输入框外壳透明化 */
+.sidebar-right .chat-input {
+  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: transparent !important;
+}
+/* AI 真实的输入框框体改为精致微白透 */
+.sidebar-right .chat-input input {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(5px);
+}
+
+/* 7. 终极可读性防御：给全站所有暴露在壁纸上的文字强制加上清晰的阴影投影 */
+.logo span,
+.prof-name,
+.nav-tab-box,
+.box-title,
+.box-subtitle,
+.site-name,
+.news-title,
+.news-meta,
+.widget-header h3 {
+  color: #ffffff !important; /* 全局强制白字 */
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.5) !important; /* 浓郁的黑投影 */
+}
+
+/* 分类 Tab 的高亮状态微调，使其在透明流中更醒目 */
+.nav-tab-box.active {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  text-shadow: none !important;
+  color: #ffffff !important;
+}
+
+/* ================= 🌓 1. 全站文字智能色彩自适应与清晰度强化 ================= */
+.layout.dark-theme .logo span,
+.layout.dark-theme .prof-name,
+.layout.dark-theme .nav-tab-box,
+.layout.dark-theme .box-title,
+.layout.dark-theme .box-subtitle,
+.layout.dark-theme .site-name,
+.layout.dark-theme .news-title,
+.layout.dark-theme .news-meta,
+.layout.dark-theme .widget-header h3,
+.layout.dark-theme .trending-item,
+.layout.dark-theme .chat-window {
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.layout:not(.dark-theme) .logo span,
+.layout:not(.dark-theme) .prof-name,
+.layout:not(.dark-theme) .nav-tab-box,
+.layout:not(.dark-theme) .box-title,
+.layout:not(.dark-theme) .box-subtitle,
+.layout:not(.dark-theme) .site-name,
+.layout:not(.dark-theme) .news-title,
+.layout:not(.dark-theme) .news-meta,
+.layout:not(.dark-theme) .widget-header h3,
+.layout:not(.dark-theme) .trending-item,
+.layout:not(.dark-theme) .chat-window {
+  color: #1a1a1a !important;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9), 0 0 1px rgba(255, 255, 255, 0.5) !important;
+}
+
+.layout.dark-theme .nav-tab-box.active {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+.layout:not(.dark-theme) .nav-tab-box.active {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+.layout.dark-theme .prof-arrow { color: rgba(255, 255, 255, 0.7) !important; }
+.layout:not(.dark-theme) .prof-arrow { color: rgba(0, 0, 0, 0.5) !important; }
+
+/* ================= 🌌 2. 调色盘完全接管全局背景与卡片方案 ================= */
+.layout {
+  min-height: 100vh;
+  background-color: #f8fafc; 
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              background-image 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 浅色模式：全透明 */
+.layout:not(.dark-theme) .header-block,
+.layout:not(.dark-theme) .sidebar-right,
+.layout:not(.dark-theme) .sidebar-right .sidebar-box,
+.layout:not(.dark-theme) .sidebar-right .widget.ai-widget,
+.layout:not(.dark-theme) .site-grid .site-card {
+  background: transparent !important;          
+  backdrop-filter: none !important;            
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid transparent !important;    
+  box-shadow: none !important;                 
+}
+
+/* 深色模式：高级黑透 */
+.layout.dark-theme .header-block,
+.layout.dark-theme .sidebar-right .sidebar-box,
+.layout.dark-theme .sidebar-right .widget.ai-widget,
+.layout.dark-theme .site-grid .site-card {
+  background: rgba(15, 15, 15, 0.35) !important;  
+  backdrop-filter: blur(20px) saturate(140%) !important; 
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important; 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;  
+}
+
+/* 卡片悬浮交互 */
+.layout:not(.dark-theme) .site-grid .site-card:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  transform: translateY(-5px) scale(1.03) !important;
+}
+
+.layout.dark-theme .site-grid .site-card:hover {
+  background: rgba(255, 255, 255, 0.08) !important; 
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-5px) scale(1.03) !important;
+}
+
+/* ================= ⚙️ 3. 侧边栏及组件深度适配细节 ================= */
+.layout.dark-theme .sidebar-right {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.layout.dark-theme .chat-window { background: transparent !important; }
+
+.layout.dark-theme .chat-input { 
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important; 
+  background: transparent !important; 
+}
+
+.layout.dark-theme .chat-input input { 
+  background: rgba(0, 0, 0, 0.4) !important; 
+  border: 1px solid rgba(255, 255, 255, 0.06) !important; 
+  color: #ffffff !important; 
+}
+
+/* “添加网站”虚线卡片 */
+.layout:not(.dark-theme) .site-grid .site-card.add-site-card {
+  border: 2px dashed rgba(0, 0, 0, 0.15) !important;
+}
+.layout.dark-theme .site-grid .site-card.add-site-card {
+  border: 2px dashed rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ================= 🌙 强制锁定深色模式为纯黑背景 ================= */
+
+/* 当系统进入深色模式（.dark-theme）时，强行覆盖 inline 的调色盘样式 */
+.layout.dark-theme {
+  background-color: #000000 !important; /* 绝对纯黑，拒绝任何彩色 */
+  background-image: none !important;    /* 彻底清除渐变色 */
+}
+
+/* 保持深色模式下卡片的高级“黑透”毛玻璃质感，在纯黑底色上悬浮 */
+.layout.dark-theme .header-block,
+.layout.dark-theme .sidebar-right .sidebar-box,
+.layout.dark-theme .sidebar-right .widget.ai-widget,
+.layout.dark-theme .site-grid .site-card {
+  background: rgba(255, 255, 255, 0.03) !important; /* 极淡的微白透，在纯黑背景上像暗色玻璃 */
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important; /* 精致的微光边框线 */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;   /* 深邃的阴影 */
+}
+
+/* ================= 🚀 终极滚动修复：打通 Flexbox 任督二脉 ================= */
+
+/* 1. 防止主外壳被内部无数的卡片无限撑高 */
+.main-container {
+  min-height: 0 !important; 
+}
+
+/* 2. 限制内容区的高度，坚决不允许它超出屏幕 */
+.content {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important; 
+  min-height: 0 !important;       /* ✨ 核心魔法 1：防止 Flex 子元素撑破父容器 */
+}
+
+/* 3. 把真正的“自由滑动权”彻底移交给卡片网格自己 */
+.site-grid {
+  flex: 1 1 0% !important;        /* 强制网格只占用剩余的可用空间 */
+  min-height: 0 !important;       /* ✨ 核心魔法 2：打破内容撑开限制，强行唤出内部滚动条！ */
+  overflow-y: auto !important;    /* 开启垂直滑动 */
+  overflow-x: hidden !important;
+  align-content: flex-start !important; /* 确保卡片从最上面开始整齐排列 */
+  padding-bottom: 80px !important; /* 底部留足留白空间，滑到底部才优雅 */
+}
+
+/* （可选）给右侧固定面板的滚动也加一层保护 */
+.scroll-viewport, .chat-window {
+  min-height: 0 !important;
+}
+
+/* ================= 🚀 右侧边栏二合一选项卡样式 (苹果胶囊版) ================= */
+
+/* 1. 重新分配右侧比例：让上面选项卡占大头，AI 占小头 */
+.sidebar-right .combined-box {
+  flex: 1.3 !important; 
+}
+.sidebar-right .ai-widget {
+  flex: 0.9 !important; 
+}
+
+/* 2. 选项卡标题头部 - 重构对齐方式 */
+.tabs-header {
+  padding-bottom: 12px !important;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.15) !important;
+  display: flex;
+  justify-content: center; /* ✨ 核心：大容器绝对居中 */
+  align-items: center;
+  width: 100%;
+}
+
+/* ✨ 3. 全新轨道：苹果风胶囊背景 */
+.sidebar-tabs {
+  display: flex;
+  width: 100%; /* ✨ 核心：轨道撑满整个头部，完美对称 */
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+.layout.dark-theme .sidebar-tabs {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ✨ 4. 选项卡按钮本身 (未选中状态) */
+.tab-title {
+  flex: 1; /* ✨ 核心：两个按钮等分 1:1 宽度 */
+  display: flex;
+  justify-content: center; /* ✨ 核心：文字绝对居中 */
+  align-items: center;
+  cursor: pointer;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 8px 0 !important; /* 调整内边距，统一高度 */
+  border-radius: 8px;
+  opacity: 0.7;
+  margin: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* 悬浮时的微微亮起 */
+.tab-title:hover {
+  opacity: 0.9;
+}
+
+/* ✨ 5. 选项卡选中状态：化身凸起的果冻白块/发光块 */
+.tab-title.active {
+  opacity: 1;
+  background: #ffffff; /* 白天模式：纯白凸起 */
+  color: #2563eb !important; /* 文字变为高级蓝 */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0,0,0,0.04);
+  transform: translateY(-1px); /* 微微悬浮感 */
+}
+.layout.dark-theme .tab-title.active {
+  background: rgba(255, 255, 255, 0.18); /* 夜间模式：晶莹剔透的高光块 */
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 清除以前多余的下划线动画 */
+.tab-title::after {
+  display: none !important;
+}
+
+/* 6. 右侧小组件微调，确保不喧宾夺主 */
+.tabs-header .box-subtitle {
+  font-size: 11px;
+  opacity: 0.7;
+  font-weight: 500;
+}
+.tabs-header .refresh-news-btn {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* 7. 内容容器适配 */
+.tab-content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tab-content-container > div {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.news-list-container {
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* ================= 📊 排行榜真实数据空状态 ================= */
+.empty-ranking-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  opacity: 0.8;
+  animation: modalPop 0.4s ease;
+}
+
+.empty-rank-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.empty-rank-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.empty-rank-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ================= 🤖 终极优化：AI 建议面板专属样式 ================= */
+
+/* 1. 对话记录展示区 */
+.sidebar-right .chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 15px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: transparent !important;
+}
+
+/* 2. 气泡基础防撑破设置 */
+.chat-bubble {
+  max-width: 90% !important; /* 给左右留点呼吸空间 */
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  border-radius: 16px !important;
+  word-break: break-word !important; /* ✨ 核心：防止长串英文字母或链接把气泡撑爆 */
+  box-sizing: border-box !important;
+}
+
+/* 3. 底部输入控制台 (完美修复按钮被切掉的 Bug) */
+.sidebar-right .chat-input {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important; /* ✨ 用 gap 替代以前的 margin-left，完美控制间距 */
+  padding: 12px 15px !important;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08) !important; /* 改为柔和的虚线分割 */
+  background: transparent !important;
+  box-sizing: border-box !important; /* ✨ 绝对防御：确保 padding 不会撑破宽度 */
+  width: 100% !important;
+}
+.layout.dark-theme .chat-input {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 4. 输入框本体优化 */
+.sidebar-right .chat-input input {
+  flex: 1 !important;
+  min-width: 0 !important; /* ✨ Flex 布局终极解药：防止输入框内容过长时强行撑开父容器 */
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  padding: 9px 14px !important;
+  border-radius: 20px !important;
+  background: rgba(0, 0, 0, 0.03) !important; /* 微微的灰底，增加层次 */
+  color: var(--text-main) !important;
+  font-size: 13px !important;
+  outline: none !important;
+  transition: all 0.3s ease !important;
+  box-sizing: border-box !important;
+}
+
+.layout.dark-theme .chat-input input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 聚焦时的发光效果 */
+.sidebar-right .chat-input input:focus {
+  border-color: #3b82f6 !important;
+  background: transparent !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* 5. 发送按钮优化 (坚若磐石) */
+.btn-send {
+  flex-shrink: 0 !important; /* ✨ 核心：宁死不屈，绝对不允许被输入框挤扁！ */
+  margin: 0 !important;      /* 抹除之前导致溢出的 margin */
+  background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 9px 16px !important;
+  border-radius: 20px !important;
+  font-size: 13px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  white-space: nowrap !important; /* ✨ 核心：文字绝对不允许换行成上下排 */
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-send:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3) !important;
+}
+
+.btn-send:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* 直接粘贴在 style 结束标签的正上方 */
+:deep(.ai-site-card) {
+  transition: all 0.2s ease;
+}
+:deep(.ai-site-card:hover) {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px);
+}
+:deep(.ai-site-card a:hover) {
+  text-decoration: underline !important;
+  color: #93c5fd !important; /* 悬浮时变成更亮的浅蓝色 */
+}
+
+/* ================= 🚀 个人中心专属商业级 UI ================= */
+
+.profile-layout-container {
+  display: flex;
+  width: 100%;
+  max-width: 1100px; /* 限制超大屏宽度 */
+  margin: 0 auto;
+  height: calc(100vh - 120px);
+  background: rgba(255, 255, 255, 0.6) !important;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.layout.dark-theme .profile-layout-container {
+  background: rgba(15, 23, 42, 0.6) !important;
+}
+
+/* --- 左侧边栏 --- */
+.profile-sidebar {
+  width: 240px;
+  background: rgba(0, 0, 0, 0.03);
+  border-right: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  flex-shrink: 0;
+}
+.layout.dark-theme .profile-sidebar {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sidebar-header { margin-bottom: 20px; }
+.sidebar-user-brief { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding: 10px; background: rgba(255,255,255,0.4); border-radius: 12px;}
+.layout.dark-theme .sidebar-user-brief { background: rgba(0,0,0,0.2); }
+.brief-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover;}
+.brief-info { display: flex; flex-direction: column;}
+.brief-name { font-weight: 600; font-size: 14px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;}
+.brief-role { font-size: 11px; color: var(--text-muted); }
+
+.sidebar-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.sidebar-menu a {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-menu a:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
+.sidebar-menu a.active { background: var(--primary-bright); color: #fff; font-weight: 600; box-shadow: 0 4px 10px rgba(59,130,246,0.3);}
+.sidebar-footer { margin-top: auto; }
+
+/* --- 右侧内容区 --- */
+.profile-content-area {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.panel-title { font-size: 22px; font-weight: 800; margin-bottom: 30px; color: var(--text-main); }
+.panel-actions { margin-top: 30px; padding-top: 20px; border-top: 1px dashed var(--border-light); display: flex; justify-content: flex-end; }
+.animate-fade-in { animation: modalPop 0.3s ease-out; }
+
+/* --- 面板 1：个人主页风格 --- */
+.profile-cover { height: 160px; background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); border-radius: 16px; margin-bottom: -50px; }
+.homepage-header { display: flex; align-items: flex-end; gap: 20px; padding: 0 20px; margin-bottom: 30px; }
+.homepage-avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-block); box-shadow: 0 4px 12px rgba(0,0,0,0.1); object-fit: cover; background: #fff;}
+.homepage-user-info { flex: 1; margin-bottom: 10px; }
+.homepage-user-info h2 { margin: 0 0 5px 0; font-size: 24px; display: flex; align-items: center; gap: 10px;}
+.gender-tag { font-size: 12px; padding: 2px 8px; background: rgba(0,0,0,0.05); border-radius: 12px; font-weight: normal; color: var(--text-muted);}
+.homepage-bio { font-size: 13px; color: var(--text-muted); margin: 0 0 15px 0; }
+.homepage-stats { display: flex; gap: 30px; }
+.stat-item { display: flex; flex-direction: column; align-items: center; }
+.stat-item strong { font-size: 18px; color: var(--text-main); }
+.stat-item span { font-size: 12px; color: var(--text-muted); }
+
+.homepage-content-tabs { display: flex; gap: 30px; border-bottom: 1px solid var(--border-light); margin-bottom: 20px;}
+.homepage-content-tabs span { padding: 10px 0; font-weight: 600; color: var(--text-muted); cursor: pointer; position: relative;}
+.homepage-content-tabs span.active { color: var(--primary); }
+.homepage-content-tabs span.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 3px;}
+
+/* --- 设置相关组件 (安全/隐私/内容) --- */
+.security-list { display: flex; flex-direction: column; gap: 15px; }
+.security-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid var(--border-light); }
+.layout.dark-theme .security-item { background: rgba(255,255,255,0.02); }
+.sec-info h3 { margin: 0 0 4px 0; font-size: 15px; color: var(--text-main); }
+.sec-info p { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+/* Switch 开关样式 */
+.switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+input:checked + .slider { background-color: #3b82f6; }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* 设备管理 */
+.device-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+.device-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid var(--border-light); }
+.dev-icon { font-size: 24px; }
+.dev-detail { flex: 1; display: flex; flex-direction: column; }
+.dev-name { font-size: 14px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+.dev-tag { font-size: 10px; padding: 2px 6px; background: #10b981; color: white; border-radius: 4px; font-weight: normal;}
+.dev-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* 内容管理 & 足迹 */
+.content-status-tabs { display: flex; gap: 15px; margin-bottom: 20px;}
+.content-status-tabs span { padding: 6px 16px; border-radius: 20px; background: rgba(0,0,0,0.05); font-size: 13px; cursor: pointer; color: var(--text-muted); font-weight: 600;}
+.content-status-tabs span.active { background: var(--text-main); color: var(--bg-block); }
+.layout.dark-theme .content-status-tabs span.active { background: #fff; color: #000; }
+
+.my-content-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; margin-bottom: 12px; }
+.mc-info h4 { margin: 0 0 6px 0; font-size: 15px; color: var(--text-main); }
+.mc-info p { margin: 0; font-size: 12px; color: var(--text-muted); }
+.mc-actions { display: flex; gap: 10px; }
+
+/* 时间轴 */
+.history-timeline { padding-left: 10px; border-left: 2px solid var(--border-light); margin-left: 10px; }
+.timeline-day { margin-bottom: 25px; position: relative;}
+.day-title { margin: 0 0 15px -20px; font-size: 14px; background: var(--bg-main); display: inline-block; padding: 0 10px; color: var(--text-muted); font-weight: 600;}
+.timeline-item { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; font-size: 13px; position: relative;}
+.timeline-item::before { content: ''; position: absolute; left: -14px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; }
+.tl-time { color: var(--text-muted); min-width: 40px;}
+.tl-action { color: var(--text-muted); }
+.tl-action.highlight { color: #ef4444; font-weight: 600;}
+.tl-action.highlight-star { color: #f59e0b; font-weight: 600;}
+.tl-target { color: var(--text-main); font-weight: 600; cursor: pointer; }
+.tl-target:hover { color: var(--primary); text-decoration: underline; }
+
+/* 基础按钮修复 */
+.btn-cancel { background: rgba(0,0,0,0.05); border: none; padding: 6px 16px; border-radius: 8px; cursor: pointer; color: var(--text-main); font-weight: 600;}
+.layout.dark-theme .btn-cancel { background: rgba(255,255,255,0.1); color: #fff;}
+.btn-danger { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;}
+.btn-danger-text { background: transparent; color: #ef4444; border: none; cursor: pointer; font-weight: 600;}
+
+/* ================= 🚀 UI 终极进化：毛玻璃、软阴影与科技感 ================= */
+
+/* --- 1. 全局容器极客化改造 --- */
+.profile-layout-container {
+  border-radius: 24px !important; /* 更柔和的圆角 */
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.6) !important; /* 顶级软阴影 + 内置高光 */
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(25px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+}
+
+.layout.dark-theme .profile-layout-container {
+  background: rgba(15, 23, 42, 0.55) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* --- 2. 侧边栏科技感高亮指示器 --- */
+.sidebar-menu a { border-left: 4px solid transparent; }
+.sidebar-menu a.active {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, transparent 100%) !important;
+  color: #3b82f6 !important;
+  border-left: 4px solid #3b82f6; /* 科技感左侧高亮 */
+  border-radius: 0 12px 12px 0 !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+}
+.layout.dark-theme .sidebar-menu a.active {
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.15), transparent) !important;
+  color: #60a5fa !important;
+  border-left-color: #60a5fa;
+}
+
+/* --- 3. 头部科技感横幅 --- */
+.profile-banner-wrapper {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: -60px; /* 缩进，让头像浮上来 */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.profile-cover {
+  height: 220px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+/* 科技感网格图层 */
+.tech-pattern-bg::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.6;
+}
+.change-cover-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.change-cover-btn:hover { background: rgba(0, 0, 0, 0.6); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+/* --- 4. 头像与状态指示器 --- */
+.modern-header { position: relative; padding: 0 30px; z-index: 2; }
+.avatar-container { position: relative; margin-right: 25px; flex-shrink: 0; }
+.homepage-avatar {
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  border: 6px solid var(--bg-block);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+  background: #fff;
+  position: relative;
+  z-index: 2;
+}
+/* 绿色在线圆点 */
+.online-status-dot {
+  position: absolute;
+  bottom: 15px; right: 15px;
+  width: 22px; height: 22px;
+  background: #10b981;
+  border: 4px solid var(--bg-block);
+  border-radius: 50%;
+  z-index: 3;
+}
+
+/* --- 5. 信息行与高级徽章 --- */
+.name-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.name-row h2 { margin: 0; font-size: 26px; font-weight: 800; color: var(--text-main); }
+.gender-tag { font-size: 12px; padding: 3px 12px; border-radius: 20px; font-weight: 600; display: flex; align-items: center; gap: 4px; border: 1px solid transparent; }
+.gender-tag.female { background: #fdf2f8; color: #db2777; border-color: #fbcfe8; }
+.gender-tag.male { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; }
+.gender-tag.secret { background: #f1f5f9; color: #475569; }
+.pro-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(239,68,68,0.3); }
+
+/* --- 6. 现代横向数据统计栏 --- */
+.modern-stats {
+  display: inline-flex;
+  gap: 30px;
+  background: rgba(0,0,0,0.02);
+  padding: 15px 30px;
+  border-radius: 18px;
+  border: 1px solid var(--border-light);
+  margin-top: 5px;
+}
+.layout.dark-theme .modern-stats { background: rgba(255,255,255,0.02); }
+.modern-stats .stat-item { flex-direction: row; align-items: center; gap: 8px; }
+.stat-icon { font-size: 18px; opacity: 0.9; }
+.modern-stats strong { font-size: 22px; color: var(--text-main); }
+.modern-stats span { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+
+/* --- 7. 空白状态 CTA 创作卡片 --- */
+.creation-cta-card {
+  margin-top: 30px;
+  padding: 50px 40px;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)) !important;
+  border: 2px dashed rgba(59, 130, 246, 0.3) !important;
+  display: flex; flex-direction: column; align-items: center;
+  border-radius: 24px;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: none !important;
+}
+.layout.dark-theme .creation-cta-card {
+  background: linear-gradient(135deg, rgba(15,23,42,0.8), rgba(15,23,42,0.4)) !important;
+  border-color: rgba(96,165,250,0.2) !important;
+}
+.creation-cta-card:hover {
+  border-style: solid !important;
+  border-color: rgba(59, 130, 246, 0.6) !important;
+  box-shadow: 0 20px 50px rgba(59, 130, 246, 0.15) !important;
+  transform: translateY(-5px);
+}
+.cta-icon-ring {
+  width: 70px; height: 70px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.05);
+  transition: 0.3s;
+}
+.creation-cta-card:hover .cta-icon-ring { transform: scale(1.1); background: rgba(59, 130, 246, 0.15); }
+.creation-cta-card h3 { margin: 0 0 12px 0; font-size: 22px; color: var(--text-main); font-weight: 800; }
+.creation-cta-card p { margin: 0 0 30px 0; font-size: 14px; color: var(--text-muted); max-width: 300px; line-height: 1.6; }
+
+/* 创作工具按钮组 */
+.cta-tools { display: flex; gap: 15px; }
+.tool-btn {
+  padding: 12px 24px;
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-block);
+  color: var(--text-main);
+  font-weight: 600; font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+.tool-btn:hover { background: var(--primary-bright); color: white; border-color: transparent; transform: translateY(-3px); box-shadow: 0 8px 20px rgba(59,130,246,0.3); }
+
+/* --- 8. 内容 Tabs 现代化升级 --- */
+.modern-tabs { gap: 40px; padding-left: 10px; margin-top: 40px; border-bottom-width: 2px; }
+.modern-tabs span { font-size: 16px; padding-bottom: 14px; transition: 0.3s; }
+.modern-tabs span:hover { color: var(--primary); }
+.modern-tabs span.active::after {
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  box-shadow: 0 -2px 10px rgba(59,130,246,0.5);
+}
+
+/* ================= 🚀 终极进化：Bento Grid (百宝箱网格) 布局 ================= */
+
+/* --- 1. 网格系统核心 --- */
+.bento-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(140px, auto);
+  gap: 20px;
+  padding: 10px 0;
+}
+
+/* Bento 基础卡片质感 */
+.bento-item {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 28px !important; /* 更大的苹果风圆角 */
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.layout.dark-theme .bento-item {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.bento-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+.layout.dark-theme .bento-item:hover {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(96, 165, 250, 0.3) !important;
+}
+
+/* --- 2. 空间分配规划 --- */
+.bento-profile { grid-column: span 2; flex-direction: row; align-items: center; gap: 30px; }
+.bento-stats { grid-column: span 1; justify-content: space-around; padding: 20px 24px; }
+.bento-project { grid-column: span 2; grid-row: span 2; }
+.bento-feed { grid-column: span 1; grid-row: span 2; }
+.bento-lab { grid-column: span 3; }
+
+/* 响应式降级策略 */
+@media (max-width: 960px) {
+  .bento-layout { grid-template-columns: 1fr; }
+  .bento-profile, .bento-stats, .bento-project, .bento-feed, .bento-lab { grid-column: span 1; grid-row: auto; }
+  .bento-profile { flex-direction: column; text-align: center; }
+}
+
+/* --- 3. 模块内部细节打磨 --- */
+.bento-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.bento-header h3 { margin: 0; font-size: 18px; font-weight: 800; color: var(--text-main); }
+
+/* 名片区 */
+.bento-avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--bg-block); box-shadow: 0 8px 24px rgba(0,0,0,0.12); object-fit: cover;}
+.uid-text { font-size: 12px; color: var(--text-muted); margin: 0 0 8px 0; font-family: monospace; }
+.tech-stack-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.tech-tag { padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid transparent; }
+.tech-tag.vue { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.2); }
+.tech-tag.flask { background: rgba(99, 102, 241, 0.1); color: #4f46e5; border-color: rgba(99, 102, 241, 0.2); }
+.tech-tag.db { background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2); }
+.tech-tag.hardware { background: rgba(59, 130, 246, 0.1); color: #2563eb; border-color: rgba(59, 130, 246, 0.2); }
+
+.layout.dark-theme .tech-tag.vue { color: #34d399; }
+.layout.dark-theme .tech-tag.flask { color: #818cf8; }
+.layout.dark-theme .tech-tag.db { color: #fbbf24; }
+.layout.dark-theme .tech-tag.hardware { color: #60a5fa; }
+
+/* 数据区 */
+.stat-row { display: flex; align-items: center; gap: 15px; }
+.stat-icon-wrapper { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.stat-icon-wrapper.blue { background: rgba(59, 130, 246, 0.1); }
+.stat-icon-wrapper.orange { background: rgba(245, 158, 11, 0.1); }
+.stat-icon-wrapper.purple { background: rgba(168, 85, 247, 0.1); }
+.stat-data { display: flex; flex-direction: column; }
+.stat-data strong { font-size: 20px; color: var(--text-main); line-height: 1.2; }
+.stat-data span { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+
+/* 项目与动态区 */
+.project-cards-container { display: flex; flex-direction: column; gap: 15px; }
+.proj-card { display: flex; gap: 16px; padding: 16px; background: rgba(0,0,0,0.03); border-radius: 16px; transition: 0.3s; border: 1px solid var(--border-light); }
+.layout.dark-theme .proj-card { background: rgba(255,255,255,0.02); }
+.proj-card:hover { background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2); transform: translateX(4px); }
+.proj-icon { font-size: 32px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+.proj-details h4 { margin: 0 0 6px 0; font-size: 15px; color: var(--text-main); }
+.proj-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+.mini-feed-list { display: flex; flex-direction: column; gap: 20px; position: relative; }
+.mini-feed-list::before { content: ''; position: absolute; left: 5px; top: 10px; bottom: 10px; width: 2px; background: var(--border-light); }
+.mini-feed-item { display: flex; gap: 15px; position: relative; }
+.feed-dot { width: 12px; height: 12px; border-radius: 50%; background: #3b82f6; border: 3px solid var(--bg-block); position: relative; z-index: 2; flex-shrink: 0; margin-top: 4px; }
+.feed-content p { margin: 0 0 8px 0; font-size: 13px; color: var(--text-main); line-height: 1.6; }
+.feed-time { font-size: 11px; color: var(--text-muted); }
+.btn-icon-only { background: transparent; border: none; cursor: pointer; opacity: 0.6; transition: 0.2s; }
+.btn-icon-only:hover { opacity: 1; transform: scale(1.1); }
+
+/* 实验室交互区 */
+.lab-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+.lab-text h3 { margin: 0 0 6px 0; color: var(--text-main); font-size: 18px; }
+.lab-text p { margin: 0; color: var(--text-muted); font-size: 13px; }
+.lab-btn { padding: 12px 28px; font-size: 14px; border-radius: 20px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25); }
 </style>
