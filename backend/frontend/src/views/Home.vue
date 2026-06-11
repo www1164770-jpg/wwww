@@ -73,12 +73,20 @@
                @mouseup="stopDrag" 
                @mousemove="onDrag">
             
-            <div v-if="isLoggedIn" 
-                class="nav-tab-box fav-tab" 
-                :class="{ 'active': activeCategoryId === 'favorites' }" 
+            <div v-if="isLoggedIn"
+                class="nav-tab-box fav-tab"
+                :class="{ 'active': activeCategoryId === 'favorites' }"
                 @click="activeCategoryId = 'favorites'"
-                @mouseenter="hoverCategory('favorites')"> 
+                @mouseenter="hoverCategory('favorites')">
               ⭐ 我的收藏
+            </div>
+
+            <div v-if="recommendedItems.length > 0"
+                class="nav-tab-box rec-tab"
+                :class="{ 'active': activeCategoryId === 'recommended' }"
+                @click="activeCategoryId = 'recommended'"
+                @mouseenter="hoverCategory('recommended')">
+              🎯 专属推荐
             </div>
 
             <div v-for="cat in categories" 
@@ -213,6 +221,10 @@
             <div class="favorite-btn" @click.stop="toggleFavorite(site)" :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '加入收藏'">
               <span v-if="favoriteSiteIds.includes(site.id)" class="star-solid">★</span>
               <span v-else class="star-empty">☆</span>
+            </div>
+            <!-- 推荐标签徽章 -->
+            <div v-if="site._recSource && site._recTag" class="rec-badge" :title="'匹配标签: ' + site._recTag">
+              {{ site._recTag }}
             </div>
             <div v-if="favoriteSites.find(s => s.url === site.url)" class="focus-badge" title="已在专注轨道">
               🪐
@@ -470,15 +482,15 @@
             <div class="security-list">
               <div class="security-item">
                 <div class="sec-info"><h3>登录密码</h3><p>已设置。建议定期更换密码以提高安全性。</p></div>
-                <button class="btn-cancel" @click="showToast('这里将弹窗让用户输入旧密码修改', 'info')">修改</button>
+                <button class="btn-cancel" @click="openModal('password')">修改</button>
               </div>
               <div class="security-item">
                 <div class="sec-info"><h3>绑定邮箱</h3><p>{{ userInfo.email || '未绑定' }}</p></div>
-                <button class="btn-cancel">换绑</button>
+                <button class="btn-cancel" @click="openModal('email')">换绑</button>
               </div>
               <div class="security-item">
                 <div class="sec-info"><h3>绑定手机</h3><p>{{ userInfo.phone || '未绑定，绑定后可用于快速找回账号' }}</p></div>
-                <button class="btn-primary">去绑定</button>
+                <button class="btn-primary" @click="openModal('phone')">去绑定</button>
               </div>
             </div>
 
@@ -670,6 +682,50 @@
       </div>
     </div>
 
+    <div v-if="currentModalType" class="auth-overlay glass-overlay" @click.self="closeModal">
+      <div class="auth-modal edit-modal" @click.stop>
+        <button class="close-btn" @click="closeModal">×</button>
+        
+        <template v-if="currentModalType === 'password'">
+          <h2 class="modal-title">修改登录密码</h2>
+          <div class="vertical-layout">
+            <input type="password" v-model="modalForm.oldPwd" placeholder="请输入当前旧密码" class="auth-input">
+            <input type="password" v-model="modalForm.newPwd" placeholder="请输入新密码 (至少6位)" class="auth-input">
+            <input type="password" v-model="modalForm.confirmPwd" placeholder="请再次确认新密码" class="auth-input">
+            <button class="btn-submit" @click="submitPasswordChange">确认修改，并重新登录</button>
+          </div>
+        </template>
+
+        <template v-else-if="currentModalType === 'email'">
+          <h2 class="modal-title">换绑邮箱</h2>
+          <div class="vertical-layout">
+            <input type="email" v-model="modalForm.email" placeholder="请输入新邮箱地址" class="auth-input">
+            <div class="verify-code-row">
+              <input type="text" v-model="modalForm.emailCode" placeholder="6位验证码" class="auth-input small">
+              <button class="get-code-btn" :disabled="emailCountdown > 0" @click="sendEmailCode">
+                {{ emailCountdown > 0 ? `${emailCountdown}s 后重发` : '获取验证码' }}
+              </button>
+            </div>
+            <button class="btn-submit" @click="submitEmailBind">确认换绑</button>
+          </div>
+        </template>
+
+        <template v-else-if="currentModalType === 'phone'">
+          <h2 class="modal-title">绑定手机号</h2>
+          <div class="vertical-layout">
+            <input type="tel" v-model="modalForm.phone" placeholder="请输入手机号码" class="auth-input">
+            <div class="verify-code-row">
+              <input type="text" v-model="modalForm.phoneCode" placeholder="6位短信验证码" class="auth-input small">
+              <button class="get-code-btn" :disabled="phoneCountdown > 0" @click="sendPhoneCode">
+                {{ phoneCountdown > 0 ? `${phoneCountdown}s 后重发` : '获取验证码' }}
+              </button>
+            </div>
+            <button class="btn-submit" @click="submitPhoneBind">立即绑定</button>
+          </div>
+        </template>
+
+      </div>
+    </div>
     <div v-if="showEditModal" class="auth-overlay" @click="showEditModal = false">
       <div class="auth-modal edit-modal" @click.stop>
         <button class="close-btn" @click="showEditModal = false">×</button>
@@ -961,6 +1017,15 @@
       </div>
     </div>
 
+    <!-- 🎯 兴趣问卷弹窗 -->
+    <SurveyModal
+      :visible="showSurveyModal"
+      :username="userInfo.username"
+      @submit="handleSurveySubmit"
+      @skip="handleSurveySkip"
+      ref="surveyModalRef"
+    />
+
 </div>
 </template>
 
@@ -970,6 +1035,8 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch, reactive} from 
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import FlexSearch from 'flexsearch'
+import SurveyModal from '../components/SurveyModal.vue'
+import { userAPI, feedAPI } from '../utils/api'
 
 // ================= 右侧边栏二合一选项卡 =================
 const activeSidebarTab = ref('ranking'); // 默认显示排行 ('ranking' 或 'news')
@@ -1309,6 +1376,12 @@ const AUTH_URLS = { GITHUB: "https://github.com/login/oauth/authorize?client_id=
 const isDarkMode = ref(false);
 const currentPage = ref('home');
 const isLoggedIn = ref(false);
+
+// ================= 🎯 兴趣问卷状态 =================
+const showSurveyModal = ref(false);
+const hasSurvey = ref(true);       // 默认 true，等拿到用户信息后再判断
+const surveyModalRef = ref(null);  // 组件引用
+const recommendedItems = ref([]);  // 个性化推荐结果
 const showAuthModal = ref(false);
 const showEditModal = ref(false);
 const authStage = ref('methods');
@@ -1317,11 +1390,153 @@ const showAddCategoryModal = ref(false);
 const newCategoryName = ref('');
 const newSiteForm = ref({ id: null, name: '', url: '', category_id: '' });
 const isEditingSite = ref(false); // ✨ 新增：标识当前是添加还是编辑
+const showPasswordModal = ref(false);
 
 // ================= 🚀 注册与倒计时逻辑 =================
-const regForm = ref({ username: '', email: '', password: '', code: '', agreeTerms: false });
+const regForm = ref({ oldPwd:'', newPwd:'', confirmPwd:'', username: '', email: '', password: '', code: '', agreeTerms: false });
 const countdown = ref(0);
 let timer = null;
+
+// ================= 🔒 统一安全弹窗逻辑 =================
+// 记录当前弹窗类型：'password' | 'email' | 'phone' | null
+const currentModalType = ref(null); 
+
+// 统一的表单数据对象 (接收所有可能输入)
+const modalForm = ref({
+  oldPwd: '', newPwd: '', confirmPwd: '', // 修改密码专用
+  email: '', emailCode: '',               // 邮箱换绑专用
+  phone: '', phoneCode: ''                // 手机绑定专用
+});
+
+// ================= 📧📱 验证码倒计时与真实绑定逻辑 =================
+const emailCountdown = ref(0);
+const phoneCountdown = ref(0);
+let emailTimer = null;
+let phoneTimer = null;
+
+// 1. 发送邮箱验证码
+const sendEmailCode = async () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(modalForm.value.email)) return showToast('⚠️ 请输入正确的邮箱格式', 'error');
+
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/security/send-email-code', 
+      { email: modalForm.value.email }, 
+      { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
+    );
+    if (res.data.code === 0) {
+      showToast('📧 验证码已发送至邮箱，请查收', 'success');
+      emailCountdown.value = 60;
+      emailTimer = setInterval(() => {
+        emailCountdown.value--;
+        if (emailCountdown.value <= 0) clearInterval(emailTimer);
+      }, 1000);
+    } else { throw new Error(res.data.msg); }
+  } catch (error) { showToast('❌ 发送失败：' + (error.response?.data?.msg || '网络错误'), 'error'); }
+};
+
+// 2. 发送手机验证码
+const sendPhoneCode = async () => {
+  const phoneRegex = /^1[3-9]\d{9}$/;
+  if (!phoneRegex.test(modalForm.value.phone)) return showToast('⚠️ 请输入正确的11位手机号', 'error');
+
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/security/send-sms-code', 
+      { phone: modalForm.value.phone }, 
+      { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
+    );
+    if (res.data.code === 0) {
+      showToast('📱 验证码短信已发送', 'success');
+      phoneCountdown.value = 60;
+      phoneTimer = setInterval(() => {
+        phoneCountdown.value--;
+        if (phoneCountdown.value <= 0) clearInterval(phoneTimer);
+      }, 1000);
+    } else { throw new Error(res.data.msg); }
+  } catch (error) { showToast('❌ 发送失败：' + (error.response?.data?.msg || '网络错误'), 'error'); }
+};
+
+// 3. 提交绑定邮箱
+const submitEmailBind = async () => {
+  if (!modalForm.value.emailCode) return showToast('⚠️ 请输入验证码', 'error');
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/security/bind-email', 
+      { email: modalForm.value.email, code: modalForm.value.emailCode }, 
+      { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
+    );
+    if (res.data.code === 0) {
+      showToast('🎉 邮箱绑定成功！', 'success');
+      if (userInfo.value) userInfo.value.email = modalForm.value.email; // 局部更新视图
+      closeModal();
+    } else { throw new Error(res.data.msg); }
+  } catch (error) { showToast('❌ 绑定失败：' + (error.response?.data?.msg || '验证码错误'), 'error'); }
+};
+
+// 4. 提交绑定手机
+const submitPhoneBind = async () => {
+  if (!modalForm.value.phoneCode) return showToast('⚠️ 请输入验证码', 'error');
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/security/bind-phone', 
+      { phone: modalForm.value.phone, code: modalForm.value.phoneCode }, 
+      { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
+    );
+    if (res.data.code === 0) {
+      showToast('🎉 手机绑定成功！', 'success');
+      if (userInfo.value) userInfo.value.phone = modalForm.value.phone; // 局部更新视图
+      closeModal();
+    } else { throw new Error(res.data.msg); }
+  } catch (error) { showToast('❌ 绑定失败：' + (error.response?.data?.msg || '验证码错误'), 'error'); }
+};
+
+// 打开弹窗的通用方法
+const openModal = (type) => {
+  currentModalType.value = type;
+};
+
+// 统一的关闭与数据重置方法 (右上角 × 和 点击外部背景 共用此方法)
+const closeModal = () => {
+  currentModalType.value = null; // 隐藏弹窗
+  // 彻底清空用户输入的所有临时数据，防止下次打开时残留
+  modalForm.value = {
+    oldPwd: '', newPwd: '', confirmPwd: '',
+    email: '', emailCode: '',
+    phone: '', phoneCode: ''
+  };
+  emailCountdown.value = 0;
+  phoneCountdown.value = 0;
+};
+
+// 实际提交：修改密码逻辑
+const submitPasswordChange = async () => {
+  if (!modalForm.value.oldPwd || !modalForm.value.newPwd || !modalForm.value.confirmPwd) {
+    return showToast('⚠️ 请完整填写所有密码项', 'error');
+  }
+  if (modalForm.value.newPwd !== modalForm.value.confirmPwd) {
+    return showToast('⚠️ 两次输入的新密码不一致！', 'error');
+  }
+  if (modalForm.value.newPwd.length < 6) {
+    return showToast('⚠️ 新密码不能少于 6 位', 'error');
+  }
+
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/user/password', {
+      old_password: modalForm.value.oldPwd,
+      new_password: modalForm.value.newPwd
+    }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+    });
+
+    if (res.data.code === 0) {
+      showToast('🎉 密码修改成功！请重新登录', 'success');
+      closeModal(); // 提交成功后调用统一方法关闭并清空
+      setTimeout(() => { handleLogout(); }, 1500);
+    } else {
+      showToast('❌ ' + res.data.msg, 'error');
+    }
+  } catch (error) {
+    showToast('❌ 修改失败：' + (error.response?.data?.msg || '网络错误'), 'error');
+  }
+};
 
 // 1. 发送验证码逻辑
 const sendCode = async () => {
@@ -1652,8 +1867,115 @@ const handleLogout = () => {
   currentPage.value = 'home';
   localStorage.removeItem('user_info');
   localStorage.removeItem('is_logged_in');
+  showSurveyModal.value = false;
+  hasSurvey.value = true;
   alert("已安全退出账号");
 };
+
+// ================= 🎯 问卷处理逻辑 =================
+
+/** 检查是否需要弹出问卷 */
+function checkAndShowSurvey() {
+  // 已登录 + 未做过问卷 + 弹窗未在显示
+  if (isLoggedIn.value && !hasSurvey.value && !showSurveyModal.value) {
+    // 延迟 0.5s 弹出，避免与登录弹窗关闭动画冲突
+    setTimeout(() => {
+      showSurveyModal.value = true;
+    }, 500);
+  }
+}
+
+/** 处理问卷提交 */
+async function handleSurveySubmit(interests) {
+  try {
+    const res = await userAPI.submitSurvey(interests);
+    if (res.data?.code === 0) {
+      closeSurveyAndSave(interests);
+      showToast('🎉 问卷已保存！正在加载专属推荐...', 'success');
+      await loadRecommendations();
+    } else {
+      showToast('❌ ' + (res.data?.msg || '保存失败'), 'error');
+      if (surveyModalRef.value) surveyModalRef.value.done();
+    }
+  } catch (error) {
+    // 后端不可达时，先存本地再异步重试
+    const isNetworkError = !error.response && error.message === 'Network Error';
+
+    if (isNetworkError) {
+      // 🛡️ 离线兜底：存 localStorage，后端恢复后自动同步
+      saveSurveyLocally(interests);
+      closeSurveyAndSave(interests);
+      showToast('⚠️ 后端未连接，问卷已暂存本地，服务恢复后自动同步', 'warning');
+    } else {
+      const detail = error.response?.data?.msg || error.message || '网络错误';
+      showToast('❌ 提交失败：' + detail, 'error');
+      if (surveyModalRef.value) surveyModalRef.value.done();
+    }
+  }
+}
+
+/** 本地持久化问卷结果 + 关闭弹窗更新状态 */
+function closeSurveyAndSave(interests) {
+  showSurveyModal.value = false;
+  hasSurvey.value = true;
+  if (userInfo.value) {
+    userInfo.value.has_survey = 1;
+    userInfo.value.user_tags = interests.join(',');
+    localStorage.setItem('user_info', JSON.stringify(userInfo.value));
+  }
+}
+
+/** 兜底：后端不可达时暂存到 localStorage */
+function saveSurveyLocally(interests) {
+  localStorage.setItem('pending_survey', JSON.stringify({
+    tags: interests,
+    savedAt: new Date().toISOString()
+  }));
+}
+
+/** 页面加载时检查是否有待同步的问卷 */
+async function syncPendingSurvey() {
+  const pending = localStorage.getItem('pending_survey');
+  if (!pending) return;
+  try {
+    const { tags } = JSON.parse(pending);
+    const res = await userAPI.submitSurvey(tags);
+    if (res.data?.code === 0) {
+      localStorage.removeItem('pending_survey');
+      if (userInfo.value) {
+        userInfo.value.has_survey = 1;
+        userInfo.value.user_tags = tags.join(',');
+        localStorage.setItem('user_info', JSON.stringify(userInfo.value));
+      }
+      console.log('✅ 离线问卷已同步至后端');
+    }
+  } catch (e) {
+    // 后端仍不可达，保留 pending_survey 下次再试
+  }
+}
+
+/** 处理跳过问卷 */
+function handleSurveySkip() {
+  showSurveyModal.value = false;
+  // 跳过也能加载默认推荐
+  loadRecommendations();
+}
+
+/** 加载个性化推荐 */
+async function loadRecommendations() {
+  try {
+    const res = await feedAPI.getRecommendations();
+    if (res.data?.code === 0) {
+      recommendedItems.value = res.data.data.items || [];
+      // 🎯 加载成功后自动切到推荐视图
+      if (recommendedItems.value.length > 0) {
+        activeCategoryId.value = 'recommended';
+      }
+    }
+  } catch (error) {
+    console.warn('加载推荐失败:', error);
+  }
+}
 
 // ✨ 核心逻辑：将网站一键送入/移出专注轨道
 const toggleSiteToFocus = (site) => {
@@ -1945,6 +2267,34 @@ const defaultProfessionData = {
     categories: [
       { id: 401, name: '原型设计' }, { id: 402, name: '文档办公' },
       { id: 403, name: '数据分析' }, { id: 404, name: '竞品调研' }
+    ]
+  },
+  gamer: {
+    name: '极客人', icon: '🕹️',
+    categories: [
+      { id: 501, name: '游戏平台' }, { id: 502, name: '游戏资讯' },
+      { id: 503, name: '独立游戏' }, { id: 504, name: '游戏开发' }
+    ]
+  },
+  'ai-engineer': {
+    name: 'AI 工程师', icon: '🤖',
+    categories: [
+      { id: 601, name: '大模型平台' }, { id: 602, name: 'AI开发框架' },
+      { id: 603, name: 'AI学术研究' }, { id: 604, name: 'MLOps工具' }
+    ]
+  },
+  backend: {
+    name: '后端开发', icon: '⚙️',
+    categories: [
+      { id: 701, name: '数据库服务' }, { id: 702, name: '云平台' },
+      { id: 703, name: 'API工具' }, { id: 704, name: '消息/微服务' }
+    ]
+  },
+  ops: {
+    name: '运营增长', icon: '📈',
+    categories: [
+      { id: 801, name: '新媒体运营' }, { id: 802, name: '数据分析' },
+      { id: 803, name: '增长工具' }, { id: 804, name: 'SEO/ASO' }
     ]
   }
 };
@@ -2255,26 +2605,48 @@ const isLoading = ref(true);
 
 // ================= 智能过滤与本地秒搜 (加入收藏夹逻辑) =================
 const filteredWebsites = computed(() => {
+  // 🎯 专属推荐模式：直接使用后端推荐结果
+  if (activeCategoryId.value === 'recommended' && recommendedItems.value.length > 0) {
+    let list = recommendedItems.value.map(item => ({
+      id: item.id,
+      name: item.name,
+      url: item.url,
+      logo_url: item.logo_url || '',
+      category_id: 0,
+      clicks: item.clicks || 0,
+      _recTag: item.matched_tag || '',     // 携带匹配标签用于展示
+      _recSource: true                       // 标记为推荐来源
+    }));
+
+    // 搜索过滤
+    const keyword = searchQuery.value.trim().toLowerCase();
+    if (keyword) {
+      list = list.filter(site =>
+        site.name.toLowerCase().includes(keyword) ||
+        (site.url && site.url.toLowerCase().includes(keyword))
+      );
+    }
+    return list;
+  }
+
   let list = websites.value;
-  
+
   // 1. 分类过滤
   if (activeCategoryId.value === 'favorites') {
-    // ✨ 核心：当处于“我的收藏”分类时，仅过滤出在 favoriteSiteIds 数组里的网站
     list = list.filter(site => favoriteSiteIds.value.includes(site.id));
   } else if (activeCategoryId.value !== 'all') {
-    // 常规分类过滤
     list = list.filter(site => site.category_id == activeCategoryId.value);
   }
-  
-  // 2. 本地秒搜过滤 (实时监听输入框 searchQuery)
+
+  // 2. 本地秒搜过滤
   const keyword = searchQuery.value.trim().toLowerCase();
   if (keyword) {
-    list = list.filter(site => 
-      site.name.toLowerCase().includes(keyword) || 
+    list = list.filter(site =>
+      site.name.toLowerCase().includes(keyword) ||
       (site.url && site.url.toLowerCase().includes(keyword))
     );
   }
-  
+
   return list;
 });
 
@@ -2972,11 +3344,18 @@ const refreshStatus = () => {
   if (savedStatus === 'true' && savedUser) {
     isLoggedIn.value = true;
     userInfo.value = JSON.parse(savedUser);
+    // 🎯 检查用户是否已完成问卷
+    hasSurvey.value = userInfo.value?.has_survey === 1;
     loadSettingsFromCloud(userInfo.value.username);
     fetchFavorites(); // ✨ 登录成功后，立刻拉取收藏列表
+    loadRecommendations(); // 🎯 登录后加载推荐
+    syncPendingSurvey();   // 🔄 同步之前因离线暂存的问卷数据
+    // 🎯 未做问卷则弹窗
+    checkAndShowSurvey();
   } else {
     isLoggedIn.value = false;
     favoriteSiteIds.value = [];
+    hasSurvey.value = true; // 未登录时不弹窗
   }
 };
 
@@ -3330,6 +3709,50 @@ onUnmounted(() => {
   font-weight: 700; 
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
+/* ================= 🎯 推荐标签页样式 ================= */
+.nav-tab-box.rec-tab {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.06));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+  font-weight: 600;
+}
+.nav-tab-box.rec-tab:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.1));
+  border-color: rgba(99, 102, 241, 0.4);
+}
+.nav-tab-box.rec-tab.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.12)) !important;
+  border-color: #818cf8 !important;
+  color: #4f46e5 !important;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25) !important;
+}
+.layout.dark-theme .nav-tab-box.rec-tab {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+  border-color: rgba(129, 140, 248, 0.25);
+  color: #a5b4fc;
+}
+.layout.dark-theme .nav-tab-box.rec-tab.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.16)) !important;
+  border-color: #818cf8 !important;
+  color: #c7d2fe !important;
+}
+
+/* ================= 🏷️ 推荐匹配标签徽章 ================= */
+.rec-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  letter-spacing: 0.3px;
+  z-index: 2;
+  pointer-events: none;
+}
+
 /* ================= 4. 搜索引擎单选与弹窗 ================= */
 .engine-radio-group { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 0px; flex-wrap: wrap; }
 .engine-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-main); cursor: pointer; transition: 0.2s; opacity: 0.8; }
@@ -6778,4 +7201,11 @@ input:checked + .slider:before { transform: translateX(22px); }
 .lab-text h3 { margin: 0 0 6px 0; color: var(--text-main); font-size: 18px; }
 .lab-text p { margin: 0; color: var(--text-muted); font-size: 13px; }
 .lab-btn { padding: 12px 28px; font-size: 14px; border-radius: 20px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.25); }
+
+/* ✨ 弹窗背景毛玻璃效果 */
+.glass-overlay {
+  backdrop-filter: blur(4px);          /* 开启毛玻璃模糊 */
+  -webkit-backdrop-filter: blur(4px);  /* 兼容 Safari */
+  background-color: rgba(15, 23, 42, 0.4); /* 配色微调，使其更显高级感 */
+}
 </style>

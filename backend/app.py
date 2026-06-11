@@ -21,7 +21,7 @@
 
 import os  # 操作系统接口，用于读取环境变量和文件路径
 from dotenv import load_dotenv  # 从 .env 文件加载环境变量，保护敏感配置不硬编码
-from flask import Flask, jsonify, request, redirect  # Flask 核心：应用实例、JSON响应、请求对象、重定向
+from flask import Flask, jsonify, request, redirect, g, url_for  # Flask 核心：应用实例、JSON响应、请求对象、重定向
 from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调用后端接口
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
 import time  # 时间工具，用于时间戳记录和延迟控制
@@ -44,6 +44,8 @@ import redis
 import pymysql
 import smtplib
 import random
+import logging
+import traceback
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -51,6 +53,12 @@ from concurrent.futures import ThreadPoolExecutor
 from email_service import send_verification_email
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+
+# 导入连接池模块
+from db_pool import get_connection as pool_get_connection
+
+# 导入扩展模块
+import app_extensions
 
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
 load_dotenv()  # 将 .env 文件中的键值对注入到系统环境变量，后续通过 os.getenv() 读取
@@ -79,7 +87,8 @@ DB_CONFIG = {
 }
 
 def get_db_connection():
-    return pymysql.connect(**DB_CONFIG)
+    """从连接池获取一个数据库连接（推荐使用此函数替代直连）"""
+    return pool_get_connection()
 
 def async_save_click(item_id):
     """异步将点击日志写入 MySQL"""
@@ -92,6 +101,46 @@ def async_save_click(item_id):
         connection.close()
     except Exception as e:
         print(f"写入点击日志失败: {e}")
+
+# ================= 修改密码接口 =================
+@app.route('/api/user/password', methods=['POST'])
+@jwt_required()
+def change_password():
+    # 获取当前请求人的身份 (如果是按之前的逻辑，这里可能是 username)
+    username = get_jwt_identity() 
+    data = request.json
+    
+    old_pwd = data.get('old_password')
+    new_pwd = data.get('new_password')
+
+    if not old_pwd or not new_pwd:
+        return jsonify({'code': 400, 'msg': '密码参数不完整'}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            # 1. 字段名改为 password_hash
+            cursor.execute("SELECT password_hash FROM users WHERE username = %s", (username,))
+            user = cursor.fetchone()
+            
+            if not user:
+                return jsonify({'code': 404, 'msg': '找不到该用户'}), 404
+                
+            # 2. 统一使用 werkzeug 的 check_password_hash
+            if not check_password_hash(user['password_hash'], old_pwd):
+                return jsonify({'code': 401, 'msg': '旧密码输入错误！'}), 401
+                
+            # 3. 统一使用 werkzeug 的 generate_password_hash 加密新密码
+            hashed_new_pwd = generate_password_hash(new_pwd)
+            
+            # 4. 更新 password_hash 字段
+            cursor.execute("UPDATE users SET password_hash = %s WHERE username = %s", (hashed_new_pwd, username))
+        conn.commit()
+        return jsonify({'code': 0, 'msg': '密码修改成功'})
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': f'服务器错误: {str(e)}'}), 500
+    finally:
+        conn.close()
 
 # ================= 1. 发送真实邮件验证码 =================
 @app.route('/api/auth/send-code', methods=['POST'])
@@ -245,6 +294,12 @@ def calculate_and_cache_growth_rate():
 
 # 允许跨域请求
 CORS(app)  # 开启全局跨域支持，允许前端（如 localhost:5173）访问后端接口
+
+# ===== 生产级日志配置 =====
+app = app_extensions.setup_logging(app)
+
+# ===== 全局异常处理器注册 =====
+app = app_extensions.register_error_handlers(app)
 
 # ===== 数据库连接配置 =====
 # 从环境变量读取数据库连接参数，如果 .env 中没有配置则使用默认值
@@ -584,8 +639,6 @@ def get_industry_news():
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=10)
-
         response = requests.get(url, headers=headers, timeout=10)# 通过代理请求 RSS 地址，超时 10 秒
         xml_data = response.text  # 获取原始 XML 文本内容
         
@@ -738,8 +791,7 @@ websites_db = [
 
 @app.route('/go/<int:item_id>')
 def redirect_to_item(item_id):
-    # (粘贴上一轮提供的 redirect_to_item 函数内部代码)
-    ...
+    return jsonify({"msg": "重定向功能开发中"}), 200
 
 # ================= 3. 排行榜 API 接口 =================
 @app.route('/api/ranking/growth', methods=['GET'])
@@ -1072,6 +1124,102 @@ def fetch_online_hotness():
     except Exception:
         pass
     return hotness  # 返回本次成功抓取的所有网站热度数据
+
+# ================= 1. 发送安全验证码 (存入 Redis, 有效期5分钟) =================
+
+@app.route('/api/security/send-email-code', methods=['POST'])
+@jwt_required()
+@limiter.limit("2 per minute") # 防止被别人恶意刷邮箱轰炸
+def send_bind_email_code():
+    email = request.json.get('email')
+    if not email: return jsonify({'code': 400, 'msg': '邮箱不能为空'}), 400
+    
+    code = str(random.randint(100000, 999999))
+    redis_client.setex(f"bind_email_code:{email}", 300, code) # Redis：300秒(5分钟)自动过期
+    
+    # 调用真实的 SMTP 发送逻辑
+    is_success, error_msg = send_verification_email(email, code)
+    if is_success:
+        return jsonify({'code': 0, 'msg': '验证码已发送'})
+    else:
+        return jsonify({'code': 500, 'msg': f'邮件发送失败：{error_msg}'}), 500
+
+@app.route('/api/security/send-sms-code', methods=['POST'])
+@jwt_required()
+@limiter.limit("1 per minute")
+def send_bind_sms_code():
+    phone = request.json.get('phone')
+    if not phone: return jsonify({'code': 400, 'msg': '手机号不能为空'}), 400
+    
+    code = str(random.randint(100000, 999999))
+    redis_client.setex(f"bind_phone_code:{phone}", 300, code) # Redis 存储
+    
+    # ⚠️ [真实短信 SDK 接入占位] 
+    # 此处应接入阿里云(Dysmsapi)或腾讯云(SmsClient) SDK。示例逻辑如下：
+    # client = AcsClient('你的AccessKey', '你的Secret', 'cn-hangzhou')
+    # request = CommonRequest()
+    # request.set_domain('dysmsapi.aliyuncs.com')
+    # request.set_action_name('SendSms')
+    # request.add_query_param('PhoneNumbers', phone)
+    # request.add_query_param('SignName', "智汇导航")
+    # request.add_query_param('TemplateCode', "SMS_123456789")
+    # request.add_query_param('TemplateParam', f'{{"code":"{code}"}}')
+    # response = client.do_action_with_exception(request)
+    
+    print(f"\n🚀 [国内短信服务模拟] 接收手机号: {phone} | 验证码: {code}\n")
+    return jsonify({'code': 0, 'msg': '短信验证码已发送'})
+
+
+# ================= 2. 严格校验验证码并绑定入库 =================
+
+@app.route('/api/security/bind-email', methods=['POST'])
+@jwt_required()
+def submit_bind_email():
+    username = get_jwt_identity() # 取出请求者的身份
+    data = request.json
+    email, code = data.get('email'), data.get('code')
+    
+    # 1. 查 Redis 对比验证码 (同时校验是否过期)
+    saved_code = redis_client.get(f"bind_email_code:{email}")
+    if not saved_code or saved_code != code:
+        return jsonify({'code': 400, 'msg': '验证码错误或已过期(超5分钟)'}), 400
+
+    # 2. 校验成功，写入 MySQL 更新资料
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("UPDATE users SET email = %s WHERE username = %s", (email, username))
+        conn.commit()
+        
+        # 3. 销毁已使用过的验证码（防重放攻击）
+        redis_client.delete(f"bind_email_code:{email}") 
+        
+        return jsonify({'code': 0, 'msg': '邮箱换绑成功'})
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': '数据库写入失败'}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/security/bind-phone', methods=['POST'])
+@jwt_required()
+def submit_bind_phone():
+    username = get_jwt_identity()
+    data = request.json
+    phone, code = data.get('phone'), data.get('code')
+    
+    saved_code = redis_client.get(f"bind_phone_code:{phone}")
+    if not saved_code or saved_code != code:
+        return jsonify({'code': 400, 'msg': '验证码错误或已过期(超5分钟)'}), 400
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("UPDATE users SET phone = %s WHERE username = %s", (phone, username))
+        conn.commit()
+        redis_client.delete(f"bind_phone_code:{phone}") 
+        return jsonify({'code': 0, 'msg': '手机号绑定成功'})
+    finally:
+        conn.close()
 
 # ================= 1. 上传/更新配置到云端 =================
 @app.route('/api/user/sync', methods=['POST'])
@@ -1662,12 +1810,6 @@ def chat():
 
 # ================= 1. 接口防刷配置 (Rate Limiting) =================
 # 基于请求者的 IP 进行频率限制，防止恶意爆破
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="redis://localhost:6379/0" # 复用之前的 Redis
-)
 
 # 【应用防刷】给敏感接口加上限制 (在之前的路由上加装饰器)
 # @app.route('/api/auth/send-code', methods=['POST'])
@@ -1951,22 +2093,63 @@ def delete_website(id):
     db.session.commit()
     return jsonify({"message": "删除成功"})
 
+# ================= 📝 个性化问卷与推荐接口 =================
+# 注：问卷与推荐路由已统一迁移到 app_extensions.register_survey_routes() 中管理
+# 详见 backend/app_extensions.py 第 786 行起
+
+@app.route('/api/user/survey_status', methods=['GET'])
+@jwt_required()
+def get_survey_status():
+    """查询当前用户的问卷状态（供前端判断是否需要弹出问卷）"""
+    username = get_jwt_identity()
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT has_survey, user_tags FROM users WHERE username = %s",
+                (username,)
+            )
+            row = cursor.fetchone()
+            return jsonify({
+                'code': 0,
+                'data': {
+                    'has_survey': row['has_survey'] if row else 0,
+                    'user_tags': row['user_tags'] if row else ''
+                }
+            })
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': str(e)}), 500
+    finally:
+        conn.close()
+
+
+# ⚠️ 以下两个路由 (/api/user/survey、/api/recommendations/websites)
+# 已由 app_extensions.register_survey_routes() 统一注册，此处删除重复定义。
+# 如需查看推荐路由实现，参见 backend/app_extensions.py
+
+# =====================================================================
+# 注册所有扩展模块
+# =====================================================================
+app_extensions.register_redis_sync_scheduler(app, scheduler, redis_client)
+app_extensions.register_password_reset_routes(app, redis_client)
+app_extensions.register_token_refresh_route(app)
+app_extensions.register_content_filter_routes(app)
+app_extensions.register_notification_routes(app, db)
+app_extensions.register_hot_ranking_routes(app, redis_client)
+app_extensions.register_admin_user_routes(app, db)
+app_extensions.register_stats_overview_routes(app, db)
+app_extensions.register_content_audit_routes(app, db)
+app_extensions.register_survey_routes(app, db)
+app.logger.info('所有扩展模块注册完成')
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         # 启动时自动同步所有分类和网站到数据库
         try:
             from init_db import all_categories, all_sites, get_logo_url
-            import pymysql
-
-            env_db = {
-                'host': os.getenv('DB_HOST', '127.0.0.1'),
-                'user': os.getenv('DB_USER', 'root'),
-                'password': os.getenv('DB_PASSWORD', ''),
-                'database': os.getenv('DB_NAME', 'nav_site'),
-                'charset': 'utf8mb4'
-            }
-            conn = pymysql.connect(**env_db)
+            conn = pool_get_connection()
             cur = conn.cursor()
 
             # 同步分类

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/Home.vue' 
+import HomeView from '../views/Home.vue'
 import LoginView from '../views/Login.vue'
 
 const routes = [
@@ -13,46 +13,79 @@ const routes = [
     name: 'Login',
     component: LoginView
   },
-  { 
-    path: '/publish', 
+  {
+    path: '/publish',
     name: 'Publish',
-    component: () => import('../views/Editor.vue') 
+    component: () => import('../views/Editor.vue')
   },
   {
     path: '/audit',
-    name: 'audit',
-    component: () => import('../views/AuditBoard.vue') 
+    name: 'Audit',
+    component: () => import('../views/AuditBoard.vue')
   },
-  { 
-    path: '/admin', 
+  {
+    path: '/admin',
+    name: 'Admin',
     component: () => import('../views/Admin.vue'),
-    meta: { requiresAdmin: true } 
+    meta: { requiresAuth: true, requiresAdmin: true }
   },
-  { 
-    path: '/dmca', 
-    component: () => import('../views/DMCA.vue') 
+  {
+    path: '/dmca',
+    name: 'DMCA',
+    component: () => import('../views/DMCA.vue')
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/Home.vue'), // 个人页面复用 Home.vue
   }
 ]
 
-// 1. ✨ 必须先在这里创建出 router 实例！
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
-
-// 2. ✨ 然后再在这里给它设置拦截守卫！（必须放在 createRouter 之后，export 之前）
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAdmin) {
-    const userRole = localStorage.getItem('user_role'); // 登录时存下的角色
-    if (userRole === 'admin') next();
-    else {
-      alert('无权访问管理后台');
-      next('/');
-    }
-  } else {
-    next();
+  routes,
+  scrollBehavior() {
+    return { top: 0 }
   }
 })
 
-// 3. 最后导出
+// ==================== 全局路由守卫 ====================
+router.beforeEach((to, from, next) => {
+  // --- 管理员权限校验 ---
+  if (to.meta.requiresAdmin) {
+    const userRole = localStorage.getItem('user_role')
+    const isLoggedIn = localStorage.getItem('is_logged_in') === 'true'
+
+    if (!isLoggedIn) {
+      // 未登录 → 跳登录页
+      next({ path: '/login', query: { redirect: to.fullPath } })
+      return
+    }
+
+    if (userRole !== 'admin') {
+      alert('无权访问管理后台')
+      next('/')
+      return
+    }
+  }
+
+  // --- 需要登录的页面 ---
+  if (to.meta.requiresAuth) {
+    const token = localStorage.getItem('access_token')
+    const refreshToken = localStorage.getItem('refresh_token')
+
+    if (!token && !refreshToken) {
+      // 完全未登录
+      next({ path: '/login', query: { redirect: to.fullPath } })
+      return
+    }
+  }
+
+  next()
+})
+
+// ==================== 全局 JWT 刷新逻辑（页面加载时自动恢复会话） ====================
+// 注意：Token 的静默刷新已由 api.js 的响应拦截器处理。
+// 此处仅处理页面初次加载时的会话恢复。
+
 export default router

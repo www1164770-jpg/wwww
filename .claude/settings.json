@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(pip install *)",
+      "Bash(python -m py_compile db_pool.py)",
+      "Bash(python -m py_compile sensitive_filter.py)",
+      "Bash(python -m py_compile app_extensions.py)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py syntax OK'\\)\")",
+      "Bash(npx vite *)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app_extensions.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app_extensions.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app_extensions.py', encoding='utf-8'\\).read\\(\\)\\); print\\('Backend OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app_extensions.py', encoding='utf-8'\\).read\\(\\)\\); print\\('Backend syntax OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('init_db.py', encoding='utf-8'\\).read\\(\\)\\); print\\('init_db.py syntax OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\(r'd:\\\\study\\\\智汇\\\\wwww\\\\backend\\\\app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py syntax OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py OK'\\); ast.parse\\(open\\('app_extensions.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app_extensions.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(rm -rf __pycache__)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('Syntax OK'\\)\")"
+    ]
+  }
+}
