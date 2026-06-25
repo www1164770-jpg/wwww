@@ -998,6 +998,50 @@ def register_survey_routes(app, db):
 
                 items = items[:TARGET_COUNT]
 
+            max_clicks = max([item.get('clicks') or 0 for item in items] + [1])
+            for item in items:
+                popularity_score = min((item.get('clicks') or 0) / max_clicks, 1)
+                interest_score = 1 if item.get('matched_tag') else 0.35
+                occupation_score = 0.7 if source == 'personalized' else 0.4
+                quality_score = 0.82
+                freshness_score = 0.6
+                score = (
+                    occupation_score * 0.4
+                    + interest_score * 0.25
+                    + quality_score * 0.2
+                    + popularity_score * 0.1
+                    + freshness_score * 0.05
+                )
+                item['match_score'] = round(score, 2)
+                item['match_percent'] = min(99, max(58, round(score * 100)))
+                if item.get('matched_tag'):
+                    item['reason'] = f"匹配你的 {item['matched_tag']} 需求，并结合网站热度排序"
+                    item['tags'] = [item['matched_tag']]
+                else:
+                    item['reason'] = '基于全站热度和通用学习价值推荐'
+                    item['tags'] = []
+
+            try:
+                user = User.query.filter_by(username=username).first()
+                user_id = user.id if user else None
+                for item in items:
+                    db.session.execute(
+                        text("""
+                            INSERT INTO recommendation_logs (user_id, website_id, score, reason, source)
+                            VALUES (:user_id, :website_id, :score, :reason, :source)
+                        """),
+                        {
+                            'user_id': user_id,
+                            'website_id': item['id'],
+                            'score': item.get('match_score') or 0,
+                            'reason': item.get('reason') or '',
+                            'source': source,
+                        }
+                    )
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
             return jsonify({
                 'code': 0,
                 'data': {

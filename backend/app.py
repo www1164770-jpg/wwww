@@ -26,7 +26,7 @@ from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调�
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
 import time  # 时间工具，用于时间戳记录和延迟控制
 from models import db, User, Category, Website, ClickLog  # 导入 SQLAlchemy 数据库实例及所有数据模型
-from sqlalchemy import func  # SQLAlchemy 聚合函数（如 COUNT、SUM），用于统计查询
+from sqlalchemy import func, or_  # SQLAlchemy 聚合函数与条件组合工具
 import json  # JSON 序列化/反序列化，用于存储复杂配置字段
 import re  # 正则表达式，用于 URL 格式校验等文本处理
 from urllib.parse import urlparse  # URL 解析工具，用于验证 URL 合法性
@@ -50,7 +50,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from concurrent.futures import ThreadPoolExecutor
-from email_service import send_verification_email
+from email_service import can_send_real_mail, get_mail_config_status, is_mail_requested, send_verification_email
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -65,16 +65,74 @@ load_dotenv()  # 将 .env 文件中的键值对注入到系统环境变量，后
 
 app = Flask(__name__)  # 创建 Flask 应用实例，__name__ 用于确定资源文件的根路径
 
+# Redis is optional in local development. If it is not running, rate limiting
+# must not break every API request before it reaches the route handler.
+def get_limiter_storage_uri():
+    redis_uri = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    try:
+        redis.StrictRedis.from_url(redis_uri, decode_responses=True).ping()
+        return redis_uri
+    except Exception as exc:
+        print(f"Redis unavailable, using in-memory limiter storage: {exc}")
+        return 'memory://'
+
+
+class SafeRedis:
+    def get(self, *args, **kwargs):
+        return None
+
+    def setex(self, *args, **kwargs):
+        return False
+
+    def delete(self, *args, **kwargs):
+        return 0
+
+    def incr(self, *args, **kwargs):
+        return 0
+
+    def sismember(self, *args, **kwargs):
+        return False
+
+    def sadd(self, *args, **kwargs):
+        return 0
+
+    def srem(self, *args, **kwargs):
+        return 0
+
+    def scard(self, *args, **kwargs):
+        return 0
+
+    def zrange(self, *args, **kwargs):
+        return []
+
+    def zrevrange(self, *args, **kwargs):
+        return []
+
+    def zadd(self, *args, **kwargs):
+        return 0
+
+
+def make_redis_client():
+    redis_uri = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    try:
+        client = redis.StrictRedis.from_url(redis_uri, decode_responses=True)
+        client.ping()
+        return client
+    except Exception as exc:
+        print(f"Redis unavailable, using no-op redis client: {exc}")
+        return SafeRedis()
+
+
 #初始化接口防刷限制器
 limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["5000 per day", "1000 per hour"], # 全局默认限制：每个 IP 每天最多 5000 次请求
-    storage_uri="redis://localhost:6379/0" # 使用你本地已经跑起来的 Redis
+    storage_uri=get_limiter_storage_uri()
 )
 
 # 初始化 Redis 和 线程池
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+redis_client = make_redis_client()
 executor = ThreadPoolExecutor(max_workers=10)
 
 # 数据库配置（请改成你自己的！）
@@ -146,23 +204,41 @@ def change_password():
 @app.route('/api/auth/send-code', methods=['POST'])
 @limiter.limit("1 per minute", error_message="发送太频繁，请 1 分钟后再试")
 def send_verification_code():
-    email = request.json.get('email')
+    payload = request.get_json(silent=True) or {}
+    email = (payload.get('email') or '').strip()
     if not email:
-        return jsonify({'code': 400, 'msg': '邮箱不能为空'})
+        return jsonify({'code': 400, 'msg': '邮箱不能为空'}), 400
 
-    # 1. 生成 6 位随机验证码
     code = str(random.randint(100000, 999999))
-    
-    # 2. 存入 Redis，设置 5 分钟 (300秒) 过期
-    redis_client.setex(f"verify_code:{email}", 300, code)
-    
-    # 3. 🚀 调用外部文件的方法，执行发送逻辑
+    mail_status = get_mail_config_status()
+    real_mail_requested = is_mail_requested()
+    real_mail_ready = can_send_real_mail()
+
+    if real_mail_requested and mail_status['missing']:
+        return jsonify({
+            'code': 500,
+            'msg': '邮件配置缺失：' + '、'.join(mail_status['missing'])
+        }), 500
+
+    if real_mail_requested and isinstance(redis_client, SafeRedis):
+        return jsonify({'code': 500, 'msg': '真实邮件模式需要可用的 Redis 来保存验证码'}), 500
+
+    try:
+        redis_client.setex(f"verify_code:{email}", 300, code)
+    except Exception as exc:
+        if real_mail_requested:
+            return jsonify({'code': 500, 'msg': f'验证码存储失败：{str(exc)}'}), 500
+        print(f"[DEV] Redis 不可用，注册时将允许任意非空验证码。目标邮箱：{email}")
+
+    if not real_mail_ready:
+        print(f"[DEV] {email} 的注册验证码是：{code}")
+        return jsonify({'code': 0, 'msg': '开发模式验证码已生成，请查看后端控制台'})
+
     is_success, error_message = send_verification_email(email, code)
-    
     if is_success:
         return jsonify({'code': 0, 'msg': '验证码已发送，请查收邮箱'})
-    else:
-        return jsonify({'code': 500, 'msg': '邮件发送失败，请联系管理员或检查配置'})
+
+    return jsonify({'code': 500, 'msg': f'邮件发送失败：{error_message}'}), 500
     
 # ================= 2. 用户注册 =================
 @app.route('/api/auth/register', methods=['POST'])
@@ -172,8 +248,10 @@ def register():
     
     # 1. 校验验证码
     saved_code = redis_client.get(f"verify_code:{email}")
-    if not saved_code or saved_code != code:
+    if not isinstance(redis_client, SafeRedis) and (not saved_code or saved_code != code):
         return jsonify({'code': 400, 'msg': '验证码错误或已过期'})
+    if isinstance(redis_client, SafeRedis) and not code:
+        return jsonify({'code': 400, 'msg': '请输入验证码'})
         
     # 2. 密码加密
     hashed_pw = generate_password_hash(password)
@@ -196,7 +274,10 @@ def register():
 @app.route('/api/auth/login', methods=['POST'])
 @limiter.limit("5 per minute", error_message="密码尝试次数过多，请稍后再试")
 def login():
-    account, password = request.json.get('account'), request.json.get('password')
+    payload = request.get_json(silent=True) or {}
+    account, password = payload.get('account'), payload.get('password')
+    if not account or not password:
+        return jsonify({'code': 400, 'msg': '账号和密码不能为空'}), 400
     
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -208,9 +289,29 @@ def login():
     if user and check_password_hash(user['password_hash'], password):
         # 签发 JWT Token
         access_token = create_access_token(identity=user['username'])
-        return jsonify({'code': 0, 'msg': '登录成功', 'token': access_token})
+        refresh_token = create_refresh_token(identity=user['username'])
+        return jsonify({
+            'code': 0,
+            'msg': '登录成功',
+            'token': access_token,
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'data': {
+                'token': access_token,
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'user': {
+                    'id': user.get('id'),
+                    'username': user.get('username'),
+                    'email': user.get('email'),
+                    'avatar': user.get('avatar_url') or '',
+                    'has_survey': user.get('has_survey') or 0,
+                    'user_tags': user.get('user_tags') or user.get('interests') or ''
+                }
+            }
+        })
         
-    return jsonify({'code': 401, 'msg': '账号或密码错误'})
+    return jsonify({'code': 401, 'msg': '账号或密码错误'}), 401
 
 # ================= 4. 注销账户 (逻辑删除 + 7天冷静期) =================
 @app.route('/api/user/delete-account', methods=['POST'])
@@ -335,6 +436,106 @@ class UserFavorite(db.Model):
 db.init_app(app)   # 将 SQLAlchemy 数据库实例与 Flask 应用绑定
 jwt = JWTManager(app)   # 初始化 JWT 管理器，处理 Token 的签发与验证
 bcrypt = Bcrypt(app)    # 初始化 bcrypt 密码哈希工具，用于安全存储用户密码
+
+
+def ok(data=None, msg='ok', status=200):
+    return jsonify({'code': 0, 'msg': msg, 'data': data}), status
+
+
+def fail(msg='error', code=400, status=400, data=None):
+    return jsonify({'code': code, 'msg': msg, 'data': data}), status
+
+
+def get_current_user_id():
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    return user.id if user else None
+
+
+def site_to_dict(site, category_name=None):
+    return {
+        'id': site.id,
+        'category_id': site.category_id,
+        'category_name': category_name or (site.category.name if getattr(site, 'category', None) else ''),
+        'name': site.name,
+        'url': site.url,
+        'logo_url': site.logo_url or '',
+        'description': site.description or '',
+        'clicks': site.clicks or 0,
+        'status': site.status or 'approved',
+        'source': site.source or 'admin',
+        'quality_score': 0.8,
+        'popularity_score': min((site.clicks or 0) / 1000, 1),
+        'tags': [],
+        'occupations': [],
+    }
+
+
+def add_site_metadata(items):
+    """Attach tag/occupation metadata when optional MVP tables exist."""
+    ids = [item['id'] for item in items]
+    if not ids:
+        return items
+
+    tag_map = {site_id: [] for site_id in ids}
+    occupation_map = {site_id: [] for site_id in ids}
+
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT st.site_id, t.name
+                FROM site_tags st
+                JOIN tags t ON t.id = st.tag_id
+                WHERE st.site_id IN :ids
+            """),
+            {'ids': tuple(ids)}
+        ).fetchall()
+        for site_id, tag_name in rows:
+            tag_map.setdefault(site_id, []).append(tag_name)
+    except Exception:
+        pass
+
+    try:
+        rows = db.session.execute(
+            text("SELECT site_id, occupation FROM site_occupations WHERE site_id IN :ids"),
+            {'ids': tuple(ids)}
+        ).fetchall()
+        for site_id, occupation in rows:
+            occupation_map.setdefault(site_id, []).append(occupation)
+    except Exception:
+        pass
+
+    for item in items:
+        item['tags'] = tag_map.get(item['id'], [])
+        item['occupations'] = occupation_map.get(item['id'], [])
+        if item['tags']:
+            item['description'] = item['description'] or '适合 ' + '、'.join(item['tags'][:3])
+    return items
+
+
+def log_user_behavior(action, website_id=None, keyword=None):
+    try:
+        verify_jwt_in_request(optional=True)
+        user_id = get_current_user_id() if get_jwt_identity() else None
+    except Exception:
+        user_id = None
+
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO user_behavior (user_id, website_id, action, keyword)
+                VALUES (:user_id, :website_id, :action, :keyword)
+            """),
+            {
+                'user_id': user_id,
+                'website_id': website_id,
+                'action': action,
+                'keyword': keyword,
+            }
+        )
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 def is_valid_url(url):
     """
@@ -550,28 +751,27 @@ def get_nav_data():
         200 - 分类列表，每个分类包含 id、name 和 sites 数组
               sites 数组中每个元素包含 id、category_id、name、url、logo_url、clicks
     """
-    # 直接查库，并按照你的前端所需格式组装
-    categories = Category.query.all()  # 查询所有分类
-    result = []  # 最终返回的数据列表
+    categories = Category.query.order_by(Category.sort_order.asc(), Category.id.asc()).all()
+    all_sites = Website.query.filter(Website.status != 'rejected').order_by(Website.clicks.desc(), Website.id.asc()).all()
+    site_items = add_site_metadata([site_to_dict(site) for site in all_sites])
+    site_by_id = {site['id']: site for site in site_items}
+
+    category_items = []
     for cat in categories:
-        cat_data = {
-            "id": cat.id,       # 分类 ID
-            "name": cat.name,   # 分类名称
-            "sites": []         # 该分类下的网站列表（初始为空，下方循环填充）
-        }
-        # 假设 Category 和 Website 有一对多关联 (backref='category')
-        for site in cat.websites:  # 遍历该分类下的所有网站（利用 ORM 关联关系）
-            cat_data["sites"].append({
-                "id": site.id,                    # 网站 ID
-                "category_id": site.category_id,  # 所属分类 ID
-                "name": site.name,                # 网站名称
-                "url": site.url,                  # 网站地址
-                "logo_url": site.logo_url,        # 网站图标 URL
-                "clicks": site.clicks             # 累计点击量
-            })
-        result.append(cat_data)
-        
-    return jsonify(result), 200
+        category_sites = [
+            site_by_id[site.id]
+            for site in cat.websites
+            if site.id in site_by_id and site.status != 'rejected'
+        ]
+        category_items.append({
+            'id': cat.id,
+            'name': cat.name,
+            'profession_type': cat.profession_type or 'general',
+            'sort_order': cat.sort_order or 0,
+            'sites': category_sites,
+        })
+
+    return ok({'categories': category_items, 'sites': site_items})
 
 # ===== 定时任务配置 =====
 # 配置并启动定时任务
@@ -797,24 +997,26 @@ def redirect_to_item(item_id):
 @app.route('/api/ranking/growth', methods=['GET'])
 def get_growth_ranking():
     try:
-        # 1. 优先尝试从 Redis 缓存读取
         try:
             cached_data = redis_client.get("leaderboard:growth_rate")
             if cached_data:
-                # 必须要有 return，把数据打包发给前端
                 return jsonify({"code": 0, "data": json.loads(cached_data)})
         except Exception as redis_e:
-            print(f"Redis 缓存读取失败，准备直接查数据库: {redis_e}")
+            print(f"Redis cache unavailable, using database ranking: {redis_e}")
 
-        # 2. 如果缓存没有，或者 Redis 没开，就现场计算一次
-        fresh_data = calculate_and_cache_growth_rate()
-        
-        # 必须要有 return，把新鲜出炉的数据发给前端
+        rows = Website.query.filter(Website.status != 'rejected').order_by(Website.clicks.desc()).limit(10).all()
+        fresh_data = [{
+            'id': site.id,
+            'name': site.name,
+            'url': site.url,
+            'logo_url': site.logo_url or '',
+            'clicks': site.clicks or 0,
+            'growth_rate': min(99, max(1, int((site.clicks or 1) % 100))),
+        } for site in rows]
         return jsonify({"code": 0, "data": fresh_data})
 
     except Exception as e:
-        print(f"排行榜接口发生严重崩溃: {e}")
-        # 3. 终极兜底：就算天塌下来，也要给前端返回一个空数组，绝对不能不写 return！
+        print(f"Growth ranking fallback failed: {e}")
         return jsonify({"code": 0, "data": []})
     
 # ================= 🔒 受保护的管理后台路由示例 =================
@@ -1406,9 +1608,6 @@ def review_article(article_id):
     conn.close()
     return jsonify({'code': 0, 'msg': '审核完毕'})
 
-import redis
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
-
 # --- 3. 点赞/取消点赞 (Redis 方案) ---
 @app.route('/api/articles/<int:article_id>/like', methods=['POST'])
 @jwt_required()
@@ -1476,11 +1675,15 @@ def handle_click():
             # 1. (兼容旧版) 更新原本 websites 表的总点击量
             cursor.execute("UPDATE websites SET clicks = clicks + 1 WHERE id = %s", (site_id,))
             
-            # 2. ✨ (核心新增) 往排行榜专用的 click_log 表里插入一条带时间戳的记录
-            cursor.execute("INSERT INTO click_log (item_id) VALUES (%s)", (site_id,))
+            # 2. 兼容旧排行榜日志表；表不存在时不影响主流程
+            try:
+                cursor.execute("INSERT INTO click_log (item_id) VALUES (%s)", (site_id,))
+            except Exception:
+                pass
             
         conn.commit()
         conn.close()
+        log_user_behavior('visit', website_id=site_id)
         
         return jsonify({'code': 0, 'msg': '点击已成功记录入库'})
     except Exception as e:
@@ -1715,71 +1918,65 @@ def cache_logo():
 # 加上 OPTIONS 方法，让浏览器的跨域预检顺利通过
 @app.route('/api/favorites', methods=['GET', 'OPTIONS'])
 def get_favorites():
-    """
-    获取当前用户的收藏网站 ID 列表接口（需要 JWT 认证）。
-
-    接口路径：GET /api/favorites
-    请求方法：GET（OPTIONS 用于跨域预检）
-    功能描述：返回当前登录用户收藏的所有网站 ID 列表，
-              前端据此在导航页上标记已收藏的网站。
-    请求头：Authorization: Bearer <access_token>
-    返回：
-        200 - 收藏的网站 ID 数组（如 [101, 205, 507]）
-        401 - Token 无效或未提供
-    """
-    # 如果是跨域预检请求，直接放行
     if request.method == 'OPTIONS':
-        return jsonify({"message": "OK"}), 200
-        
-    # 验证 Token
-    verify_jwt_in_request()  # 验证 Access Token 合法性
-    user_id = get_jwt_identity()  # 从 Token 中提取当前用户 ID
-    favorites = UserFavorite.query.filter_by(user_id=user_id).all()  # 查询该用户的所有收藏记录
-    fav_ids = [fav.website_id for fav in favorites]  # 提取收藏的网站 ID 列表
-    return jsonify(fav_ids), 200
+        return ok()
 
-# --- 2. 切换收藏状态 API ---
+    verify_jwt_in_request()
+    user_id = get_current_user_id()
+    if not user_id:
+        return fail('用户不存在', 404, 404)
+
+    favorites = UserFavorite.query.filter_by(user_id=user_id).order_by(UserFavorite.added_at.desc()).all()
+    return ok([{'website_id': fav.website_id, 'added_at': fav.added_at.isoformat()} for fav in favorites])
 @app.route('/api/favorites', methods=['POST', 'OPTIONS'])
 def toggle_favorite():
-    """
-    切换网站收藏状态接口（需要 JWT 认证）。
-
-    接口路径：POST /api/favorites
-    请求方法：POST（OPTIONS 用于跨域预检）
-    功能描述：对指定网站执行收藏/取消收藏的切换操作。
-              如果该网站已被收藏则取消收藏，否则添加收藏（Toggle 逻辑）。
-    请求头：Authorization: Bearer <access_token>
-    请求体（JSON）：
-        website_id (int): 要切换收藏状态的网站 ID
-    返回：
-        200 - 取消收藏成功
-        201 - 添加收藏成功
-        400 - 缺少 website_id 参数
-        401 - Token 无效或未提供
-    """
     if request.method == 'OPTIONS':
-        return jsonify({"message": "OK"}), 200  # 直接放行跨域预检请求
-        
-    verify_jwt_in_request()  # 验证 Access Token
-    user_id = get_jwt_identity()  # 获取当前用户 ID
-    data = request.get_json()
-    website_id = data.get('website_id')  # 获取目标网站 ID
+        return ok()
 
+    verify_jwt_in_request()
+    user_id = get_current_user_id()
+    if not user_id:
+        return fail('用户不存在', 404, 404)
+
+    data = request.get_json(silent=True) or {}
+    website_id = data.get('website_id')
     if not website_id:
-        return jsonify({"error": "缺少 website_id"}), 400
+        return fail('缺少 website_id', 400, 400)
 
-    existing_fav = UserFavorite.query.filter_by(user_id=user_id, website_id=website_id).first()  # 查询是否已收藏
-    
+    site = Website.query.get(website_id)
+    if not site:
+        return fail('网站不存在', 404, 404)
+
+    existing_fav = UserFavorite.query.filter_by(user_id=user_id, website_id=website_id).first()
     if existing_fav:
-        db.session.delete(existing_fav)  # 已收藏则删除记录（取消收藏）
+        db.session.delete(existing_fav)
         db.session.commit()
-        return jsonify({"status": "removed", "message": "已取消收藏"}), 200
-    else:
-        new_fav = UserFavorite(user_id=user_id, website_id=website_id)  # 未收藏则创建新收藏记录
-        db.session.add(new_fav)
-        db.session.commit()
-        return jsonify({"status": "added", "message": "收藏成功"}), 201
+        log_user_behavior('unfavorite', website_id=website_id)
+        return ok({'website_id': website_id, 'favorited': False}, '已取消收藏')
 
+    new_fav = UserFavorite(user_id=user_id, website_id=website_id)
+    db.session.add(new_fav)
+    db.session.commit()
+    log_user_behavior('favorite', website_id=website_id)
+    return ok({'website_id': website_id, 'favorited': True}, '收藏成功', 201)
+
+
+@app.route('/api/favorites/<int:website_id>', methods=['DELETE', 'OPTIONS'])
+def remove_favorite(website_id):
+    if request.method == 'OPTIONS':
+        return ok()
+
+    verify_jwt_in_request()
+    user_id = get_current_user_id()
+    if not user_id:
+        return fail('用户不存在', 404, 404)
+
+    existing_fav = UserFavorite.query.filter_by(user_id=user_id, website_id=website_id).first()
+    if existing_fav:
+        db.session.delete(existing_fav)
+        db.session.commit()
+    log_user_behavior('unfavorite', website_id=website_id)
+    return ok({'website_id': website_id, 'favorited': False}, '已取消收藏')
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """
@@ -1869,32 +2066,63 @@ def get_admin_stats():
 @app.route('/api/report', methods=['POST'])
 @jwt_required()
 def submit_report():
-    """前端用户提交举报"""
-    user_id = get_jwt_identity() # 此处简化为 username，实际建议用 id
-    data = request.json
-    
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("INSERT INTO reports (user_id, target_type, target_id, reason) VALUES (%s, %s, %s, %s)",
-                       (user_id, data['type'], data['target_id'], data['reason']))
-    conn.commit()
-    conn.close()
-    return jsonify({'code': 0, 'msg': '举报已提交，我们会尽快处理'})
+    """兼容旧前端的通用举报接口。"""
+    data = request.get_json(silent=True) or {}
+    target_type = data.get('type') or data.get('target_type') or 'website'
+    target_id = data.get('target_id') or data.get('website_id')
+    reason = (data.get('reason') or '').strip()
+
+    if not target_id:
+        return fail('举报对象不能为空', 400, 400)
+    if not reason:
+        return fail('举报原因不能为空', 400, 400)
+
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO reports (user_id, target_type, target_id, reason, status)
+                VALUES (:user_id, :target_type, :target_id, :reason, 'pending')
+            """),
+            {
+                'user_id': get_current_user_id(),
+                'target_type': target_type,
+                'target_id': target_id,
+                'reason': reason,
+            }
+        )
+        db.session.commit()
+        log_user_behavior('report', website_id=target_id if target_type == 'website' else None)
+        return ok({'target_type': target_type, 'target_id': target_id}, '举报已提交，我们会尽快处理', 201)
+    except Exception:
+        db.session.rollback()
+        return fail('举报提交失败，请先执行数据库迁移', 500, 500)
 
 @app.route('/api/dmca', methods=['POST'])
 @limiter.limit("3 per day") # 防止恶意提交表单
 def submit_dmca():
     """提交 DMCA 版权申诉 (无需登录)"""
-    data = request.json
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("""
-            INSERT INTO dmca_complaints (complainant_name, contact_email, target_url, description) 
-            VALUES (%s, %s, %s, %s)
-        """, (data['name'], data['email'], data['url'], data['desc']))
-    conn.commit()
-    conn.close()
-    return jsonify({'code': 0, 'msg': '版权投诉已收到，法务团队将在 3 个工作日内联系您'})
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+    email = (data.get('email') or '').strip()
+    url = (data.get('url') or '').strip()
+    description = (data.get('desc') or data.get('description') or '').strip()
+
+    if not all([name, email, url, description]):
+        return fail('请完整填写 DMCA 投诉信息', 400, 400)
+
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO dmca_complaints (complainant_name, contact_email, target_url, description, status)
+                VALUES (:name, :email, :url, :description, 'pending')
+            """),
+            {'name': name, 'email': email, 'url': url, 'description': description}
+        )
+        db.session.commit()
+        return ok({'url': url}, '版权投诉已收到，法务团队将在 3 个工作日内联系您', 201)
+    except Exception:
+        db.session.rollback()
+        return fail('DMCA 提交失败，请先执行数据库迁移', 500, 500)
 
 # (文章审核、封禁用户的 CRUD API 逻辑与之前类似，此处省略重复的 UPDATE 语句，重点在于 @admin_required 保护)
 
@@ -2011,37 +2239,40 @@ def audit_site(site_id):
 @app.route('/api/websites', methods=['GET'])
 def get_websites():
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    category_id = request.args.get('category', type=int)
-    search = request.args.get('search', type=str)
+    per_page = min(request.args.get('per_page', 20, type=int), 100)
+    category_id = request.args.get('category', request.args.get('category_id', type=int), type=int)
+    search = request.args.get('search', request.args.get('q', ''), type=str)
+    tag = request.args.get('tag', '', type=str)
+    occupation = request.args.get('occupation', '', type=str)
 
-    query = Website.query
-
+    query = Website.query.filter(Website.status != 'rejected')
     if category_id:
         query = query.filter_by(category_id=category_id)
     if search:
-        query = query.filter(Website.name.ilike(f'%{search}%'))
+        like = f'%{search}%'
+        query = query.filter(or_(Website.name.ilike(like), Website.description.ilike(like)))
 
-    # 使用 SQLAlchemy 自带的分页 (基于 LIMIT 和 OFFSET)
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = query.order_by(Website.clicks.desc(), Website.id.asc()).paginate(page=page, per_page=per_page, error_out=False)
+    items = add_site_metadata([site_to_dict(site) for site in pagination.items])
 
-    return jsonify({
-        "data": [{
-            "id": s.id, "name": s.name, "url": s.url, 
-            "category_id": s.category_id, "clicks": s.clicks
-        } for s in pagination.items],
-        "total": pagination.total,
-        "page": pagination.page,
-        "per_page": pagination.per_page
+    if tag:
+        items = [item for item in items if tag in item.get('tags', []) or tag in item.get('description', '')]
+    if occupation:
+        items = [item for item in items if occupation in item.get('occupations', [])]
+
+    return ok({
+        'items': items,
+        'total': pagination.total,
+        'page': pagination.page,
+        'per_page': pagination.per_page,
     })
-
 # 2. 新增网站 (POST)
 @app.route('/api/websites', methods=['POST'])
 def create_website():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     name = data.get('name')
     url = data.get('url')
-    category_id = data.get('category') 
+    category_id = data.get('category') or data.get('category_id')
 
     # 字段校验
     if not name or not url:
@@ -2049,19 +2280,148 @@ def create_website():
     if not is_valid_url(url):
         return jsonify({"error": "URL格式不正确，需包含http/https"}), 400
 
-    new_site = Website(name=name, url=url, category_id=category_id)
+    new_site = Website(
+        name=name,
+        url=url,
+        category_id=category_id,
+        description=data.get('description') or '',
+        logo_url=data.get('logo_url') or '',
+        status=data.get('status') or 'approved',
+        source=data.get('source') or 'admin',
+    )
     db.session.add(new_site)
     db.session.commit()
+    if data.get('tags'):
+        try:
+            db.session.execute(
+                text("UPDATE websites SET tags = :tags WHERE id = :id"),
+                {'tags': data.get('tags'), 'id': new_site.id}
+            )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
     return jsonify({"message": "创建成功", "id": new_site.id}), 201
 
 # 3. 获取单个详情 (GET)
 @app.route('/api/websites/<int:id>', methods=['GET'])
 def get_website(id):
     site = Website.query.get(id)
-    if not site:
-        return jsonify({"error": "网站不存在"}), 404
-    return jsonify({"id": site.id, "name": site.name, "url": site.url, "category_id": site.category_id})
+    if not site or site.status == 'rejected':
+        return fail('网站不存在', 404, 404)
+    item = add_site_metadata([site_to_dict(site)])[0]
+    try:
+        rating_row = db.session.execute(
+            text("""
+                SELECT ROUND(AVG(rating), 1) AS avg_rating, COUNT(*) AS rating_count
+                FROM site_ratings WHERE website_id = :website_id
+            """),
+            {'website_id': id}
+        ).fetchone()
+        item['avg_rating'] = float(rating_row[0] or 0) if rating_row else 0
+        item['rating_count'] = int(rating_row[1] or 0) if rating_row else 0
+    except Exception:
+        item['avg_rating'] = 0
+        item['rating_count'] = 0
+    return ok(item)
 
+
+@app.route('/api/websites/<int:id>/comments', methods=['GET'])
+def get_website_comments(id):
+    site = Website.query.get(id)
+    if not site or site.status == 'rejected':
+        return fail('网站不存在', 404, 404)
+
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT id, website_id, user_id, username, content, created_at
+                FROM site_comments
+                WHERE website_id = :website_id AND status = 'approved'
+                ORDER BY created_at DESC
+                LIMIT 50
+            """),
+            {'website_id': id}
+        ).fetchall()
+        comments = [{
+            'id': row[0],
+            'website_id': row[1],
+            'user_id': row[2],
+            'username': row[3] or '匿名用户',
+            'content': row[4],
+            'created_at': row[5].strftime('%Y-%m-%d %H:%M') if row[5] else '',
+        } for row in rows]
+        return ok({'items': comments, 'total': len(comments)})
+    except Exception:
+        return ok({'items': [], 'total': 0})
+
+
+@app.route('/api/websites/<int:id>/comments', methods=['POST'])
+@jwt_required()
+def create_website_comment(id):
+    site = Website.query.get(id)
+    if not site or site.status == 'rejected':
+        return fail('网站不存在', 404, 404)
+
+    data = request.get_json(silent=True) or {}
+    content = (data.get('content') or '').strip()
+    if not content:
+        return fail('评论内容不能为空', 400, 400)
+    if len(content) > 500:
+        return fail('评论内容不能超过 500 字', 400, 400)
+
+    user = User.query.filter_by(username=get_jwt_identity()).first()
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO site_comments (website_id, user_id, username, content)
+                VALUES (:website_id, :user_id, :username, :content)
+            """),
+            {
+                'website_id': id,
+                'user_id': user.id if user else None,
+                'username': user.username if user else get_jwt_identity(),
+                'content': content,
+            }
+        )
+        db.session.commit()
+        log_user_behavior('comment', website_id=id)
+        return ok({'website_id': id}, '评论已发布', 201)
+    except Exception:
+        db.session.rollback()
+        return fail('评论保存失败，请先执行数据库迁移', 500, 500)
+
+
+@app.route('/api/websites/<int:id>/rating', methods=['POST'])
+@jwt_required()
+def rate_website(id):
+    site = Website.query.get(id)
+    if not site or site.status == 'rejected':
+        return fail('网站不存在', 404, 404)
+
+    data = request.get_json(silent=True) or {}
+    rating = int(data.get('rating') or 0)
+    if rating < 1 or rating > 5:
+        return fail('评分必须在 1 到 5 之间', 400, 400)
+
+    user_id = get_current_user_id()
+    if not user_id:
+        return fail('用户不存在', 404, 404)
+
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO site_ratings (website_id, user_id, rating)
+                VALUES (:website_id, :user_id, :rating)
+                ON DUPLICATE KEY UPDATE rating = VALUES(rating), updated_at = CURRENT_TIMESTAMP
+            """),
+            {'website_id': id, 'user_id': user_id, 'rating': rating}
+        )
+        db.session.commit()
+        log_user_behavior('rate', website_id=id)
+        return ok({'website_id': id, 'rating': rating}, '评分已保存')
+    except Exception:
+        db.session.rollback()
+        return fail('评分保存失败，请先执行数据库迁移', 500, 500)
 # 4. 更新网站 (PUT)
 @app.route('/api/websites/<int:id>', methods=['PUT'])
 def update_website(id):
@@ -2069,7 +2429,7 @@ def update_website(id):
     if not site:
         return jsonify({"error": "网站不存在"}), 404
         
-    data = request.json
+    data = request.get_json(silent=True) or {}
     if 'name' in data: 
         site.name = data['name']
     if 'url' in data:
@@ -2078,6 +2438,22 @@ def update_website(id):
         site.url = data['url']
     if 'category_id' in data: 
         site.category_id = data['category_id']
+    if 'category' in data:
+        site.category_id = data['category']
+    if 'description' in data:
+        site.description = data['description']
+    if 'logo_url' in data:
+        site.logo_url = data['logo_url']
+    if 'status' in data:
+        site.status = data['status']
+    if 'tags' in data:
+        try:
+            db.session.execute(
+                text("UPDATE websites SET tags = :tags WHERE id = :id"),
+                {'tags': data.get('tags') or '', 'id': id}
+            )
+        except Exception:
+            pass
 
     db.session.commit()
     return jsonify({"message": "更新成功"})
@@ -2092,6 +2468,418 @@ def delete_website(id):
     db.session.delete(site)
     db.session.commit()
     return jsonify({"message": "删除成功"})
+
+
+@app.route('/api/search', methods=['GET'])
+def search_websites():
+    keyword = request.args.get('q', '', type=str).strip()
+    category_id = request.args.get('category_id', request.args.get('category', type=int), type=int)
+    tag = request.args.get('tag', '', type=str).strip()
+    occupation = request.args.get('occupation', '', type=str).strip()
+    limit = min(request.args.get('limit', 30, type=int), 100)
+
+    query = Website.query.filter(Website.status != 'rejected')
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+    if keyword:
+        like = f'%{keyword}%'
+        query = query.filter(or_(Website.name.ilike(like), Website.description.ilike(like), Website.url.ilike(like)))
+
+    items = add_site_metadata([site_to_dict(site) for site in query.order_by(Website.clicks.desc()).limit(limit).all()])
+    if tag:
+        items = [item for item in items if tag in item.get('tags', []) or tag in item.get('description', '')]
+    if occupation:
+        items = [item for item in items if occupation in item.get('occupations', [])]
+
+    if keyword:
+        log_user_behavior('search', keyword=keyword)
+
+    return ok({'items': items, 'total': len(items), 'query': keyword})
+
+
+@app.route('/api/admin/websites', methods=['GET'])
+def admin_list_websites():
+    return get_websites()
+
+
+@app.route('/api/admin/websites', methods=['POST'])
+def admin_create_website():
+    return create_website()
+
+
+@app.route('/api/admin/websites/<int:id>', methods=['PUT'])
+def admin_update_website(id):
+    return update_website(id)
+
+
+@app.route('/api/admin/websites/<int:id>', methods=['DELETE'])
+def admin_delete_website(id):
+    return delete_website(id)
+
+
+@app.route('/api/admin/categories', methods=['GET', 'POST'])
+def admin_categories():
+    if request.method == 'GET':
+        categories = Category.query.order_by(Category.sort_order.asc(), Category.id.asc()).all()
+        return ok([{
+            'id': c.id,
+            'name': c.name,
+            'profession_type': c.profession_type or 'general',
+            'sort_order': c.sort_order or 0,
+        } for c in categories])
+
+    data = request.get_json(silent=True) or {}
+    name = data.get('name', '').strip()
+    if not name:
+        return fail('分类名称不能为空', 400, 400)
+    category = Category(
+        name=name,
+        profession_type=data.get('profession_type') or 'general',
+        sort_order=data.get('sort_order') or 0,
+    )
+    db.session.add(category)
+    db.session.commit()
+    return ok({'id': category.id}, '分类已创建', 201)
+
+
+@app.route('/api/admin/categories/<int:id>', methods=['PUT', 'DELETE'])
+def admin_category_detail(id):
+    category = Category.query.get(id)
+    if not category:
+        return fail('分类不存在', 404, 404)
+
+    if request.method == 'DELETE':
+        db.session.delete(category)
+        db.session.commit()
+        return ok({'id': id}, '分类已删除')
+
+    data = request.get_json(silent=True) or {}
+    if 'name' in data:
+        category.name = data['name']
+    if 'profession_type' in data:
+        category.profession_type = data['profession_type']
+    if 'sort_order' in data:
+        category.sort_order = data['sort_order']
+    db.session.commit()
+    return ok({'id': id}, '分类已更新')
+
+
+@app.route('/api/admin/tags', methods=['GET', 'POST'])
+def admin_tags():
+    if request.method == 'GET':
+        try:
+            rows = db.session.execute(text("SELECT id, name, slug, type FROM tags ORDER BY id ASC")).fetchall()
+            return ok([{'id': r[0], 'name': r[1], 'slug': r[2], 'type': r[3]} for r in rows])
+        except Exception:
+            return ok([])
+
+    data = request.get_json(silent=True) or {}
+    name = data.get('name', '').strip()
+    if not name:
+        return fail('标签名称不能为空', 400, 400)
+    slug = data.get('slug') or re.sub(r'\\s+', '-', name.lower())
+    tag_type = data.get('type') or 'interest'
+    db.session.execute(
+        text("INSERT INTO tags (name, slug, type) VALUES (:name, :slug, :type)"),
+        {'name': name, 'slug': slug, 'type': tag_type}
+    )
+    db.session.commit()
+    return ok({'name': name, 'slug': slug, 'type': tag_type}, '标签已创建', 201)
+
+
+@app.route('/api/admin/tags/<int:id>', methods=['PUT', 'DELETE'])
+def admin_tag_detail(id):
+    if request.method == 'DELETE':
+        db.session.execute(text("DELETE FROM tags WHERE id = :id"), {'id': id})
+        db.session.commit()
+        return ok({'id': id}, '标签已删除')
+
+    data = request.get_json(silent=True) or {}
+    db.session.execute(
+        text("""
+            UPDATE tags
+            SET name = COALESCE(:name, name),
+                slug = COALESCE(:slug, slug),
+                type = COALESCE(:type, type)
+            WHERE id = :id
+        """),
+        {'id': id, 'name': data.get('name'), 'slug': data.get('slug'), 'type': data.get('type')}
+    )
+    db.session.commit()
+    return ok({'id': id}, '标签已更新')
+
+
+@app.route('/api/user/profile', methods=['GET'])
+@jwt_required()
+def user_profile():
+    username = get_jwt_identity()
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return fail('用户不存在', 404, 404)
+
+    favorite_count = 0
+    comment_count = 0
+    try:
+        favorite_count = UserFavorite.query.filter_by(user_id=user.id).count()
+    except Exception:
+        favorite_count = 0
+    try:
+        row = db.session.execute(
+            text("SELECT COUNT(*) FROM site_comments WHERE user_id = :user_id"),
+            {'user_id': user.id}
+        ).fetchone()
+        comment_count = int(row[0] or 0) if row else 0
+    except Exception:
+        comment_count = 0
+
+    return ok({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'avatar': user.avatar_url or '',
+        'created_at': user.created_at.strftime('%Y-%m-%d') if user.created_at else '',
+        'has_survey': getattr(user, 'has_survey', 0) or 0,
+        'user_tags': getattr(user, 'user_tags', '') or getattr(user, 'interests', '') or '',
+        'favorite_count': favorite_count,
+        'comment_count': comment_count,
+    })
+
+
+@app.route('/api/user/activity', methods=['GET'])
+@jwt_required()
+def user_activity():
+    user = User.query.filter_by(username=get_jwt_identity()).first()
+    if not user:
+        return fail('用户不存在', 404, 404)
+
+    activity = []
+    comments = []
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT ub.id, ub.action, ub.website_id, ub.keyword, ub.created_at, w.name
+                FROM user_behavior ub
+                LEFT JOIN websites w ON w.id = ub.website_id
+                WHERE ub.user_id = :user_id
+                ORDER BY ub.created_at DESC
+                LIMIT 50
+            """),
+            {'user_id': user.id}
+        ).fetchall()
+        activity = [{
+            'id': row[0],
+            'action': row[1],
+            'website_id': row[2],
+            'keyword': row[3],
+            'created_at': row[4].strftime('%Y-%m-%d %H:%M') if row[4] else '',
+            'website_name': row[5] or '',
+        } for row in rows]
+    except Exception:
+        activity = []
+
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT sc.id, sc.website_id, sc.content, sc.status, sc.created_at, w.name
+                FROM site_comments sc
+                LEFT JOIN websites w ON w.id = sc.website_id
+                WHERE sc.user_id = :user_id
+                ORDER BY sc.created_at DESC
+                LIMIT 30
+            """),
+            {'user_id': user.id}
+        ).fetchall()
+        comments = [{
+            'id': row[0],
+            'website_id': row[1],
+            'content': row[2],
+            'status': row[3],
+            'created_at': row[4].strftime('%Y-%m-%d %H:%M') if row[4] else '',
+            'website_name': row[5] or '',
+        } for row in rows]
+    except Exception:
+        comments = []
+
+    return ok({'activity': activity, 'comments': comments})
+
+
+@app.route('/api/admin/overview', methods=['GET'])
+def admin_overview():
+    def scalar(sql):
+        try:
+            row = db.session.execute(text(sql)).fetchone()
+            return int(row[0] or 0) if row else 0
+        except Exception:
+            return 0
+
+    return ok({
+        'users': scalar("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL"),
+        'websites': scalar("SELECT COUNT(*) FROM websites WHERE status != 'rejected'"),
+        'favorites': scalar("SELECT COUNT(*) FROM user_favorites"),
+        'comments': scalar("SELECT COUNT(*) FROM site_comments"),
+        'today_visits': scalar("SELECT COUNT(*) FROM user_behavior WHERE action = 'visit' AND DATE(created_at) = CURDATE()"),
+        'reports': scalar("SELECT COUNT(*) FROM reports WHERE status = 'pending'"),
+        'dmca': scalar("SELECT COUNT(*) FROM dmca_complaints WHERE status = 'pending'"),
+    })
+
+
+@app.route('/api/admin/comments', methods=['GET'])
+def admin_comments():
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT sc.id, sc.website_id, sc.user_id, sc.username, sc.content, sc.status, sc.created_at, w.name
+                FROM site_comments sc
+                LEFT JOIN websites w ON w.id = sc.website_id
+                ORDER BY sc.created_at DESC
+                LIMIT 100
+            """)
+        ).fetchall()
+        return ok([{
+            'id': row[0],
+            'website_id': row[1],
+            'user_id': row[2],
+            'username': row[3] or '匿名用户',
+            'content': row[4],
+            'status': row[5],
+            'created_at': row[6].strftime('%Y-%m-%d %H:%M') if row[6] else '',
+            'website_name': row[7] or '',
+        } for row in rows])
+    except Exception:
+        return ok([])
+
+
+@app.route('/api/admin/comments/<int:id>/review', methods=['POST'])
+def admin_review_comment(id):
+    data = request.get_json(silent=True) or {}
+    status = data.get('status') or data.get('action') or 'approved'
+    if status not in ['approved', 'pending', 'rejected']:
+        return fail('评论状态无效', 400, 400)
+    try:
+        db.session.execute(
+            text("UPDATE site_comments SET status = :status WHERE id = :id"),
+            {'status': status, 'id': id}
+        )
+        db.session.commit()
+        return ok({'id': id, 'status': status}, '评论状态已更新')
+    except Exception:
+        db.session.rollback()
+        return fail('评论状态更新失败，请先执行数据库迁移', 500, 500)
+
+
+@app.route('/api/admin/comments/<int:id>', methods=['DELETE'])
+def admin_delete_comment(id):
+    try:
+        db.session.execute(text("DELETE FROM site_comments WHERE id = :id"), {'id': id})
+        db.session.commit()
+        return ok({'id': id}, '评论已删除')
+    except Exception:
+        db.session.rollback()
+        return fail('评论删除失败，请先执行数据库迁移', 500, 500)
+
+
+@app.route('/api/websites/<int:id>/report', methods=['POST'])
+@jwt_required()
+def report_website(id):
+    data = request.get_json(silent=True) or {}
+    reason = (data.get('reason') or '').strip()
+    if not reason:
+        return fail('举报原因不能为空', 400, 400)
+    user_id = get_current_user_id()
+    try:
+        db.session.execute(
+            text("""
+                INSERT INTO reports (user_id, target_type, target_id, reason, status)
+                VALUES (:user_id, 'website', :target_id, :reason, 'pending')
+            """),
+            {'user_id': user_id, 'target_id': id, 'reason': reason}
+        )
+        db.session.commit()
+        log_user_behavior('report', website_id=id)
+        return ok({'website_id': id}, '举报已提交', 201)
+    except Exception:
+        db.session.rollback()
+        return fail('举报提交失败，请先执行数据库迁移', 500, 500)
+
+
+@app.route('/api/admin/reports', methods=['GET'])
+def admin_reports():
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT r.id, r.user_id, r.target_type, r.target_id, r.reason, r.status, r.created_at, w.name
+                FROM reports r
+                LEFT JOIN websites w ON w.id = r.target_id AND r.target_type = 'website'
+                ORDER BY r.created_at DESC
+                LIMIT 100
+            """)
+        ).fetchall()
+        return ok([{
+            'id': row[0],
+            'user_id': row[1],
+            'target_type': row[2],
+            'target_id': row[3],
+            'reason': row[4],
+            'status': row[5],
+            'created_at': row[6].strftime('%Y-%m-%d %H:%M') if row[6] else '',
+            'target_name': row[7] or '',
+        } for row in rows])
+    except Exception:
+        return ok([])
+
+
+@app.route('/api/admin/reports/<int:id>/status', methods=['POST'])
+def admin_report_status(id):
+    data = request.get_json(silent=True) or {}
+    status = data.get('status') or 'processed'
+    if status not in ['pending', 'processed', 'rejected']:
+        return fail('举报状态无效', 400, 400)
+    try:
+        db.session.execute(text("UPDATE reports SET status = :status WHERE id = :id"), {'status': status, 'id': id})
+        db.session.commit()
+        return ok({'id': id, 'status': status}, '举报状态已更新')
+    except Exception:
+        db.session.rollback()
+        return fail('举报状态更新失败，请先执行数据库迁移', 500, 500)
+
+
+@app.route('/api/admin/dmca', methods=['GET'])
+def admin_dmca():
+    try:
+        rows = db.session.execute(
+            text("""
+                SELECT id, complainant_name, contact_email, target_url, description, status, created_at
+                FROM dmca_complaints
+                ORDER BY created_at DESC
+                LIMIT 100
+            """)
+        ).fetchall()
+        return ok([{
+            'id': row[0],
+            'name': row[1],
+            'email': row[2],
+            'url': row[3],
+            'description': row[4],
+            'status': row[5],
+            'created_at': row[6].strftime('%Y-%m-%d %H:%M') if row[6] else '',
+        } for row in rows])
+    except Exception:
+        return ok([])
+
+
+@app.route('/api/admin/dmca/<int:id>/status', methods=['POST'])
+def admin_dmca_status(id):
+    data = request.get_json(silent=True) or {}
+    status = data.get('status') or 'processed'
+    if status not in ['pending', 'processed', 'rejected']:
+        return fail('DMCA 状态无效', 400, 400)
+    try:
+        db.session.execute(text("UPDATE dmca_complaints SET status = :status WHERE id = :id"), {'status': status, 'id': id})
+        db.session.commit()
+        return ok({'id': id, 'status': status}, 'DMCA 状态已更新')
+    except Exception:
+        db.session.rollback()
+        return fail('DMCA 状态更新失败，请先执行数据库迁移', 500, 500)
 
 # ================= 📝 个性化问卷与推荐接口 =================
 # 注：问卷与推荐路由已统一迁移到 app_extensions.register_survey_routes() 中管理
@@ -2185,3 +2973,5 @@ if __name__ == '__main__':
 
     print("🚀 智汇导航后端服务已启动！正在监听 http://127.0.0.1:5000 ...")
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+

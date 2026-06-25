@@ -24,6 +24,36 @@ const api = axios.create({
 let isRefreshing = false
 let pendingRequests = [] // 等待刷新的请求队列
 
+export function getStoredUser() {
+  const savedUser = localStorage.getItem('user_info')
+  if (!savedUser) return null
+  try {
+    return JSON.parse(savedUser)
+  } catch (_) {
+    return null
+  }
+}
+
+export function setAuthSession({ accessToken, refreshToken = '', user = {} }) {
+  if (!accessToken) return
+  localStorage.setItem('access_token', accessToken)
+  if (refreshToken) localStorage.setItem('refresh_token', refreshToken)
+  localStorage.setItem('is_logged_in', 'true')
+  const previousUser = getStoredUser() || {}
+  localStorage.setItem('user_info', JSON.stringify({ ...previousUser, ...user }))
+}
+
+export function clearAuthSession() {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('user_info')
+  localStorage.removeItem('is_logged_in')
+}
+
+export function hasAuthSession() {
+  return Boolean(localStorage.getItem('access_token') || localStorage.getItem('refresh_token'))
+}
+
 /**
  * 将等待中的请求全部重试（用新 Token）
  */
@@ -96,7 +126,7 @@ api.interceptors.response.use(
         )
 
         const newAccessToken = res.data.access_token
-        localStorage.setItem('access_token', newAccessToken)
+        setAuthSession({ accessToken: newAccessToken })
 
         // 重试等待队列中的所有请求
         resolvePendingRequests(newAccessToken)
@@ -132,10 +162,7 @@ api.interceptors.response.use(
  * 清除登录状态并跳转到登录页
  */
 function clearAuthAndRedirect() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_info')
-  localStorage.removeItem('is_logged_in')
+  clearAuthSession()
   // 避免重复跳转
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
@@ -153,7 +180,14 @@ export const authAPI = {
   /** 账号密码登录 */
   login: (account, password) => api.post('/auth/login', { account, password }),
   /** 刷新 Access Token */
-  refreshToken: () => api.post('/auth/refresh'),
+  refreshToken: () => {
+    const refreshToken = localStorage.getItem('refresh_token')
+    return axios.post(
+      'http://127.0.0.1:5000/api/auth/refresh',
+      null,
+      { headers: { Authorization: `Bearer ${refreshToken}` } }
+    )
+  },
   /** 发送密码重置验证码 */
   sendResetCode: (email) => api.post('/auth/send-reset-code', { email }),
   /** 验证重置密码验证码 */
@@ -167,6 +201,10 @@ export const authAPI = {
 
 // --- 用户模块 ---
 export const userAPI = {
+  /** 获取个人中心资料 */
+  getProfile: () => api.get('/user/profile'),
+  /** 获取个人活动记录 */
+  getActivity: () => api.get('/user/activity'),
   /** 修改密码 */
   changePassword: (oldPassword, newPassword) =>
     api.post('/user/password', { old_password: oldPassword, new_password: newPassword }),
@@ -190,6 +228,7 @@ export const userAPI = {
   getSettings: (username) => api.get(`/user/settings?username=${username}`),
   /** 更新用户个人信息（昵称/性别/生日/简介） */
   updateProfile: (data) => api.post('/user/profile', data),
+  getSurveyStatus: () => api.get('/user/survey_status'),
   /** 提交兴趣问卷 */
   submitSurvey: (interests) => api.post('/user/survey', { interests })
 }
@@ -227,11 +266,18 @@ export const navAPI = {
   suggestSite: (data) => api.post('/suggest-site', data),
   /** 搜索 */
   search: (query, options = {}) =>
-    api.get('/search', { params: { q: query, ...options } })
+    api.get('/search', { params: { q: query, ...options } }),
+  getWebsites: (params = {}) => api.get('/websites', { params }),
+  getWebsite: (id) => api.get('/websites/' + id),
+  getWebsiteComments: (id) => api.get('/websites/' + id + '/comments'),
+  postWebsiteComment: (id, content) => api.post('/websites/' + id + '/comments', { content }),
+  rateWebsite: (id, rating) => api.post('/websites/' + id + '/rating', { rating }),
+  reportWebsite: (id, reason) => api.post('/websites/' + id + '/report', { reason })
 }
 
 // --- 管理后台 ---
 export const adminAPI = {
+  getOverview: () => api.get('/admin/overview'),
   /** 获取待审核网站列表 */
   getPendingSites: () => api.get('/admin/pending_sites'),
   /** 触发 Hacker News 爬取 */
@@ -254,7 +300,26 @@ export const adminAPI = {
     api.get(`/admin/content-audit?status=${status}&page=${page}`),
   /** 审核内容（通过/拒绝） */
   reviewContent: (id, action, reason = '') =>
-    api.post('/admin/review-content', { id, action, reason })
+    api.post('/admin/review-content', { id, action, reason }),
+  getWebsites: (params = {}) => api.get('/admin/websites', { params }),
+  createWebsite: (data) => api.post('/admin/websites', data),
+  updateWebsite: (id, data) => api.put('/admin/websites/' + id, data),
+  deleteWebsite: (id) => api.delete('/admin/websites/' + id),
+  getCategories: () => api.get('/admin/categories'),
+  createCategory: (data) => api.post('/admin/categories', data),
+  updateCategory: (id, data) => api.put('/admin/categories/' + id, data),
+  deleteCategory: (id) => api.delete('/admin/categories/' + id),
+  getTags: () => api.get('/admin/tags'),
+  createTag: (data) => api.post('/admin/tags', data),
+  updateTag: (id, data) => api.put('/admin/tags/' + id, data),
+  deleteTag: (id) => api.delete('/admin/tags/' + id),
+  getComments: () => api.get('/admin/comments'),
+  reviewComment: (id, status) => api.post('/admin/comments/' + id + '/review', { status }),
+  deleteComment: (id) => api.delete('/admin/comments/' + id),
+  getReports: () => api.get('/admin/reports'),
+  updateReportStatus: (id, status) => api.post('/admin/reports/' + id + '/status', { status }),
+  getDmcaList: () => api.get('/admin/dmca'),
+  updateDmcaStatus: (id, status) => api.post('/admin/dmca/' + id + '/status', { status })
 }
 
 // --- 排行榜 & 资讯 ---
@@ -294,3 +359,5 @@ export const notificationAPI = {
 
 // 导出 axios 实例供特殊场景使用
 export default api
+
+

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
 <div class="layout" :class="[{ 'dark-theme': isDarkMode }, uiState]" :style="dynamicBgStyle" @click="closeAllDropdowns">    
     <transition name="space-fade">
       <div v-if="isSpaceIntroPlaying" class="space-particle-wrapper">
@@ -8,7 +8,7 @@
 
     <div v-show="isFocusMode" class="focus-dark-overlay" :style="focusBgStyle"></div>
     
-    <header class="header-block block-shadow" style="position: relative; z-index: 10;">
+    <header v-if="false" class="header-block block-shadow" style="position: relative; z-index: 10;">
       <div class="header-left">
         <div class="logo">
           <span>🚀 智汇导航</span>
@@ -61,8 +61,194 @@
       </div>
     </header>
 
-    <div v-if="currentPage === 'home'" class="main-container" style="position: relative; z-index: 10;">
-      <main class="content">
+    <div v-if="currentPage === 'home'" class="main-container zh-main-container" style="position: relative; z-index: 10;">
+      <section class="zh-shell" @click.stop>
+        <header class="zh-topbar">
+          <button class="zh-brand" type="button" @click="activePage = 'ai'">
+            <span class="zh-brand-mark">智</span>
+            <span>智汇</span>
+          </button>
+
+          <nav class="zh-page-tabs" aria-label="主页面切换">
+            <button
+              v-for="page in pageTabs"
+              :key="page.key"
+              class="zh-page-tab"
+              type="button"
+              :class="{ active: activePage === page.key }"
+              @click="activePage = page.key"
+            >
+              {{ page.label }}
+            </button>
+          </nav>
+
+          <div class="zh-top-actions">
+            <button v-if="isLoggedIn" class="zh-avatar-btn" type="button" @click="goToProfile">
+              <img :src="userInfo.avatar" alt="用户头像" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'" />
+            </button>
+            <button v-else class="zh-login-btn" type="button" @click="goToLogin">登录</button>
+          </div>
+        </header>
+
+        <main v-if="activePage === 'ai'" class="zh-page ai-page">
+          <section class="ai-chat-panel">
+            <div class="zh-section-heading">
+              <p>AI导航</p>
+              <h1>说出你的需求</h1>
+            </div>
+
+            <div class="ai-message assistant">
+              <div class="ai-message-avatar">AI</div>
+              <div>
+                <strong>你想解决什么问题？</strong>
+                <p>选择一个需求方向，或直接描述任务，我会为你匹配合适的网站。</p>
+              </div>
+            </div>
+
+            <div class="need-mode-list">
+              <button
+                v-for="mode in aiNeedModes"
+                :key="mode"
+                class="need-mode"
+                type="button"
+                :class="{ active: selectedNeedMode === mode }"
+                @click="selectedNeedMode = mode"
+              >
+                {{ mode }}
+              </button>
+            </div>
+
+            <div class="ai-input-box">
+              <input
+                v-model="aiNeedInput"
+                type="text"
+                placeholder="例如：我想找能帮我做PPT的网站"
+                @keyup.enter="activePage = 'system'"
+              />
+              <button type="button" @click="activePage = 'system'">发送</button>
+            </div>
+          </section>
+
+          <section class="ai-recommend-panel">
+            <div class="recommend-header">
+              <div>
+                <p>智能推荐</p>
+                <h2>AI 为你匹配的网站</h2>
+              </div>
+              <div class="process-steps">
+                <span>理解需求</span>
+                <span>筛选工具</span>
+                <span>推荐结果</span>
+              </div>
+            </div>
+
+            <div class="recommend-list">
+              <article v-for="site in aiRecommendedSites" :key="'ai-' + site.id" class="recommend-card">
+                <button
+                  class="zh-star-btn"
+                  type="button"
+                  :class="{ active: favoriteSiteIds.includes(site.id) }"
+                  :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '收藏'"
+                  @click="toggleFavorite(site)"
+                >
+                  {{ favoriteSiteIds.includes(site.id) ? '★' : '☆' }}
+                </button>
+                <div class="site-logo-tile">
+                  <img :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
+                </div>
+                <div class="recommend-content">
+                  <div class="recommend-title-row">
+                    <h3>{{ site.name }}</h3>
+                    <span>{{ site.matchScore }}% 匹配</span>
+                  </div>
+                  <p>{{ site.reason }}</p>
+                  <div class="zh-tags">
+                    <span v-for="tag in site.tags" :key="site.id + '-' + tag">{{ tag }}</span>
+                  </div>
+                </div>
+                <button class="visit-btn" type="button" @click="handleSiteClick(site)">访问</button>
+              </article>
+            </div>
+          </section>
+        </main>
+
+        <main v-else-if="activePage === 'system'" class="zh-page system-launchpad">
+          <section class="launchpad-hero">
+            <h1>系统网站</h1>
+            <div class="launchpad-search">
+              <input v-model="searchQuery" type="text" placeholder="搜索网站、工具或用途" />
+            </div>
+            <div class="system-filter-row">
+              <button
+                v-for="filter in systemCategoryFilters"
+                :key="filter.key"
+                type="button"
+                :class="{ active: activeSystemCategory === filter.key }"
+                @click="activeSystemCategory = filter.key"
+              >
+                {{ filter.label }}
+              </button>
+            </div>
+          </section>
+
+          <section class="launchpad-grid" aria-label="系统网站列表">
+            <article v-for="site in systemSites" :key="'system-' + site.id" class="launchpad-tile" @click="handleSiteClick(site)">
+              <button
+                class="zh-star-btn"
+                type="button"
+                :class="{ active: favoriteSiteIds.includes(site.id) }"
+                @click.stop="toggleFavorite(site)"
+              >
+                {{ favoriteSiteIds.includes(site.id) ? '★' : '☆' }}
+              </button>
+              <div class="site-logo-tile">
+                <img :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
+              </div>
+              <h3>{{ site.name }}</h3>
+              <p>{{ getSiteUsageLabel(site) }}</p>
+              <span>{{ getSiteCategoryLabel(site) }}</span>
+            </article>
+          </section>
+
+          <p class="launchpad-meta">系统已收录 {{ websites.length }} 个优质网站 · 推荐优先</p>
+        </main>
+
+        <main v-else class="zh-page favorite-page">
+          <section class="favorite-header">
+            <div>
+              <p>我的收藏</p>
+              <h1>常用网站</h1>
+            </div>
+            <button class="ghost-action" type="button" @click="activePage = 'system'">浏览系统网站</button>
+          </section>
+
+          <section v-if="!isLoggedIn" class="zh-empty-state">
+            <h2>登录后同步收藏</h2>
+            <p>登录后可以保存、同步并管理你收藏的网站。</p>
+            <button class="zh-login-btn" type="button" @click="goToLogin">登录</button>
+          </section>
+
+          <section v-else-if="favoriteSitesForPage.length === 0" class="zh-empty-state">
+            <h2>还没有收藏</h2>
+            <p>去系统网站里点亮星标，常用入口会出现在这里。</p>
+            <button class="zh-login-btn" type="button" @click="activePage = 'system'">去收藏网站</button>
+          </section>
+
+          <section v-else class="launchpad-grid favorites-grid" aria-label="我的收藏列表">
+            <article v-for="site in favoriteSitesForPage" :key="'fav-' + site.id" class="launchpad-tile" @click="handleSiteClick(site)">
+              <button class="zh-star-btn active" type="button" @click.stop="toggleFavorite(site)">★</button>
+              <div class="site-logo-tile">
+                <img :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
+              </div>
+              <h3>{{ site.name }}</h3>
+              <p>{{ getSiteUsageLabel(site) }}</p>
+              <span>{{ getSiteCategoryLabel(site) }}</span>
+            </article>
+          </section>
+        </main>
+      </section>
+
+      <main v-if="false" class="content">
         <div class="center-action-area">
           
           <div class="category-tabs-wrapper"
@@ -242,7 +428,7 @@
         </TransitionGroup>
       </main>
 
-      <aside class="sidebar-right" v-show="!isFocusMode">
+      <aside v-if="false" class="sidebar-right" v-show="!isFocusMode">
         
         <div class="sidebar-box combined-box block-shadow">
           <div class="box-header tabs-header">
@@ -2237,6 +2423,111 @@ const loadSettingsFromCloud = async (username) => {
 
 // ================= 主页展示逻辑 =================
 const activeCategoryId = ref('all') 
+const activePage = ref('ai')
+const activeSystemCategory = ref('all')
+const aiNeedInput = ref('')
+const selectedNeedMode = ref('学习')
+
+const pageTabs = [
+  { key: 'ai', label: 'AI导航' },
+  { key: 'system', label: '系统网站' },
+  { key: 'favorites', label: '我的收藏' }
+]
+
+const aiNeedModes = ['学习', '写作', '开发', '设计', '办公']
+
+const systemCategoryFilters = [
+  { key: 'all', label: '全部' },
+  { key: 'ai', label: 'AI工具' },
+  { key: 'study', label: '学习' },
+  { key: 'dev', label: '开发' },
+  { key: 'design', label: '设计' },
+  { key: 'office', label: '办公' }
+]
+
+const systemCategoryKeywords = {
+  ai: ['ai', 'chatgpt', 'claude', 'gemini', 'kimi', 'deepseek', 'copilot', 'cursor', 'perplexity', '模型', '智能'],
+  study: ['学习', '文档', '课程', 'leetcode', 'mdn', '知乎', 'bilibili', '牛客', '资料'],
+  dev: ['开发', 'github', 'gitlab', 'gitee', 'stack', 'npm', 'docker', 'vue', 'react', 'vite', 'api', '代码'],
+  design: ['设计', 'figma', 'dribbble', 'behance', 'canva', 'icon', '素材', '配色', '字体'],
+  office: ['办公', 'notion', '飞书', '文档', 'processon', 'pdf', '翻译', '协作']
+}
+
+async function refreshSurveyStatusFromServer() {
+  if (!isLoggedIn.value) return;
+  try {
+    const res = await userAPI.getSurveyStatus();
+    if (res.data?.code === 0 && res.data?.data) {
+      const surveyData = res.data.data;
+      hasSurvey.value = Number(surveyData.has_survey) === 1;
+      userInfo.value = {
+        ...userInfo.value,
+        has_survey: hasSurvey.value ? 1 : 0,
+        user_tags: surveyData.user_tags || ''
+      };
+      localStorage.setItem('user_info', JSON.stringify(userInfo.value));
+    }
+  } catch (error) {
+    hasSurvey.value = Number(userInfo.value?.has_survey || 0) === 1;
+  }
+}
+
+const getSiteCategoryLabel = (site) => {
+  const category = categories.value.find(cat => String(cat.id) === String(site.category_id))
+  return category?.name || '推荐'
+}
+
+const getSiteUsageLabel = (site) => {
+  const name = `${site.name || ''} ${site.url || ''}`.toLowerCase()
+  if (systemCategoryKeywords.ai.some(key => name.includes(key.toLowerCase()))) return 'AI工具'
+  if (systemCategoryKeywords.dev.some(key => name.includes(key.toLowerCase()))) return '开发'
+  if (systemCategoryKeywords.design.some(key => name.includes(key.toLowerCase()))) return '设计'
+  if (systemCategoryKeywords.office.some(key => name.includes(key.toLowerCase()))) return '办公'
+  if (systemCategoryKeywords.study.some(key => name.includes(key.toLowerCase()))) return '学习'
+  return getSiteCategoryLabel(site)
+}
+
+const matchesSystemCategory = (site, categoryKey) => {
+  if (categoryKey === 'all') return true
+  const haystack = `${site.name || ''} ${site.url || ''} ${getSiteCategoryLabel(site)} ${getSiteUsageLabel(site)}`.toLowerCase()
+  return (systemCategoryKeywords[categoryKey] || []).some(key => haystack.includes(String(key).toLowerCase()))
+}
+
+const toRecommendedSite = (item, index = 0) => ({
+  id: item.id,
+  name: item.name,
+  url: item.url,
+  logo_url: item.logo_url || '',
+  category_id: item.category_id || 0,
+  clicks: item.clicks || 0,
+  matchScore: item.match_score || Math.max(88, 96 - index * 2),
+  reason: item.reason || item.matched_reason || `适合${selectedNeedMode.value}相关需求，可快速完成当前任务。`,
+  tags: [item.matched_tag, getSiteUsageLabel(item)].filter(Boolean).slice(0, 2)
+})
+
+const aiRecommendedSites = computed(() => {
+  const source = recommendedItems.value.length > 0
+    ? recommendedItems.value
+    : [...websites.value].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 4)
+
+  return source.slice(0, 4).map((site, index) => toRecommendedSite(site, index))
+})
+
+const systemSites = computed(() => {
+  const keyword = searchQuery.value.trim().toLowerCase()
+  return websites.value
+    .filter(site => matchesSystemCategory(site, activeSystemCategory.value))
+    .filter(site => {
+      if (!keyword) return true
+      return `${site.name || ''} ${site.url || ''} ${getSiteCategoryLabel(site)} ${getSiteUsageLabel(site)}`
+        .toLowerCase()
+        .includes(keyword)
+    })
+    .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
+    .slice(0, 12)
+})
+
+const favoriteSitesForPage = computed(() => favoritedSitesList.value)
 const toggleTheme = () => { isDarkMode.value = !isDarkMode.value }
 
 // ================= 1. 定义默认职业数据 =================
@@ -3184,7 +3475,8 @@ const fetchFavorites = async () => {
     const res = await axios.get('http://127.0.0.1:5000/api/favorites', {
       headers: { Authorization: `Bearer ${token}` } 
     });
-    favoriteSiteIds.value = res.data; // 直接把后端返回的数组存起来
+    const payload = res.data?.data || res.data || [];
+    favoriteSiteIds.value = payload.map(item => typeof item === 'number' ? item : item.website_id);
   } catch (error) {
     console.error('获取收藏列表失败:', error);
   }
@@ -3274,50 +3566,41 @@ const handleConfirmAdd = () => {
 // ================= 切换收藏状态 (极致丝滑版) =================
 const toggleFavorite = async (site) => {
   if (!site || !site.id) return;
+  if (!isLoggedIn.value) {
+    showToast('请先登录后收藏');
+    return;
+  }
 
-  // 1. 判断当前是不是已经被收藏了
   const index = favoriteSiteIds.value.indexOf(site.id);
   const isCurrentlyFavorited = index !== -1;
 
-  // ✨ 2. 乐观更新魔法：不管后端同不同意，前端立刻做出反应！
   if (isCurrentlyFavorited) {
-    // 瞬间取消收藏：从前端数组中拔掉它，卡片立马消失/星星立马变空！
     favoriteSiteIds.value.splice(index, 1);
-    console.log("前端已瞬间取消收藏:", site.name);
   } else {
-    // 瞬间加入收藏
     favoriteSiteIds.value.push(site.id);
-    console.log("前端已瞬间加入收藏:", site.name);
   }
 
-  // 3. 静默去跟后端同步数据
   try {
-    // 这里是你原本发给后端的 API 请求代码
-    // 比如：await fetch('/api/favorites/toggle', { ... }) 
-    // 👇 请确保下面这行是你真实的后端接口请求（如果没有，可以先注释掉）
-    
-    /* const response = await fetch('/api/favorites', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ site_id: site.id })
-    });
-    if (!response.ok) throw new Error("后端同步失败");
-    */
-
-    // 可以在这里加个成功的小提示（可选）
-    showToast(isCurrentlyFavorited ? '已取消收藏' : '⭐ 收藏成功');
-
-  } catch (error) {
-    console.warn("后端同步出错了，但前端体验依然丝滑！", error);
-    
-    // 🛡️ 兜底机制：如果后端真的彻底挂了，为了保证数据不乱，再悄悄把状态改回去
-    // 如果你不需要这么严谨，这段 catch 里的代码甚至可以不写。
+    const token = localStorage.getItem('access_token');
     if (isCurrentlyFavorited) {
-      favoriteSiteIds.value.push(site.id); // 还原回收藏状态
+      await axios.delete(`http://127.0.0.1:5000/api/favorites/${site.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } else {
+      await axios.post('http://127.0.0.1:5000/api/favorites', { website_id: site.id }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    }
+    showToast(isCurrentlyFavorited ? '已取消收藏' : '收藏成功');
+  } catch (error) {
+    if (isCurrentlyFavorited) {
+      favoriteSiteIds.value.push(site.id);
     } else {
       const revertIdx = favoriteSiteIds.value.indexOf(site.id);
-      if (revertIdx !== -1) favoriteSiteIds.value.splice(revertIdx, 1); // 还原回未收藏
+      if (revertIdx !== -1) favoriteSiteIds.value.splice(revertIdx, 1);
     }
+    showToast('收藏同步失败，请稍后重试');
+    console.warn('收藏同步失败:', error);
   }
 };
 // 4. 动态计算收藏列表
@@ -3338,15 +3621,21 @@ const filteredSites = computed(() => {
 
 // --- 💡 关键：确保在 refreshStatus() 函数里调用它 ---
 // 找到你刚写好的 refreshStatus 函数，在里面补充 fetchFavorites()
-const refreshStatus = () => {
-  const savedStatus = localStorage.getItem('is_logged_in');
+const refreshStatus = async () => {
+  const hasToken = Boolean(localStorage.getItem('access_token') || localStorage.getItem('refresh_token'));
   const savedUser = localStorage.getItem('user_info');
-  if (savedStatus === 'true' && savedUser) {
+  if (hasToken) {
+    localStorage.setItem('is_logged_in', 'true');
     isLoggedIn.value = true;
-    userInfo.value = JSON.parse(savedUser);
-    // 🎯 检查用户是否已完成问卷
-    hasSurvey.value = userInfo.value?.has_survey === 1;
-    loadSettingsFromCloud(userInfo.value.username);
+    try {
+      userInfo.value = savedUser ? JSON.parse(savedUser) : { username: '已登录用户', avatar: '' };
+    } catch (_) {
+      userInfo.value = { username: '已登录用户', avatar: '' };
+    }
+    localStorage.setItem('user_info', JSON.stringify(userInfo.value));
+    hasSurvey.value = Number(userInfo.value?.has_survey || 0) === 1;
+    await refreshSurveyStatusFromServer();
+    if (userInfo.value.username) loadSettingsFromCloud(userInfo.value.username);
     fetchFavorites(); // ✨ 登录成功后，立刻拉取收藏列表
     loadRecommendations(); // 🎯 登录后加载推荐
     syncPendingSurvey();   // 🔄 同步之前因离线暂存的问卷数据
@@ -3409,10 +3698,15 @@ onMounted(async () => {
 
   // 3. 恢复本地登录状态
   const savedUser = localStorage.getItem('user_info');
-  if (localStorage.getItem('is_logged_in') === 'true' && savedUser) {
-    userInfo.value = JSON.parse(savedUser);
+  if ((localStorage.getItem('access_token') || localStorage.getItem('refresh_token') || localStorage.getItem('is_logged_in') === 'true') && savedUser) {
+    try {
+      userInfo.value = JSON.parse(savedUser);
+    } catch (_) {
+      userInfo.value = { username: '已登录用户', avatar: '' };
+    }
     isLoggedIn.value = true;
-    loadSettingsFromCloud(userInfo.value.username);
+    localStorage.setItem('is_logged_in', 'true');
+    if (userInfo.value.username) loadSettingsFromCloud(userInfo.value.username);
   }
 
   // 4. 获取数据（核心修改区）
@@ -7208,4 +7502,599 @@ input:checked + .slider:before { transform: translateX(22px); }
   -webkit-backdrop-filter: blur(4px);  /* 兼容 Safari */
   background-color: rgba(15, 23, 42, 0.4); /* 配色微调，使其更显高级感 */
 }
+.zh-main-container {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.zh-shell {
+  --zh-bg: #ffffff;
+  --zh-surface: #f8fafc;
+  --zh-surface-strong: #f1f5f9;
+  --zh-border: #e5e7eb;
+  --zh-text: #111827;
+  --zh-muted: #64748b;
+  --zh-accent: #0fbaa8;
+  --zh-accent-soft: rgba(15, 186, 168, 0.1);
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 24px clamp(18px, 3vw, 44px) 32px;
+  box-sizing: border-box;
+  color: var(--zh-text);
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.zh-topbar {
+  height: 64px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 20px;
+  width: min(100%, 1440px);
+  margin: 0 auto 22px;
+}
+
+.zh-brand,
+.zh-page-tab,
+.zh-login-btn,
+.zh-avatar-btn,
+.need-mode,
+.ai-input-box button,
+.visit-btn,
+.system-filter-row button,
+.ghost-action,
+.zh-star-btn {
+  font: inherit;
+}
+
+.zh-brand {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--zh-text);
+  font-size: 19px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.zh-brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: var(--zh-accent);
+  font-size: 16px;
+}
+
+.zh-page-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--zh-surface);
+  border: 1px solid var(--zh-border);
+  border-radius: 8px;
+}
+
+.zh-page-tab {
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--zh-muted);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.zh-page-tab.active {
+  background: #ffffff;
+  color: var(--zh-text);
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.08);
+}
+
+.zh-top-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+}
+
+.zh-login-btn,
+.ghost-action,
+.visit-btn,
+.ai-input-box button {
+  border: 0;
+  border-radius: 8px;
+  background: var(--zh-accent);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.zh-login-btn {
+  height: 36px;
+  padding: 0 18px;
+}
+
+.zh-avatar-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--zh-border);
+  border-radius: 50%;
+  background: #ffffff;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.zh-avatar-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.zh-page {
+  min-height: calc(100vh - 134px);
+  width: min(100%, 1440px);
+  margin: 0 auto;
+}
+
+.ai-page {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 26px;
+  align-items: stretch;
+}
+
+.ai-chat-panel,
+.ai-recommend-panel,
+.launchpad-tile,
+.zh-empty-state {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--zh-border);
+  border-radius: 8px;
+}
+
+.ai-chat-panel,
+.ai-recommend-panel {
+  padding: 30px;
+}
+
+.zh-section-heading p,
+.recommend-header p,
+.favorite-header p {
+  margin: 0 0 8px;
+  color: var(--zh-accent);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.zh-section-heading h1,
+.recommend-header h2,
+.favorite-header h1,
+.launchpad-hero h1 {
+  margin: 0;
+  color: var(--zh-text);
+  letter-spacing: 0;
+}
+
+.zh-section-heading h1,
+.favorite-header h1,
+.launchpad-hero h1 {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.ai-message {
+  display: flex;
+  gap: 14px;
+  margin: 28px 0;
+  padding: 18px;
+  background: var(--zh-surface);
+  border: 1px solid var(--zh-border);
+  border-radius: 8px;
+}
+
+.ai-message-avatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--zh-accent-soft);
+  color: var(--zh-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ai-message strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.ai-message p,
+.recommend-card p,
+.launchpad-tile p,
+.zh-empty-state p {
+  margin: 0;
+  color: var(--zh-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.need-mode-list,
+.system-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.need-mode,
+.system-filter-row button {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--zh-border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--zh-muted);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.need-mode.active,
+.system-filter-row button.active {
+  border-color: rgba(15, 186, 168, 0.35);
+  background: var(--zh-accent-soft);
+  color: #087f73;
+}
+
+.ai-input-box,
+.launchpad-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 8px;
+  border: 1px solid var(--zh-border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.ai-input-box input,
+.launchpad-search input {
+  min-width: 0;
+  flex: 1;
+  height: 40px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--zh-text);
+  font-size: 14px;
+}
+
+.ai-input-box button {
+  height: 40px;
+  padding: 0 18px;
+}
+
+.recommend-header,
+.favorite-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.process-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.process-steps span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--zh-surface);
+  color: var(--zh-muted);
+  font-size: 12px;
+}
+
+.recommend-list {
+  display: grid;
+  gap: 12px;
+}
+
+.recommend-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--zh-border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.site-logo-tile {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--zh-surface);
+  border: 1px solid var(--zh-border);
+  overflow: hidden;
+}
+
+.site-logo-tile img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.recommend-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recommend-title-row h3,
+.launchpad-tile h3 {
+  margin: 0;
+  color: var(--zh-text);
+  font-size: 15px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.recommend-title-row span {
+  flex: 0 0 auto;
+  color: var(--zh-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.zh-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.zh-tags span,
+.launchpad-tile > span {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--zh-surface);
+  color: var(--zh-muted);
+  font-size: 12px;
+}
+
+.visit-btn {
+  height: 34px;
+  padding: 0 14px;
+}
+
+.zh-star-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.zh-star-btn.active {
+  color: #eab308;
+}
+
+.system-launchpad {
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.launchpad-hero {
+  width: min(860px, 100%);
+  text-align: center;
+  margin: 10px auto 22px;
+}
+
+.launchpad-search {
+  margin: 16px auto 12px;
+  padding: 9px 16px;
+}
+
+.system-filter-row {
+  justify-content: center;
+}
+
+.launchpad-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: 12px;
+}
+
+.launchpad-tile {
+  position: relative;
+  min-height: 132px;
+  padding: 15px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.launchpad-tile:hover {
+  border-color: rgba(15, 186, 168, 0.45);
+  transform: translateY(-2px);
+}
+
+.launchpad-tile p {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.launchpad-meta {
+  margin: 14px 0 0;
+  color: var(--zh-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.favorite-page {
+  padding-top: 20px;
+}
+
+.ghost-action {
+  height: 36px;
+  padding: 0 16px;
+  background: var(--zh-surface);
+  color: var(--zh-text);
+  border: 1px solid var(--zh-border);
+}
+
+.zh-empty-state {
+  width: min(520px, 100%);
+  margin: 70px auto 0;
+  padding: 44px;
+  text-align: center;
+}
+
+.zh-empty-state h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  color: var(--zh-text);
+}
+
+.zh-empty-state .zh-login-btn {
+  margin-top: 22px;
+}
+
+.layout.dark-theme .zh-shell {
+  --zh-bg: #0f172a;
+  --zh-surface: rgba(255, 255, 255, 0.06);
+  --zh-surface-strong: rgba(255, 255, 255, 0.1);
+  --zh-border: rgba(255, 255, 255, 0.12);
+  --zh-text: #f8fafc;
+  --zh-muted: #94a3b8;
+}
+
+.layout.dark-theme .zh-page-tab.active,
+.layout.dark-theme .ai-chat-panel,
+.layout.dark-theme .ai-recommend-panel,
+.layout.dark-theme .recommend-card,
+.layout.dark-theme .launchpad-tile,
+.layout.dark-theme .zh-empty-state,
+.layout.dark-theme .ai-input-box,
+.layout.dark-theme .launchpad-search,
+.layout.dark-theme .need-mode,
+.layout.dark-theme .system-filter-row button {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+@media (max-width: 1100px) {
+  .launchpad-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .zh-shell {
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+  }
+
+  .zh-topbar {
+    height: auto;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .zh-brand,
+  .zh-top-actions {
+    justify-self: center;
+  }
+
+  .zh-page-tabs {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ai-page {
+    grid-template-columns: 1fr;
+  }
+
+  .recommend-card {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .visit-btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .launchpad-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .zh-page-tab {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .ai-chat-panel,
+  .ai-recommend-panel,
+  .zh-empty-state {
+    padding: 20px;
+  }
+
+  .launchpad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .launchpad-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
+
