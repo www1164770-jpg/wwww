@@ -33,3 +33,106 @@ const submit = async (status) => {
   alert(status === 'draft' ? '草稿已保存' : '已提交审核，请耐心等待')
 }
 </script>
+
+<style scoped>
+.editor-container {
+  min-height: 100vh;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 56px);
+  color: var(--mono-text);
+  animation: mono-rise-in 0.64s var(--mono-ease);
+}
+
+.title-input {
+  width: 100%;
+  min-height: 68px;
+  margin-bottom: 18px;
+  padding: 0 22px;
+  color: var(--mono-text);
+  background: var(--mono-surface) !important;
+  border: 1px solid var(--mono-border);
+  border-radius: var(--mono-radius-lg);
+  box-shadow: var(--mono-shadow-sm);
+  font-size: clamp(24px, 4vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  outline: none;
+}
+
+.cover-uploader {
+  margin-bottom: 18px;
+  padding: 22px;
+  color: var(--mono-muted);
+  background: var(--mono-surface);
+  border: 1px dashed var(--mono-border-strong);
+  border-radius: var(--mono-radius-lg);
+  box-shadow: var(--mono-shadow-sm);
+}
+
+.cover-uploader input {
+  width: 100%;
+}
+
+.cover-preview {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  margin-top: 16px;
+  object-fit: cover;
+  border-radius: var(--mono-radius-md);
+  filter: grayscale(1);
+}
+
+:deep(.ql-toolbar),
+:deep(.ql-container) {
+  background: rgba(255,255,255,0.78);
+  border-color: var(--mono-border) !important;
+}
+
+:deep(.ql-toolbar) {
+  border-radius: var(--mono-radius-lg) var(--mono-radius-lg) 0 0;
+}
+
+:deep(.ql-container) {
+  border-radius: 0 0 var(--mono-radius-lg) var(--mono-radius-lg);
+  box-shadow: var(--mono-shadow-sm);
+}
+
+:deep(.ql-editor) {
+  color: var(--mono-text);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.actions button {
+  padding: 0 22px;
+  color: var(--mono-text);
+  background: rgba(255,255,255,0.7);
+  border: 1px solid var(--mono-border);
+  border-radius: 999px;
+  transition: transform var(--mono-base) var(--mono-ease), background var(--mono-base) var(--mono-ease);
+}
+
+.actions button:hover {
+  transform: translateY(-2px);
+  background: #ffffff;
+}
+
+@media (max-width: 680px) {
+  .editor-container {
+    padding: 18px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}
+</style>

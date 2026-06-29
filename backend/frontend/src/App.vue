@@ -35,15 +35,50 @@ const handleConsent = (status) => {
 
 <style scoped>
 .cookie-banner {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  width: 90%; max-width: 600px; z-index: 99999;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 16px 24px; background: rgba(255,255,255,0.9);
-  backdrop-filter: blur(20px); border-radius: 16px;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 680px);
+  z-index: 99999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 18px 16px 22px;
+  color: var(--mono-text);
+  background: rgba(255,255,255,0.86) !important;
+  border: 1px solid var(--mono-border);
+  border-radius: var(--mono-radius-lg);
+  box-shadow: var(--mono-shadow-md);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
-.cookie-content { display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.cookie-content {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.cookie-content p { margin: 0; color: var(--mono-text-soft); }
+.cookie-icon { filter: grayscale(1); }
+.cookie-actions { display: flex; gap: 10px; flex-shrink: 0; }
 .slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translate(-50%, 50px); }
-.slide-up-enter-active, .slide-up-leave-active { transition: all 0.5s ease; }
+.slide-up-enter-active, .slide-up-leave-active { transition: all 0.5s var(--mono-ease); }
+
+@media (max-width: 680px) {
+  .cookie-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .cookie-actions {
+    width: 100%;
+  }
+  .cookie-actions button {
+    flex: 1;
+  }
+}
 </style>
 
 <style>

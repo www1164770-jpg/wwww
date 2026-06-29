@@ -8,502 +8,144 @@
 
     <div v-show="isFocusMode" class="focus-dark-overlay" :style="focusBgStyle"></div>
     
-    <header v-if="false" class="header-block block-shadow" style="position: relative; z-index: 10;">
-      <div class="header-left">
-        <div class="logo">
-          <span>🚀 智汇导航</span>
-        </div>
-
-        <div class="profession-selector">
-          <div class="current-prof-box">
-            <span class="prof-icon">{{ professionData[currentProfession].icon }}</span>
-            <span class="prof-name">{{ professionData[currentProfession].name }}</span>
-            <span class="prof-arrow">▼</span>
-          </div>
-          
-          <div class="prof-dropdown">
-            <div 
-              v-for="(data, key) in professionData" 
-              :key="key"
-              class="prof-item"
-              :class="{ active: currentProfession === key }"
-              @click="selectProfession(key)"
-              @contextmenu.prevent="openProfContextMenu($event, key, data)" 
-            >
-              <span class="item-icon">{{ data.icon }}</span>
-              <div class="item-info">
-                <span class="item-name">{{ data.name }}</span>
-              </div>
-            </div>
-
-            <div class="prof-divider"></div>
-            <div class="prof-item add-prof-trigger" @click="openAddModal">
-              <span class="item-icon">➕</span>
-              <div class="item-info"><span class="item-name">添加自定义职业</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="header-right">
-        <button class="theme-toggle" @click="showBgModal = true" title="个性化背景">🎨</button>
-        <button class="theme-toggle" @click="toggleTheme">{{ isDarkMode ? '☀️' : '🌙' }}</button>
-        <button class="theme-toggle" @click="toggleFocusMode" :title="isFocusMode ? '退回首页' : '专注模式'">
-          {{ isFocusMode ? '↩️' : '✨' }}
+    <div v-if="currentPage === 'home'" class="stack-home">
+      <header class="stack-header">
+        <button class="stack-logo" @click="goHome" aria-label="智慧导航首页">
+          <span class="stack-logo-mark">≡</span>
+          <strong>智慧导航</strong>
         </button>
-        <button class="theme-toggle" @click="openReviewModal" title="采集审核池">📡</button>
-        <div v-if="isLoggedIn" class="user-profile-container">
-          <img :src="userInfo.avatar" class="header-avatar profile-link" @click="goToProfile" alt="头像" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'">
+        <nav class="stack-nav" aria-label="主导航">
+          <button class="is-active">Tools</button>
+          <button @click="activeStackCategory = 'stacks'">Stacks</button>
+          <button @click="activeStackCategory = 'compare'">Compare</button>
+          <button @click="activeStackCategory = 'blog'">Blog</button>
+          <button @click="activeStackCategory = 'about'">About</button>
+        </nav>
+        <div class="stack-header-actions">
+          <button class="stack-icon-search" @click="searchInputRef?.focus()" aria-label="搜索">⌕</button>
+          <button class="stack-browse-btn" @click="openAddSiteModal">添加网站</button>
         </div>
-        <div v-else class="auth-group">
-          <button class="login-btn btn-primary" @click="goToLogin">登录</button>
-        </div>
-      </div>
-    </header>
+      </header>
 
-    <div v-if="currentPage === 'home'" class="main-container zh-main-container" style="position: relative; z-index: 10;">
-      <section class="zh-shell" @click.stop>
-        <header class="zh-topbar">
-          <button class="zh-brand" type="button" @click="activePage = 'ai'">
-            <span class="zh-brand-mark">智</span>
-            <span>智汇</span>
-          </button>
-
-          <nav class="zh-page-tabs" aria-label="主页面切换">
-            <button
-              v-for="page in pageTabs"
-              :key="page.key"
-              class="zh-page-tab"
-              type="button"
-              :class="{ active: activePage === page.key }"
-              @click="activePage = page.key"
-            >
-              {{ page.label }}
-            </button>
-          </nav>
-
-          <div class="zh-top-actions">
-            <button v-if="isLoggedIn" class="zh-avatar-btn" type="button" @click="goToProfile">
-              <img :src="userInfo.avatar" alt="用户头像" @error="(e) => e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'" />
-            </button>
-            <button v-else class="zh-login-btn" type="button" @click="goToLogin">登录</button>
-          </div>
-        </header>
-
-        <main v-if="activePage === 'ai'" class="zh-page ai-page">
-          <section class="ai-chat-panel">
-            <div class="zh-section-heading">
-              <p>AI导航</p>
-              <h1>说出你的需求</h1>
-            </div>
-
-            <div class="ai-message assistant">
-              <div class="ai-message-avatar">AI</div>
-              <div>
-                <strong>你想解决什么问题？</strong>
-                <p>选择一个需求方向，或直接描述任务，我会为你匹配合适的网站。</p>
-              </div>
-            </div>
-
-            <div class="need-mode-list">
-              <button
-                v-for="mode in aiNeedModes"
-                :key="mode"
-                class="need-mode"
-                type="button"
-                :class="{ active: selectedNeedMode === mode }"
-                @click="selectedNeedMode = mode"
-              >
-                {{ mode }}
-              </button>
-            </div>
-
-            <div class="ai-input-box">
-              <input
-                v-model="aiNeedInput"
-                type="text"
-                placeholder="例如：我想找能帮我做PPT的网站"
-                @keyup.enter="activePage = 'system'"
-              />
-              <button type="button" @click="activePage = 'system'">发送</button>
-            </div>
-          </section>
-
-          <section class="ai-recommend-panel">
-            <div class="recommend-header">
-              <div>
-                <p>智能推荐</p>
-                <h2>AI 为你匹配的网站</h2>
-              </div>
-              <div class="process-steps">
-                <span>理解需求</span>
-                <span>筛选工具</span>
-                <span>推荐结果</span>
-              </div>
-            </div>
-
-            <div class="recommend-list">
-              <article v-for="site in aiRecommendedSites" :key="'ai-' + site.id" class="recommend-card">
-                <button
-                  class="zh-star-btn"
-                  type="button"
-                  :class="{ active: favoriteSiteIds.includes(site.id) }"
-                  :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '收藏'"
-                  @click="toggleFavorite(site)"
-                >
-                  {{ favoriteSiteIds.includes(site.id) ? '★' : '☆' }}
+      <main class="stack-main">
+        <section class="stack-hero">
+          <h1>The stack you'll actually use.</h1>
+          <p>为高效上网、学习、创作和工作准备的网站与工具目录。</p>
+          <div class="stack-search">
+            <input
+              ref="searchInputRef"
+              v-model="searchQuery"
+              @keyup.enter="doSearch"
+              @focus="isSearchFocused = true"
+              @blur="handleSearchBlur"
+              type="text"
+              placeholder="Search websites by name (e.g. GitHub, Notion, Bilibili)..."
+            />
+            <button @click="doSearch" aria-label="搜索">⌕</button>
+            <transition name="stack-dropdown">
+              <div v-show="isSearchFocused && (localSuggestions.length > 0 || searchHistory.length > 0 || searchQuery)" class="stack-search-dropdown">
+                <template v-if="searchQuery && localSuggestions.length > 0">
+                  <button
+                    v-for="site in localSuggestions"
+                    :key="'stack-sugg-' + site.id"
+                    class="stack-search-row"
+                    @click="handleSiteClick(site)"
+                  >
+                    <img :src="site.logo_url || getLogoUrl(site.url)" @error="handleIconError($event, site)" alt="">
+                    <span>
+                      <strong v-html="site._formatted?.name || displaySiteName(site)"></strong>
+                      <small v-html="site._formatted?.url || site.url"></small>
+                    </span>
+                  </button>
+                </template>
+                <template v-else-if="searchHistory.length > 0">
+                  <button v-for="item in searchHistory" :key="'stack-history-' + item" class="stack-history-row" @click="useHistory(item)">
+                    {{ item }}
+                  </button>
+                </template>
+                <button v-if="searchQuery" class="stack-search-engine" @click="doSearch">
+                  在 {{ allEngines[currentEngine]?.name || '搜索引擎' }} 搜索 "{{ searchQuery }}"
                 </button>
-                <div class="site-logo-tile">
-                  <img :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
-                </div>
-                <div class="recommend-content">
-                  <div class="recommend-title-row">
-                    <h3>{{ site.name }}</h3>
-                    <span>{{ site.matchScore }}% 匹配</span>
-                  </div>
-                  <p>{{ site.reason }}</p>
-                  <div class="zh-tags">
-                    <span v-for="tag in site.tags" :key="site.id + '-' + tag">{{ tag }}</span>
-                  </div>
-                </div>
-                <button class="visit-btn" type="button" @click="handleSiteClick(site)">访问</button>
-              </article>
-            </div>
-          </section>
-        </main>
+              </div>
+            </transition>
+          </div>
+          <div class="stack-meta">{{ stackToolCount }} tools saved · {{ stackCategories.length }} active categories · data pinned</div>
+          <div class="stack-quick-links">
+            <button @click="activeCategoryId = 'all'">Browse all tools ›</button>
+            <button @click="activeCategoryId = 'favorites'">See favorites ›</button>
+            <button @click="openAddSiteModal">Submit a tool ›</button>
+          </div>
+        </section>
 
-        <main v-else-if="activePage === 'system'" class="zh-page system-launchpad">
-          <section class="launchpad-hero">
-            <h1>系统网站</h1>
-            <div class="launchpad-search">
-              <input v-model="searchQuery" type="text" placeholder="搜索网站、工具或用途" />
-            </div>
-            <div class="system-filter-row">
+        <section class="stack-marquee" aria-label="热门网站">
+          <div class="stack-marquee-track">
+            <span v-for="site in marqueeSites" :key="'marquee-a-' + site.id">{{ displaySiteName(site) }}</span>
+            <span v-for="site in marqueeSites" :key="'marquee-b-' + site.id">{{ displaySiteName(site) }}</span>
+          </div>
+        </section>
+
+        <section class="stack-category-section">
+          <div class="stack-category-menu">
+            <h2>Most Popular<br>Categories</h2>
+            <button
+              v-for="cat in stackCategories"
+              :key="cat.key"
+              :class="{ 'is-active': activeStackCategory === cat.key }"
+              @click="selectStackCategory(cat)"
+            >
+              {{ cat.label }}
+            </button>
+            <button class="stack-see-all" @click="activeCategoryId = 'all'">See all {{ stackToolCount }} tools ›</button>
+          </div>
+          <div class="stack-tools-area">
+            <button class="stack-section-link" @click="activeCategoryId = 'all'">See all {{ activeStackCategoryLabel }} ›</button>
+            <div class="stack-tool-grid">
               <button
-                v-for="filter in systemCategoryFilters"
-                :key="filter.key"
-                type="button"
-                :class="{ active: activeSystemCategory === filter.key }"
-                @click="activeSystemCategory = filter.key"
+                v-for="(site, index) in stackTools"
+                :key="'stack-tool-' + site.id"
+                class="stack-tool-card"
+                :style="{ '--stagger': `${index * 45}ms` }"
+                @click="handleSiteClick(site)"
+                @contextmenu.prevent="openContextMenu($event, site)"
               >
-                {{ filter.label }}
+                <span class="stack-tool-icon">
+                  <img :src="site.logo_url || getLogoUrl(site.url)" :alt="displaySiteName(site)" @error="handleIconError($event, site)">
+                </span>
+                <span class="stack-tool-copy">
+                  <strong>{{ displaySiteName(site) }}</strong>
+                  <small>{{ siteDescription(site) }}</small>
+                </span>
               </button>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="launchpad-grid" aria-label="系统网站列表">
-            <article v-for="site in systemSites" :key="'system-' + site.id" class="launchpad-tile" @click="handleSiteClick(site)">
+        <section class="stack-favorites-section">
+          <div class="stack-favorites-inner">
+            <p class="stack-kicker">FAV STACK</p>
+            <h2>Tools I actually build with.</h2>
+            <p class="stack-fav-subtitle">收藏、推荐和高频入口会汇总在这里，方便下一次直接打开。</p>
+            <div class="stack-fav-list">
               <button
-                class="zh-star-btn"
-                type="button"
-                :class="{ active: favoriteSiteIds.includes(site.id) }"
-                @click.stop="toggleFavorite(site)"
+                v-for="site in favoriteStackTools"
+                :key="'stack-fav-' + site.id"
+                class="stack-fav-item"
+                @click="handleSiteClick(site)"
               >
-                {{ favoriteSiteIds.includes(site.id) ? '★' : '☆' }}
+                <span class="stack-tool-icon">
+                  <img :src="site.logo_url || getLogoUrl(site.url)" :alt="displaySiteName(site)" @error="handleIconError($event, site)">
+                </span>
+                <span>
+                  <strong>{{ displaySiteName(site) }}</strong>
+                  <small>{{ siteDescription(site) }}</small>
+                </span>
+                <em>{{ stackToolCategory(site) }}</em>
               </button>
-              <div class="site-logo-tile">
-                <img :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
-              </div>
-              <h3>{{ site.name }}</h3>
-              <p>{{ getSiteUsageLabel(site) }}</p>
-              <span>{{ getSiteCategoryLabel(site) }}</span>
-            </article>
-          </section>
-
-          <p class="launchpad-meta">系统已收录 {{ websites.length }} 个优质网站 · 推荐优先</p>
-        </main>
-
-        <main v-else class="zh-page favorite-page">
-          <section class="favorite-header">
-            <div>
-              <p>我的收藏</p>
-              <h1>常用网站</h1>
-            </div>
-            <button class="ghost-action" type="button" @click="activePage = 'system'">浏览系统网站</button>
-          </section>
-
-          <section v-if="!isLoggedIn" class="zh-empty-state">
-            <h2>登录后同步收藏</h2>
-            <p>登录后可以保存、同步并管理你收藏的网站。</p>
-            <button class="zh-login-btn" type="button" @click="goToLogin">登录</button>
-          </section>
-
-          <section v-else-if="favoriteSitesForPage.length === 0" class="zh-empty-state">
-            <h2>还没有收藏</h2>
-            <p>去系统网站里点亮星标，常用入口会出现在这里。</p>
-            <button class="zh-login-btn" type="button" @click="activePage = 'system'">去收藏网站</button>
-          </section>
-
-          <section v-else class="launchpad-grid favorites-grid" aria-label="我的收藏列表">
-            <article v-for="site in favoriteSitesForPage" :key="'fav-' + site.id" class="launchpad-tile" @click="handleSiteClick(site)">
-              <button class="zh-star-btn active" type="button" @click.stop="toggleFavorite(site)">★</button>
-              <div class="site-logo-tile">
-                <img :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
-              </div>
-              <h3>{{ site.name }}</h3>
-              <p>{{ getSiteUsageLabel(site) }}</p>
-              <span>{{ getSiteCategoryLabel(site) }}</span>
-            </article>
-          </section>
-        </main>
-      </section>
-
-      <main v-if="false" class="content">
-        <div class="center-action-area">
-          
-          <div class="category-tabs-wrapper"
-               v-show="!isFocusMode"
-               ref="scrollTrack"
-               @mousedown="startDrag" 
-               @mouseleave="stopDrag" 
-               @mouseup="stopDrag" 
-               @mousemove="onDrag">
-            
-            <div v-if="isLoggedIn"
-                class="nav-tab-box fav-tab"
-                :class="{ 'active': activeCategoryId === 'favorites' }"
-                @click="activeCategoryId = 'favorites'"
-                @mouseenter="hoverCategory('favorites')">
-              ⭐ 我的收藏
-            </div>
-
-            <div v-if="recommendedItems.length > 0"
-                class="nav-tab-box rec-tab"
-                :class="{ 'active': activeCategoryId === 'recommended' }"
-                @click="activeCategoryId = 'recommended'"
-                @mouseenter="hoverCategory('recommended')">
-              🎯 专属推荐
-            </div>
-
-            <div v-for="cat in categories" 
-                 :key="cat.id" 
-                 class="nav-tab-box" 
-                 :class="{ 'active': activeCategoryId === cat.id }" 
-                 @click="activeCategoryId = cat.id"
-                 @contextmenu.prevent="openCategoryContextMenu($event, cat)"
-                 @mouseenter="hoverCategory(cat.id)"> 
-              <span class="cat-name">{{ cat.name }}</span>
-            </div>
-
-            <input type="file" accept=".html" class="hidden-file-input" ref="bookmarkInputRef" @change="handleBookmarkImport">
-            
-            <div class="more-dropdown-wrapper">
-              <div class="nav-tab-box more-btn">
-                更多选项 <span class="arrow-down" style="font-size: 10px; margin-left: 2px;">▼</span>
-              </div>
-              <div class="dropdown-menu">
-                <div class="dropdown-item" @click="showAddCategoryModal = true">➕ 添加新分类</div>
-                <div class="dropdown-item" @click="triggerBookmarkImport">📥 导入浏览器书签</div>
-              </div>
             </div>
           </div>
-          <div class="search-section">
-
-            <div v-show="isFocusMode" class="orbit-center-container">
-  
-  <div v-for="(site, index) in favoriteSites" :key="site.id || site.name" class="orbit-planet" :style="{ '--delay': index, '--total': favoriteSites.length }">
-    
-    <a @click.prevent="handleSiteClick(site)" :href="site.url" class="planet-link" :title="site.name">
-<span v-if="!site.logo_url && !getLogoUrl(site.url)" style="color: var(--text-main); font-weight: bold; font-size: 16px;">
-         {{ site.name ? site.name.charAt(0) : '?' }}
-      </span>
-      <img v-else :src="site.logo_url || getLogoUrl(site.url)" @error="handleIconError($event, site)" class="planet-logo" />
-    </a>
-    
-  </div>
-</div>
-
-<div class="search-box block-shadow" style="position: relative; z-index: 10;" :style="isFocusMode ? 'transform: scale(1.2); box-shadow: 0 0 60px rgba(59,130,246,0.4);' : 'transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);'">              <input 
-                ref="searchInputRef" 
-                :value="searchQuery" 
-                @input="searchQuery = $event.target.value" 
-                @keyup.enter="doSearch" 
-                @focus="isSearchFocused = true"
-                @blur="handleSearchBlur"
-                type="text" 
-                :placeholder="isFocusMode ? '在专注中探索...' : `在 ${allEngines[currentEngine]?.name} 中搜索 (Ctrl+K 唤醒)`" 
-              />
-              <button @click="doSearch" class="search-btn-oval">搜索</button>
-
-              <transition name="fade-slide-down">
-                <div v-show="isSearchFocused && !isFocusMode" class="search-dropdown block-shadow">
-                  <div v-if="!searchQuery && searchHistory.length > 0" class="dropdown-section">
-                    <div class="section-header">
-                      <span>🕒 最近搜索</span>
-                      <span class="clear-btn" @click.stop="clearSearchHistory">清空</span>
-                    </div>
-                    <div class="history-tags">
-                      <span v-for="item in searchHistory" :key="item" class="history-tag" @click="useHistory(item)">{{ item }}</span>
-                    </div>
-                  </div>
-
-                  <div v-if="searchQuery && localSuggestions.length > 0" class="dropdown-section">
-                    <div class="section-header"><span>⚡ 网站直达</span></div>
-                    <div class="suggestion-list">
-                      <div v-for="site in localSuggestions" :key="'sugg-' + site.id" class="suggestion-item" @click="handleSiteClick(site)">
-                        <img :src="site.logo_url || getLogoUrl(site.url)" class="sugg-logo" @error="handleIconError($event, site)">
-                        <div class="sugg-info">
-                          <span class="sugg-name" v-html="(site._formatted && site._formatted.name) ? site._formatted.name : site.name"></span>
-                          <span class="sugg-url" v-html="site._formatted?.url || site.url"></span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div v-if="searchQuery" class="dropdown-section" style="margin-top: 8px; border-top: 1px solid rgba(150,150,150,0.1); padding-top: 8px;">
-                    <div class="suggestion-item engine-sugg" @click="doSearch">
-                      🔍 在 <span style="font-weight: bold; margin: 0 4px;">{{ allEngines[currentEngine]?.name }}</span> 搜索 "{{ searchQuery }}"
-                    </div>
-                  </div>
-                </div>
-              </transition>
-            </div>
-
-            <div class="engine-radio-group" v-show="!isFocusMode">
-              <label v-for="engine in activeEnginesList" :key="engine.key" class="engine-radio-label" :class="{ active: currentEngine === engine.key }">
-                <input type="radio" :value="engine.key" v-model="currentEngine" class="hidden-radio">
-                <span class="radio-custom"></span>
-                {{ engine.name }}
-              </label>
-              <span class="engine-settings-icon" @click.stop="showEngineModal = true" title="自定义搜索引擎">⚙️</span>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="isLoading" class="site-grid" v-show="!isFocusMode">
-          <div v-for="i in 12" :key="'skeleton-'+i" class="site-card block-shadow skeleton-card">
-            <div class="logo-wrapper skeleton-box"></div>
-            <div class="skeleton-text skeleton-box"></div>
-          </div>
-        </div>
-        <div v-else-if="filteredWebsites.length === 0 && activeCategoryId === 'favorites'" class="treasure-map-empty" v-show="!isFocusMode">
-          <div class="map-title-row">
-            <span>🏴‍☠️ 这些宝藏水手们都在用，一键纳入你的宝库：</span>
-            <button class="refresh-map-btn" @click="refreshTreasures" title="换一批宝藏">🔄 换一批</button>
-          </div>
-          <div class="map-container">
-            <svg class="map-path" viewBox="0 0 500 150" preserveAspectRatio="none">
-              <path d="M 50,80 Q 150,10 250,80 T 450,50" fill="transparent" stroke="currentColor" stroke-width="2" stroke-dasharray="6 6" />
-            </svg>
-            <div v-for="(island, index) in treasureIslands" :key="island.id" class="treasure-island" :class="'island-' + index" @click.stop="claimTreasure(island)">
-              <div class="island-icon"><img :src="island.logo_url || getLogoUrl(island.url)" :alt="island.name" @error="handleIconError($event, island)" /></div>
-              <div class="island-name">{{ island.name }}</div>
-              <div class="add-badge">➕</div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else-if="filteredWebsites.length === 0" class="empty-state-container" v-show="!isFocusMode">
-          <div class="empty-icon">📭</div>
-          <h3 class="empty-title">哎呀，这里空空如也</h3>
-          <p class="empty-desc">没有找到相关网站，不如点击下方添加一个吧？</p>
-          <button class="btn-primary" @click="openAddSiteModal">+ 立即添加网站</button>
-        </div>
-        
-        <TransitionGroup v-else name="fade-grid" tag="div" class="site-grid" v-show="!isFocusMode">
-          <div v-for="site in filteredWebsites" :key="site.id" class="site-card block-shadow" 
-              draggable="true" @dragstart="onDragStart($event, site)" @dragover="onDragOver($event)" @drop="onDrop($event, site)" @dragend="onDragEnd"
-              @click="handleSiteClick(site)" @contextmenu.prevent="openContextMenu($event, site)">
-            <div class="favorite-btn" @click.stop="toggleFavorite(site)" :title="favoriteSiteIds.includes(site.id) ? '取消收藏' : '加入收藏'">
-              <span v-if="favoriteSiteIds.includes(site.id)" class="star-solid">★</span>
-              <span v-else class="star-empty">☆</span>
-            </div>
-            <!-- 推荐标签徽章 -->
-            <div v-if="site._recSource && site._recTag" class="rec-badge" :title="'匹配标签: ' + site._recTag">
-              {{ site._recTag }}
-            </div>
-            <div v-if="favoriteSites.find(s => s.url === site.url)" class="focus-badge" title="已在专注轨道">
-              🪐
-            </div>
-            <div class="logo-wrapper">
-              <img class="site-logo" :src="site.logo_url || getLogoUrl(site.url)" :alt="site.name" @error="handleIconError($event, site)" />
-            </div>
-            <span class="site-name" v-html="(site._formatted && site._formatted.name) ? site._formatted.name : site.name"></span>
-          </div>
-
-          <div key="add-site-btn" class="site-card add-site-card" @click="openAddSiteModal">
-            <div class="logo-wrapper add-icon-wrapper"><span class="plus-icon">+</span></div>
-            <span class="site-name">添加网站</span>
-          </div>
-        </TransitionGroup>
+        </section>
       </main>
-
-      <aside v-if="false" class="sidebar-right" v-show="!isFocusMode">
-        
-        <div class="sidebar-box combined-box block-shadow">
-          <div class="box-header tabs-header">
-            <div class="sidebar-tabs">
-              <h3 class="box-title tab-title" :class="{ active: activeSidebarTab === 'ranking' }" @click="activeSidebarTab = 'ranking'">🔥 今日排行</h3>
-              <h3 class="box-title tab-title" :class="{ active: activeSidebarTab === 'news' }" @click="activeSidebarTab = 'news'">📰 行业前沿</h3>
-            </div>
-          </div>
-
-          <div class="tab-content-container">
-            <div v-show="activeSidebarTab === 'ranking'" class="scroll-viewport">
-              
-              <div v-if="isLoading" class="scroll-track" style="animation: none;">
-                <div v-for="i in 6" :key="'rank-skel-'+i" class="trending-item" style="pointer-events: none; border: none;">
-                  <div class="rank-badge skeleton-box" style="background: transparent; box-shadow: none;"></div>
-                  <div class="skeleton-text skeleton-box" style="width: 80px; margin: 0; height: 16px;"></div>
-                </div>
-              </div>
-              
-              <div v-else-if="!rawLeaderboard || rawLeaderboard.length === 0" class="empty-ranking-state">
-                <div class="empty-rank-icon">📊</div>
-                <div class="empty-rank-title">暂无真实排位数据</div>
-                <div class="empty-rank-desc">快去左侧点击网站，积累全网热度吧！</div>
-              </div>
-
-              <TransitionGroup v-else name="rank-list" tag="div" class="scroll-track">
-                <a v-for="(site, index) in rawLeaderboard" :key="site.id" :href="`/go/${site.id}`" target="_blank" class="trending-item">
-                  <span class="rank-badge" :class="'rank-' + (index + 1)">{{ index + 1 }}</span>
-                  <span class="site-name">{{ site.title || site.name }}</span>
-                  <span class="click-count">
-                      <span v-if="site.growth_rate > 0" style="color: #ef4444; font-size: 13px; font-weight: 600;">↑ {{ site.growth_rate }}%</span>
-                      <span v-else-if="site.growth_rate < 0" style="color: #10b981; font-size: 13px; font-weight: 600;">↓ {{ Math.abs(site.growth_rate) }}%</span>
-                      <span v-else style="color: #94a3b8; font-size: 13px;">—</span>
-                  </span>
-                </a>
-              </TransitionGroup>
-            </div>
-
-            <div v-show="activeSidebarTab === 'news'" class="news-list-container" style="padding-top: 10px;">
-              <div class="news-list" v-if="!isLoadingNews && newsList.length > 0">
-                <a v-for="(news, index) in newsList" :key="index" :href="news.link" target="_blank" class="news-item">
-                  <div class="news-dot"></div>
-                  <div class="news-content">
-                    <div class="news-title">{{ news.title }}</div>
-                    <div class="news-meta">{{ news.source }}</div>
-                  </div>
-                </a>
-              </div>
-              <div v-else class="news-loading-skeleton">
-                <div class="skeleton-pulse" v-for="i in 5" :key="i"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="widget block-shadow ai-widget">
-          <div class="widget-header"><h3>✨ AI 建议</h3></div>
-          
-          <div class="chat-window" ref="chatWindow">
-            <div v-for="(msg, index) in chatMessages" :key="index" :class="['chat-bubble', msg.role]">
-              <div v-html="msg.content"></div>
-            </div>
-            <div v-if="isAiThinking" class="chat-bubble ai thinking">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            </div>
-          </div>
-          
-          <div class="chat-input">
-            <input v-model="userInput" @keyup.enter="sendMessage" type="text" placeholder="需要找什么网站？" :disabled="isAiThinking" />
-            <button class="btn-send" @click="sendMessage" :disabled="isAiThinking">发送</button>
-          </div>
-        </div>
-      </aside>
     </div>
-
     <div v-else-if="currentPage === 'profile'" class="profile-fullscreen-wrapper">
       <div class="profile-layout-container block-shadow">
         
@@ -1225,7 +867,190 @@ import SurveyModal from '../components/SurveyModal.vue'
 import { userAPI, feedAPI } from '../utils/api'
 
 // ================= 右侧边栏二合一选项卡 =================
-const activeSidebarTab = ref('ranking'); // 默认显示排行 ('ranking' 或 'news')
+const activeSidebarTab = ref('ranking');
+const activeHomeCategory = ref('common');
+const activeStackCategory = ref('ai-coding');
+
+const stackCategoryFallbacks = [
+  { key: 'ai-coding', label: 'AI Coding', categoryId: 4 },
+  { key: 'newsletter', label: 'Newsletter', categoryId: 1 },
+  { key: 'site-builder', label: 'Site Builder', categoryId: 4 },
+  { key: 'ai-seo', label: 'AI SEO', categoryId: 1 },
+  { key: 'sales', label: 'Sales / Outreach', categoryId: 3 },
+  { key: 'ai-voice', label: 'AI Voice', categoryId: 3 },
+  { key: 'email-marketing', label: 'Email Marketing', categoryId: 2 },
+  { key: 'crm', label: 'CRM', categoryId: 2 }
+];
+
+const stackFallbackTools = [
+  { id: 'stack-claude', name: 'Claude Code', url: 'https://claude.ai', desc: 'AI pair coder for terminal workflows', stackCategory: 'AI PAIR' },
+  { id: 'stack-cursor', name: 'Cursor', url: 'https://www.cursor.com', desc: 'AI editor built for shipping faster', stackCategory: 'IDE' },
+  { id: 'stack-grammarly', name: 'Grammarly', url: 'https://www.grammarly.com', desc: 'Writing assistant for sharper copy', stackCategory: 'WRITING' },
+  { id: 'stack-windsurf', name: 'Windsurf', url: 'https://windsurf.com', desc: 'Agentic coding environment', stackCategory: 'AI CODING' },
+  { id: 'stack-v0', name: 'v0', url: 'https://v0.dev', desc: 'Generate app interfaces from prompts', stackCategory: 'UI GEN' },
+  { id: 'stack-bolt', name: 'Bolt', url: 'https://bolt.new', desc: 'Browser-native AI app builder', stackCategory: 'APP BUILDER' },
+  { id: 'stack-lovable', name: 'Lovable', url: 'https://lovable.dev', desc: 'Prompt-to-full-stack product builder', stackCategory: 'PROTOTYPE' },
+  { id: 'stack-replit', name: 'Replit Agent', url: 'https://replit.com', desc: 'Build and host from one workspace', stackCategory: 'HOSTED IDE' },
+  { id: 'stack-github', name: 'GitHub Copilot', url: 'https://github.com/features/copilot', desc: 'Code suggestions inside your editor', stackCategory: 'CODE' },
+  { id: 'stack-astro', name: 'Astro', url: 'https://astro.build', desc: 'Static-first sites that stay fast', stackCategory: 'SITE ENGINE' },
+  { id: 'stack-sanity', name: 'Sanity', url: 'https://www.sanity.io', desc: 'Content platform with structured schemas', stackCategory: 'CMS' },
+  { id: 'stack-cloudflare', name: 'Cloudflare', url: 'https://www.cloudflare.com', desc: 'DNS, cache and edge platform', stackCategory: 'INFRA' },
+  { id: 'stack-kit', name: 'KIT', url: 'https://kit.com', desc: 'Email and creator marketing tools', stackCategory: 'NEWSLETTER' },
+  { id: 'stack-supabase', name: 'Supabase', url: 'https://supabase.com', desc: 'Postgres, auth, storage and realtime', stackCategory: 'BACKEND' },
+  { id: 'stack-vercel', name: 'Vercel', url: 'https://vercel.com', desc: 'Frontend cloud for fast deployments', stackCategory: 'DEPLOY' }
+];
+
+const stackCategories = computed(() => {
+  const mapped = (categories.value || []).slice(0, 8).map((cat, index) => ({
+    key: `cat-${cat.id ?? index}`,
+    label: cat.name || stackCategoryFallbacks[index]?.label || `Category ${index + 1}`,
+    categoryId: cat.id ?? 'all'
+  }));
+  return mapped.length >= 5 ? mapped : stackCategoryFallbacks;
+});
+
+const stackToolCount = computed(() => Math.max(websites.value?.length || 0, stackFallbackTools.length));
+
+const normalizeStackSites = (sites, limit) => {
+  const merged = [...(sites || []).filter(site => site && site.url)];
+  stackFallbackTools.forEach(site => {
+    if (merged.length < limit && !merged.some(item => domainOf(item.url) === domainOf(site.url))) merged.push(site);
+  });
+  return merged.slice(0, limit);
+};
+
+const stackTools = computed(() => normalizeStackSites(filteredWebsites.value, 9));
+
+const marqueeSites = computed(() => normalizeStackSites([...featuredSites.value, ...recommendedSites], 20));
+
+const favoriteStackTools = computed(() => {
+  const source = favoritedSitesList.value.length ? favoritedSitesList.value : [...recommendedSites, ...featuredSites.value];
+  return normalizeStackSites(source, 8);
+});
+
+const activeStackCategoryLabel = computed(() => {
+  return stackCategories.value.find(cat => cat.key === activeStackCategory.value)?.label || 'tools';
+});
+
+const selectStackCategory = (cat) => {
+  activeStackCategory.value = cat.key;
+  activeHomeCategory.value = cat.key;
+  if (cat.categoryId !== undefined) activeCategoryId.value = cat.categoryId;
+};
+
+const stackToolCategory = (site) => {
+  return site?.stackCategory || activeStackCategoryLabel.value || 'TOOLS';
+};
+
+const homeCategories = [
+  { key: 'common', label: '常用', categoryId: 'all', icon: '<svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>' },
+  { key: 'social', label: '社交', categoryId: 3, icon: '<svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0m12 9a6 6 0 0 0-12 0m10-11a3 3 0 0 1 0 6m3 5a5 5 0 0 0-4-4.9"/></svg>' },
+  { key: 'video', label: '视频', categoryId: 3, icon: '<svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="m10 9 5 3-5 3V9Z"/></svg>' },
+  { key: 'shopping', label: '购物', categoryId: 1, icon: '<svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>' },
+  { key: 'tools', label: '工具', categoryId: 4, icon: '<svg viewBox="0 0 24 24"><path d="m14 7 3-3 3 3-3 3-3-3ZM4 20l7-7m-4-1 5 5"/><path d="M5 5l4 4"/></svg>' },
+  { key: 'study', label: '学习', categoryId: 2, icon: '<svg viewBox="0 0 24 24"><path d="M4 5h7a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4V5Zm16 0h-6a3 3 0 0 0-3 3"/></svg>' },
+  { key: 'news', label: '新闻', categoryId: 1, icon: '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' },
+  { key: 'life', label: '生活', categoryId: 1, icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 10h.01M15 10h.01M8.5 14a5 5 0 0 0 7 0"/></svg>' }
+];
+
+const hotSearchTags = ['iPhone 16', 'AI 工具', '设计灵感', 'PDF 转换', '高清图片', '效率工具'];
+
+const fallbackFeaturedSites = [
+  { id: 'fallback-baidu', name: '百度', url: 'https://www.baidu.com', desc: '百度一下' },
+  { id: 'fallback-wechat', name: '微信', url: 'https://weixin.qq.com', desc: '连接每一个生活' },
+  { id: 'fallback-douyin', name: '抖音', url: 'https://www.douyin.com', desc: '记录美好生活' },
+  { id: 'fallback-taobao', name: '淘宝', url: 'https://www.taobao.com', desc: '美好生活' },
+  { id: 'fallback-jd', name: '京东', url: 'https://www.jd.com', desc: '多 · 快 · 好 · 省' },
+  { id: 'fallback-bili', name: 'Bilibili', url: 'https://www.bilibili.com', desc: '你感兴趣的视频都在B站' }
+];
+
+const recommendedSites = [
+  { id: 'rec-chatgpt', name: 'ChatGPT', url: 'https://chat.openai.com', desc: 'AI 智能对话助手' },
+  { id: 'rec-notion', name: 'Notion', url: 'https://www.notion.so', desc: '笔记与项目管理' },
+  { id: 'rec-canva', name: 'Canva 可画', url: 'https://www.canva.com', desc: '在线设计工具' },
+  { id: 'rec-ilovepdf', name: 'iLovePDF', url: 'https://www.ilovepdf.com', desc: 'PDF 处理工具' },
+  { id: 'rec-pixabay', name: 'Pixabay', url: 'https://pixabay.com', desc: '免费高清图库' },
+  { id: 'rec-docs', name: '腾讯文档', url: 'https://docs.qq.com', desc: '多人协作在线文档' }
+];
+
+const recentVisits = [
+  { name: '知乎', url: 'https://www.zhihu.com', domain: 'www.zhihu.com', time: '10:24' },
+  { name: '微博', url: 'https://weibo.com', domain: 'weibo.com', time: '09:58' },
+  { name: '高德地图', url: 'https://www.amap.com', domain: 'amap.com', time: '昨天' },
+  { name: '网易云音乐', url: 'https://music.163.com', domain: 'music.163.com', time: '昨天' },
+  { name: '小红书', url: 'https://www.xiaohongshu.com', domain: 'xiaohongshu.com', time: '前天' }
+];
+
+const fallbackLeaderboard = [
+  { title: '神舟十八号载人飞船发射圆满成功', count: '987.6万' },
+  { title: 'iPhone 16 系列最新爆料汇总', count: '876.3万' },
+  { title: '2024 高考时间公布', count: '768.9万' },
+  { title: 'OpenAI 发布全新模型 GPT-4o', count: '654.1万' },
+  { title: '比亚迪发布第五代DM技术', count: '521.4万' }
+];
+
+const selectHomeCategory = (item) => {
+  activeHomeCategory.value = item.key;
+  if (item.categoryId !== undefined) activeCategoryId.value = item.categoryId;
+};
+
+const knownSiteNames = {
+  'bilibili.com': { name: 'Bilibili', desc: '你感兴趣的视频都在B站' },
+  'baidu.com': { name: '百度', desc: '百度一下' },
+  'weixin.qq.com': { name: '微信', desc: '连接每一个生活' },
+  'douyin.com': { name: '抖音', desc: '记录美好生活' },
+  'taobao.com': { name: '淘宝', desc: '美好生活' },
+  'jd.com': { name: '京东', desc: '多 · 快 · 好 · 省' },
+  'zhihu.com': { name: '知乎', desc: '有问题，就会有答案' },
+  'xiaohongshu.com': { name: '小红书', desc: '标记我的生活' },
+  'weibo.com': { name: '微博', desc: '随时随地发现新鲜事' },
+  'douban.com': { name: '豆瓣', desc: '发现好书好电影' },
+  'amap.com': { name: '高德地图', desc: '地图导航出行必备' },
+  'music.163.com': { name: '网易云音乐', desc: '音乐的力量' },
+  'github.com': { name: 'GitHub', desc: '代码托管与协作' },
+  'notion.so': { name: 'Notion', desc: '笔记与项目管理' }
+};
+
+const domainOf = (url = '') => {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
+};
+
+const displaySiteName = (site) => {
+  const domain = domainOf(site?.url);
+  return knownSiteNames[domain]?.name || site?.name || '未命名';
+};
+
+const siteDescription = (site) => {
+  const domain = domainOf(site?.url);
+  return site?.desc || knownSiteNames[domain]?.desc || '快速直达常用网站';
+};
+
+const featuredSites = computed(() => {
+  const source = (activeHomeCategory.value === 'favorites' ? favoritedSitesList.value : filteredWebsites.value)
+    .filter(site => site && site.url)
+    .slice(0, 6);
+  const merged = [...source];
+  fallbackFeaturedSites.forEach(site => {
+    if (merged.length < 6 && !merged.some(item => domainOf(item.url) === domainOf(site.url))) merged.push(site);
+  });
+  return merged.slice(0, 6);
+});
+
+const displayLeaderboard = computed(() => {
+  const source = (rawLeaderboard.value || []).slice(0, 5).map(item => ({
+    ...item,
+    count: item.count || (item.clicks ? `${item.clicks}次` : item.clicksText)
+  }));
+  return source.length ? source : fallbackLeaderboard;
+});
+
+const greetingText = computed(() => {
+  const hour = new Date().getHours();
+  if (hour < 6) return '夜深了';
+  if (hour < 12) return '上午好';
+  if (hour < 18) return '下午好';
+  return '晚上好';
+}); // 默认显示排行 ('ranking' 或 'news')
 
 // 确保这两行存在
 const showCategoryModal = ref(false); // 控制弹窗显示/隐藏
@@ -2076,67 +1901,27 @@ async function handleSurveySubmit(interests) {
   try {
     const res = await userAPI.submitSurvey(interests);
     if (res.data?.code === 0) {
-      closeSurveyAndSave(interests);
+      showSurveyModal.value = false;
+      hasSurvey.value = true;
+      // 更新本地 userInfo
+      if (userInfo.value) {
+        userInfo.value.has_survey = 1;
+        userInfo.value.user_tags = interests.join(',');
+        localStorage.setItem('user_info', JSON.stringify(userInfo.value));
+      }
       showToast('🎉 问卷已保存！正在加载专属推荐...', 'success');
+      // 重新拉取推荐
       await loadRecommendations();
     } else {
+      // 后端返回了业务错误码（如 400 标签无效）
       showToast('❌ ' + (res.data?.msg || '保存失败'), 'error');
       if (surveyModalRef.value) surveyModalRef.value.done();
     }
   } catch (error) {
-    // 后端不可达时，先存本地再异步重试
-    const isNetworkError = !error.response && error.message === 'Network Error';
-
-    if (isNetworkError) {
-      // 🛡️ 离线兜底：存 localStorage，后端恢复后自动同步
-      saveSurveyLocally(interests);
-      closeSurveyAndSave(interests);
-      showToast('⚠️ 后端未连接，问卷已暂存本地，服务恢复后自动同步', 'warning');
-    } else {
-      const detail = error.response?.data?.msg || error.message || '网络错误';
-      showToast('❌ 提交失败：' + detail, 'error');
-      if (surveyModalRef.value) surveyModalRef.value.done();
-    }
-  }
-}
-
-/** 本地持久化问卷结果 + 关闭弹窗更新状态 */
-function closeSurveyAndSave(interests) {
-  showSurveyModal.value = false;
-  hasSurvey.value = true;
-  if (userInfo.value) {
-    userInfo.value.has_survey = 1;
-    userInfo.value.user_tags = interests.join(',');
-    localStorage.setItem('user_info', JSON.stringify(userInfo.value));
-  }
-}
-
-/** 兜底：后端不可达时暂存到 localStorage */
-function saveSurveyLocally(interests) {
-  localStorage.setItem('pending_survey', JSON.stringify({
-    tags: interests,
-    savedAt: new Date().toISOString()
-  }));
-}
-
-/** 页面加载时检查是否有待同步的问卷 */
-async function syncPendingSurvey() {
-  const pending = localStorage.getItem('pending_survey');
-  if (!pending) return;
-  try {
-    const { tags } = JSON.parse(pending);
-    const res = await userAPI.submitSurvey(tags);
-    if (res.data?.code === 0) {
-      localStorage.removeItem('pending_survey');
-      if (userInfo.value) {
-        userInfo.value.has_survey = 1;
-        userInfo.value.user_tags = tags.join(',');
-        localStorage.setItem('user_info', JSON.stringify(userInfo.value));
-      }
-      console.log('✅ 离线问卷已同步至后端');
-    }
-  } catch (e) {
-    // 后端仍不可达，保留 pending_survey 下次再试
+    // 网络错误 / 401 未登录 / 500 服务器异常
+    const detail = error.response?.data?.msg || error.message || '网络错误';
+    showToast('❌ 提交失败：' + detail, 'error');
+    if (surveyModalRef.value) surveyModalRef.value.done();
   }
 }
 
@@ -2153,10 +1938,6 @@ async function loadRecommendations() {
     const res = await feedAPI.getRecommendations();
     if (res.data?.code === 0) {
       recommendedItems.value = res.data.data.items || [];
-      // 🎯 加载成功后自动切到推荐视图
-      if (recommendedItems.value.length > 0) {
-        activeCategoryId.value = 'recommended';
-      }
     }
   } catch (error) {
     console.warn('加载推荐失败:', error);
@@ -2423,111 +2204,6 @@ const loadSettingsFromCloud = async (username) => {
 
 // ================= 主页展示逻辑 =================
 const activeCategoryId = ref('all') 
-const activePage = ref('ai')
-const activeSystemCategory = ref('all')
-const aiNeedInput = ref('')
-const selectedNeedMode = ref('学习')
-
-const pageTabs = [
-  { key: 'ai', label: 'AI导航' },
-  { key: 'system', label: '系统网站' },
-  { key: 'favorites', label: '我的收藏' }
-]
-
-const aiNeedModes = ['学习', '写作', '开发', '设计', '办公']
-
-const systemCategoryFilters = [
-  { key: 'all', label: '全部' },
-  { key: 'ai', label: 'AI工具' },
-  { key: 'study', label: '学习' },
-  { key: 'dev', label: '开发' },
-  { key: 'design', label: '设计' },
-  { key: 'office', label: '办公' }
-]
-
-const systemCategoryKeywords = {
-  ai: ['ai', 'chatgpt', 'claude', 'gemini', 'kimi', 'deepseek', 'copilot', 'cursor', 'perplexity', '模型', '智能'],
-  study: ['学习', '文档', '课程', 'leetcode', 'mdn', '知乎', 'bilibili', '牛客', '资料'],
-  dev: ['开发', 'github', 'gitlab', 'gitee', 'stack', 'npm', 'docker', 'vue', 'react', 'vite', 'api', '代码'],
-  design: ['设计', 'figma', 'dribbble', 'behance', 'canva', 'icon', '素材', '配色', '字体'],
-  office: ['办公', 'notion', '飞书', '文档', 'processon', 'pdf', '翻译', '协作']
-}
-
-async function refreshSurveyStatusFromServer() {
-  if (!isLoggedIn.value) return;
-  try {
-    const res = await userAPI.getSurveyStatus();
-    if (res.data?.code === 0 && res.data?.data) {
-      const surveyData = res.data.data;
-      hasSurvey.value = Number(surveyData.has_survey) === 1;
-      userInfo.value = {
-        ...userInfo.value,
-        has_survey: hasSurvey.value ? 1 : 0,
-        user_tags: surveyData.user_tags || ''
-      };
-      localStorage.setItem('user_info', JSON.stringify(userInfo.value));
-    }
-  } catch (error) {
-    hasSurvey.value = Number(userInfo.value?.has_survey || 0) === 1;
-  }
-}
-
-const getSiteCategoryLabel = (site) => {
-  const category = categories.value.find(cat => String(cat.id) === String(site.category_id))
-  return category?.name || '推荐'
-}
-
-const getSiteUsageLabel = (site) => {
-  const name = `${site.name || ''} ${site.url || ''}`.toLowerCase()
-  if (systemCategoryKeywords.ai.some(key => name.includes(key.toLowerCase()))) return 'AI工具'
-  if (systemCategoryKeywords.dev.some(key => name.includes(key.toLowerCase()))) return '开发'
-  if (systemCategoryKeywords.design.some(key => name.includes(key.toLowerCase()))) return '设计'
-  if (systemCategoryKeywords.office.some(key => name.includes(key.toLowerCase()))) return '办公'
-  if (systemCategoryKeywords.study.some(key => name.includes(key.toLowerCase()))) return '学习'
-  return getSiteCategoryLabel(site)
-}
-
-const matchesSystemCategory = (site, categoryKey) => {
-  if (categoryKey === 'all') return true
-  const haystack = `${site.name || ''} ${site.url || ''} ${getSiteCategoryLabel(site)} ${getSiteUsageLabel(site)}`.toLowerCase()
-  return (systemCategoryKeywords[categoryKey] || []).some(key => haystack.includes(String(key).toLowerCase()))
-}
-
-const toRecommendedSite = (item, index = 0) => ({
-  id: item.id,
-  name: item.name,
-  url: item.url,
-  logo_url: item.logo_url || '',
-  category_id: item.category_id || 0,
-  clicks: item.clicks || 0,
-  matchScore: item.match_score || Math.max(88, 96 - index * 2),
-  reason: item.reason || item.matched_reason || `适合${selectedNeedMode.value}相关需求，可快速完成当前任务。`,
-  tags: [item.matched_tag, getSiteUsageLabel(item)].filter(Boolean).slice(0, 2)
-})
-
-const aiRecommendedSites = computed(() => {
-  const source = recommendedItems.value.length > 0
-    ? recommendedItems.value
-    : [...websites.value].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 4)
-
-  return source.slice(0, 4).map((site, index) => toRecommendedSite(site, index))
-})
-
-const systemSites = computed(() => {
-  const keyword = searchQuery.value.trim().toLowerCase()
-  return websites.value
-    .filter(site => matchesSystemCategory(site, activeSystemCategory.value))
-    .filter(site => {
-      if (!keyword) return true
-      return `${site.name || ''} ${site.url || ''} ${getSiteCategoryLabel(site)} ${getSiteUsageLabel(site)}`
-        .toLowerCase()
-        .includes(keyword)
-    })
-    .sort((a, b) => (b.clicks || 0) - (a.clicks || 0))
-    .slice(0, 12)
-})
-
-const favoriteSitesForPage = computed(() => favoritedSitesList.value)
 const toggleTheme = () => { isDarkMode.value = !isDarkMode.value }
 
 // ================= 1. 定义默认职业数据 =================
@@ -2558,34 +2234,6 @@ const defaultProfessionData = {
     categories: [
       { id: 401, name: '原型设计' }, { id: 402, name: '文档办公' },
       { id: 403, name: '数据分析' }, { id: 404, name: '竞品调研' }
-    ]
-  },
-  gamer: {
-    name: '极客人', icon: '🕹️',
-    categories: [
-      { id: 501, name: '游戏平台' }, { id: 502, name: '游戏资讯' },
-      { id: 503, name: '独立游戏' }, { id: 504, name: '游戏开发' }
-    ]
-  },
-  'ai-engineer': {
-    name: 'AI 工程师', icon: '🤖',
-    categories: [
-      { id: 601, name: '大模型平台' }, { id: 602, name: 'AI开发框架' },
-      { id: 603, name: 'AI学术研究' }, { id: 604, name: 'MLOps工具' }
-    ]
-  },
-  backend: {
-    name: '后端开发', icon: '⚙️',
-    categories: [
-      { id: 701, name: '数据库服务' }, { id: 702, name: '云平台' },
-      { id: 703, name: 'API工具' }, { id: 704, name: '消息/微服务' }
-    ]
-  },
-  ops: {
-    name: '运营增长', icon: '📈',
-    categories: [
-      { id: 801, name: '新媒体运营' }, { id: 802, name: '数据分析' },
-      { id: 803, name: '增长工具' }, { id: 804, name: 'SEO/ASO' }
     ]
   }
 };
@@ -2896,48 +2544,26 @@ const isLoading = ref(true);
 
 // ================= 智能过滤与本地秒搜 (加入收藏夹逻辑) =================
 const filteredWebsites = computed(() => {
-  // 🎯 专属推荐模式：直接使用后端推荐结果
-  if (activeCategoryId.value === 'recommended' && recommendedItems.value.length > 0) {
-    let list = recommendedItems.value.map(item => ({
-      id: item.id,
-      name: item.name,
-      url: item.url,
-      logo_url: item.logo_url || '',
-      category_id: 0,
-      clicks: item.clicks || 0,
-      _recTag: item.matched_tag || '',     // 携带匹配标签用于展示
-      _recSource: true                       // 标记为推荐来源
-    }));
-
-    // 搜索过滤
-    const keyword = searchQuery.value.trim().toLowerCase();
-    if (keyword) {
-      list = list.filter(site =>
-        site.name.toLowerCase().includes(keyword) ||
-        (site.url && site.url.toLowerCase().includes(keyword))
-      );
-    }
-    return list;
-  }
-
   let list = websites.value;
-
+  
   // 1. 分类过滤
   if (activeCategoryId.value === 'favorites') {
+    // ✨ 核心：当处于“我的收藏”分类时，仅过滤出在 favoriteSiteIds 数组里的网站
     list = list.filter(site => favoriteSiteIds.value.includes(site.id));
   } else if (activeCategoryId.value !== 'all') {
+    // 常规分类过滤
     list = list.filter(site => site.category_id == activeCategoryId.value);
   }
-
-  // 2. 本地秒搜过滤
+  
+  // 2. 本地秒搜过滤 (实时监听输入框 searchQuery)
   const keyword = searchQuery.value.trim().toLowerCase();
   if (keyword) {
-    list = list.filter(site =>
-      site.name.toLowerCase().includes(keyword) ||
+    list = list.filter(site => 
+      site.name.toLowerCase().includes(keyword) || 
       (site.url && site.url.toLowerCase().includes(keyword))
     );
   }
-
+  
   return list;
 });
 
@@ -3475,8 +3101,7 @@ const fetchFavorites = async () => {
     const res = await axios.get('http://127.0.0.1:5000/api/favorites', {
       headers: { Authorization: `Bearer ${token}` } 
     });
-    const payload = res.data?.data || res.data || [];
-    favoriteSiteIds.value = payload.map(item => typeof item === 'number' ? item : item.website_id);
+    favoriteSiteIds.value = res.data; // 直接把后端返回的数组存起来
   } catch (error) {
     console.error('获取收藏列表失败:', error);
   }
@@ -3566,41 +3191,50 @@ const handleConfirmAdd = () => {
 // ================= 切换收藏状态 (极致丝滑版) =================
 const toggleFavorite = async (site) => {
   if (!site || !site.id) return;
-  if (!isLoggedIn.value) {
-    showToast('请先登录后收藏');
-    return;
-  }
 
+  // 1. 判断当前是不是已经被收藏了
   const index = favoriteSiteIds.value.indexOf(site.id);
   const isCurrentlyFavorited = index !== -1;
 
+  // ✨ 2. 乐观更新魔法：不管后端同不同意，前端立刻做出反应！
   if (isCurrentlyFavorited) {
+    // 瞬间取消收藏：从前端数组中拔掉它，卡片立马消失/星星立马变空！
     favoriteSiteIds.value.splice(index, 1);
+    console.log("前端已瞬间取消收藏:", site.name);
   } else {
+    // 瞬间加入收藏
     favoriteSiteIds.value.push(site.id);
+    console.log("前端已瞬间加入收藏:", site.name);
   }
 
+  // 3. 静默去跟后端同步数据
   try {
-    const token = localStorage.getItem('access_token');
-    if (isCurrentlyFavorited) {
-      await axios.delete(`http://127.0.0.1:5000/api/favorites/${site.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    } else {
-      await axios.post('http://127.0.0.1:5000/api/favorites', { website_id: site.id }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    }
-    showToast(isCurrentlyFavorited ? '已取消收藏' : '收藏成功');
+    // 这里是你原本发给后端的 API 请求代码
+    // 比如：await fetch('/api/favorites/toggle', { ... }) 
+    // 👇 请确保下面这行是你真实的后端接口请求（如果没有，可以先注释掉）
+    
+    /* const response = await fetch('/api/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ site_id: site.id })
+    });
+    if (!response.ok) throw new Error("后端同步失败");
+    */
+
+    // 可以在这里加个成功的小提示（可选）
+    showToast(isCurrentlyFavorited ? '已取消收藏' : '⭐ 收藏成功');
+
   } catch (error) {
+    console.warn("后端同步出错了，但前端体验依然丝滑！", error);
+    
+    // 🛡️ 兜底机制：如果后端真的彻底挂了，为了保证数据不乱，再悄悄把状态改回去
+    // 如果你不需要这么严谨，这段 catch 里的代码甚至可以不写。
     if (isCurrentlyFavorited) {
-      favoriteSiteIds.value.push(site.id);
+      favoriteSiteIds.value.push(site.id); // 还原回收藏状态
     } else {
       const revertIdx = favoriteSiteIds.value.indexOf(site.id);
-      if (revertIdx !== -1) favoriteSiteIds.value.splice(revertIdx, 1);
+      if (revertIdx !== -1) favoriteSiteIds.value.splice(revertIdx, 1); // 还原回未收藏
     }
-    showToast('收藏同步失败，请稍后重试');
-    console.warn('收藏同步失败:', error);
   }
 };
 // 4. 动态计算收藏列表
@@ -3621,24 +3255,17 @@ const filteredSites = computed(() => {
 
 // --- 💡 关键：确保在 refreshStatus() 函数里调用它 ---
 // 找到你刚写好的 refreshStatus 函数，在里面补充 fetchFavorites()
-const refreshStatus = async () => {
-  const hasToken = Boolean(localStorage.getItem('access_token') || localStorage.getItem('refresh_token'));
+const refreshStatus = () => {
+  const savedStatus = localStorage.getItem('is_logged_in');
   const savedUser = localStorage.getItem('user_info');
-  if (hasToken) {
-    localStorage.setItem('is_logged_in', 'true');
+  if (savedStatus === 'true' && savedUser) {
     isLoggedIn.value = true;
-    try {
-      userInfo.value = savedUser ? JSON.parse(savedUser) : { username: '已登录用户', avatar: '' };
-    } catch (_) {
-      userInfo.value = { username: '已登录用户', avatar: '' };
-    }
-    localStorage.setItem('user_info', JSON.stringify(userInfo.value));
-    hasSurvey.value = Number(userInfo.value?.has_survey || 0) === 1;
-    await refreshSurveyStatusFromServer();
-    if (userInfo.value.username) loadSettingsFromCloud(userInfo.value.username);
+    userInfo.value = JSON.parse(savedUser);
+    // 🎯 检查用户是否已完成问卷
+    hasSurvey.value = userInfo.value?.has_survey === 1;
+    loadSettingsFromCloud(userInfo.value.username);
     fetchFavorites(); // ✨ 登录成功后，立刻拉取收藏列表
     loadRecommendations(); // 🎯 登录后加载推荐
-    syncPendingSurvey();   // 🔄 同步之前因离线暂存的问卷数据
     // 🎯 未做问卷则弹窗
     checkAndShowSurvey();
   } else {
@@ -3698,15 +3325,10 @@ onMounted(async () => {
 
   // 3. 恢复本地登录状态
   const savedUser = localStorage.getItem('user_info');
-  if ((localStorage.getItem('access_token') || localStorage.getItem('refresh_token') || localStorage.getItem('is_logged_in') === 'true') && savedUser) {
-    try {
-      userInfo.value = JSON.parse(savedUser);
-    } catch (_) {
-      userInfo.value = { username: '已登录用户', avatar: '' };
-    }
+  if (localStorage.getItem('is_logged_in') === 'true' && savedUser) {
+    userInfo.value = JSON.parse(savedUser);
     isLoggedIn.value = true;
-    localStorage.setItem('is_logged_in', 'true');
-    if (userInfo.value.username) loadSettingsFromCloud(userInfo.value.username);
+    loadSettingsFromCloud(userInfo.value.username);
   }
 
   // 4. 获取数据（核心修改区）
@@ -4003,50 +3625,6 @@ onUnmounted(() => {
   font-weight: 700; 
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
-/* ================= 🎯 推荐标签页样式 ================= */
-.nav-tab-box.rec-tab {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.06));
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #6366f1;
-  font-weight: 600;
-}
-.nav-tab-box.rec-tab:hover {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.1));
-  border-color: rgba(99, 102, 241, 0.4);
-}
-.nav-tab-box.rec-tab.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(139, 92, 246, 0.12)) !important;
-  border-color: #818cf8 !important;
-  color: #4f46e5 !important;
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25) !important;
-}
-.layout.dark-theme .nav-tab-box.rec-tab {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
-  border-color: rgba(129, 140, 248, 0.25);
-  color: #a5b4fc;
-}
-.layout.dark-theme .nav-tab-box.rec-tab.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.16)) !important;
-  border-color: #818cf8 !important;
-  color: #c7d2fe !important;
-}
-
-/* ================= 🏷️ 推荐匹配标签徽章 ================= */
-.rec-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #fff;
-  letter-spacing: 0.3px;
-  z-index: 2;
-  pointer-events: none;
-}
-
 /* ================= 4. 搜索引擎单选与弹窗 ================= */
 .engine-radio-group { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 0px; flex-wrap: wrap; }
 .engine-radio-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-main); cursor: pointer; transition: 0.2s; opacity: 0.8; }
@@ -4062,7 +3640,7 @@ onUnmounted(() => {
 /* 搜索引擎弹窗 (修复对齐) */
 /* ================= 11. 搜索引擎设置弹窗 (极致质感进化版) ================= */
 .engine-modal { 
-  width: 520px; /* 稍微加宽一点，给复选框更多呼吸空间 */
+  width: min(520px, calc(100vw - 32px)); /* 稍微加宽一点，给复选框更多呼吸空间 */
   padding: 35px 40px !important; 
   background: rgba(255, 255, 255, 0.85) !important; /* ✨ 恢复顶级的透亮毛玻璃质感 */
   backdrop-filter: blur(30px); 
@@ -4521,7 +4099,10 @@ onUnmounted(() => {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
   background: rgba(0, 0, 0, 0.35); /* ✨ 降低黑底浓度，让美丽的背景渐变透出来 */
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); /* 加强整体背景模糊 */
-  display: flex; justify-content: center; align-items: center; z-index: 100000; 
+  display: flex; justify-content: center; align-items: center; z-index: 100000;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 24px;
 }
 
 .auth-modal { 
@@ -4531,7 +4112,12 @@ onUnmounted(() => {
   box-shadow: 0 25px 50px rgba(0,0,0,0.15); 
   padding: 2.5rem 2.2rem; 
   border-radius: 24px; 
-  width: 400px; 
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
   position: relative; 
   color: var(--text-main); 
   animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* ✨ Q弹入场动画 */
@@ -4553,6 +4139,7 @@ onUnmounted(() => {
 /* ✨ 圆形悬浮关闭按钮 (带旋转动画) */
 .close-btn { 
   position: absolute; top: 18px; right: 18px; 
+  z-index: 3;
   width: 32px; height: 32px; 
   border-radius: 50%; 
   background: rgba(0,0,0,0.05); 
@@ -4566,7 +4153,7 @@ onUnmounted(() => {
   transform: scale(1.1) rotate(90deg); 
 }
 
-.vertical-layout { display: flex; flex-direction: column; gap: 16px; }
+.vertical-layout { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
 /* 其他登录方式按钮 */
 .method-btn { padding: 14px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-light); border-radius: 12px; color: var(--text-main); cursor: pointer; font-weight: 600; transition: 0.3s; }
@@ -4598,6 +4185,8 @@ onUnmounted(() => {
 
 /* ✨ 具有呼吸感和浮雕效果的提交按钮 */
 .btn-submit { 
+  position: relative;
+  z-index: 2;
   margin-top: 10px;
   background: linear-gradient(135deg, #3b82f6, #2563eb); 
   color: #fff; border: none; padding: 14px; border-radius: 12px; 
@@ -4613,13 +4202,37 @@ onUnmounted(() => {
 .btn-submit:active { transform: translateY(1px); box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3); }
 
 /* 验证码与底部链接 */
-.verify-code-row { display: flex; gap: 10px; }
-.get-code-btn { background: transparent; border: 1px solid #60a5fa; color: #3b82f6; border-radius: 12px; padding: 0 15px; cursor: pointer; white-space: nowrap; font-weight: 600; transition: 0.2s;}
+.verify-code-row { display: flex; gap: 10px; min-width: 0; }
+.verify-code-row .auth-input { flex: 1 1 auto; min-width: 0; }
+.get-code-btn { position: relative; z-index: 2; background: transparent; border: 1px solid #60a5fa; color: #3b82f6; border-radius: 12px; padding: 0 15px; cursor: pointer; white-space: nowrap; font-weight: 600; transition: 0.2s;}
 .get-code-btn:hover { background: rgba(59, 130, 246, 0.1); }
-.link-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; margin-top: 10px; transition: 0.2s;}
+.link-btn { position: relative; z-index: 2; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; margin-top: 10px; transition: 0.2s;}
 .link-btn:hover { color: #3b82f6; text-decoration: underline; }
-.modal-footer { margin-top: 25px; text-align: center; font-size: 12px; color: var(--text-muted); }
+.modal-footer { position: relative; z-index: 2; margin-top: 25px; text-align: center; font-size: 12px; color: var(--text-muted); }
 .modal-footer a { color: #3b82f6; text-decoration: none; font-weight: 600;}
+
+@media (max-width: 768px) {
+  .auth-overlay {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .auth-modal {
+    width: min(100%, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: 24px 18px !important;
+  }
+
+  .engine-modal {
+    width: min(100%, calc(100vw - 32px));
+    padding: 24px 18px !important;
+  }
+
+  .verify-code-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 
 /* 修改资料专属布局优化 */
 .edit-form-container { display: flex; flex-direction: column; gap: 20px; margin-top: 5px; }
@@ -7502,599 +7115,1282 @@ input:checked + .slider:before { transform: translateX(22px); }
   -webkit-backdrop-filter: blur(4px);  /* 兼容 Safari */
   background-color: rgba(15, 23, 42, 0.4); /* 配色微调，使其更显高级感 */
 }
-.zh-main-container {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-height: 100vh;
-  padding: 0;
-  overflow-x: hidden;
-}
 
-.zh-shell {
-  --zh-bg: #ffffff;
-  --zh-surface: #f8fafc;
-  --zh-surface-strong: #f1f5f9;
-  --zh-border: #e5e7eb;
-  --zh-text: #111827;
-  --zh-muted: #64748b;
-  --zh-accent: #0fbaa8;
-  --zh-accent-soft: rgba(15, 186, 168, 0.1);
-  width: 100%;
-  min-height: 100vh;
-  margin: 0;
-  padding: 24px clamp(18px, 3vw, 44px) 32px;
-  box-sizing: border-box;
-  color: var(--zh-text);
-  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
-}
+/* ===== Reference-inspired navigation home redesign ===== */
+.nav-topbar,
+.nav-home-shell,
+.nav-home-shell * { box-sizing: border-box; }
 
-.zh-topbar {
-  height: 64px;
+.nav-topbar {
+  height: 88px;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 260px 1fr auto;
   align-items: center;
-  gap: 20px;
-  width: min(100%, 1440px);
-  margin: 0 auto 22px;
+  gap: 24px;
+  padding: 0 32px;
+  margin: 8px 12px 0;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(208, 218, 235, 0.78);
+  border-bottom-color: rgba(197, 209, 228, 0.9);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 16px 44px rgba(71, 94, 132, 0.08);
+  backdrop-filter: blur(18px);
 }
 
-.zh-brand,
-.zh-page-tab,
-.zh-login-btn,
-.zh-avatar-btn,
-.need-mode,
-.ai-input-box button,
-.visit-btn,
-.system-filter-row button,
-.ghost-action,
-.zh-star-btn {
-  font: inherit;
-}
+.nav-brand { display: inline-flex; align-items: center; gap: 14px; color: #071636; font-size: 28px; font-weight: 800; letter-spacing: -0.03em; }
+.nav-brand-mark { width: 38px; height: 38px; display: inline-grid; place-items: center; color: #2563eb; }
+.nav-brand-mark svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.nav-main-tabs { display: flex; justify-content: center; align-self: stretch; gap: 58px; }
+.nav-main-tabs button { position: relative; border: 0; background: transparent; color: #111c35; font-size: 16px; font-weight: 700; padding: 0 4px; cursor: pointer; }
+.nav-main-tabs button::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 0; height: 4px; border-radius: 999px 999px 0 0; background: #2f70ff; transform: translateX(-50%); transition: width 0.22s ease; }
+.nav-main-tabs button.is-active, .nav-main-tabs button:hover { color: #1763f6; }
+.nav-main-tabs button.is-active::after, .nav-main-tabs button:hover::after { width: 58px; }
+.nav-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.nav-icon-btn, .nav-login-btn, .nav-avatar-btn { border: 0; background: transparent; color: #071636; cursor: pointer; }
+.nav-icon-btn { width: 34px; height: 34px; display: grid; place-items: center; font-size: 25px; line-height: 1; border-radius: 12px; }
+.nav-icon-btn:hover { background: rgba(37, 99, 235, 0.08); }
+.nav-login-btn, .nav-avatar-btn { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; }
+.nav-login-avatar, .nav-avatar-btn img { width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 50% 32%, #f9fbff 0 18%, #95a9d7 19% 42%, #dfe7f7 43% 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.75); }
+.nav-avatar-btn img { object-fit: cover; }
+.nav-caret { color: #273653; font-size: 18px; }
 
-.zh-brand {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  border: 0;
-  background: transparent;
-  color: var(--zh-text);
-  font-size: 19px;
-  font-weight: 760;
-  cursor: pointer;
-}
-
-.zh-brand-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+.nav-home-shell {
+  min-height: calc(100vh - 96px);
   display: grid;
-  place-items: center;
-  color: #ffffff;
-  background: var(--zh-accent);
-  font-size: 16px;
+  grid-template-columns: 184px minmax(620px, 1fr) 376px;
+  grid-template-rows: 1fr auto;
+  gap: 24px;
+  padding: 24px 32px 22px;
+  margin: 0 12px 8px;
+  background: radial-gradient(circle at 50% 42%, rgba(209, 224, 255, 0.36), transparent 34%), linear-gradient(180deg, #f7faff 0%, #f4f7fc 100%);
+  border: 1px solid rgba(208, 218, 235, 0.78);
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  color: #071636;
 }
 
-.zh-page-tabs {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  background: var(--zh-surface);
-  border: 1px solid var(--zh-border);
-  border-radius: 8px;
+.nav-side, .nav-panel, .nav-section-card, .nav-hero-card { border: 1px solid rgba(213, 223, 239, 0.9); background: rgba(255, 255, 255, 0.76); box-shadow: 0 18px 50px rgba(52, 78, 122, 0.08); backdrop-filter: blur(18px); }
+.nav-side { position: sticky; top: 112px; height: calc(100vh - 138px); min-height: 640px; display: flex; flex-direction: column; gap: 14px; padding: 14px 12px; border-radius: 18px; }
+.nav-side-item { width: 100%; min-height: 52px; display: flex; align-items: center; gap: 16px; padding: 0 20px; border: 0; border-radius: 12px; background: transparent; color: #102344; font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease; }
+.nav-side-item:hover, .nav-side-item.is-active { background: rgba(241, 246, 255, 0.96); color: #2467ff; }
+.nav-side-item:hover { transform: translateX(2px); }
+.nav-side-icon { width: 24px; height: 24px; display: inline-grid; place-items: center; flex: 0 0 auto; }
+.nav-side-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.nav-side-divider { height: 1px; margin: 20px 18px 4px; background: #dfe7f4; }
+.nav-side-add { margin-top: 4px; color: #495d80; }
+.nav-side-footer { margin-top: auto; padding: 12px 0 2px; color: #7889aa; font-size: 13px; }
+.nav-home-main { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+
+.nav-hero-card { position: relative; min-height: 330px; padding: 54px 52px 32px; border-radius: 18px; overflow: hidden; background: linear-gradient(107deg, rgba(255,255,255,0.94) 0%, rgba(247,250,255,0.92) 47%, rgba(226,235,255,0.88) 100%), radial-gradient(circle at 78% 24%, rgba(104, 139, 255, 0.2), transparent 28%); }
+.nav-hero-card::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(90deg, rgba(255,255,255,0) 0 74%, rgba(90, 126, 205, 0.08) 75%, transparent 76%), linear-gradient(rgba(255,255,255,0) 0 74%, rgba(90, 126, 205, 0.08) 75%, transparent 76%); background-size: 58px 58px; opacity: 0.55; pointer-events: none; }
+.nav-hero-copy { position: relative; z-index: 1; }
+.nav-hero-copy h1 { margin: 0 0 12px; color: #06163a; font-size: clamp(36px, 4vw, 50px); line-height: 1; font-weight: 900; letter-spacing: -0.05em; }
+.nav-hero-copy h1::after { content: '✦'; margin-left: 18px; color: #3475ff; font-size: 30px; vertical-align: 12px; }
+.nav-hero-copy p { margin: 0; color: #506488; font-size: 17px; font-weight: 600; }
+.nav-orbit-art { position: absolute; top: 12px; right: 54px; width: 380px; height: 185px; pointer-events: none; opacity: 0.92; }
+.nav-orbit-core { position: absolute; top: 22px; right: 82px; width: 132px; height: 132px; border-radius: 50%; background: radial-gradient(circle at 38% 30%, #ffffff 0 10%, #eaf1ff 25%, #abc0ff 62%, #eff4ff 100%); box-shadow: inset -14px -18px 28px rgba(98, 126, 203, 0.22), 0 22px 48px rgba(93, 125, 198, 0.18); }
+.nav-orbit-ring { position: absolute; top: 55px; right: 30px; width: 256px; height: 70px; border: 1px solid rgba(132, 156, 214, 0.38); border-radius: 50%; transform: rotate(-12deg); }
+.nav-orbit-ring.ring-two { top: 42px; right: 4px; width: 306px; height: 96px; opacity: 0.42; }
+.nav-orbit-dot { position: absolute; width: 15px; height: 15px; border-radius: 50%; background: radial-gradient(circle, #ffffff 0 20%, #89a5ff 55%, #dfe8ff 100%); box-shadow: 0 0 20px rgba(78, 112, 210, 0.32); }
+.nav-orbit-dot.dot-one { top: 32px; right: 35px; }
+.nav-orbit-dot.dot-two { top: 132px; right: 266px; width: 9px; height: 9px; }
+
+.nav-search-wrap { position: relative; z-index: 2; width: min(100%, 920px); height: 82px; display: flex; align-items: center; gap: 18px; margin-top: 28px; padding: 8px 12px 8px 30px; border: 1px solid rgba(121, 157, 255, 0.46); border-radius: 999px; background: rgba(255,255,255,0.86); box-shadow: 0 18px 42px rgba(65, 101, 175, 0.12); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.nav-search-wrap:focus-within { border-color: rgba(63, 113, 255, 0.78); box-shadow: 0 22px 48px rgba(65, 101, 175, 0.18); }
+.nav-search-icon { color: #102344; font-size: 36px; line-height: 1; }
+.nav-search-wrap input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: #122244; font-size: 17px; font-weight: 600; }
+.nav-search-wrap input::placeholder { color: #8b9ab7; }
+.nav-search-submit { width: 58px; height: 58px; border: 0; border-radius: 50%; color: #fff; background: linear-gradient(135deg, #8d6bff 0%, #2f7bff 100%); box-shadow: 0 14px 26px rgba(59, 111, 255, 0.32); font-size: 34px; line-height: 1; cursor: pointer; transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.nav-search-submit:hover { transform: translateX(2px) scale(1.02); box-shadow: 0 18px 32px rgba(59, 111, 255, 0.38); }
+.nav-search-dropdown { position: absolute; left: 34px; right: 34px; top: calc(100% + 12px); z-index: 20; display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid #dfe7f4; border-radius: 18px; background: rgba(255,255,255,0.96); box-shadow: 0 24px 52px rgba(38, 62, 104, 0.16); }
+.nav-search-suggestion, .nav-search-engine-row, .nav-history-chip { border: 0; background: transparent; cursor: pointer; }
+.nav-search-suggestion { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; text-align: left; }
+.nav-search-suggestion:hover, .nav-search-engine-row:hover, .nav-history-chip:hover { background: #f4f7ff; }
+.nav-search-suggestion img { width: 28px; height: 28px; border-radius: 8px; }
+.nav-search-suggestion span { display: grid; gap: 3px; }
+.nav-search-suggestion strong { color: #14213e; font-size: 14px; }
+.nav-search-suggestion small { color: #7a88a4; font-size: 12px; }
+.nav-search-engine-row, .nav-history-chip { padding: 10px 12px; border-radius: 12px; color: #465a7d; font-size: 13px; text-align: left; }
+.nav-hot-tags { position: relative; z-index: 1; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 28px; color: #20304e; font-size: 14px; font-weight: 700; }
+.nav-hot-tags button { min-height: 34px; padding: 0 18px; border: 1px solid #dce5f4; border-radius: 999px; background: rgba(255,255,255,0.7); color: #52627d; font-size: 14px; cursor: pointer; transition: transform 0.18s ease, background 0.18s ease; }
+.nav-hot-tags button:hover { transform: translateY(-1px); background: #fff; }
+
+.nav-section-card { padding: 20px; border-radius: 18px; }
+.nav-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.nav-section-head h2, .nav-panel-head h2 { margin: 0; color: #091936; font-size: 20px; font-weight: 850; letter-spacing: -0.02em; }
+.nav-text-action, .nav-panel-head button { border: 0; background: transparent; color: #7483a0; font-size: 14px; cursor: pointer; }
+.nav-feature-grid { display: grid; grid-template-columns: repeat(7, minmax(92px, 1fr)); gap: 18px; }
+.nav-site-card { min-height: 138px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border: 1px solid #e2e9f5; border-radius: 13px; background: rgba(255,255,255,0.82); color: #101f3d; cursor: pointer; box-shadow: 0 12px 28px rgba(72, 92, 128, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.nav-site-card:hover { transform: translateY(-4px); border-color: #c8d8f3; box-shadow: 0 18px 36px rgba(72, 92, 128, 0.11); }
+.nav-site-logo { width: 46px; height: 46px; display: grid; place-items: center; }
+.nav-site-logo img { width: 42px; height: 42px; object-fit: contain; border-radius: 12px; }
+.nav-site-card strong { font-size: 15px; font-weight: 800; }
+.nav-site-card small { width: 100%; max-width: 108px; overflow: hidden; color: #7586a5; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.nav-add-card { border-style: dashed; color: #7a8bab; background: rgba(255,255,255,0.42); }
+.nav-add-sign { width: 48px; height: 48px; display: grid; place-items: center; color: #647796; font-size: 34px; font-weight: 300; }
+.nav-recommend-card { position: relative; overflow: hidden; }
+.nav-recommend-row { position: relative; display: grid; grid-template-columns: repeat(6, minmax(112px, 1fr)); gap: 16px; padding-right: 18px; }
+.nav-recommend-item { min-height: 72px; display: flex; align-items: center; gap: 13px; padding: 10px 16px; border: 1px solid #e3eaf6; border-radius: 12px; background: rgba(255,255,255,0.86); color: #14213d; cursor: pointer; text-align: left; box-shadow: 0 10px 22px rgba(72, 92, 128, 0.05); transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.nav-recommend-item:hover { transform: translateY(-3px); box-shadow: 0 16px 28px rgba(72, 92, 128, 0.1); }
+.nav-recommend-item img { width: 36px; height: 36px; flex: 0 0 auto; object-fit: contain; border-radius: 10px; }
+.nav-recommend-item span { display: grid; gap: 3px; min-width: 0; }
+.nav-recommend-item strong { overflow: hidden; font-size: 14px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.nav-recommend-item small { overflow: hidden; color: #7e8daa; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.nav-circle-next { position: absolute; top: 50%; right: 0; width: 34px; height: 34px; border: 1px solid #dfe7f4; border-radius: 50%; background: rgba(255,255,255,0.94); color: #516384; font-size: 26px; transform: translateY(-50%); cursor: pointer; box-shadow: 0 10px 24px rgba(72, 92, 128, 0.12); }
+
+.nav-info-rail { display: flex; flex-direction: column; gap: 16px; }
+.nav-panel { padding: 22px; border-radius: 18px; }
+.nav-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.nav-panel-head h2 span { display: inline-flex; align-items: center; height: 20px; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: #edf3ff; color: #3475ff; font-size: 12px; font-weight: 800; vertical-align: middle; }
+.nav-rank-list, .nav-recent-list { display: grid; gap: 14px; }
+.nav-rank-row, .nav-recent-row { display: grid; align-items: center; gap: 10px; color: #12213f; text-decoration: none; }
+.nav-rank-row { grid-template-columns: 22px 1fr auto 10px; }
+.nav-rank-num { color: #64748b; font-size: 15px; font-weight: 800; }
+.nav-rank-num.hot { color: #ff6a00; }
+.nav-rank-row strong, .nav-recent-row strong { overflow: hidden; font-size: 14px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.nav-rank-row small, .nav-recent-row small, .nav-recent-row span { color: #7889aa; font-size: 13px; }
+.nav-fire { color: #ff4d2d; font-size: 10px; }
+.nav-recent-row { grid-template-columns: 26px 52px 1fr auto 14px; }
+.nav-recent-row img { width: 24px; height: 24px; object-fit: contain; border-radius: 7px; }
+.nav-recent-row button { border: 0; background: transparent; color: #8b9ab7; cursor: pointer; }
+.nav-ai-panel { position: relative; min-height: 185px; overflow: hidden; background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(226,237,255,0.9)); }
+.nav-ai-panel p { position: relative; z-index: 1; margin: 0 0 20px; color: #162847; font-size: 15px; font-weight: 650; line-height: 1.7; }
+.nav-ai-art { position: absolute; right: 28px; top: 42px; width: 120px; height: 96px; border-radius: 50%; background: radial-gradient(circle at 42% 36%, #ffffff 0 12%, #b9c9ff 32%, #4d83ff 72%, rgba(255,255,255,0.1) 73%); filter: drop-shadow(0 20px 26px rgba(61, 112, 220, 0.24)); opacity: 0.88; }
+.nav-ai-art::before, .nav-ai-art::after { content: ''; position: absolute; inset: 32px -18px; border: 1px solid rgba(91, 126, 214, 0.36); border-radius: 50%; transform: rotate(-14deg); }
+.nav-ai-art::after { inset: 38px -28px; opacity: 0.5; }
+.nav-ai-input { position: relative; z-index: 1; height: 46px; display: flex; align-items: center; gap: 8px; padding: 5px 7px 5px 18px; border-radius: 999px; background: rgba(255,255,255,0.92); box-shadow: inset 0 0 0 1px rgba(220, 229, 245, 0.9), 0 12px 24px rgba(72, 92, 128, 0.08); }
+.nav-ai-input input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: #132344; font-size: 13px; }
+.nav-ai-input input::placeholder { color: #8fa0bd; }
+.nav-ai-input button { width: 34px; height: 34px; border: 0; border-radius: 50%; background: #3174ff; color: #fff; font-size: 20px; cursor: pointer; }
+.nav-home-footer { grid-column: 2 / 4; display: flex; align-items: center; justify-content: space-between; padding: 12px 6px 0; color: #6f80a0; font-size: 14px; }
+.nav-home-footer span { color: #4d6591; letter-spacing: 0.24em; }
+.nav-home-footer nav { display: flex; gap: 38px; }
+.nav-home-footer a { color: #7b8cab; text-decoration: none; }
+
+.layout.dark-theme .nav-topbar, .layout.dark-theme .nav-home-shell { background: #0e1628; color: #e7edf7; }
+.layout.dark-theme .nav-home-shell { background: linear-gradient(180deg, #0e1628, #111a2c); }
+.layout.dark-theme .nav-side, .layout.dark-theme .nav-panel, .layout.dark-theme .nav-section-card, .layout.dark-theme .nav-hero-card, .layout.dark-theme .nav-topbar { border-color: rgba(148, 163, 184, 0.18); background: rgba(17, 26, 44, 0.78); }
+
+@media (max-width: 1280px) {
+  .nav-home-shell { grid-template-columns: 160px minmax(0, 1fr); }
+  .nav-info-rail { grid-column: 2; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nav-feature-grid { grid-template-columns: repeat(4, minmax(100px, 1fr)); }
+  .nav-recommend-row { grid-template-columns: repeat(3, minmax(150px, 1fr)); }
+  .nav-home-footer { grid-column: 1 / -1; }
 }
 
-.zh-page-tab {
-  height: 34px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--zh-muted);
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
+@media (max-width: 900px) {
+  .nav-topbar { grid-template-columns: 1fr auto; height: auto; padding: 18px; }
+  .nav-main-tabs { grid-column: 1 / -1; order: 3; justify-content: flex-start; gap: 28px; overflow-x: auto; }
+  .nav-home-shell { grid-template-columns: 1fr; padding: 18px; }
+  .nav-side { position: static; height: auto; min-height: 0; flex-direction: row; overflow-x: auto; }
+  .nav-side-footer, .nav-side-divider { display: none; }
+  .nav-side-item { min-width: 92px; justify-content: center; padding: 0 14px; }
+  .nav-info-rail { grid-column: auto; grid-template-columns: 1fr; }
+  .nav-hero-card { padding: 34px 24px 28px; }
+  .nav-orbit-art { opacity: 0.42; right: -72px; }
+  .nav-search-wrap { height: 68px; padding-left: 20px; }
+  .nav-search-submit { width: 48px; height: 48px; }
+  .nav-feature-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .nav-recommend-row { grid-template-columns: 1fr; padding-right: 0; }
+  .nav-circle-next { display: none; }
+  .nav-home-footer { grid-column: auto; flex-direction: column; gap: 12px; }
 }
 
-.zh-page-tab.active {
+/* ===== Monochrome motion UI override ===== */
+.nav-topbar,
+.nav-home-shell,
+.nav-side,
+.nav-panel,
+.nav-section-card,
+.nav-hero-card {
+  color: var(--mono-text);
+}
+
+.nav-topbar {
+  margin: 10px 10px 0;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid var(--mono-border) !important;
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--mono-shadow-sm);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  animation: mono-rise-in 0.6s var(--mono-ease);
+}
+
+.nav-brand {
+  color: var(--mono-text);
+  letter-spacing: -0.05em;
+}
+
+.nav-brand-mark {
+  color: var(--mono-text) !important;
   background: #ffffff;
-  color: var(--zh-text);
-  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--mono-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
-.zh-top-actions {
-  justify-self: end;
-  display: flex;
-  align-items: center;
+.nav-brand-mark svg {
+  stroke: currentColor;
 }
 
-.zh-login-btn,
-.ghost-action,
-.visit-btn,
-.ai-input-box button {
-  border: 0;
-  border-radius: 8px;
-  background: var(--zh-accent);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.zh-login-btn {
-  height: 36px;
-  padding: 0 18px;
-}
-
-.zh-avatar-btn {
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  border: 1px solid var(--zh-border);
-  border-radius: 50%;
-  background: #ffffff;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.zh-avatar-btn img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.zh-page {
-  min-height: calc(100vh - 134px);
-  width: min(100%, 1440px);
-  margin: 0 auto;
-}
-
-.ai-page {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: 26px;
-  align-items: stretch;
-}
-
-.ai-chat-panel,
-.ai-recommend-panel,
-.launchpad-tile,
-.zh-empty-state {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--zh-border);
-  border-radius: 8px;
-}
-
-.ai-chat-panel,
-.ai-recommend-panel {
-  padding: 30px;
-}
-
-.zh-section-heading p,
-.recommend-header p,
-.favorite-header p {
-  margin: 0 0 8px;
-  color: var(--zh-accent);
-  font-size: 13px;
-  font-weight: 760;
-}
-
-.zh-section-heading h1,
-.recommend-header h2,
-.favorite-header h1,
-.launchpad-hero h1 {
-  margin: 0;
-  color: var(--zh-text);
-  letter-spacing: 0;
-}
-
-.zh-section-heading h1,
-.favorite-header h1,
-.launchpad-hero h1 {
-  font-size: 30px;
-  line-height: 1.2;
-}
-
-.ai-message {
-  display: flex;
-  gap: 14px;
-  margin: 28px 0;
-  padding: 18px;
-  background: var(--zh-surface);
-  border: 1px solid var(--zh-border);
-  border-radius: 8px;
-}
-
-.ai-message-avatar {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--zh-accent-soft);
-  color: var(--zh-accent);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.ai-message strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 15px;
-}
-
-.ai-message p,
-.recommend-card p,
-.launchpad-tile p,
-.zh-empty-state p {
-  margin: 0;
-  color: var(--zh-muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.need-mode-list,
-.system-filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.need-mode,
-.system-filter-row button {
-  height: 34px;
-  padding: 0 14px;
-  border: 1px solid var(--zh-border);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--zh-muted);
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.need-mode.active,
-.system-filter-row button.active {
-  border-color: rgba(15, 186, 168, 0.35);
-  background: var(--zh-accent-soft);
-  color: #087f73;
-}
-
-.ai-input-box,
-.launchpad-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 24px;
-  padding: 8px;
-  border: 1px solid var(--zh-border);
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.ai-input-box input,
-.launchpad-search input {
-  min-width: 0;
-  flex: 1;
-  height: 40px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--zh-text);
-  font-size: 14px;
-}
-
-.ai-input-box button {
-  height: 40px;
-  padding: 0 18px;
-}
-
-.recommend-header,
-.favorite-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 22px;
-}
-
-.process-steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.process-steps span {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: var(--zh-surface);
-  color: var(--zh-muted);
-  font-size: 12px;
-}
-
-.recommend-list {
-  display: grid;
-  gap: 12px;
-}
-
-.recommend-card {
+.nav-main-tabs button {
   position: relative;
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
-  padding: 16px;
-  border: 1px solid var(--zh-border);
-  border-radius: 8px;
-  background: #ffffff;
+  color: var(--mono-muted) !important;
+  background: transparent !important;
+  border: 0 !important;
+  transition: color 0.24s var(--mono-ease), transform 0.24s var(--mono-ease);
 }
 
-.site-logo-tile {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--zh-surface);
-  border: 1px solid var(--zh-border);
-  overflow: hidden;
-}
-
-.site-logo-tile img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-.recommend-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.recommend-title-row h3,
-.launchpad-tile h3 {
-  margin: 0;
-  color: var(--zh-text);
-  font-size: 15px;
-  font-weight: 760;
-  letter-spacing: 0;
-}
-
-.recommend-title-row span {
-  flex: 0 0 auto;
-  color: var(--zh-accent);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.zh-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.zh-tags span,
-.launchpad-tile > span {
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: var(--zh-surface);
-  color: var(--zh-muted);
-  font-size: 12px;
-}
-
-.visit-btn {
-  height: 34px;
-  padding: 0 14px;
-}
-
-.zh-star-btn {
+.nav-main-tabs button::after {
+  content: "";
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  background: transparent;
-  color: #cbd5e1;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
+  left: 16%;
+  right: 16%;
+  bottom: -18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s var(--mono-ease);
 }
 
-.zh-star-btn.active {
-  color: #eab308;
+.nav-main-tabs button:hover,
+.nav-main-tabs button.is-active {
+  color: var(--mono-text) !important;
+  transform: translateY(-1px);
 }
 
-.system-launchpad {
-  width: min(100%, 1440px);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+.nav-main-tabs button.is-active::after {
+  transform: scaleX(1);
 }
 
-.launchpad-hero {
-  width: min(860px, 100%);
-  text-align: center;
-  margin: 10px auto 22px;
+.nav-icon-btn,
+.nav-login-btn,
+.nav-avatar-btn {
+  color: var(--mono-text) !important;
+  background: rgba(255,255,255,0.64) !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: none !important;
 }
 
-.launchpad-search {
-  margin: 16px auto 12px;
-  padding: 9px 16px;
-}
-
-.system-filter-row {
-  justify-content: center;
-}
-
-.launchpad-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
-  gap: 12px;
-}
-
-.launchpad-tile {
-  position: relative;
-  min-height: 132px;
-  padding: 15px 10px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.launchpad-tile:hover {
-  border-color: rgba(15, 186, 168, 0.45);
+.nav-icon-btn:hover,
+.nav-login-btn:hover,
+.nav-avatar-btn:hover {
+  background: #ffffff !important;
   transform: translateY(-2px);
 }
 
-.launchpad-tile p {
-  width: 100%;
+.nav-login-avatar {
+  background: radial-gradient(circle at 50% 34%, #d9d9d4 0 20%, #9a9a94 21% 44%, #e7e7e3 45% 100%) !important;
+  filter: grayscale(1);
+}
+
+.nav-home-shell {
+  margin: 0 10px 10px;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(17,17,17,0.055), transparent 26rem),
+    linear-gradient(180deg, #fafaf8 0%, #f1f1ee 100%) !important;
+  border: 1px solid var(--mono-border);
+  border-top: 0;
+  border-radius: 0 0 24px 24px;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.nav-home-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0 82%, rgba(17,17,17,0.035) 83%, transparent 84%),
+    linear-gradient(transparent 0 82%, rgba(17,17,17,0.035) 83%, transparent 84%);
+  background-size: 64px 64px;
+  opacity: 0.65;
+  animation: nav-mono-drift 22s linear infinite;
+}
+
+.nav-side,
+.nav-panel,
+.nav-section-card,
+.nav-hero-card {
+  background: rgba(255,255,255,0.72) !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: var(--mono-shadow-sm) !important;
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+.nav-side {
+  animation: mono-rise-in 0.62s var(--mono-ease) both;
+}
+
+.nav-side-item {
+  color: var(--mono-text-soft) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  transition: transform 0.24s var(--mono-ease), background 0.24s var(--mono-ease), border-color 0.24s var(--mono-ease), color 0.24s var(--mono-ease);
+}
+
+.nav-side-icon,
+.nav-side-icon :deep(svg) {
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+.nav-side-item:hover,
+.nav-side-item.is-active {
+  color: #000000 !important;
+  background: rgba(255,255,255,0.9) !important;
+  border-color: var(--mono-border) !important;
+  transform: translateX(3px);
+}
+
+.nav-side-item.is-active {
+  box-shadow: inset 3px 0 0 #111111;
+}
+
+.nav-side-divider {
+  background: var(--mono-border) !important;
+}
+
+.nav-side-footer,
+.nav-home-footer,
+.nav-home-footer a,
+.nav-home-footer span {
+  color: var(--mono-muted) !important;
+}
+
+.nav-hero-card {
+  min-height: 326px;
+  background:
+    radial-gradient(circle at 78% 26%, rgba(0,0,0,0.08), transparent 15rem),
+    linear-gradient(112deg, rgba(255,255,255,0.94), rgba(245,245,242,0.82)) !important;
+  animation: mono-rise-in 0.68s var(--mono-ease) both;
+}
+
+.nav-hero-card::before {
+  background-image:
+    linear-gradient(90deg, transparent 0 74%, rgba(17,17,17,0.055) 75%, transparent 76%),
+    linear-gradient(transparent 0 74%, rgba(17,17,17,0.045) 75%, transparent 76%) !important;
+  animation: nav-mono-drift 24s linear infinite;
+}
+
+.nav-hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.62) 42%, transparent 64%);
+  transform: translateX(-120%);
+  animation: nav-soft-sheen 8s var(--mono-ease) infinite;
+}
+
+.nav-hero-copy h1 {
+  color: var(--mono-text) !important;
+  letter-spacing: -0.07em;
+}
+
+.nav-hero-copy p,
+.nav-hot-tags span,
+.nav-section-head h2,
+.nav-panel-head h2 {
+  color: var(--mono-text-soft) !important;
+}
+
+.nav-orbit-art {
+  opacity: 0.5 !important;
+  filter: grayscale(1) contrast(1.05);
+}
+
+.nav-orbit-core {
+  background: radial-gradient(circle at 38% 28%, #ffffff 0 12%, #e6e6e2 32%, #bdbdb7 66%, #f6f6f3 100%) !important;
+  box-shadow: inset -14px -18px 28px rgba(0,0,0,0.12), 0 24px 54px rgba(0,0,0,0.12) !important;
+  animation: nav-float 7s var(--mono-ease) infinite alternate;
+}
+
+.nav-orbit-ring,
+.nav-orbit-dot,
+.nav-ai-art::before,
+.nav-ai-art::after {
+  border-color: rgba(17,17,17,0.22) !important;
+}
+
+.nav-orbit-dot,
+.nav-ai-art {
+  background: #111111 !important;
+  box-shadow: 0 8px 20px rgba(17,17,17,0.15) !important;
+  animation: nav-float 5.5s var(--mono-ease) infinite alternate;
+}
+
+.nav-search-wrap {
+  background: rgba(255,255,255,0.86) !important;
+  border: 1px solid rgba(17,17,17,0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 20px 54px rgba(17,17,17,0.08) !important;
+  transition: transform 0.28s var(--mono-ease), box-shadow 0.28s var(--mono-ease), border-color 0.28s var(--mono-ease);
+}
+
+.nav-search-wrap:focus-within {
+  border-color: rgba(17,17,17,0.34) !important;
+  box-shadow: 0 0 0 7px rgba(17,17,17,0.055), 0 26px 66px rgba(17,17,17,0.12) !important;
+  transform: translateY(-2px);
+}
+
+.nav-search-icon,
+.nav-search-wrap input,
+.nav-search-wrap input::placeholder {
+  color: var(--mono-muted) !important;
+}
+
+.nav-search-submit,
+.nav-ai-input button,
+.nav-circle-next {
+  color: #ffffff !important;
+  background: #111111 !important;
+  border: 1px solid #111111 !important;
+  box-shadow: 0 14px 34px rgba(17,17,17,0.18) !important;
+  transition: transform 0.24s var(--mono-ease), box-shadow 0.24s var(--mono-ease), background 0.24s var(--mono-ease);
+}
+
+.nav-search-submit:hover,
+.nav-ai-input button:hover,
+.nav-circle-next:hover {
+  background: #000000 !important;
+  transform: translateX(2px) scale(1.04);
+  box-shadow: 0 18px 44px rgba(17,17,17,0.24) !important;
+}
+
+.nav-hot-tags button,
+.nav-panel-head button {
+  color: var(--mono-text-soft) !important;
+  background: rgba(255,255,255,0.64) !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: none !important;
+}
+
+.nav-hot-tags button:hover,
+.nav-panel-head button:hover {
+  color: #000000 !important;
+  background: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.nav-section-card,
+.nav-panel {
+  animation: mono-rise-in 0.68s var(--mono-ease) both;
+}
+
+.nav-section-card:nth-of-type(2) { animation-delay: 70ms; }
+.nav-section-card:nth-of-type(3) { animation-delay: 130ms; }
+.nav-panel:nth-child(1) { animation-delay: 100ms; }
+.nav-panel:nth-child(2) { animation-delay: 160ms; }
+.nav-panel:nth-child(3) { animation-delay: 220ms; }
+
+.nav-site-card,
+.nav-recommend-item,
+.nav-rank-row,
+.nav-recent-row {
+  color: var(--mono-text) !important;
+  background: rgba(255,255,255,0.7) !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: none !important;
+  transition: transform 0.24s var(--mono-ease), background 0.24s var(--mono-ease), border-color 0.24s var(--mono-ease), box-shadow 0.24s var(--mono-ease);
+}
+
+.nav-site-card:hover,
+.nav-recommend-item:hover {
+  background: #ffffff !important;
+  border-color: var(--mono-border-strong) !important;
+  box-shadow: 0 18px 44px rgba(17,17,17,0.08) !important;
+  transform: translateY(-6px);
+}
+
+.nav-rank-row:hover,
+.nav-recent-row:hover {
+  background: #ffffff !important;
+  transform: translateX(3px);
+}
+
+.nav-site-card small,
+.nav-recommend-item small,
+.nav-rank-row small,
+.nav-recent-row small {
+  color: var(--mono-muted) !important;
+}
+
+.nav-site-logo {
+  background: #ffffff !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.85) !important;
+}
+
+.nav-add-card {
+  border-style: dashed !important;
+}
+
+.nav-add-sign,
+.nav-rank-num.hot,
+.nav-fire {
+  color: #111111 !important;
+  background: #f2f2ef !important;
+  border-color: var(--mono-border) !important;
+  box-shadow: none !important;
+}
+
+.nav-fire {
+  color: transparent !important;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #111111 !important;
+}
+
+.nav-ai-panel {
+  background: linear-gradient(140deg, rgba(255,255,255,0.82), rgba(235,235,231,0.76)) !important;
+  overflow: hidden;
+}
+
+.nav-ai-art {
+  filter: grayscale(1);
+  opacity: 0.72;
+}
+
+.nav-ai-input {
+  background: rgba(255,255,255,0.82) !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+.nav-ai-input input {
+  color: var(--mono-text) !important;
+}
+
+.nav-ai-input input::placeholder {
+  color: var(--mono-muted) !important;
+}
+
+.nav-search-dropdown {
+  background: rgba(255,255,255,0.92) !important;
+  border: 1px solid var(--mono-border) !important;
+  box-shadow: var(--mono-shadow-md) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nav-search-suggestion,
+.nav-history-chip,
+.nav-search-engine-row {
+  color: var(--mono-text) !important;
+  background: transparent !important;
+}
+
+.nav-search-suggestion:hover,
+.nav-history-chip:hover,
+.nav-search-engine-row:hover {
+  background: rgba(17,17,17,0.055) !important;
+}
+
+.layout.dark-theme .nav-topbar,
+.layout.dark-theme .nav-home-shell {
+  background: #070707 !important;
+  color: var(--mono-text) !important;
+}
+
+.layout.dark-theme .nav-home-shell {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(255,255,255,0.07), transparent 25rem),
+    linear-gradient(180deg, #070707, #101010) !important;
+  border-color: var(--mono-border) !important;
+}
+
+.layout.dark-theme .nav-topbar,
+.layout.dark-theme .nav-side,
+.layout.dark-theme .nav-panel,
+.layout.dark-theme .nav-section-card,
+.layout.dark-theme .nav-hero-card,
+.layout.dark-theme .nav-site-card,
+.layout.dark-theme .nav-recommend-item,
+.layout.dark-theme .nav-rank-row,
+.layout.dark-theme .nav-recent-row {
+  background: rgba(18,18,18,0.76) !important;
+  border-color: var(--mono-border) !important;
+  color: var(--mono-text) !important;
+}
+
+.layout.dark-theme .nav-hero-card {
+  background:
+    radial-gradient(circle at 78% 24%, rgba(255,255,255,0.09), transparent 15rem),
+    linear-gradient(112deg, rgba(18,18,18,0.92), rgba(9,9,9,0.86)) !important;
+}
+
+.layout.dark-theme .nav-brand-mark,
+.layout.dark-theme .nav-icon-btn,
+.layout.dark-theme .nav-login-btn,
+.layout.dark-theme .nav-avatar-btn,
+.layout.dark-theme .nav-search-wrap,
+.layout.dark-theme .nav-ai-input,
+.layout.dark-theme .nav-hot-tags button,
+.layout.dark-theme .nav-panel-head button {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: var(--mono-border) !important;
+  color: var(--mono-text) !important;
+}
+
+.layout.dark-theme .nav-search-submit,
+.layout.dark-theme .nav-ai-input button,
+.layout.dark-theme .nav-circle-next {
+  color: #111111 !important;
+  background: #f4f4f2 !important;
+  border-color: #f4f4f2 !important;
+}
+
+.layout.dark-theme .nav-side-item:hover,
+.layout.dark-theme .nav-side-item.is-active,
+.layout.dark-theme .nav-site-card:hover,
+.layout.dark-theme .nav-recommend-item:hover,
+.layout.dark-theme .nav-rank-row:hover,
+.layout.dark-theme .nav-recent-row:hover {
+  color: #ffffff !important;
+  background: rgba(255,255,255,0.08) !important;
+}
+
+@keyframes nav-mono-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 64px 64px, 64px 64px; }
+}
+
+@keyframes nav-soft-sheen {
+  0%, 58% { transform: translateX(-120%); opacity: 0; }
+  70% { opacity: 0.8; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+@keyframes nav-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(0, -8px, 0) scale(1.015); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-home-shell::before,
+  .nav-hero-card::before,
+  .nav-hero-card::after,
+  .nav-orbit-core,
+  .nav-orbit-dot,
+  .nav-ai-art {
+    animation: none !important;
+  }
+}
+
+/* ===== Vibe Tool Stack inspired home ===== */
+.stack-home {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  color: #263140;
+  background:
+    radial-gradient(circle at 7% 12%, rgba(151, 219, 211, 0.26), transparent 280px),
+    radial-gradient(circle at 92% 18%, rgba(239, 111, 84, 0.18), transparent 310px),
+    #fbfcfb;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  overflow: hidden;
+}
+
+.stack-home button {
+  font-family: inherit;
+}
+
+.stack-header {
+  height: 52px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0 clamp(18px, 8vw, 110px);
+  border-bottom: 1px solid #dfe3e7;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: stack-drop 520ms cubic-bezier(.2,.9,.2,1) both;
+}
+
+.stack-logo {
+  width: max-content;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  color: #253140;
+  background: transparent;
+  border: 0;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.stack-logo-mark {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d5dbe1;
+  border-radius: 8px;
+  color: #ef725c;
+  background: #ffffff;
+  box-shadow: 0 5px 16px rgba(38, 49, 64, 0.06);
+}
+
+.stack-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.stack-nav button,
+.stack-icon-search {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  color: #718092;
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 650;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.stack-nav button:hover,
+.stack-nav button.is-active,
+.stack-icon-search:hover {
+  color: #263140;
+  transform: translateY(-1px);
+}
+
+.stack-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+}
+
+.stack-browse-btn {
+  min-height: 34px;
+  padding: 0 18px;
+  color: #ffffff;
+  background: #ef725c;
+  border: 1px solid #ef725c;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 760;
+  box-shadow: 0 10px 26px rgba(239, 114, 92, 0.22);
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+
+.stack-browse-btn:hover {
+  background: #e6614b;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(239, 114, 92, 0.28);
+}
+
+.stack-main {
+  width: 100%;
+}
+
+.stack-hero {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 92px 20px 56px;
+  text-align: center;
+  animation: stack-rise 680ms cubic-bezier(.2,.9,.2,1) 70ms both;
+}
+
+.stack-hero h1 {
+  margin: 0;
+  color: #273343;
+  font-size: clamp(42px, 5vw, 76px);
+  line-height: 0.98;
+  font-weight: 860;
+  letter-spacing: -0.055em;
+}
+
+.stack-hero p {
+  margin: 18px 0 24px;
+  color: #8793a1;
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 520;
+  letter-spacing: -0.03em;
+}
+
+.stack-search {
+  position: relative;
+  width: min(100%, 610px);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+  padding: 0 6px 0 22px;
+  border: 1px solid #d8dde3;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 18px 42px rgba(38,49,64,0.08);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.stack-search:focus-within {
+  border-color: #bcc5cf;
+  transform: translateY(-3px);
+  box-shadow: 0 24px 58px rgba(38,49,64,0.13);
+}
+
+.stack-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  color: #263140;
+  background: transparent;
+  border: 0;
+  outline: none;
+  font-size: 15px;
+}
+
+.stack-search input::placeholder {
+  color: #a4aeb9;
+}
+
+.stack-search > button {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #243241;
+  border: 0;
+  box-shadow: 0 10px 20px rgba(36,50,65,0.22);
+  transition: transform 220ms ease, background 220ms ease;
+}
+
+.stack-search > button:hover {
+  background: #121b25;
+  transform: scale(1.04);
+}
+
+.stack-search-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid #dfe3e7;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 24px 60px rgba(38,49,64,0.13);
+  text-align: left;
+}
+
+.stack-search-row,
+.stack-history-row,
+.stack-search-engine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 8px 10px;
+  color: #263140;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.stack-search-row:hover,
+.stack-history-row:hover,
+.stack-search-engine:hover {
+  background: #f4f6f7;
+}
+
+.stack-search-row img {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+
+.stack-search-row span {
+  display: grid;
+  gap: 2px;
+}
+
+.stack-search-row small {
+  color: #8a96a4;
+}
+
+.stack-meta {
+  margin-top: 12px;
+  color: #a0aab5;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.stack-quick-links {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.stack-quick-links button,
+.stack-section-link,
+.stack-see-all {
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  color: #ef725c;
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.stack-quick-links button:nth-child(3) {
+  color: #8793a1;
+}
+
+.stack-marquee {
+  width: 100%;
+  border-top: 1px solid #dfe3e7;
+  border-bottom: 1px solid #dfe3e7;
+  background: rgba(255,255,255,0.58);
+  overflow: hidden;
+}
+
+.stack-marquee-track {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: 46px;
+  padding: 26px 0;
+  animation: stack-marquee 34s linear infinite;
+}
+
+.stack-marquee-track span {
+  color: #8b96a2;
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 760;
   white-space: nowrap;
 }
 
-.launchpad-meta {
-  margin: 14px 0 0;
-  color: var(--zh-muted);
+.stack-category-section {
+  max-width: 1120px;
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 62px;
+  margin: 0 auto;
+  padding: 78px 22px 118px;
+}
+
+.stack-category-menu {
+  animation: stack-rise 640ms cubic-bezier(.2,.9,.2,1) 160ms both;
+}
+
+.stack-category-menu h2 {
+  margin: 0 0 26px;
+  color: #2c3747;
+  font-size: 40px;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+}
+
+.stack-category-menu button:not(.stack-see-all) {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  margin-bottom: 10px;
+  color: #647181;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
   font-size: 13px;
-  text-align: center;
+  font-weight: 760;
+  text-align: left;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
-.favorite-page {
-  padding-top: 20px;
+.stack-category-menu button:not(.stack-see-all):hover,
+.stack-category-menu button:not(.stack-see-all).is-active {
+  color: #ef725c;
+  background: #fff3f0;
+  border-color: #f5c3ba;
+  transform: translateX(3px);
 }
 
-.ghost-action {
-  height: 36px;
-  padding: 0 16px;
-  background: var(--zh-surface);
-  color: var(--zh-text);
-  border: 1px solid var(--zh-border);
+.stack-see-all {
+  margin-top: 18px;
 }
 
-.zh-empty-state {
-  width: min(520px, 100%);
-  margin: 70px auto 0;
-  padding: 44px;
-  text-align: center;
+.stack-tools-area {
+  min-width: 0;
 }
 
-.zh-empty-state h2 {
-  margin: 0 0 10px;
-  font-size: 22px;
-  color: var(--zh-text);
+.stack-section-link {
+  margin-bottom: 16px;
 }
 
-.zh-empty-state .zh-login-btn {
-  margin-top: 22px;
+.stack-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 16px;
 }
 
-.layout.dark-theme .zh-shell {
-  --zh-bg: #0f172a;
-  --zh-surface: rgba(255, 255, 255, 0.06);
-  --zh-surface-strong: rgba(255, 255, 255, 0.1);
-  --zh-border: rgba(255, 255, 255, 0.12);
-  --zh-text: #f8fafc;
-  --zh-muted: #94a3b8;
+.stack-tool-card {
+  min-height: 108px;
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  align-items: start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d8dde3;
+  border-radius: 10px;
+  color: #2c3747;
+  background: rgba(255,255,255,0.76);
+  text-align: left;
+  box-shadow: 0 10px 28px rgba(38,49,64,0.035);
+  animation: stack-card-in 540ms cubic-bezier(.2,.9,.2,1) var(--stagger) both;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
 }
 
-.layout.dark-theme .zh-page-tab.active,
-.layout.dark-theme .ai-chat-panel,
-.layout.dark-theme .ai-recommend-panel,
-.layout.dark-theme .recommend-card,
-.layout.dark-theme .launchpad-tile,
-.layout.dark-theme .zh-empty-state,
-.layout.dark-theme .ai-input-box,
-.layout.dark-theme .launchpad-search,
-.layout.dark-theme .need-mode,
-.layout.dark-theme .system-filter-row button {
-  background: rgba(15, 23, 42, 0.9);
+.stack-tool-card:hover {
+  transform: translateY(-5px);
+  border-color: #bdc6cf;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(38,49,64,0.08);
+}
+
+.stack-tool-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dfe3e7;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: transform 200ms ease;
+}
+
+.stack-tool-card:hover .stack-tool-icon,
+.stack-fav-item:hover .stack-tool-icon {
+  transform: scale(1.08);
+}
+
+.stack-tool-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.stack-tool-copy {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.stack-tool-copy strong,
+.stack-fav-item strong {
+  color: #2b3544;
+  font-size: 14px;
+  line-height: 1.1;
+}
+
+.stack-tool-copy small,
+.stack-fav-item small {
+  color: #728091;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.stack-favorites-section {
+  background: #e9ecef;
+  border-top: 1px solid #dce1e6;
+}
+
+.stack-favorites-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 78px 22px 90px;
+}
+
+.stack-kicker {
+  margin: 0 0 8px;
+  color: #ef725c;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  transform: rotate(-3deg);
+}
+
+.stack-favorites-inner h2 {
+  max-width: 650px;
+  margin: 0;
+  color: #2c3747;
+  font-size: 42px;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.stack-fav-subtitle {
+  max-width: 520px;
+  margin: 14px 0 48px;
+  color: #738091;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.stack-fav-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 36px;
+}
+
+.stack-fav-item {
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: start;
+  gap: 16px;
+  padding: 20px 0;
+  border: 0;
+  border-top: 1px solid #ccd3da;
+  color: #2c3747;
+  background: transparent;
+  text-align: left;
+  transition: transform 180ms ease;
+}
+
+.stack-fav-item:hover {
+  transform: translateX(5px);
+}
+
+.stack-fav-item span:not(.stack-tool-icon) {
+  display: grid;
+  gap: 7px;
+}
+
+.stack-fav-item em {
+  color: #ef725c;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.stack-dropdown-enter-active,
+.stack-dropdown-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.stack-dropdown-enter-from,
+.stack-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+@keyframes stack-drop {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stack-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stack-card-in {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes stack-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @media (max-width: 1100px) {
-  .launchpad-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 860px) {
-  .zh-shell {
-    width: 100%;
-    margin: 0;
-    padding: 16px;
+  .stack-header {
+    padding: 0 24px;
   }
 
-  .zh-topbar {
-    height: auto;
-    grid-template-columns: 1fr;
-    justify-items: stretch;
+  .stack-category-section {
+    grid-template-columns: 240px 1fr;
+    gap: 34px;
   }
 
-  .zh-brand,
-  .zh-top-actions {
-    justify-self: center;
-  }
-
-  .zh-page-tabs {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .ai-page {
-    grid-template-columns: 1fr;
-  }
-
-  .recommend-card {
-    grid-template-columns: 48px minmax(0, 1fr);
-  }
-
-  .visit-btn {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-
-  .launchpad-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 520px) {
-  .zh-page-tab {
-    padding: 0 10px;
-    font-size: 13px;
-  }
-
-  .ai-chat-panel,
-  .ai-recommend-panel,
-  .zh-empty-state {
-    padding: 20px;
-  }
-
-  .launchpad-grid {
+  .stack-tool-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 420px) {
-  .launchpad-grid {
+@media (max-width: 760px) {
+  .stack-header {
+    height: auto;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .stack-nav {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    gap: 18px;
+    overflow-x: auto;
+  }
+
+  .stack-hero {
+    padding-top: 58px;
+  }
+
+  .stack-quick-links {
+    flex-wrap: wrap;
+    gap: 14px 22px;
+  }
+
+  .stack-category-section,
+  .stack-fav-list {
     grid-template-columns: 1fr;
+  }
+
+  .stack-category-section {
+    padding-top: 52px;
+  }
+
+  .stack-tool-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stack-fav-item {
+    grid-template-columns: 34px 1fr;
+  }
+
+  .stack-fav-item em {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-header,
+  .stack-hero,
+  .stack-category-menu,
+  .stack-tool-card,
+  .stack-marquee-track {
+    animation: none !important;
   }
 }
 </style>
-

@@ -1,92 +1,122 @@
 <template>
-  <main class="login-page">
-    <section class="login-panel">
-      <p class="eyebrow">智汇导航</p>
-      <h1>登录账号</h1>
-      <p class="desc">登录后可以同步收藏、完成问卷，并获得更贴合需求的网站推荐。</p>
-
-      <form class="login-form" @submit.prevent="submit">
-        <input v-model.trim="account" placeholder="用户名或邮箱" autocomplete="username" required />
-        <input v-model="password" placeholder="密码" type="password" autocomplete="current-password" required />
-        <button type="submit" :disabled="loading">{{ loading ? '登录中' : '登录' }}</button>
-      </form>
-
-      <p class="message">{{ message }}</p>
-      <footer>
-        <RouterLink to="/register">注册账号</RouterLink>
-        <RouterLink to="/">返回首页</RouterLink>
-      </footer>
-    </section>
-  </main>
+  <div class="login-page">
+    <div class="guard-container block-shadow">
+      <div id="authing-container"></div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { authAPI, setAuthSession } from '../utils/api'
+import { onMounted } from 'vue';
+import { Guard } from '@authing/guard';
+import '@authing/guard/dist/esm/guard.min.css';
 
-const route = useRoute()
-const router = useRouter()
-const account = ref('')
-const password = ref('')
-const loading = ref(false)
-const message = ref('')
+onMounted(() => {
+  // 1. 初始化核心引擎 (⚠️ 这里的 appId 必须填对，否则会直接变 null 导致白屏！)
+  // 1. 初始化核心引擎 
+  const authing = new Guard({
+    appId: '69fdee93f62848c14ce9d3a6', 
+    mode: 'normal',
+    
+    // ✨ 核心修改点：默认展示邮箱和密码的输入框
+    defaultLoginMethod: 'email-password', 
+    
+    // ✨ 告诉 Guard 你想要在界面上画出哪些登录选项卡
+    // 'email-password' = 邮箱密码登录
+    // 'email-code' = 邮箱验证码登录
+    // 'phone-code' = 手机验证码
+    loginMethods: ['email-password', 'email-code', 'phone-code'],
+    
+    // 第三方登录保持不变
+    socialConnections: ['github', 'wechat:pc', 'google'],
+    isSSO: false,
+  });
 
-const submit = async () => {
-  loading.value = true
-  message.value = ''
-  try {
-    const res = await authAPI.login(account.value, password.value)
-    if (res.data?.code !== 0) {
-      message.value = res.data?.msg || '登录失败'
-      return
+  // 2. 强行挂载到页面上
+  authing.start('#authing-container');
+
+  // 3. 监听登录成功并强制跳转
+// 3. 监听登录成功并强制跳转
+  authing.on('login', (userInfo) => {
+    console.log('登录成功，完整数据:', userInfo);
+    // 提取 Token
+    const token = userInfo.token || 
+                  userInfo.idToken || 
+                  userInfo.accessToken || 
+                  (userInfo.data && userInfo.data.token) ||
+                  (userInfo.data && userInfo.data.id_token);
+
+    if (token) {
+      localStorage.setItem('access_token', token);
+      localStorage.setItem('is_logged_in', 'true');
+      
+      // ✨ 完美提取用户名，如果没有就叫“智汇导航用户”
+      const username = userInfo.username || userInfo.nickname || (userInfo.data && userInfo.data.username) || '智汇导航用户';
+      
+      // ✨ 完美提取头像！(如果第三方没提供头像，给一个超级好看的默认渐变头像)
+      const avatar = userInfo.photo || userInfo.avatar || (userInfo.data && userInfo.data.photo) || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + username;
+
+      // 存入包含完整信息的对象
+      localStorage.setItem('user_info', JSON.stringify({ username, avatar }));
+
+      // 物理级跳转首页
+      window.location.href = '/';
+    } else {
+      alert('未提取到 Token！');
     }
-
-    const data = res.data?.data || {}
-    const token = data.access_token || data.token || res.data.access_token || res.data.token
-    const refreshToken = data.refresh_token || res.data.refresh_token || ''
-    const user = data.user || { username: account.value }
-
-    if (!token) {
-      message.value = '登录失败，后端未返回访问令牌'
-      return
-    }
-
-    setAuthSession({
-      accessToken: token,
-      refreshToken,
-      user: {
-        username: user.username || account.value,
-        email: user.email || '',
-        avatar: user.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(user.username || account.value)}`,
-        has_survey: user.has_survey || 0,
-        user_tags: user.user_tags || ''
-      }
-    })
-
-    router.push(route.query.redirect || '/')
-  } catch (error) {
-    message.value = error.response?.data?.msg || '登录失败，请检查账号或密码'
-  } finally {
-    loading.value = false
-  }
-}
+  });
+});
 </script>
 
 <style scoped>
-.login-page { min-height: 100vh; display: grid; place-items: center; background: #f6f7fb; color: #172033; padding: 24px; }
-.login-panel { width: min(420px, 100%); background: #fff; border: 1px solid #e6e8ef; border-radius: 8px; padding: 28px; box-shadow: 0 18px 45px rgba(20, 28, 45, .08); }
-.eyebrow { margin: 0 0 8px; color: #64748b; font-size: 13px; }
-h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: 0; }
-.desc { margin: 0 0 20px; color: #64748b; line-height: 1.6; }
-.login-form { display: grid; gap: 12px; }
-input { height: 44px; border: 1px solid #d9deea; border-radius: 6px; padding: 0 12px; font-size: 14px; }
-button { height: 44px; border: 0; border-radius: 6px; background: #111827; color: #fff; font-weight: 700; cursor: pointer; }
-button:disabled { opacity: .55; cursor: not-allowed; }
-.message { min-height: 22px; color: #b91c1c; }
-footer { display: flex; justify-content: space-between; gap: 12px; }
-a { color: #2563eb; text-decoration: none; }
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(17,17,17,0.06), transparent 24rem),
+    var(--mono-bg);
+  animation: mono-rise-in 0.64s var(--mono-ease);
+}
+.guard-container {
+  padding: 22px;
+  border-radius: var(--mono-radius-xl);
+  background: var(--mono-surface) !important;
+  border: 1px solid var(--mono-border);
+  box-shadow: var(--mono-shadow-lg);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  min-width: 360px; 
+  min-height: 400px;
+}
+
+.guard-container :deep(.authing-ant-btn-primary),
+.guard-container :deep(button[type="submit"]) {
+  background: #111111 !important;
+  border-color: #111111 !important;
+  color: #ffffff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 28px rgba(17,17,17,0.16) !important;
+}
+
+.guard-container :deep(input),
+.guard-container :deep(.authing-ant-input) {
+  border-radius: 14px !important;
+  border-color: var(--mono-border) !important;
+}
+
+.guard-container :deep(a),
+.guard-container :deep(.authing-ant-tabs-tab-active) {
+  color: #111111 !important;
+}
+
 @media (max-width: 520px) {
-  footer { flex-direction: column; }
+  .guard-container {
+    min-width: 0;
+    width: 100%;
+    padding: 16px;
+  }
 }
 </style>

@@ -818,43 +818,21 @@ def register_survey_routes(app, db):
         user_tags_str = ','.join(dict.fromkeys(clean_tags))
 
         try:
-            # 🛡️ 自动补救：如果 user_tags/has_survey 列不存在则先创建
+            # 🛡️ 自动补救：如果 user_tags 列不存在则先创建
             try:
                 db.session.execute(
                     text("UPDATE users SET user_tags = :tags, has_survey = 1 WHERE username = :username"),
                     {'tags': user_tags_str, 'username': username}
                 )
             except Exception as col_err:
-                err_msg = str(col_err).lower()
-                if 'unknown column' in err_msg:
-                    app.logger.warning(f'列缺失，自动创建: {col_err}')
-                    db.session.rollback()  # 先回滚失败的 UPDATE
-
-                    # 尝试 MySQL 8.0+ 语法
-                    try:
-                        db.session.execute(text(
-                            "ALTER TABLE users ADD COLUMN IF NOT EXISTS user_tags VARCHAR(500) DEFAULT NULL"))
-                    except Exception:
-                        # 降级到 MySQL 5.7 兼容语法（无 IF NOT EXISTS）
-                        try:
-                            db.session.execute(text(
-                                "ALTER TABLE users ADD COLUMN user_tags VARCHAR(500) DEFAULT NULL"))
-                        except Exception:
-                            pass  # 列已存在也会报错，忽略
-
-                    try:
-                        db.session.execute(text(
-                            "ALTER TABLE users ADD COLUMN IF NOT EXISTS has_survey TINYINT DEFAULT 0"))
-                    except Exception:
-                        try:
-                            db.session.execute(text(
-                                "ALTER TABLE users ADD COLUMN has_survey TINYINT DEFAULT 0"))
-                        except Exception:
-                            pass
-
+                if 'Unknown column' in str(col_err):
+                    app.logger.warning('检测到 users 表缺少 user_tags 字段，正在自动创建...')
+                    db.session.execute(text(
+                        "ALTER TABLE users ADD COLUMN IF NOT EXISTS user_tags VARCHAR(500) DEFAULT NULL AFTER interests"))
+                    db.session.execute(text(
+                        "ALTER TABLE users ADD COLUMN IF NOT EXISTS has_survey TINYINT DEFAULT 0"))
                     db.session.commit()
-
-                    # 重试 UPDATE
+                    # 重试
                     db.session.execute(
                         text("UPDATE users SET user_tags = :tags, has_survey = 1 WHERE username = :username"),
                         {'tags': user_tags_str, 'username': username}
@@ -868,8 +846,7 @@ def register_survey_routes(app, db):
         except Exception as e:
             db.session.rollback()
             app.logger.error(f'问卷提交失败: {str(e)}')
-            # 只返回通用消息，不泄露内部错误细节
-            return jsonify({'code': 500, 'msg': '保存失败，请稍后重试'}), 500
+            return jsonify({'code': 500, 'msg': '保存失败：' + str(e)}), 500
 
     # --- 接口 B：个性化网站推荐 ---
     @app.route('/api/recommendations/websites', methods=['GET'])
@@ -997,50 +974,6 @@ def register_survey_routes(app, db):
                         })
 
                 items = items[:TARGET_COUNT]
-
-            max_clicks = max([item.get('clicks') or 0 for item in items] + [1])
-            for item in items:
-                popularity_score = min((item.get('clicks') or 0) / max_clicks, 1)
-                interest_score = 1 if item.get('matched_tag') else 0.35
-                occupation_score = 0.7 if source == 'personalized' else 0.4
-                quality_score = 0.82
-                freshness_score = 0.6
-                score = (
-                    occupation_score * 0.4
-                    + interest_score * 0.25
-                    + quality_score * 0.2
-                    + popularity_score * 0.1
-                    + freshness_score * 0.05
-                )
-                item['match_score'] = round(score, 2)
-                item['match_percent'] = min(99, max(58, round(score * 100)))
-                if item.get('matched_tag'):
-                    item['reason'] = f"匹配你的 {item['matched_tag']} 需求，并结合网站热度排序"
-                    item['tags'] = [item['matched_tag']]
-                else:
-                    item['reason'] = '基于全站热度和通用学习价值推荐'
-                    item['tags'] = []
-
-            try:
-                user = User.query.filter_by(username=username).first()
-                user_id = user.id if user else None
-                for item in items:
-                    db.session.execute(
-                        text("""
-                            INSERT INTO recommendation_logs (user_id, website_id, score, reason, source)
-                            VALUES (:user_id, :website_id, :score, :reason, :source)
-                        """),
-                        {
-                            'user_id': user_id,
-                            'website_id': item['id'],
-                            'score': item.get('match_score') or 0,
-                            'reason': item.get('reason') or '',
-                            'source': source,
-                        }
-                    )
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
 
             return jsonify({
                 'code': 0,

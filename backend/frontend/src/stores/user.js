@@ -7,7 +7,7 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { userAPI } from '@/utils/api'
+import { userAPI, authAPI } from '@/utils/api'
 
 export const useUserStore = defineStore('user', () => {
   // ==================== 状态 ====================
@@ -35,11 +35,10 @@ export const useUserStore = defineStore('user', () => {
     const savedLogin = localStorage.getItem('is_logged_in')
     const savedUser = localStorage.getItem('user_info')
 
-    if (savedToken || savedRefresh || savedLogin === 'true') {
+    if (savedToken && savedLogin === 'true') {
       accessToken.value = savedToken
       refreshToken.value = savedRefresh
       isLoggedIn.value = true
-      localStorage.setItem('is_logged_in', 'true')
       if (savedUser) {
         try {
           userInfo.value = { ...userInfo.value, ...JSON.parse(savedUser) }
@@ -131,9 +130,7 @@ export const useUserStore = defineStore('user', () => {
   // ==================== 更新 Token ====================
   function updateAccessToken(token) {
     accessToken.value = token
-    isLoggedIn.value = true
     localStorage.setItem('access_token', token)
-    localStorage.setItem('is_logged_in', 'true')
   }
 
   // ==================== 从服务端同步用户信息 ====================

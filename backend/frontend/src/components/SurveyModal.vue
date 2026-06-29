@@ -183,6 +183,8 @@ defineExpose({ reset, done, selectedTags })
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* ==================== 弹窗主体 ==================== */
@@ -190,8 +192,12 @@ defineExpose({ reset, done, selectedTags })
   position: relative;
   width: 100%;
   max-width: 660px;
-  max-height: 90vh;
+  max-height: calc(100vh - 40px);
+  min-height: 0;
+  flex: 0 1 auto;
+  scrollbar-gutter: stable both-edges;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
@@ -416,16 +422,20 @@ defineExpose({ reset, done, selectedTags })
 /* ==================== 底部按钮 ==================== */
 .survey-actions {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: center;
+  padding-top: 2px;
 }
 
 .survey-btn-submit {
+  position: relative;
+  z-index: 3;
   width: 100%;
   max-width: 380px;
+  min-height: 48px;
   padding: 14px 28px;
   border: none;
   border-radius: 14px;
@@ -453,6 +463,9 @@ defineExpose({ reset, done, selectedTags })
 }
 
 .survey-btn-skip {
+  position: relative;
+  z-index: 3;
+  min-height: 44px;
   padding: 8px 20px;
   border: none;
   background: transparent;
@@ -463,6 +476,38 @@ defineExpose({ reset, done, selectedTags })
 }
 .survey-btn-skip:hover {
   color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .survey-overlay {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .survey-modal {
+    max-height: calc(100dvh - 32px);
+    padding: 28px 20px 22px;
+  }
+}
+
+@media (max-width: 500px) {
+  .survey-overlay {
+    padding: 12px;
+  }
+
+  .survey-modal {
+    max-height: calc(100dvh - 24px);
+    padding: 24px 16px 20px;
+  }
+
+  .survey-actions {
+    gap: 8px;
+  }
+
+  .survey-btn-submit,
+  .survey-btn-skip {
+    width: 100%;
+  }
 }
 
 /* 按钮 loading 动画 */
@@ -492,5 +537,129 @@ defineExpose({ reset, done, selectedTags })
 .survey-fade-leave-to .survey-modal {
   opacity: 0;
   transform: scale(0.95) translateY(10px);
+}
+
+/* Monochrome product surface override */
+.survey-overlay {
+  background: rgba(246,246,244,0.7) !important;
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.survey-modal {
+  color: var(--mono-text);
+  background: var(--mono-surface) !important;
+  border: 1px solid var(--mono-border) !important;
+  border-radius: var(--mono-radius-xl) !important;
+  box-shadow: var(--mono-shadow-lg) !important;
+}
+
+.survey-glow {
+  background: #111111 !important;
+  filter: blur(90px) grayscale(1);
+  opacity: 0.06;
+}
+
+.survey-icon,
+.tag-emoji {
+  filter: grayscale(1);
+}
+
+.survey-title,
+.section-title,
+.tag-label {
+  color: var(--mono-text) !important;
+}
+
+.survey-subtitle,
+.section-hint,
+.survey-selected-hint,
+.empty-hint,
+.hint-extra {
+  color: var(--mono-muted) !important;
+}
+
+.section-badge {
+  color: var(--mono-text) !important;
+  background: rgba(17,17,17,0.06) !important;
+  border: 1px solid var(--mono-border);
+}
+
+.survey-tag-card {
+  color: var(--mono-text);
+  background: rgba(255,255,255,0.62) !important;
+  border: 1px solid var(--mono-border) !important;
+  transition: transform var(--mono-base) var(--mono-ease), background var(--mono-base) var(--mono-ease), border-color var(--mono-base) var(--mono-ease), box-shadow var(--mono-base) var(--mono-ease);
+}
+
+.survey-tag-card:hover {
+  background: #ffffff !important;
+  border-color: var(--mono-border-strong) !important;
+  box-shadow: 0 14px 34px rgba(17,17,17,0.08) !important;
+}
+
+.survey-tag-selected,
+.survey-tag-selected:hover {
+  background: #111111 !important;
+  border-color: #111111 !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 34px rgba(17,17,17,0.14) !important;
+}
+
+.survey-tag-selected .tag-label,
+.survey-tag-selected .tag-emoji {
+  color: #ffffff !important;
+}
+
+.tag-check {
+  background: #ffffff !important;
+  color: #111111 !important;
+}
+
+.survey-btn-submit {
+  color: #ffffff !important;
+  background: #111111 !important;
+  border: 1px solid #111111 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 14px 34px rgba(17,17,17,0.18) !important;
+}
+
+.survey-btn-submit:hover {
+  box-shadow: 0 18px 46px rgba(17,17,17,0.24) !important;
+}
+
+.survey-btn-submit:disabled {
+  color: var(--mono-muted) !important;
+  background: var(--mono-surface-muted) !important;
+  border-color: var(--mono-border) !important;
+}
+
+.survey-btn-skip {
+  color: var(--mono-muted) !important;
+}
+
+.survey-btn-skip:hover {
+  color: var(--mono-text) !important;
+}
+
+:global(.layout.dark-theme) .survey-overlay {
+  background: rgba(0,0,0,0.72) !important;
+}
+
+:global(.layout.dark-theme) .survey-modal,
+:global(.layout.dark-theme) .survey-tag-card {
+  background: var(--mono-surface) !important;
+  border-color: var(--mono-border) !important;
+}
+
+:global(.layout.dark-theme) .survey-tag-selected {
+  color: #111111 !important;
+  background: #f4f4f2 !important;
+  border-color: #f4f4f2 !important;
+}
+
+:global(.layout.dark-theme) .survey-tag-selected .tag-label,
+:global(.layout.dark-theme) .survey-tag-selected .tag-emoji {
+  color: #111111 !important;
 }
 </style>
