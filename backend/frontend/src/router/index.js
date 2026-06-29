@@ -37,7 +37,8 @@ const routes = [
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import('../views/Home.vue'), // 个人页面复用 Home.vue
+    component: () => import('../ProfileView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

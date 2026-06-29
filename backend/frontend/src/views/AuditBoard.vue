@@ -37,6 +37,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { API_BASE_URL } from '../utils/api';
 
 // 待审核数据源
 const pendingSites = ref([]);
@@ -44,7 +45,7 @@ const pendingSites = ref([]);
 // 1. 页面加载时抓取数据
 const fetchPendingSites = async () => {
   try {
-    const res = await fetch('http://127.0.0.1:5000/api/admin/pending-sites');
+    const res = await fetch(`${API_BASE_URL}/admin/pending-sites`);
     pendingSites.value = await res.json();
   } catch (error) {
     console.error("获取待审核列表失败:", error);
@@ -54,7 +55,7 @@ const fetchPendingSites = async () => {
 // 2. 处理审核操作 (通过/拒绝)
 const handleAudit = async (siteId, action) => {
   try {
-    const res = await fetch(`http://127.0.0.1:5000/api/admin/audit-site/${siteId}`, {
+    const res = await fetch(`${API_BASE_URL}/admin/audit-site/${siteId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action })

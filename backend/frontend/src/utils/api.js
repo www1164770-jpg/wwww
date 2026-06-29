@@ -13,9 +13,11 @@
 
 import axios from 'axios'
 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000/api'
+
 // ==================== 1. 创建 Axios 实例 ====================
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:5000/api',
+  baseURL: API_BASE_URL,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' }
 })
@@ -90,7 +92,7 @@ api.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          'http://127.0.0.1:5000/api/auth/refresh',
+          `${API_BASE_URL}/auth/refresh`,
           null,
           { headers: { Authorization: `Bearer ${refreshToken}` } }
         )
@@ -162,7 +164,7 @@ export const authAPI = {
   resetPassword: (email, code, newPassword) =>
     api.post('/auth/reset-password', { email, code, new_password: newPassword }),
   /** GitHub OAuth 登录跳转地址 */
-  githubLoginUrl: 'http://127.0.0.1:5000/api/login/github'
+  githubLoginUrl: `${API_BASE_URL}/login/github`
 }
 
 // --- 用户模块 ---

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:home-ai-recommend": "node scripts/verify-home-ai-recommend.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
