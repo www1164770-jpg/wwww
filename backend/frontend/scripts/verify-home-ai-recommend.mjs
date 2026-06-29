@@ -1,59 +1,83 @@
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
 
 const read = (path) => readFileSync(resolve(root, path), 'utf8')
+const exists = (path) => existsSync(resolve(root, path))
 
 const checks = [
   {
-    name: 'homepage copy is localized and career module exists',
+    name: 'home page is split into focused components',
     run() {
-      const home = read('src/views/Home.vue')
-      const expectedSnippets = [
-        '工具库',
-        '职业推荐',
-        '热门榜单',
-        '资讯文章',
-        '关于本站',
-        '根据你的职业，推荐最适合的 AI 工具',
-        '填写职业与使用场景，智能推荐学习、办公、创作、编程等高效网站与工具。',
-        '搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计',
-        '个工具收录',
-        '个热门分类',
-        '个性化推荐已开启',
-        '浏览全部工具',
-        '查看收藏',
-        '提交网站',
-        '热门工具<br>分类',
-        'career-recommend-section',
-        'AI 职业推荐',
-        '选择你的身份，快速找到适合的工具组合'
+      const expectedFiles = [
+        'src/components/home/HeroSearch.vue',
+        'src/components/home/CareerRecommend.vue',
+        'src/components/home/PopularCategories.vue',
+        'src/components/home/ToolCard.vue',
+        'src/components/home/FavoriteStack.vue',
+        'src/components/modals/LoginModal.vue',
+        'src/components/modals/SiteFormModal.vue',
+        'src/components/modals/CategoryModal.vue',
+        'src/components/modals/AppearanceModal.vue'
       ]
 
-      for (const snippet of expectedSnippets) {
-        if (!home.includes(snippet)) {
-          throw new Error(`Missing homepage snippet: ${snippet}`)
-        }
+      for (const file of expectedFiles) {
+        if (!exists(file)) throw new Error(`Missing split component: ${file}`)
+      }
+
+      const home = read('src/views/Home.vue')
+      for (const name of ['HeroSearch', 'CareerRecommend', 'PopularCategories', 'ToolCard', 'FavoriteStack']) {
+        if (!home.includes(name)) throw new Error(`Home.vue does not use ${name}`)
+      }
+      if (home.includes("currentPage === 'profile'")) {
+        throw new Error('Home.vue still contains the embedded profile page branch')
       }
     }
   },
   {
-    name: 'profile route uses dedicated authenticated view',
+    name: 'career recommendation is interactive and keyword driven',
+    run() {
+      const career = read('src/components/home/CareerRecommend.vue')
+      const home = read('src/views/Home.vue')
+
+      for (const snippet of [
+        "defineEmits(['select-career'])",
+        'careerRecommendations',
+        '学生',
+        '程序员',
+        '设计师',
+        '运营'
+      ]) {
+        if (!career.includes(snippet)) throw new Error(`CareerRecommend is missing: ${snippet}`)
+      }
+
+      for (const snippet of ['selectCareer', 'careerKeywords', 'activeCareer', 'searchQuery.value = career']) {
+        if (!home.includes(snippet)) throw new Error(`Home.vue is missing career interaction code: ${snippet}`)
+      }
+    }
+  },
+  {
+    name: 'profile route uses dedicated view under views folder',
     run() {
       const router = read('src/router/index.js')
-      if (!router.includes("component: () => import('../ProfileView.vue')")) {
-        throw new Error('Profile route does not import ../ProfileView.vue')
+      if (!router.includes("component: () => import('../views/ProfileView.vue')")) {
+        throw new Error('Profile route does not import ../views/ProfileView.vue')
       }
       if (!router.includes("meta: { requiresAuth: true }")) {
         throw new Error('Profile route is not protected by requiresAuth')
       }
 
-      const profile = read('src/ProfileView.vue')
-      for (const snippet of ['个人主页', '基础资料', '安全设置', '退出当前账号']) {
-        if (!profile.includes(snippet)) {
-          throw new Error(`ProfileView is missing migrated UI snippet: ${snippet}`)
-        }
+      const profileFiles = [
+        'src/views/ProfileView.vue',
+        'src/components/profile/ProfileSidebar.vue',
+        'src/components/profile/ProfileBasic.vue',
+        'src/components/profile/ProfileSecurity.vue',
+        'src/components/profile/ProfilePrivacy.vue',
+        'src/components/profile/ProfileContent.vue'
+      ]
+      for (const file of profileFiles) {
+        if (!exists(file)) throw new Error(`Missing profile file: ${file}`)
       }
     }
   },
@@ -84,6 +108,51 @@ const checks = [
         if (content.includes('http://127.0.0.1:5000/api')) {
           throw new Error(`${name} still contains a hardcoded local API URL`)
         }
+      }
+    }
+  },
+  {
+    name: 'frontend src contains only frontend source files',
+    run() {
+      for (const file of [
+        'src/build_final_sql.py',
+        'src/convert_to_64.py',
+        'src/init_db.sql',
+        'src/insert_websites_data.sql',
+        'src/result.txt'
+      ]) {
+        if (exists(file)) throw new Error(`Non-frontend file still in src: ${file}`)
+      }
+      if (exists('src/__pycache__')) throw new Error('Python cache directory still exists in frontend src')
+
+      for (const file of [
+        '../scripts/build_final_sql.py',
+        '../scripts/convert_to_64.py',
+        '../sql/init_db.sql',
+        '../sql/insert_websites_data.sql'
+      ]) {
+        if (!exists(file)) throw new Error(`Moved backend artifact is missing: ${file}`)
+      }
+
+      const srcEntries = readdirSync(resolve(root, 'src'))
+      for (const entry of srcEntries) {
+        if (entry.endsWith('.py') || entry.endsWith('.sql') || entry === '__pycache__') {
+          throw new Error(`Unexpected backend artifact in src: ${entry}`)
+        }
+      }
+    }
+  },
+  {
+    name: 'deployment notes document Vercel frontend root and API env',
+    run() {
+      const readme = read('README.md')
+      for (const snippet of [
+        'Root Directory: backend/frontend',
+        'Build Command: npm run build',
+        'Output Directory: dist',
+        'VITE_API_BASE_URL=https://你的后端域名/api'
+      ]) {
+        if (!readme.includes(snippet)) throw new Error(`README is missing deployment note: ${snippet}`)
       }
     }
   }
