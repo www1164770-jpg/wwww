@@ -15,11 +15,11 @@
           <strong>智慧导航</strong>
         </button>
         <nav class="stack-nav" aria-label="主导航">
-          <button class="is-active">Tools</button>
-          <button @click="activeStackCategory = 'stacks'">Stacks</button>
-          <button @click="activeStackCategory = 'compare'">Compare</button>
-          <button @click="activeStackCategory = 'blog'">Blog</button>
-          <button @click="activeStackCategory = 'about'">About</button>
+          <button class="is-active">工具库</button>
+          <button @click="activeStackCategory = 'stacks'">职业推荐</button>
+          <button @click="activeStackCategory = 'compare'">热门榜单</button>
+          <button @click="activeStackCategory = 'blog'">资讯文章</button>
+          <button @click="activeStackCategory = 'about'">关于本站</button>
         </nav>
         <div class="stack-header-actions">
           <button class="stack-icon-search" @click="searchInputRef?.focus()" aria-label="搜索">⌕</button>
@@ -29,8 +29,8 @@
 
       <main class="stack-main">
         <section class="stack-hero">
-          <h1>The stack you'll actually use.</h1>
-          <p>为高效上网、学习、创作和工作准备的网站与工具目录。</p>
+          <h1>根据你的职业，推荐最适合的 AI 工具</h1>
+          <p>填写职业与使用场景，智能推荐学习、办公、创作、编程等高效网站与工具。</p>
           <div class="stack-search">
             <input
               ref="searchInputRef"
@@ -39,7 +39,7 @@
               @focus="isSearchFocused = true"
               @blur="handleSearchBlur"
               type="text"
-              placeholder="Search websites by name (e.g. GitHub, Notion, Bilibili)..."
+              placeholder="搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
             />
             <button @click="doSearch" aria-label="搜索">⌕</button>
             <transition name="stack-dropdown">
@@ -69,11 +69,65 @@
               </div>
             </transition>
           </div>
-          <div class="stack-meta">{{ stackToolCount }} tools saved · {{ stackCategories.length }} active categories · data pinned</div>
+          <div class="stack-meta">{{ stackToolCount }} 个工具收录 · {{ stackCategories.length }} 个热门分类 · 个性化推荐已开启</div>
           <div class="stack-quick-links">
-            <button @click="activeCategoryId = 'all'">Browse all tools ›</button>
-            <button @click="activeCategoryId = 'favorites'">See favorites ›</button>
-            <button @click="openAddSiteModal">Submit a tool ›</button>
+            <button @click="activeCategoryId = 'all'">浏览全部工具 ›</button>
+            <button @click="activeCategoryId = 'favorites'">查看收藏 ›</button>
+            <button @click="openAddSiteModal">提交网站 ›</button>
+          </div>
+        </section>
+
+        <section class="career-recommend-section">
+          <div class="career-recommend-header">
+            <p class="career-eyebrow">AI 职业推荐</p>
+            <h2>选择你的身份，快速找到适合的工具组合</h2>
+            <p>系统会根据职业、学习方向和使用场景，为你推荐更高效的网站与 AI 工具。</p>
+          </div>
+
+          <div class="career-card-grid">
+            <div class="career-card">
+              <div class="career-icon">学</div>
+              <h3>学生 / 论文写作</h3>
+              <p>推荐文献检索、论文润色、翻译、PPT 制作和在线课程工具。</p>
+              <div class="career-tags">
+                <span>论文</span>
+                <span>PPT</span>
+                <span>翻译</span>
+              </div>
+            </div>
+
+            <div class="career-card">
+              <div class="career-icon">码</div>
+              <h3>程序员 / 开发学习</h3>
+              <p>推荐 AI 编程、代码托管、接口测试、技术文档和部署平台。</p>
+              <div class="career-tags">
+                <span>编程</span>
+                <span>接口</span>
+                <span>部署</span>
+              </div>
+            </div>
+
+            <div class="career-card">
+              <div class="career-icon">设</div>
+              <h3>设计师 / 内容创作</h3>
+              <p>推荐 AI 绘图、素材库、配色、字体、图片压缩和原型设计工具。</p>
+              <div class="career-tags">
+                <span>绘图</span>
+                <span>素材</span>
+                <span>设计</span>
+              </div>
+            </div>
+
+            <div class="career-card">
+              <div class="career-icon">营</div>
+              <h3>运营 / 自媒体</h3>
+              <p>推荐热点分析、文案生成、排版工具、数据看板和短视频工具。</p>
+              <div class="career-tags">
+                <span>文案</span>
+                <span>数据</span>
+                <span>短视频</span>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -86,7 +140,7 @@
 
         <section class="stack-category-section">
           <div class="stack-category-menu">
-            <h2>Most Popular<br>Categories</h2>
+            <h2>热门工具<br>分类</h2>
             <button
               v-for="cat in stackCategories"
               :key="cat.key"
@@ -95,10 +149,10 @@
             >
               {{ cat.label }}
             </button>
-            <button class="stack-see-all" @click="activeCategoryId = 'all'">See all {{ stackToolCount }} tools ›</button>
+            <button class="stack-see-all" @click="activeCategoryId = 'all'">查看全部工具 ›</button>
           </div>
           <div class="stack-tools-area">
-            <button class="stack-section-link" @click="activeCategoryId = 'all'">See all {{ activeStackCategoryLabel }} ›</button>
+            <button class="stack-section-link" @click="activeCategoryId = 'all'">查看全部 {{ activeStackCategoryLabel }} ›</button>
             <div class="stack-tool-grid">
               <button
                 v-for="(site, index) in stackTools"
@@ -123,7 +177,7 @@
         <section class="stack-favorites-section">
           <div class="stack-favorites-inner">
             <p class="stack-kicker">FAV STACK</p>
-            <h2>Tools I actually build with.</h2>
+            <h2>我常用的效率工具组合</h2>
             <p class="stack-fav-subtitle">收藏、推荐和高频入口会汇总在这里，方便下一次直接打开。</p>
             <div class="stack-fav-list">
               <button
@@ -864,7 +918,9 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import FlexSearch from 'flexsearch'
 import SurveyModal from '../components/SurveyModal.vue'
-import { userAPI, feedAPI } from '../utils/api'
+import { userAPI, feedAPI, API_BASE_URL } from '../utils/api'
+
+const apiUrl = (path) => `${API_BASE_URL}${path}`
 
 // ================= 右侧边栏二合一选项卡 =================
 const activeSidebarTab = ref('ranking');
@@ -1112,7 +1168,7 @@ const isCrawling = ref(false);
 // 拉取待审核列表
 const fetchPendingSites = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/admin/pending_sites');
+    const res = await axios.get(apiUrl('/admin/pending_sites'));
     pendingSites.value = res.data;
   } catch (error) {
     console.error('获取待审核列表失败:', error);
@@ -1130,7 +1186,7 @@ const triggerCrawl = async () => {
   isCrawling.value = true;
   showToast('正在向 Hacker News 派出爬虫，请稍候...', 'success');
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/admin/crawl_hn');
+    const res = await axios.post(apiUrl('/admin/crawl_hn'));
     showToast(res.data.message, 'success');
     fetchPendingSites(); // 采集完刷新列表
   } catch (error) {
@@ -1151,7 +1207,7 @@ const handleReview = async (siteId, action) => {
       targetCategoryId = 1; 
     }
 
-    await axios.post('http://127.0.0.1:5000/api/admin/review_site', {
+    await axios.post(apiUrl('/admin/review_site'), {
       id: siteId,
       action: action,
       category_id: targetCategoryId 
@@ -1184,7 +1240,7 @@ axios.interceptors.response.use(
         if (!refreshToken) throw new Error('没有备用钥匙');
         
         // 2. 偷偷向后端申请新钥匙
-        const res = await axios.post('http://127.0.0.1:5000/api/refresh', null, {
+        const res = await axios.post(apiUrl('/refresh'), null, {
           headers: { Authorization: `Bearer ${refreshToken}` }
         });
         
@@ -1367,7 +1423,7 @@ const sitesData = ref([]) // 初始为空数组
 // 核心函数：从 Flask 获取数据
 const fetchNavData = async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:5000/api/nav-data');
+    const response = await axios.get(apiUrl('/nav-data'));
     // 注意：后端返回的是 categories 嵌套 sites 的结构
     // 我们需要把所有的 sites 提取出来给全局的 websites.value
     const allSites = [];
@@ -1431,7 +1487,7 @@ const sendEmailCode = async () => {
   if (!emailRegex.test(modalForm.value.email)) return showToast('⚠️ 请输入正确的邮箱格式', 'error');
 
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/security/send-email-code', 
+    const res = await axios.post(apiUrl('/security/send-email-code'), 
       { email: modalForm.value.email }, 
       { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
     );
@@ -1452,7 +1508,7 @@ const sendPhoneCode = async () => {
   if (!phoneRegex.test(modalForm.value.phone)) return showToast('⚠️ 请输入正确的11位手机号', 'error');
 
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/security/send-sms-code', 
+    const res = await axios.post(apiUrl('/security/send-sms-code'), 
       { phone: modalForm.value.phone }, 
       { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
     );
@@ -1471,7 +1527,7 @@ const sendPhoneCode = async () => {
 const submitEmailBind = async () => {
   if (!modalForm.value.emailCode) return showToast('⚠️ 请输入验证码', 'error');
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/security/bind-email', 
+    const res = await axios.post(apiUrl('/security/bind-email'), 
       { email: modalForm.value.email, code: modalForm.value.emailCode }, 
       { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
     );
@@ -1487,7 +1543,7 @@ const submitEmailBind = async () => {
 const submitPhoneBind = async () => {
   if (!modalForm.value.phoneCode) return showToast('⚠️ 请输入验证码', 'error');
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/security/bind-phone', 
+    const res = await axios.post(apiUrl('/security/bind-phone'), 
       { phone: modalForm.value.phone, code: modalForm.value.phoneCode }, 
       { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }}
     );
@@ -1530,7 +1586,7 @@ const submitPasswordChange = async () => {
   }
 
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/user/password', {
+    const res = await axios.post(apiUrl('/user/password'), {
       old_password: modalForm.value.oldPwd,
       new_password: modalForm.value.newPwd
     }, {
@@ -1562,7 +1618,7 @@ const sendCode = async () => {
 
   // 向 Flask 后端发起请求
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/auth/send-code', { email: regForm.value.email });
+    const res = await axios.post(apiUrl('/auth/send-code'), { email: regForm.value.email });
     if (res.data.code === 0) {
       if(typeof showToast === 'function') showToast('📧 验证码已发送，请查收邮箱', 'success');
     } else {
@@ -1586,7 +1642,7 @@ const handleRegister = async () => {
   
   // 向 Flask 后端提交注册数据
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/auth/register', regForm.value);
+    const res = await axios.post(apiUrl('/auth/register'), regForm.value);
     
     if (res.data.code === 0) {
       if(typeof showToast === 'function') showToast('🎉 注册成功！快去登录吧', 'success');
@@ -1812,7 +1868,7 @@ const rawLeaderboard = ref([]);
 const fetchRankingData = async () => {
   try {
     // ✨ 修复 1：这里必须是请求 5000 端口的 ranking 接口！
-    const response = await axios.get('http://127.0.0.1:5000/api/ranking/growth');
+    const response = await axios.get(apiUrl('/ranking/growth'));
     
     // ✨ 修复 2：使用正确的 axios 解析格式
     if (response.data && response.data.code === 0) {
@@ -1836,7 +1892,7 @@ const handleSiteClick = async (site) => {
   
   // 2. 静默发送请求给后端，写入 click_log 数据库
   try {
-    await axios.post('http://127.0.0.1:5000/api/click', { id: site.id });
+    await axios.post(apiUrl('/click'), { id: site.id });
     
     // 3. 记录完成后，立刻拉取最新排行榜数据
     fetchRankingData(); 
@@ -1853,7 +1909,7 @@ const phoneNumber = ref('');
 const verifyCode = ref('');
 
 const switchTo = (stage) => { authStage.value = stage; };
-const handleGithubLogin = () => { window.location.href = 'http://127.0.0.1:5000/api/login/github'; };
+const handleGithubLogin = () => { window.location.href = apiUrl('/login/github'); };
 
 const handleMobileLogin = async () => {
   if (!phoneNumber.value || !verifyCode.value) return alert("请输入手机号和验证码");
@@ -1974,7 +2030,7 @@ const toggleSiteToFocus = (site) => {
 };
 
 // ================= 个人信息管理 =================
-const goToProfile = () => { currentPage.value = 'profile'; };
+const goToProfile = () => { router.push('/profile'); };
 const goHome = () => { currentPage.value = 'home'; };
 
 // ================= 🚀 个人中心 (真实数据接入版) =================
@@ -2012,15 +2068,15 @@ const loadProfileData = async () => {
 
   try {
     // 💡 请求：主页数据概览 (获赞/粉丝/文章数)
-    const statsRes = await axios.get(`http://127.0.0.1:5000/api/user/stats?username=${userInfo.value.username}`, { headers });
+    const statsRes = await axios.get(`${API_BASE_URL}/user/stats?username=${userInfo.value.username}`, { headers });
     if (statsRes.data.code === 0) profileStats.value = statsRes.data.data;
 
     // 💡 请求：安全设置-登录设备列表
-    const devRes = await axios.get('http://127.0.0.1:5000/api/user/devices', { headers });
+    const devRes = await axios.get(apiUrl('/user/devices'), { headers });
     if (devRes.data.code === 0) loginDevices.value = devRes.data.data;
 
     // 💡 请求：互动足迹记录
-    const histRes = await axios.get('http://127.0.0.1:5000/api/user/history', { headers });
+    const histRes = await axios.get(apiUrl('/user/history'), { headers });
     if (histRes.data.code === 0) interactionHistory.value = histRes.data.data;
     
   } catch (error) {
@@ -2033,7 +2089,7 @@ const fetchUserContents = async () => {
   const token = localStorage.getItem('access_token');
   try {
     // 💡 接口附带参数 status (published/reviewing/draft)
-    const res = await axios.get(`http://127.0.0.1:5000/api/user/contents?status=${contentTab.value}`, {
+    const res = await axios.get(`${API_BASE_URL}/user/contents?status=${contentTab.value}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (res.data.code === 0) myContents.value = res.data.data;
@@ -2060,7 +2116,7 @@ watch(currentPage, (newPage) => {
 const deleteMyContent = async (id) => {
   if (!confirm('确定要永久删除这条内容吗？')) return;
   try {
-    await axios.post('http://127.0.0.1:5000/api/user/contents/delete', { id }, {
+    await axios.post(apiUrl('/user/contents/delete'), { id }, {
       headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
     });
     showToast('删除成功', 'success');
@@ -2073,7 +2129,7 @@ const deleteMyContent = async (id) => {
 const clearHistory = async () => {
   if (!confirm('确定要清空所有互动足迹吗？此操作不可恢复！')) return;
   try {
-    await axios.post('http://127.0.0.1:5000/api/user/history/clear', {}, {
+    await axios.post(apiUrl('/user/history/clear'), {}, {
       headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
     });
     interactionHistory.value = []; // 清空前端数组
@@ -2169,7 +2225,7 @@ const syncSettingsToCloud = async () => {
   if (!isLoggedIn.value || !userInfo.value.username) return;
   
   try {
-    await axios.post('http://127.0.0.1:5000/api/user/sync', {
+    await axios.post(apiUrl('/user/sync'), {
       username: userInfo.value.username,
       dark_mode: isDarkMode.value,
       custom_wallpaper: customWallpaper.value,
@@ -2186,7 +2242,7 @@ const syncSettingsToCloud = async () => {
 // ✨ 2. 登录成功后，从云端拉取覆盖本地配置
 const loadSettingsFromCloud = async (username) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/user/settings?username=${username}`);
+    const res = await axios.get(`${API_BASE_URL}/user/settings?username=${username}`);
     const data = res.data;
     
     // 把云端的数据覆盖到当前的响应式变量上
@@ -2295,7 +2351,7 @@ const fetchIndustryNews = async () => {
   isLoadingNews.value = true;
   try {
     // 动态传入当前的行业分类参数，让后端返回精准数据
-    const res = await axios.get(`http://127.0.0.1:5000/api/news?prof=${currentProfession.value}`);
+    const res = await axios.get(`${API_BASE_URL}/news?prof=${currentProfession.value}`);
     newsList.value = res.data;
   } catch (error) {
     console.error('获取行业资讯失败:', error);
@@ -3098,7 +3154,7 @@ const fetchFavorites = async () => {
   }
   try {
     const token = localStorage.getItem('access_token');
-    const res = await axios.get('http://127.0.0.1:5000/api/favorites', {
+    const res = await axios.get(apiUrl('/favorites'), {
       headers: { Authorization: `Bearer ${token}` } 
     });
     favoriteSiteIds.value = res.data; // 直接把后端返回的数组存起来
@@ -8060,6 +8116,107 @@ input:checked + .slider:before { transform: translateX(22px); }
   color: #8793a1;
 }
 
+.career-recommend-section {
+  width: min(1120px, calc(100% - 48px));
+  margin: 18px auto 72px;
+  padding: 36px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 112, 88, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.86));
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  animation: stack-rise 680ms cubic-bezier(.2,.9,.2,1) 120ms both;
+}
+
+.career-recommend-header {
+  max-width: 720px;
+  margin-bottom: 28px;
+}
+
+.career-eyebrow {
+  margin: 0 0 10px;
+  color: #ef725c;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.career-recommend-header h2 {
+  margin: 0 0 12px;
+  color: #253044;
+  font-size: 34px;
+  line-height: 1.2;
+}
+
+.career-recommend-header p {
+  margin: 0;
+  color: #718096;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.career-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.career-card {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid rgba(203, 213, 225, 0.7);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.career-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+}
+
+.career-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  color: #ef725c;
+  background: #fff1ed;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.career-card h3 {
+  margin: 0 0 10px;
+  color: #253044;
+  font-size: 18px;
+}
+
+.career-card p {
+  margin: 0 0 18px;
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.career-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.career-tags span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .stack-marquee {
   width: 100%;
   border-top: 1px solid #dfe3e7;
@@ -8328,6 +8485,10 @@ input:checked + .slider:before { transform: translateX(22px); }
     padding: 0 24px;
   }
 
+  .career-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .stack-category-section {
     grid-template-columns: 240px 1fr;
     gap: 34px;
@@ -8360,6 +8521,19 @@ input:checked + .slider:before { transform: translateX(22px); }
   .stack-quick-links {
     flex-wrap: wrap;
     gap: 14px 22px;
+  }
+
+  .career-recommend-section {
+    width: calc(100% - 28px);
+    padding: 24px;
+  }
+
+  .career-recommend-header h2 {
+    font-size: 26px;
+  }
+
+  .career-card-grid {
+    grid-template-columns: 1fr;
   }
 
   .stack-category-section,
