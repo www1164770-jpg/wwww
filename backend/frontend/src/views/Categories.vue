@@ -3,9 +3,19 @@
     <AppHeader />
     <main>
       <h1>Categories</h1>
-      <div class="grid">
+      <SearchBar
+        v-model="keyword"
+        :navigate-on-submit="false"
+        placeholder="Search categories..."
+      />
+      <LoadingState
+        v-if="loading"
+        title="Loading categories"
+        description="Fetching category navigation."
+      />
+      <div v-else-if="filteredRoots.length" class="grid">
         <RouterLink
-          v-for="category in roots"
+          v-for="category in filteredRoots"
           :key="category.id"
           :to="`/category/${category.id}`"
         >
@@ -13,6 +23,11 @@
           <strong>{{ category.name }}</strong>
         </RouterLink>
       </div>
+      <EmptyState
+        v-else
+        title="No categories"
+        description="No matching category was found."
+      />
     </main>
   </div>
 </template>
@@ -20,16 +35,35 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import AppHeader from "../components/layout/AppHeader.vue";
+import EmptyState from "../components/common/EmptyState.vue";
+import LoadingState from "../components/common/LoadingState.vue";
+import SearchBar from "../components/common/SearchBar.vue";
 import { categoryAPI } from "../utils/api";
 
 const categories = ref([]);
+const keyword = ref("");
+const loading = ref(false);
 const roots = computed(() =>
   categories.value.filter((item) => !item.parent_id),
 );
+const filteredRoots = computed(() => {
+  const value = keyword.value.trim().toLowerCase();
+  if (!value) return roots.value;
+  return roots.value.filter((item) =>
+    String(item.name || "")
+      .toLowerCase()
+      .includes(value),
+  );
+});
 
 onMounted(async () => {
-  const response = await categoryAPI.getCategories();
-  categories.value = response.data?.data || [];
+  loading.value = true;
+  try {
+    const response = await categoryAPI.getCategories();
+    categories.value = response.data?.data || response.data || [];
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 
@@ -39,6 +73,8 @@ onMounted(async () => {
   background: #f8fafc;
 }
 main {
+  display: grid;
+  gap: 18px;
   width: min(1100px, calc(100% - 36px));
   margin: 36px auto;
 }

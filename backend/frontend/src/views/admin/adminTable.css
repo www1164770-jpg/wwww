@@ -1,0 +1,20 @@
+h1 {
+  margin-top: 0;
+}
+.table {
+  display: grid;
+  gap: 10px;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+}
+.row a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 750;
+}

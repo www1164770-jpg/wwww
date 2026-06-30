@@ -7,6 +7,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   modelValue: { type: String, default: "" },
@@ -14,8 +15,10 @@ const props = defineProps({
     type: String,
     default: "Search AI tools, categories, tags...",
   },
+  navigateOnSubmit: { type: Boolean, default: true },
 });
 const emit = defineEmits(["update:modelValue", "search"]);
+const router = useRouter();
 const keyword = ref(props.modelValue);
 
 watch(
@@ -27,7 +30,11 @@ watch(
 watch(keyword, (value) => emit("update:modelValue", value));
 
 function submit() {
-  emit("search", keyword.value);
+  const value = keyword.value.trim();
+  emit("search", value);
+  if (props.navigateOnSubmit && value) {
+    router.push({ path: "/search", query: { q: value } });
+  }
 }
 </script>
 

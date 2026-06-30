@@ -7,12 +7,18 @@
         <h1>Build your AI resource profile</h1>
       </div>
       <QuestionnaireForm
+        v-if="!loading"
         :occupations="options.occupations"
         :purposes="options.purposes"
         :interests="options.interests"
         :skill-levels="options.skill_levels"
         :preferences="options.preferences"
         @submit="submit"
+      />
+      <LoadingState
+        v-else
+        title="Loading questionnaire"
+        description="Preparing personalization options."
       />
       <p v-if="error" class="error">{{ error }}</p>
     </main>
@@ -23,12 +29,14 @@
 import { onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
+import LoadingState from "../components/common/LoadingState.vue";
 import QuestionnaireForm from "../components/questionnaire/QuestionnaireForm.vue";
 import { questionnaireAPI } from "../utils/api";
 
 const router = useRouter();
 const route = useRoute();
 const error = ref("");
+const loading = ref(false);
 const options = reactive({
   occupations: [],
   purposes: [],
@@ -52,8 +60,16 @@ async function submit(form) {
 }
 
 onMounted(async () => {
-  const response = await questionnaireAPI.get();
-  Object.assign(options, dataOf(response));
+  loading.value = true;
+  try {
+    const response = await questionnaireAPI.get();
+    Object.assign(options, dataOf(response));
+  } catch (err) {
+    error.value =
+      err.response?.data?.msg || "Unable to load questionnaire options.";
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 

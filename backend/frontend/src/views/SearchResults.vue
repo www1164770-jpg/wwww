@@ -3,14 +3,20 @@
     <AppHeader />
     <main>
       <h1>Search</h1>
-      <SearchBar v-model="keyword" @search="search" />
+      <SearchBar v-model="keyword" :navigate-on-submit="false" @search="search" />
       <SiteFilter
         v-model="filters"
         :categories="categories"
         :tags="tags"
         @change="search(keyword)"
       />
+      <LoadingState
+        v-if="loading"
+        title="Searching"
+        description="Looking for matching AI resources."
+      />
       <SiteList
+        v-else
         :sites="sites"
         empty-title="No matching sites"
         empty-description="No related sites found. Try AI tools, programming, or design resources."
@@ -25,6 +31,7 @@
 import { onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
+import LoadingState from "../components/common/LoadingState.vue";
 import SearchBar from "../components/common/SearchBar.vue";
 import SiteFilter from "../components/site/SiteFilter.vue";
 import SiteList from "../components/site/SiteList.vue";
@@ -49,12 +56,23 @@ const filters = reactive({
 const sites = ref([]);
 const categories = ref([]);
 const tags = ref([]);
+const loading = ref(false);
 
 async function search(value = keyword.value) {
-  keyword.value = value;
-  router.replace({ path: "/search", query: { q: value, sort: filters.sort } });
-  const response = await searchAPI.search({ q: value, ...filters });
-  sites.value = response.data?.data?.items || [];
+  const nextValue = value || "";
+  keyword.value = nextValue;
+  router.replace({
+    path: "/search",
+    query: { q: nextValue, sort: filters.sort },
+  });
+  loading.value = true;
+  try {
+    const response = await searchAPI.search({ q: nextValue, ...filters });
+    const payload = response.data?.data ?? response.data ?? {};
+    sites.value = payload.items || payload || [];
+  } finally {
+    loading.value = false;
+  }
 }
 async function favorite(site) {
   if (!localStorage.getItem("access_token")) return router.push("/login");

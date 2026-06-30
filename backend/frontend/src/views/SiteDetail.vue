@@ -1,7 +1,18 @@
 <template>
   <div class="page">
     <AppHeader />
-    <main v-if="site" class="detail">
+    <main class="detail">
+      <LoadingState
+        v-if="loading"
+        title="Loading site"
+        description="Fetching the site detail."
+      />
+      <EmptyState
+        v-else-if="!site"
+        title="Site not found"
+        description="The requested site does not exist or is unavailable."
+      />
+      <template v-else>
       <section class="hero">
         <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
         <div>
@@ -9,7 +20,9 @@
           <h1>{{ site.name }}</h1>
           <span>{{ site.summary }}</span>
           <div class="actions">
-            <button @click="favorite">Favorite</button>
+            <button @click="toggleFavorite">
+              {{ site.is_favorited ? "Unfavorite" : "Favorite" }}
+            </button>
             <button @click="visit">Visit official site</button>
           </div>
         </div>
@@ -35,6 +48,7 @@
       </section>
       <section class="content">
         <h2>Details</h2>
+        <p><strong>Link:</strong> {{ site.url }}</p>
         <p>{{ site.description || site.summary }}</p>
         <div class="chips">
           <span v-for="tag in site.tags" :key="tag">{{ tag }}</span>
@@ -51,6 +65,14 @@
           @visit="visitSimilar"
         />
       </section>
+      <section>
+        <h2>Comments</h2>
+        <EmptyState
+          title="Comments are coming soon"
+          description="User reviews and ratings can be connected here."
+        />
+      </section>
+      </template>
     </main>
   </div>
 </template>
@@ -59,21 +81,35 @@
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
+import EmptyState from "../components/common/EmptyState.vue";
+import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { favoriteAPI, siteAPI } from "../utils/api";
 
 const route = useRoute();
 const router = useRouter();
 const site = ref(null);
+const loading = ref(false);
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=site";
 
 async function load() {
-  const response = await siteAPI.getSite(route.params.id);
-  site.value = response.data?.data;
+  loading.value = true;
+  try {
+    const response = await siteAPI.getSite(route.params.id);
+    site.value = response.data?.data ?? response.data ?? null;
+  } finally {
+    loading.value = false;
+  }
 }
-async function favorite() {
+async function toggleFavorite() {
   if (!localStorage.getItem("access_token")) return router.push("/login");
-  await favoriteAPI.addFavorite(site.value.id);
+  if (site.value.is_favorited) {
+    await favoriteAPI.removeFavorite(site.value.id);
+    site.value.is_favorited = false;
+  } else {
+    await favoriteAPI.addFavorite(site.value.id);
+    site.value.is_favorited = true;
+  }
 }
 async function visit() {
   await siteAPI.recordClick(site.value.id).catch(() => {});

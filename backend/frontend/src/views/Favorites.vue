@@ -3,8 +3,28 @@
     <AppHeader />
     <main>
       <h1>My favorites</h1>
+      <label class="filter">
+        Category
+        <select v-model="selectedCategory">
+          <option value="">All categories</option>
+          <option
+            v-for="category in categories"
+            :key="category.id || category.name"
+            :value="String(category.id || category.name)"
+          >
+            {{ category.name }}
+          </option>
+        </select>
+      </label>
+      <LoadingState
+        v-if="loading"
+        title="Loading favorites"
+        description="Fetching your saved sites."
+      />
       <SiteList
-        :sites="favorites"
+        v-else
+        :sites="filteredFavorites"
+        :favorite-ids="favorites.map((site) => site.id)"
         empty-title="No favorites yet"
         empty-description="Collect useful sites and add notes for later."
         @favorite="remove"
@@ -15,18 +35,37 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import AppHeader from "../components/layout/AppHeader.vue";
+import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
-import { favoriteAPI, siteAPI } from "../utils/api";
+import { categoryAPI, favoriteAPI, siteAPI } from "../utils/api";
 
 const favorites = ref([]);
+const categories = ref([]);
+const selectedCategory = ref("");
+const loading = ref(false);
+const filteredFavorites = computed(() => {
+  if (!selectedCategory.value) return favorites.value;
+  return favorites.value.filter((site) => {
+    const id = site.category_id ?? site.category?.id ?? site.category_name;
+    return String(id) === selectedCategory.value;
+  });
+});
 
 async function load() {
-  const response = await favoriteAPI.getFavorites();
-  favorites.value = Array.isArray(response.data?.data)
-    ? response.data.data
-    : [];
+  loading.value = true;
+  try {
+    const [favoriteRes, categoryRes] = await Promise.all([
+      favoriteAPI.getFavorites(),
+      categoryAPI.getCategories().catch(() => ({ data: { data: [] } })),
+    ]);
+    const payload = favoriteRes.data?.data ?? favoriteRes.data ?? [];
+    favorites.value = payload.items || payload || [];
+    categories.value = categoryRes.data?.data || categoryRes.data || [];
+  } finally {
+    loading.value = false;
+  }
 }
 async function remove(site) {
   await favoriteAPI.removeFavorite(site.id);
@@ -49,5 +88,18 @@ main {
   gap: 20px;
   width: min(1180px, calc(100% - 36px));
   margin: 36px auto;
+}
+.filter {
+  display: grid;
+  gap: 8px;
+  width: min(280px, 100%);
+  color: #374151;
+  font-weight: 750;
+}
+select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
 }
 </style>

@@ -9,7 +9,19 @@
         :tags="tags"
         @change="loadSites"
       />
-      <SiteList :sites="sites" @favorite="favorite" @visit="visit" />
+      <LoadingState
+        v-if="loading"
+        title="Loading sites"
+        description="Finding matching AI resources."
+      />
+      <SiteList
+        v-else
+        :sites="sites"
+        empty-title="No sites in this category"
+        empty-description="Try a different tag, price, region, or sort option."
+        @favorite="favorite"
+        @visit="visit"
+      />
     </main>
   </div>
 </template>
@@ -18,6 +30,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
+import LoadingState from "../components/common/LoadingState.vue";
 import SiteFilter from "../components/site/SiteFilter.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { categoryAPI, favoriteAPI, siteAPI, tagAPI } from "../utils/api";
@@ -27,6 +40,7 @@ const router = useRouter();
 const categories = ref([]);
 const tags = ref([]);
 const sites = ref([]);
+const loading = ref(false);
 const filters = reactive({
   category_id: route.params.id,
   tag: "",
@@ -44,15 +58,27 @@ const children = computed(() =>
 );
 
 async function loadSites(nextFilters = filters) {
-  const response = await siteAPI.getSites({
-    ...nextFilters,
-    category_id: nextFilters.category_id || route.params.id,
-  });
-  sites.value = response.data?.data?.items || [];
+  loading.value = true;
+  try {
+    const response = await siteAPI.getSites({
+      ...nextFilters,
+      category_id: nextFilters.category_id || route.params.id,
+    });
+    const payload = response.data?.data ?? response.data ?? {};
+    sites.value = payload.items || payload || [];
+  } finally {
+    loading.value = false;
+  }
 }
 async function favorite(site) {
   if (!localStorage.getItem("access_token")) return router.push("/login");
-  await favoriteAPI.addFavorite(site.id);
+  if (site.is_favorited) {
+    await favoriteAPI.removeFavorite(site.id);
+    site.is_favorited = false;
+  } else {
+    await favoriteAPI.addFavorite(site.id);
+    site.is_favorited = true;
+  }
 }
 async function visit(site) {
   await siteAPI.recordClick(site.id).catch(() => {});
@@ -63,8 +89,8 @@ onMounted(async () => {
     categoryAPI.getCategories(),
     tagAPI.getTags(),
   ]);
-  categories.value = categoryRes.data?.data || [];
-  tags.value = tagRes.data?.data || [];
+  categories.value = categoryRes.data?.data || categoryRes.data || [];
+  tags.value = tagRes.data?.data || tagRes.data || [];
   await loadSites();
 });
 </script>

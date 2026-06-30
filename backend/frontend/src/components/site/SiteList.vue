@@ -4,7 +4,7 @@
       v-for="site in sites"
       :key="site.id"
       :site="site"
-      :favorited="favoriteIds.includes(site.id)"
+      :favorited="Boolean(site.is_favorited) || favoriteIds.includes(site.id)"
       @favorite="$emit('favorite', $event)"
       @visit="$emit('visit', $event)"
     />
