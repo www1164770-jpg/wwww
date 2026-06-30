@@ -10,24 +10,30 @@
         <input
           :checked="settings.publicFavorites"
           type="checkbox"
-          @change="$emit('update:setting', 'publicFavorites', $event.target.checked)"
-        >
+          @change="
+            $emit('update:setting', 'publicFavorites', $event.target.checked)
+          "
+        />
       </label>
       <label class="row">
         <span>隐藏互动足迹</span>
         <input
           :checked="settings.hideFootprint"
           type="checkbox"
-          @change="$emit('update:setting', 'hideFootprint', $event.target.checked)"
-        >
+          @change="
+            $emit('update:setting', 'hideFootprint', $event.target.checked)
+          "
+        />
       </label>
       <label class="row">
         <span>接收个性化推荐</span>
         <input
           :checked="settings.personalized"
           type="checkbox"
-          @change="$emit('update:setting', 'personalized', $event.target.checked)"
-        >
+          @change="
+            $emit('update:setting', 'personalized', $event.target.checked)
+          "
+        />
       </label>
     </div>
   </section>
@@ -37,11 +43,11 @@
 defineProps({
   settings: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-defineEmits(['update:setting'])
+defineEmits(["update:setting"]);
 </script>
 
 <style scoped>

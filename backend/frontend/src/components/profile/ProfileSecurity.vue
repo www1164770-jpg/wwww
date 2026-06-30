@@ -11,11 +11,17 @@
       </div>
       <div class="row">
         <span>绑定邮箱</span>
-        <strong>{{ userInfo.email || '未绑定' }}</strong>
+        <strong>{{ userInfo.email || "未绑定" }}</strong>
       </div>
-      <div v-for="device in devices" :key="device.id || device.name" class="row">
-        <span>{{ device.name || '登录设备' }}</span>
-        <strong>{{ device.location || '未知位置' }} {{ device.time || '' }}</strong>
+      <div
+        v-for="device in devices"
+        :key="device.id || device.name"
+        class="row"
+      >
+        <span>{{ device.name || "登录设备" }}</span>
+        <strong
+          >{{ device.location || "未知位置" }} {{ device.time || "" }}</strong
+        >
       </div>
     </div>
   </section>
@@ -25,13 +31,13 @@
 defineProps({
   userInfo: {
     type: Object,
-    required: true
+    required: true,
   },
   devices: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 </script>
 
 <style scoped>

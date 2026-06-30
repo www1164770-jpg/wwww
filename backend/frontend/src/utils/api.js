@@ -1,298 +1,245 @@
-/**
- * 智汇导航 — 统一 Axios 封装层
- * =====================================
- * 所有后端 API 请求的入口，集中管理：
- *   1. BaseURL（无需每次硬编码）
- *   2. Token 自动注入请求头（Bearer 认证）
- *   3. 401 拦截 → 静默刷新 Token（Refresh Token 机制）
- *   4. 统一错误提示与重定向
- *
- * 使用方式：
- *   import { api, authAPI, userAPI, navAPI, adminAPI, securityAPI, contentAPI } from '@/utils/api'
- */
+import axios from "axios";
 
-import axios from 'axios'
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000/api'
-
-// ==================== 1. 创建 Axios 实例 ====================
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
-  headers: { 'Content-Type': 'application/json' }
-})
+  headers: { "Content-Type": "application/json" },
+});
 
-// ==================== 2. 标记是否正在刷新 Token（防止并发 401 重复刷新） ====================
-let isRefreshing = false
-let pendingRequests = [] // 等待刷新的请求队列
-
-/**
- * 将等待中的请求全部重试（用新 Token）
- */
-function resolvePendingRequests(newToken) {
-  pendingRequests.forEach(({ resolve }) => resolve(newToken))
-  pendingRequests = []
+function readPayload(response) {
+  return response?.data?.data ?? response?.data ?? {};
 }
 
-/**
- * 拒绝所有等待中的请求（刷新失败时）
- */
-function rejectPendingRequests(error) {
-  pendingRequests.forEach(({ reject }) => reject(error))
-  pendingRequests = []
+function clearAuthAndRedirect() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user_info");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("questionnaire_completed");
+  localStorage.removeItem("is_logged_in");
+  if (window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
 }
 
-// ==================== 3. 请求拦截器：自动携带 Access Token ====================
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => Promise.reject(error)
-)
+let isRefreshing = false;
+let pendingRequests = [];
 
-// ==================== 4. 响应拦截器：401 自动刷新 + 统一错误处理 ====================
+function resolvePending(token) {
+  pendingRequests.forEach(({ resolve }) => resolve(token));
+  pendingRequests = [];
+}
+
+function rejectPending(error) {
+  pendingRequests.forEach(({ reject }) => reject(error));
+  pendingRequests = [];
+}
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
-  // 正常响应直接透传
   (response) => response,
-
-  // 异常响应统一处理
   async (error) => {
-    const originalRequest = error.config
-
-    // --- 4a. 401 未认证：尝试静默刷新 Token ---
+    const originalRequest = error.config || {};
     if (error.response?.status === 401 && !originalRequest._retry) {
-      const refreshToken = localStorage.getItem('refresh_token')
-
-      // 没有 refresh_token 就直接跳登录
+      const refreshToken = localStorage.getItem("refresh_token");
       if (!refreshToken) {
-        clearAuthAndRedirect()
-        return Promise.reject(error)
+        clearAuthAndRedirect();
+        return Promise.reject(error);
       }
-
-      // 如果正在刷新中，把当前请求加入等待队列
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           pendingRequests.push({
-            resolve: (newToken) => {
-              originalRequest.headers['Authorization'] = `Bearer ${newToken}`
-              resolve(api(originalRequest))
+            resolve: (token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(api(originalRequest));
             },
-            reject
-          })
-        })
+            reject,
+          });
+        });
       }
-
-      // 开始静默刷新
-      originalRequest._retry = true
-      isRefreshing = true
-
+      originalRequest._retry = true;
+      isRefreshing = true;
       try {
-        const res = await axios.post(
+        const response = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           null,
-          { headers: { Authorization: `Bearer ${refreshToken}` } }
-        )
-
-        const newAccessToken = res.data.access_token
-        localStorage.setItem('access_token', newAccessToken)
-
-        // 重试等待队列中的所有请求
-        resolvePendingRequests(newAccessToken)
-
-        // 重试当前请求
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
-        return api(originalRequest)
+          {
+            headers: { Authorization: `Bearer ${refreshToken}` },
+          },
+        );
+        const payload = readPayload(response);
+        const token = payload.access_token || response.data.access_token;
+        localStorage.setItem("access_token", token);
+        resolvePending(token);
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return api(originalRequest);
       } catch (refreshError) {
-        // 刷新失败 → 踢出登录
-        rejectPendingRequests(refreshError)
-        clearAuthAndRedirect()
-        return Promise.reject(refreshError)
+        rejectPending(refreshError);
+        clearAuthAndRedirect();
+        return Promise.reject(refreshError);
       } finally {
-        isRefreshing = false
+        isRefreshing = false;
       }
     }
+    return Promise.reject(error);
+  },
+);
 
-    // --- 4b. 403 禁止访问 ---
-    if (error.response?.status === 403) {
-      console.warn('[API] 403 Forbidden:', error.response.data?.msg || '无权访问')
-    }
-
-    // --- 4c. 500 服务器内部错误 ---
-    if (error.response?.status >= 500) {
-      console.error('[API] Server Error:', error.response.data?.msg || '服务器异常')
-    }
-
-    return Promise.reject(error)
-  }
-)
-
-/**
- * 清除登录状态并跳转到登录页
- */
-function clearAuthAndRedirect() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user_info')
-  localStorage.removeItem('is_logged_in')
-  // 避免重复跳转
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login'
-  }
-}
-
-// ==================== 5. 按模块分组的 API 函数 ====================
-
-// --- 认证模块 ---
 export const authAPI = {
-  /** 发送邮箱验证码 */
-  sendCode: (email) => api.post('/auth/send-code', { email }),
-  /** 用户注册 */
-  register: (data) => api.post('/auth/register', data),
-  /** 账号密码登录 */
-  login: (account, password) => api.post('/auth/login', { account, password }),
-  /** 刷新 Access Token */
-  refreshToken: () => api.post('/auth/refresh'),
-  /** 发送密码重置验证码 */
-  sendResetCode: (email) => api.post('/auth/send-reset-code', { email }),
-  /** 验证重置密码验证码 */
-  verifyResetCode: (email, code) => api.post('/auth/verify-reset-code', { email, code }),
-  /** 重置密码 */
+  sendCode: (email) => api.post("/auth/send-code", { email }),
+  register: (data) => api.post("/auth/register", data),
+  login: (account, password) => api.post("/auth/login", { account, password }),
+  logout: () => api.post("/auth/logout"),
+  refresh: () => api.post("/auth/refresh"),
+  refreshToken: () => api.post("/auth/refresh"),
+  sendResetCode: (email) => api.post("/auth/send-reset-code", { email }),
+  verifyResetCode: (email, code) =>
+    api.post("/auth/verify-reset-code", { email, code }),
   resetPassword: (email, code, newPassword) =>
-    api.post('/auth/reset-password', { email, code, new_password: newPassword }),
-  /** GitHub OAuth 登录跳转地址 */
-  githubLoginUrl: `${API_BASE_URL}/login/github`
-}
+    api.post("/auth/reset-password", {
+      email,
+      code,
+      new_password: newPassword,
+    }),
+  githubLoginUrl: `${API_BASE_URL}/login/github`,
+};
 
-// --- 用户模块 ---
 export const userAPI = {
-  /** 修改密码 */
+  getProfile: () => api.get("/user/profile"),
+  updateProfile: (data) => api.put("/user/profile", data),
   changePassword: (oldPassword, newPassword) =>
-    api.post('/user/password', { old_password: oldPassword, new_password: newPassword }),
-  /** 获取用户统计数据 */
-  getStats: (username) => api.get(`/user/stats?username=${username}`),
-  /** 获取登录设备列表 */
-  getDevices: () => api.get('/user/devices'),
-  /** 获取用户操作历史 */
-  getHistory: () => api.get('/user/history'),
-  /** 清空历史记录 */
-  clearHistory: () => api.post('/user/history/clear'),
-  /** 获取用户发布内容列表 */
-  getContents: (status = 'pending') => api.get(`/user/contents?status=${status}`),
-  /** 删除用户发布内容 */
-  deleteContent: (id) => api.post('/user/contents/delete', { id }),
-  /** 注销账户 */
-  deleteAccount: (password) => api.post('/user/delete-account', { password }),
-  /** 同步用户设置到云端 */
-  syncSettings: (settings) => api.post('/user/sync', settings),
-  /** 获取云端用户设置 */
-  getSettings: (username) => api.get(`/user/settings?username=${username}`),
-  /** 更新用户个人信息（昵称/性别/生日/简介） */
-  updateProfile: (data) => api.post('/user/profile', data),
-  /** 提交兴趣问卷 */
-  submitSurvey: (interests) => api.post('/user/survey', { interests })
-}
+    api.put("/user/password", {
+      old_password: oldPassword,
+      new_password: newPassword,
+    }),
+  getProfileTags: () => api.get("/user/profile-tags"),
+  getStats: (username) => api.get("/user/stats", { params: { username } }),
+  getDevices: () => api.get("/user/devices"),
+  getHistory: () => api.get("/user/history"),
+  clearHistory: () => api.post("/user/history/clear"),
+  getContents: (status = "pending") =>
+    api.get("/user/contents", { params: { status } }),
+  deleteContent: (id) => api.post("/user/contents/delete", { id }),
+  deleteAccount: (password) => api.post("/user/delete-account", { password }),
+  syncSettings: (settings) => api.post("/user/sync", settings),
+  getSettings: (username) =>
+    api.get("/user/settings", { params: { username } }),
+  submitSurvey: (interests) => api.post("/user/survey", { interests }),
+};
 
-// --- 安全模块（绑定/验证） ---
-export const securityAPI = {
-  /** 发送邮箱验证码（已登录用户绑定用） */
-  sendEmailCode: (email) =>
-    api.post('/security/send-email-code', { email }),
-  /** 发送手机验证码 */
-  sendSmsCode: (phone) =>
-    api.post('/security/send-sms-code', { phone }),
-  /** 绑定邮箱 */
-  bindEmail: (email, code) =>
-    api.post('/security/bind-email', { email, code }),
-  /** 绑定手机 */
-  bindPhone: (phone, code) =>
-    api.post('/security/bind-phone', { phone, code })
-}
+export const questionnaireAPI = {
+  get: () => api.get("/questionnaire"),
+  submit: (data) => api.post("/questionnaire/submit", data),
+  getProfileTags: () => api.get("/user/profile-tags"),
+};
 
-// --- 导航数据 ---
-export const navAPI = {
-  /** 获取全站导航数据（分类 + 网站） */
-  getNavData: () => api.get('/nav-data'),
-  /** 记录网站点击 */
-  recordClick: (id) => api.post('/click', { id }),
-  /** 获取收藏列表 */
-  getFavorites: () => api.get('/favorites'),
-  /** 添加收藏 */
-  addFavorite: (websiteId) => api.post('/favorites', { website_id: websiteId }),
-  /** 取消收藏 */
-  removeFavorite: (websiteId) =>
-    api.delete(`/favorites/${websiteId}`),
-  /** 推荐新网站 */
-  suggestSite: (data) => api.post('/suggest-site', data),
-  /** 搜索 */
-  search: (query, options = {}) =>
-    api.get('/search', { params: { q: query, ...options } })
-}
+export const siteAPI = {
+  getSites: (params = {}) => api.get("/sites", { params }),
+  getSite: (id) => api.get(`/sites/${id}`),
+  getHot: (params = {}) => api.get("/sites/hot", { params }),
+  getLatest: (params = {}) => api.get("/sites/latest", { params }),
+  getRecommend: (params = {}) => api.get("/sites/recommend", { params }),
+  recordClick: (id) => api.post(`/sites/${id}/click`),
+};
 
-// --- 管理后台 ---
+export const favoriteAPI = {
+  getFavorites: () => api.get("/favorites"),
+  addFavorite: (siteId, note = "") =>
+    api.post(`/sites/${siteId}/favorite`, { note }),
+  removeFavorite: (siteId) => api.delete(`/sites/${siteId}/favorite`),
+};
+
+export const searchAPI = {
+  search: (params = {}) => api.get("/search", { params }),
+  suggest: (q) => api.get("/search/suggest", { params: { q } }),
+  hotKeywords: () => api.get("/search/hot-keywords"),
+};
+
+export const categoryAPI = {
+  getCategories: () => api.get("/categories"),
+};
+
+export const tagAPI = {
+  getTags: () => api.get("/tags"),
+};
+
 export const adminAPI = {
-  /** 获取待审核网站列表 */
-  getPendingSites: () => api.get('/admin/pending_sites'),
-  /** 触发 Hacker News 爬取 */
-  crawlHN: () => api.post('/admin/crawl_hn'),
-  /** 审核网站（通过/拒绝） */
-  reviewSite: (id, action, reason = '') =>
-    api.post('/admin/review_site', { id, action, reason }),
-  /** 获取管理后台统计数据 */
-  getDashboard: () => api.get('/admin/dashboard'),
-  /** 获取全量统计数据（ECharts 大盘） */
-  getStatsOverview: () => api.get('/admin/stats/overview'),
-  /** 封禁/解封用户 */
+  getDashboard: () => api.get("/admin/dashboard"),
+  getUsers: (params = {}) => api.get("/admin/users", { params }),
+  updateUserStatus: (id, status) =>
+    api.put(`/admin/users/${id}/status`, { status }),
+  getSites: (params = {}) => api.get("/admin/sites", { params }),
+  createSite: (data) => api.post("/admin/sites", data),
+  updateSite: (id, data) => api.put(`/admin/sites/${id}`, data),
+  deleteSite: (id) => api.delete(`/admin/sites/${id}`),
+  getCategories: () => api.get("/admin/categories"),
+  createCategory: (data) => api.post("/admin/categories", data),
+  updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
+  deleteCategory: (id) => api.delete(`/admin/categories/${id}`),
+  getTags: () => api.get("/admin/tags"),
+  createTag: (data) => api.post("/admin/tags", data),
+  updateTag: (id, data) => api.put(`/admin/tags/${id}`, data),
+  deleteTag: (id) => api.delete(`/admin/tags/${id}`),
+  getPendingSites: () => api.get("/admin/pending_sites"),
+  crawlHN: () => api.post("/admin/crawl_hn"),
+  reviewSite: (id, action, reason = "") =>
+    api.post("/admin/review_site", { id, action, reason }),
+  getStatsOverview: () => api.get("/admin/stats/overview"),
   toggleUserBan: (userId, banned) =>
-    api.post('/admin/user/ban', { user_id: userId, banned }),
-  /** 获取用户列表 */
-  getUsers: (page = 1, perPage = 20) =>
-    api.get(`/admin/users?page=${page}&per_page=${perPage}`),
-  /** 获取内容审核列表 */
-  getContentAuditList: (status = 'pending', page = 1) =>
-    api.get(`/admin/content-audit?status=${status}&page=${page}`),
-  /** 审核内容（通过/拒绝） */
-  reviewContent: (id, action, reason = '') =>
-    api.post('/admin/review-content', { id, action, reason })
-}
+    api.post("/admin/user/ban", { user_id: userId, banned }),
+  getContentAuditList: (status = "pending", page = 1) =>
+    api.get("/admin/content-audit", { params: { status, page } }),
+  reviewContent: (id, action, reason = "") =>
+    api.post("/admin/review-content", { id, action, reason }),
+};
 
-// --- 排行榜 & 资讯 ---
+export const navAPI = {
+  getNavData: () => api.get("/nav-data"),
+  recordClick: (id) => siteAPI.recordClick(id),
+  getFavorites: () => favoriteAPI.getFavorites(),
+  addFavorite: (websiteId) => favoriteAPI.addFavorite(websiteId),
+  removeFavorite: (websiteId) => favoriteAPI.removeFavorite(websiteId),
+  suggestSite: (data) => api.post("/suggest-site", data),
+  search: (query, options = {}) => searchAPI.search({ q: query, ...options }),
+};
+
 export const feedAPI = {
-  /** 获取增长率排行榜 */
-  getGrowthRanking: () => api.get('/ranking/growth'),
-  /** 获取 24 小时热榜 */
-  getHotRanking: () => api.get('/ranking/hot'),
-  /** 获取 RSS 资讯 */
-  getNews: (prof) => api.get(`/news?prof=${encodeURIComponent(prof)}`),
-  /** 获取个性化网站推荐 (v2) */
-  getRecommendations: () => api.get('/recommendations/websites'),
-  /** 获取文章详情 */
+  getGrowthRanking: () => api.get("/ranking/growth"),
+  getHotRanking: () => api.get("/ranking/hot"),
+  getNews: (prof) => api.get("/news", { params: { prof } }),
+  getRecommendations: () => siteAPI.getRecommend(),
   getArticle: (id) => api.get(`/article/${id}`),
-  /** 点赞文章 */
   likeArticle: (id) => api.post(`/article/${id}/like`),
-  /** 发表评论 */
   postComment: (articleId, content, parentId = null) =>
     api.post(`/article/${articleId}/comment`, { content, parent_id: parentId }),
-  /** 获取评论列表 */
   getComments: (articleId, page = 1) =>
-    api.get(`/article/${articleId}/comments?page=${page}`)
-}
+    api.get(`/article/${articleId}/comments`, { params: { page } }),
+};
 
-// --- 通知中心 ---
+export const securityAPI = {
+  sendEmailCode: (email) => api.post("/security/send-email-code", { email }),
+  sendSmsCode: (phone) => api.post("/security/send-sms-code", { phone }),
+  bindEmail: (email, code) => api.post("/security/bind-email", { email, code }),
+  bindPhone: (phone, code) => api.post("/security/bind-phone", { phone, code }),
+};
+
 export const notificationAPI = {
-  /** 获取未读通知数 */
-  getUnreadCount: () => api.get('/notifications/unread-count'),
-  /** 获取通知列表 */
-  getNotifications: (page = 1) => api.get(`/notifications?page=${page}`),
-  /** 标记通知为已读 */
+  getUnreadCount: () => api.get("/notifications/unread-count"),
+  getNotifications: (page = 1) =>
+    api.get("/notifications", { params: { page } }),
   markRead: (notificationId) =>
     api.post(`/notifications/${notificationId}/read`),
-  /** 全部标记已读 */
-  markAllRead: () => api.post('/notifications/read-all')
-}
+  markAllRead: () => api.post("/notifications/read-all"),
+};
 
-// 导出 axios 实例供特殊场景使用
-export default api
+export default api;

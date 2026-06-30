@@ -16,15 +16,15 @@
 defineProps({
   categories: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   activeCategory: {
     type: [String, Number],
-    default: 'all'
-  }
-})
+    default: "all",
+  },
+});
 
-defineEmits(['select-category'])
+defineEmits(["select-category"]);
 </script>
 
 <style scoped>

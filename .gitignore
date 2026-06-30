@@ -31,9 +31,10 @@ backend/logs/
 # Meilisearch 数据
 meili_data/
 backend/meili_data/
+backend/meili_fresh/
+backend/meilisearch.exe
+dump.rdb
 
 # IDE
 .vscode/
 .idea/
-
-backend/meilisearch.exe

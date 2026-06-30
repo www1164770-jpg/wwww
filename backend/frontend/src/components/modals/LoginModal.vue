@@ -4,7 +4,9 @@
       <button class="close" type="button" @click="$emit('close')">×</button>
       <h2>登录智慧导航</h2>
       <p>登录后可以同步收藏、提交网站并进入个人中心。</p>
-      <RouterLink class="primary" to="/login" @click="$emit('close')">前往登录</RouterLink>
+      <RouterLink class="primary" to="/login" @click="$emit('close')"
+        >前往登录</RouterLink
+      >
     </section>
   </div>
 </template>
@@ -13,11 +15,11 @@
 defineProps({
   visible: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-defineEmits(['close'])
+defineEmits(["close"]);
 </script>
 
 <style scoped>
@@ -28,7 +30,7 @@ defineEmits(['close'])
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(15, 23, 42, .45);
+  background: rgba(15, 23, 42, 0.45);
 }
 
 .modal {
@@ -37,7 +39,7 @@ defineEmits(['close'])
   border-radius: 8px;
   padding: 28px;
   background: #fff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
 }
 
 h2,

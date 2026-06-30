@@ -10,40 +10,40 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 const props = defineProps({
   url: { type: String, required: true },
-  name: { type: String, default: '' }
-})
+  name: { type: String, default: "" },
+});
 
-const imgError = ref(false)
+const imgError = ref(false);
 
 // 首字母备用显示（当图标加载失败时）
 const fallbackLetter = computed(() => {
-  if (props.name) return props.name.charAt(0).toUpperCase()
+  if (props.name) return props.name.charAt(0).toUpperCase();
   try {
-    const hostname = new URL(props.url).hostname
-    return hostname.replace('www.', '').charAt(0).toUpperCase()
+    const hostname = new URL(props.url).hostname;
+    return hostname.replace("www.", "").charAt(0).toUpperCase();
   } catch {
-    return '?'
+    return "?";
   }
-})
+});
 
 // 使用 Google 的 favicon 服务，稳定、支持 HTTPS，国内可用
 const faviconUrl = computed(() => {
   try {
-    const domain = new URL(props.url).hostname
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+    const domain = new URL(props.url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   } catch {
     // 如果 URL 格式不合法，返回空字符串，触发 fallback
-    return ''
+    return "";
   }
-})
+});
 
 const handleError = () => {
-  imgError.value = true
-}
+  imgError.value = true;
+};
 </script>
 
 <style scoped>

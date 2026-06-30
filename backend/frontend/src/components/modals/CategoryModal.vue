@@ -2,13 +2,20 @@
   <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
     <form class="modal" @submit.prevent="submit">
       <button class="close" type="button" @click="$emit('close')">×</button>
-      <h2>{{ draft.id ? '编辑分类' : '新建分类' }}</h2>
+      <h2>{{ draft.id ? "编辑分类" : "新建分类" }}</h2>
       <label>
         <span>分类名称</span>
-        <input v-model.trim="draft.name" required>
+        <input v-model.trim="draft.name" required />
       </label>
       <div class="actions">
-        <button v-if="draft.id" class="danger" type="button" @click="$emit('delete', draft)">删除</button>
+        <button
+          v-if="draft.id"
+          class="danger"
+          type="button"
+          @click="$emit('delete', draft)"
+        >
+          删除
+        </button>
         <button class="primary" type="submit">保存</button>
       </div>
     </form>
@@ -16,35 +23,35 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch } from "vue";
 
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   category: {
     type: Object,
-    default: () => ({})
-  }
-})
+    default: () => ({}),
+  },
+});
 
-const emit = defineEmits(['save', 'delete', 'close'])
+const emit = defineEmits(["save", "delete", "close"]);
 
-const draft = reactive({ id: null, name: '' })
+const draft = reactive({ id: null, name: "" });
 
 watch(
   () => [props.visible, props.category],
   () => {
-    draft.id = props.category?.id || null
-    draft.name = props.category?.name || ''
+    draft.id = props.category?.id || null;
+    draft.name = props.category?.name || "";
   },
-  { immediate: true, deep: true }
-)
+  { immediate: true, deep: true },
+);
 
 const submit = () => {
-  emit('save', { ...draft })
-}
+  emit("save", { ...draft });
+};
 </script>
 
 <style scoped>
@@ -55,7 +62,7 @@ const submit = () => {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(15, 23, 42, .45);
+  background: rgba(15, 23, 42, 0.45);
 }
 
 .modal {

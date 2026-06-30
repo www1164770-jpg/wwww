@@ -24,11 +24,11 @@
 defineProps({
   sites: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 
-defineEmits(['visit'])
+defineEmits(["visit"]);
 </script>
 
 <style scoped>
@@ -68,12 +68,12 @@ span {
 button {
   display: grid;
   gap: 6px;
-  border: 1px solid rgba(255,255,255,.14);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   padding: 14px;
   color: #fff;
   text-align: left;
-  background: rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, 0.08);
   cursor: pointer;
 }
 

@@ -29,12 +29,16 @@
                 v-for="tag in roleTags"
                 :key="tag.key"
                 class="survey-tag-card"
-                :class="{ 'survey-tag-selected': selectedTags.includes(tag.key) }"
+                :class="{
+                  'survey-tag-selected': selectedTags.includes(tag.key),
+                }"
                 @click="toggleTag(tag.key)"
               >
                 <span class="tag-emoji">{{ tag.emoji }}</span>
                 <span class="tag-label">{{ tag.label }}</span>
-                <span v-if="selectedTags.includes(tag.key)" class="tag-check">✓</span>
+                <span v-if="selectedTags.includes(tag.key)" class="tag-check"
+                  >✓</span
+                >
               </div>
             </div>
           </div>
@@ -51,12 +55,16 @@
                 v-for="tag in demandTags"
                 :key="tag.key"
                 class="survey-tag-card demand-card"
-                :class="{ 'survey-tag-selected': selectedTags.includes(tag.key) }"
+                :class="{
+                  'survey-tag-selected': selectedTags.includes(tag.key),
+                }"
                 @click="toggleTag(tag.key)"
               >
                 <span class="tag-emoji">{{ tag.emoji }}</span>
                 <span class="tag-label">{{ tag.label }}</span>
-                <span v-if="selectedTags.includes(tag.key)" class="tag-check">✓</span>
+                <span v-if="selectedTags.includes(tag.key)" class="tag-check"
+                  >✓</span
+                >
               </div>
             </div>
           </div>
@@ -64,8 +72,12 @@
           <!-- 选中提示 -->
           <div class="survey-selected-hint" v-if="selectedTags.length > 0">
             已选 <strong>{{ selectedTags.length }}</strong> 个标签
-            <span v-if="selectedTags.length >= 3" class="hint-extra">— 维度覆盖越广，推荐越精准 🎯</span>
-            <span v-else class="hint-extra">— 建议在至少一个维度中做出选择</span>
+            <span v-if="selectedTags.length >= 3" class="hint-extra"
+              >— 维度覆盖越广，推荐越精准 🎯</span
+            >
+            <span v-else class="hint-extra"
+              >— 建议在至少一个维度中做出选择</span
+            >
           </div>
           <div class="survey-selected-hint empty-hint" v-else>
             <span class="hint-dim">请至少在一个维度中选择你感兴趣的方向</span>
@@ -86,7 +98,11 @@
               :disabled="isSubmitting"
               @click="handleSkip"
             >
-              {{ selectedTags.length > 0 ? '先跳过，以后再说' : '暂时跳过，使用默认导航' }}
+              {{
+                selectedTags.length > 0
+                  ? "先跳过，以后再说"
+                  : "暂时跳过，使用默认导航"
+              }}
             </button>
           </div>
         </div>
@@ -96,78 +112,78 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 
 // ==================== Props ====================
 const props = defineProps({
   visible: { type: Boolean, default: false },
-  username: { type: String, default: '' }
-})
+  username: { type: String, default: "" },
+});
 
 // ==================== Emits ====================
-const emit = defineEmits(['close', 'submit', 'skip'])
+const emit = defineEmits(["close", "submit", "skip"]);
 
 // ==================== 维度一：我的职业角色 ====================
 const roleTags = [
-  { key: 'frontend',    emoji: '🚀', label: '前端开发' },
-  { key: 'backend',     emoji: '🐍', label: '后端开发' },
-  { key: 'ai-data',     emoji: '🤖', label: '人工智能 / 数据科学' },
-  { key: 'ui-design',   emoji: '🎨', label: 'UI / UX 设计' },
-  { key: 'iot-hardware',emoji: '⚙️', label: '智能硬件与物联网' },
-  { key: 'product-pm',  emoji: '📈', label: '产品与运营' },
-]
+  { key: "frontend", emoji: "🚀", label: "前端开发" },
+  { key: "backend", emoji: "🐍", label: "后端开发" },
+  { key: "ai-data", emoji: "🤖", label: "人工智能 / 数据科学" },
+  { key: "ui-design", emoji: "🎨", label: "UI / UX 设计" },
+  { key: "iot-hardware", emoji: "⚙️", label: "智能硬件与物联网" },
+  { key: "product-pm", emoji: "📈", label: "产品与运营" },
+];
 
 // ==================== 维度二：我的核心需求 ====================
 const demandTags = [
-  { key: 'self-learning',  emoji: '📚', label: '自学进阶' },
-  { key: 'job-hunting',    emoji: '💼', label: '求职面试 / 搞钱' },
-  { key: 'efficiency',     emoji: '🛠️', label: '高效率日常工具' },
-  { key: 'open-source',    emoji: '🌐', label: '开源找源码' },
-]
+  { key: "self-learning", emoji: "📚", label: "自学进阶" },
+  { key: "job-hunting", emoji: "💼", label: "求职面试 / 搞钱" },
+  { key: "efficiency", emoji: "🛠️", label: "高效率日常工具" },
+  { key: "open-source", emoji: "🌐", label: "开源找源码" },
+];
 
 // ==================== 状态 ====================
-const selectedTags = ref([])   // 两个维度合并后的选中 key 列表
-const isSubmitting = ref(false)
+const selectedTags = ref([]); // 两个维度合并后的选中 key 列表
+const isSubmitting = ref(false);
 
 // ==================== 方法 ====================
 
 /** 切换标签选中状态 */
 function toggleTag(key) {
-  if (isSubmitting.value) return
-  const idx = selectedTags.value.indexOf(key)
+  if (isSubmitting.value) return;
+  const idx = selectedTags.value.indexOf(key);
   if (idx > -1) {
-    selectedTags.value.splice(idx, 1)
+    selectedTags.value.splice(idx, 1);
   } else {
-    selectedTags.value.push(key)
+    selectedTags.value.push(key);
   }
 }
 
 /** 提交问卷 —— 将两个维度的标签合并后打包发出 */
 async function handleSubmit() {
-  if (selectedTags.value.length === 0 || isSubmitting.value) return
-  isSubmitting.value = true
+  if (selectedTags.value.length === 0 || isSubmitting.value) return;
+  isSubmitting.value = true;
   // 合并所有选中的英文 key（已包含角色 + 需求两个维度）
-  emit('submit', [...selectedTags.value])
+  emit("submit", [...selectedTags.value]);
 }
 
 /** 父组件通知提交完成（成功或失败都会调用） */
 function done() {
-  isSubmitting.value = false
+  isSubmitting.value = false;
 }
 
 /** 跳过问卷 */
 function handleSkip() {
-  if (isSubmitting.value) return
-  emit('skip')
+  if (isSubmitting.value) return;
+  emit("skip");
 }
 
 /** 重置状态（供父组件调用） */
 function reset() {
-  selectedTags.value = []
-  isSubmitting.value = false
+  selectedTags.value = [];
+  isSubmitting.value = false;
 }
 
-defineExpose({ reset, done, selectedTags })
+defineExpose({ reset, done, selectedTags });
 </script>
 
 <style scoped>
@@ -227,7 +243,9 @@ defineExpose({ reset, done, selectedTags })
 }
 :global(.layout.dark-theme) .survey-subtitle,
 :global(.layout.dark-theme) .section-hint,
-:global(.layout.dark-theme) .hint-dim { color: #94a3b8; }
+:global(.layout.dark-theme) .hint-dim {
+  color: #94a3b8;
+}
 :global(.layout.dark-theme) .survey-tag-card {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
@@ -251,13 +269,17 @@ defineExpose({ reset, done, selectedTags })
   z-index: 0;
 }
 .survey-glow-1 {
-  width: 260px; height: 260px;
-  top: -60px; right: -60px;
+  width: 260px;
+  height: 260px;
+  top: -60px;
+  right: -60px;
   background: #3b82f6;
 }
 .survey-glow-2 {
-  width: 200px; height: 200px;
-  bottom: -40px; left: -40px;
+  width: 200px;
+  height: 200px;
+  bottom: -40px;
+  left: -40px;
   background: #8b5cf6;
 }
 
@@ -274,8 +296,13 @@ defineExpose({ reset, done, selectedTags })
   animation: surveyFloat 3s ease-in-out infinite;
 }
 @keyframes surveyFloat {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 .survey-title {
   font-size: 1.4rem;
@@ -395,7 +422,8 @@ defineExpose({ reset, done, selectedTags })
   line-height: 1.2;
 }
 .tag-check {
-  width: 20px; height: 20px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #3b82f6;
   color: #fff;
@@ -416,8 +444,13 @@ defineExpose({ reset, done, selectedTags })
   color: #64748b;
   margin-bottom: 20px;
 }
-.empty-hint { color: #94a3b8; }
-.hint-extra { color: #3b82f6; font-weight: 500; }
+.empty-hint {
+  color: #94a3b8;
+}
+.hint-extra {
+  color: #3b82f6;
+  font-weight: 500;
+}
 
 /* ==================== 底部按钮 ==================== */
 .survey-actions {
@@ -513,13 +546,18 @@ defineExpose({ reset, done, selectedTags })
 /* 按钮 loading 动画 */
 .btn-loading {
   display: inline-block;
-  width: 20px; height: 20px;
+  width: 20px;
+  height: 20px;
   border: 2.5px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: btnSpin 0.7s linear infinite;
 }
-@keyframes btnSpin { to { transform: rotate(360deg); } }
+@keyframes btnSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ==================== 入场/退场动画 ==================== */
 .survey-fade-enter-active {
@@ -528,12 +566,16 @@ defineExpose({ reset, done, selectedTags })
 .survey-fade-leave-active {
   transition: all 0.25s ease-in;
 }
-.survey-fade-enter-from { opacity: 0; }
+.survey-fade-enter-from {
+  opacity: 0;
+}
 .survey-fade-enter-from .survey-modal {
   opacity: 0;
   transform: scale(0.9) translateY(20px);
 }
-.survey-fade-leave-to { opacity: 0; }
+.survey-fade-leave-to {
+  opacity: 0;
+}
 .survey-fade-leave-to .survey-modal {
   opacity: 0;
   transform: scale(0.95) translateY(10px);
@@ -541,7 +583,7 @@ defineExpose({ reset, done, selectedTags })
 
 /* Monochrome product surface override */
 .survey-overlay {
-  background: rgba(246,246,244,0.7) !important;
+  background: rgba(246, 246, 244, 0.7) !important;
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
@@ -581,21 +623,25 @@ defineExpose({ reset, done, selectedTags })
 
 .section-badge {
   color: var(--mono-text) !important;
-  background: rgba(17,17,17,0.06) !important;
+  background: rgba(17, 17, 17, 0.06) !important;
   border: 1px solid var(--mono-border);
 }
 
 .survey-tag-card {
   color: var(--mono-text);
-  background: rgba(255,255,255,0.62) !important;
+  background: rgba(255, 255, 255, 0.62) !important;
   border: 1px solid var(--mono-border) !important;
-  transition: transform var(--mono-base) var(--mono-ease), background var(--mono-base) var(--mono-ease), border-color var(--mono-base) var(--mono-ease), box-shadow var(--mono-base) var(--mono-ease);
+  transition:
+    transform var(--mono-base) var(--mono-ease),
+    background var(--mono-base) var(--mono-ease),
+    border-color var(--mono-base) var(--mono-ease),
+    box-shadow var(--mono-base) var(--mono-ease);
 }
 
 .survey-tag-card:hover {
   background: #ffffff !important;
   border-color: var(--mono-border-strong) !important;
-  box-shadow: 0 14px 34px rgba(17,17,17,0.08) !important;
+  box-shadow: 0 14px 34px rgba(17, 17, 17, 0.08) !important;
 }
 
 .survey-tag-selected,
@@ -603,7 +649,7 @@ defineExpose({ reset, done, selectedTags })
   background: #111111 !important;
   border-color: #111111 !important;
   color: #ffffff !important;
-  box-shadow: 0 14px 34px rgba(17,17,17,0.14) !important;
+  box-shadow: 0 14px 34px rgba(17, 17, 17, 0.14) !important;
 }
 
 .survey-tag-selected .tag-label,
@@ -621,11 +667,11 @@ defineExpose({ reset, done, selectedTags })
   background: #111111 !important;
   border: 1px solid #111111 !important;
   border-radius: 999px !important;
-  box-shadow: 0 14px 34px rgba(17,17,17,0.18) !important;
+  box-shadow: 0 14px 34px rgba(17, 17, 17, 0.18) !important;
 }
 
 .survey-btn-submit:hover {
-  box-shadow: 0 18px 46px rgba(17,17,17,0.24) !important;
+  box-shadow: 0 18px 46px rgba(17, 17, 17, 0.24) !important;
 }
 
 .survey-btn-submit:disabled {
@@ -643,7 +689,7 @@ defineExpose({ reset, done, selectedTags })
 }
 
 :global(.layout.dark-theme) .survey-overlay {
-  background: rgba(0,0,0,0.72) !important;
+  background: rgba(0, 0, 0, 0.72) !important;
 }
 
 :global(.layout.dark-theme) .survey-modal,

@@ -31,10 +31,11 @@ POOL_CONFIG = {
     'maxusage': None,          # 单个连接最多被重复使用的次数（None 表示无限制）
     'setsession': None,        # 连接创建后可执行的初始化 SQL 命令列表
     'ping': 0,                 # ping MySQL 服务端检测连接活性: 0=不检测, 1=默认, 2=每次, 4=每4次
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'user': os.getenv('DB_USER', 'root'),
-    'password': os.getenv('DB_PASSWORD', 'weiyijie748'),
-    'database': os.getenv('DB_NAME', 'nav_site'),
+    'host': os.getenv('MYSQL_HOST') or os.getenv('DB_HOST', 'localhost'),
+    'port': int(os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', '3306')),
+    'user': os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root'),
+    'password': os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', ''),
+    'database': os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site'),
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor,  # 返回字典格式的查询结果
     'autocommit': False,       # 关闭自动提交，由业务代码手动 commit

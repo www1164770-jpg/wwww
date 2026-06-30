@@ -2,7 +2,9 @@
   <div class="audit-container">
     <header class="audit-header">
       <h2>🚀 站点审核工作台</h2>
-      <p>当前有 <strong>{{ pendingSites.length }}</strong> 个站点等待您的批阅</p>
+      <p>
+        当前有 <strong>{{ pendingSites.length }}</strong> 个站点等待您的批阅
+      </p>
     </header>
 
     <div v-if="pendingSites.length === 0" class="empty-state">
@@ -10,18 +12,16 @@
     </div>
 
     <div v-else class="bento-grid">
-      <div 
-        v-for="site in pendingSites" 
-        :key="site.id" 
-        class="bento-card"
-      >
+      <div v-for="site in pendingSites" :key="site.id" class="bento-card">
         <div class="card-content">
-          <span class="source-badge">{{ site.source || '爬虫采集' }}</span>
+          <span class="source-badge">{{ site.source || "爬虫采集" }}</span>
           <h3 class="site-title">{{ site.name }}</h3>
-          <a :href="site.url" target="_blank" class="site-url">{{ site.url }}</a>
+          <a :href="site.url" target="_blank" class="site-url">{{
+            site.url
+          }}</a>
           <p class="site-desc">{{ site.description }}</p>
         </div>
-        
+
         <div class="card-actions">
           <button class="btn reject" @click="handleAudit(site.id, 'reject')">
             ❌ 驳回
@@ -36,8 +36,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { API_BASE_URL } from '../utils/api';
+import { ref, onMounted } from "vue";
+import { API_BASE_URL } from "../utils/api";
 
 // 待审核数据源
 const pendingSites = ref([]);
@@ -56,14 +56,16 @@ const fetchPendingSites = async () => {
 const handleAudit = async (siteId, action) => {
   try {
     const res = await fetch(`${API_BASE_URL}/admin/audit-site/${siteId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
     });
 
     if (res.ok) {
       // 审核成功后，利用 filter 从前端列表中移除这张卡片，不需要重新发请求刷新整个列表
-      pendingSites.value = pendingSites.value.filter(site => site.id !== siteId);
+      pendingSites.value = pendingSites.value.filter(
+        (site) => site.id !== siteId,
+      );
     }
   } catch (error) {
     console.error(`执行 ${action} 操作失败:`, error);
@@ -115,7 +117,10 @@ onMounted(() => {
   border-radius: 20px; /* 圆润的边角 */
   padding: 20px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.3s ease;
 }
 
 .bento-card:hover {

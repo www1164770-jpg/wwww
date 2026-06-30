@@ -11,19 +11,16 @@
   },
   "dependencies": {
     "@authing/guard": "^5.3.9",
-    "@authing/vue-ui-components": "^4.5.47-bg.18",
     "@vueup/vue-quill": "^1.5.1",
     "axios": "^1.15.0",
     "dompurify": "^3.4.7",
-    "flexsearch": "^0.8.212",
-    "install": "^0.13.0",
-    "meilisearch": "^0.58.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
+    "prettier": "^3.9.3",
     "vite": "^8.0.4"
   }
 }

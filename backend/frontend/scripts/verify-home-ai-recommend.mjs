@@ -1,10 +1,15 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { execSync } from 'node:child_process'
 
 const root = resolve(import.meta.dirname, '..')
+const repoRoot = resolve(root, '..', '..')
 
 const read = (path) => readFileSync(resolve(root, path), 'utf8')
 const exists = (path) => existsSync(resolve(root, path))
+const readRepo = (path) => readFileSync(resolve(repoRoot, path), 'utf8')
+const gitOutput = (command) =>
+  execSync(command, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
 
 const checks = [
   {
@@ -42,7 +47,7 @@ const checks = [
       const home = read('src/views/Home.vue')
 
       for (const snippet of [
-        "defineEmits(['select-career'])",
+        'select-career',
         'careerRecommendations',
         '学生',
         '程序员',
@@ -61,7 +66,7 @@ const checks = [
     name: 'profile route uses dedicated view under views folder',
     run() {
       const router = read('src/router/index.js')
-      if (!router.includes("component: () => import('../views/ProfileView.vue')")) {
+      if (!/component:\s*\(\)\s*=>\s*import\(["']\.\.\/views\/ProfileView\.vue["']\)/.test(router)) {
         throw new Error('Profile route does not import ../views/ProfileView.vue')
       }
       if (!router.includes("meta: { requiresAuth: true }")) {
@@ -154,6 +159,61 @@ const checks = [
       ]) {
         if (!readme.includes(snippet)) throw new Error(`README is missing deployment note: ${snippet}`)
       }
+    }
+  },
+  {
+    name: 'backend secrets are loaded from environment variables',
+    run() {
+      const app = readRepo('backend/app.py')
+      const envExample = readRepo('backend/.env.example')
+
+      for (const forbidden of [
+        'pronav_super_secret_master_key',
+        '381eeae3cd314fb80665a8235a03bc71',
+        "AUTHING_APP_ID = '69fdee93f62848c14ce9d3a6'",
+        "meilisearch.Client('http://127.0.0.1:7700'"
+      ]) {
+        if (app.includes(forbidden)) throw new Error(`backend/app.py still contains hardcoded secret/config: ${forbidden}`)
+      }
+
+      for (const snippet of [
+        "AUTHING_APP_ID = os.getenv('AUTHING_APP_ID')",
+        "AUTHING_APP_SECRET = os.getenv('AUTHING_APP_SECRET')",
+        "AUTHING_APP_HOST = os.getenv('AUTHING_APP_HOST')",
+        "MEILI_HOST = os.getenv('MEILI_HOST', 'http://127.0.0.1:7700')",
+        "MEILI_MASTER_KEY = os.getenv('MEILI_MASTER_KEY')"
+      ]) {
+        if (!app.includes(snippet)) throw new Error(`backend/app.py is missing env config: ${snippet}`)
+      }
+
+      for (const key of ['AUTHING_APP_ID=', 'AUTHING_APP_SECRET=', 'AUTHING_APP_HOST=', 'MEILI_HOST=', 'MEILI_MASTER_KEY=']) {
+        if (!envExample.includes(key)) throw new Error(`backend/.env.example is missing ${key}`)
+      }
+    }
+  },
+  {
+    name: 'sensitive runtime data is not tracked by git',
+    run() {
+      const tracked = gitOutput('git ls-files backend/.env backend/meili_data backend/meilisearch.exe')
+      if (tracked) throw new Error(`Sensitive files are still tracked:\n${tracked}`)
+    }
+  },
+  {
+    name: 'frontend dependencies do not include unused search/install packages',
+    run() {
+      const pkg = JSON.parse(read('package.json'))
+      const deps = pkg.dependencies || {}
+
+      for (const name of ['install', 'meilisearch', 'flexsearch', '@authing/vue-ui-components']) {
+        if (deps[name]) throw new Error(`Unused frontend dependency is still installed: ${name}`)
+      }
+
+      if (!deps['@authing/guard']) {
+        throw new Error('@authing/guard must remain because Login.vue imports it')
+      }
+
+      const devDeps = pkg.devDependencies || {}
+      if (!devDeps.prettier) throw new Error('Prettier is not listed as a dev dependency')
     }
   }
 ]

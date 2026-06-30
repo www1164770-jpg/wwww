@@ -8,11 +8,17 @@
     <form class="form-card" @submit.prevent="$emit('save')">
       <label>
         <span>昵称</span>
-        <input :value="form.username" @input="$emit('update:field', 'username', $event.target.value)">
+        <input
+          :value="form.username"
+          @input="$emit('update:field', 'username', $event.target.value)"
+        />
       </label>
       <label>
         <span>性别</span>
-        <select :value="form.gender" @change="$emit('update:field', 'gender', $event.target.value)">
+        <select
+          :value="form.gender"
+          @change="$emit('update:field', 'gender', $event.target.value)"
+        >
           <option value="保密">保密</option>
           <option value="男">男</option>
           <option value="女">女</option>
@@ -20,11 +26,19 @@
       </label>
       <label>
         <span>生日</span>
-        <input :value="form.birthday" type="date" @input="$emit('update:field', 'birthday', $event.target.value)">
+        <input
+          :value="form.birthday"
+          type="date"
+          @input="$emit('update:field', 'birthday', $event.target.value)"
+        />
       </label>
       <label>
         <span>个人简介</span>
-        <textarea :value="form.bio" rows="4" @input="$emit('update:field', 'bio', $event.target.value)"></textarea>
+        <textarea
+          :value="form.bio"
+          rows="4"
+          @input="$emit('update:field', 'bio', $event.target.value)"
+        ></textarea>
       </label>
       <button type="submit">保存基础资料</button>
     </form>
@@ -35,11 +49,11 @@
 defineProps({
   form: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-defineEmits(['update:field', 'save'])
+defineEmits(["update:field", "save"]);
 </script>
 
 <style scoped>

@@ -2,19 +2,29 @@
   <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
     <form class="modal" @submit.prevent="submit">
       <button class="close" type="button" @click="$emit('close')">×</button>
-      <h2>{{ draft.id ? '编辑网站' : '提交网站' }}</h2>
+      <h2>{{ draft.id ? "编辑网站" : "提交网站" }}</h2>
       <label>
         <span>网站名称</span>
-        <input v-model.trim="draft.name" required>
+        <input v-model.trim="draft.name" required />
       </label>
       <label>
         <span>网站链接</span>
-        <input v-model.trim="draft.url" required placeholder="https://example.com">
+        <input
+          v-model.trim="draft.url"
+          required
+          placeholder="https://example.com"
+        />
       </label>
       <label>
         <span>分类</span>
         <select v-model="draft.category_id">
-          <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
+          <option
+            v-for="category in categories"
+            :key="category.id"
+            :value="category.id"
+          >
+            {{ category.name }}
+          </option>
         </select>
       </label>
       <button class="primary" type="submit">保存</button>
@@ -23,46 +33,47 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch } from "vue";
 
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   site: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   categories: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 
-const emit = defineEmits(['save', 'close'])
+const emit = defineEmits(["save", "close"]);
 
 const draft = reactive({
   id: null,
-  name: '',
-  url: '',
-  category_id: 'all'
-})
+  name: "",
+  url: "",
+  category_id: "all",
+});
 
 watch(
   () => [props.visible, props.site, props.categories],
   () => {
-    draft.id = props.site?.id || null
-    draft.name = props.site?.name || ''
-    draft.url = props.site?.url || ''
-    draft.category_id = props.site?.category_id || props.categories[0]?.id || 'all'
+    draft.id = props.site?.id || null;
+    draft.name = props.site?.name || "";
+    draft.url = props.site?.url || "";
+    draft.category_id =
+      props.site?.category_id || props.categories[0]?.id || "all";
   },
-  { immediate: true, deep: true }
-)
+  { immediate: true, deep: true },
+);
 
 const submit = () => {
-  emit('save', { ...draft })
-}
+  emit("save", { ...draft });
+};
 </script>
 
 <style scoped>
@@ -73,7 +84,7 @@ const submit = () => {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(15, 23, 42, .45);
+  background: rgba(15, 23, 42, 0.45);
 }
 
 .modal {

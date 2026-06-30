@@ -1,10 +1,14 @@
 <template>
   <article class="tool-card">
     <div class="tool-head">
-      <img :src="logoUrl" :alt="site.name" @error="handleIconError">
+      <img :src="logoUrl" :alt="site.name" @error="handleIconError" />
       <div>
         <h3>{{ site.name }}</h3>
-        <p>{{ site.desc || site.description || '快速直达常用 AI 工具与效率网站。' }}</p>
+        <p>
+          {{
+            site.desc || site.description || "快速直达常用 AI 工具与效率网站。"
+          }}
+        </p>
       </div>
     </div>
 
@@ -12,11 +16,15 @@
       <span v-for="tag in normalizedTags" :key="tag">{{ tag }}</span>
     </div>
 
-    <p class="audience">适合：{{ normalizedAudiences.join('、') }}</p>
+    <p class="audience">适合：{{ normalizedAudiences.join("、") }}</p>
 
     <div class="actions">
-      <button type="button" class="ghost" @click="$emit('toggle-favorite', site)">
-        {{ isFavorited ? '已收藏' : '收藏' }}
+      <button
+        type="button"
+        class="ghost"
+        @click="$emit('toggle-favorite', site)"
+      >
+        {{ isFavorited ? "已收藏" : "收藏" }}
       </button>
       <button type="button" @click="$emit('visit', site)">访问网站</button>
     </div>
@@ -24,49 +32,57 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref } from "vue";
 
 const props = defineProps({
   site: {
     type: Object,
-    required: true
+    required: true,
   },
   isFavorited: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-defineEmits(['visit', 'toggle-favorite'])
+defineEmits(["visit", "toggle-favorite"]);
 
-const iconFailed = ref(false)
+const iconFailed = ref(false);
 
 const domain = computed(() => {
   try {
-    return new URL(props.site.url).hostname
+    return new URL(props.site.url).hostname;
   } catch {
-    return ''
+    return "";
   }
-})
+});
 
 const logoUrl = computed(() => {
-  if (iconFailed.value || !domain.value) return `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(props.site.name)}`
-  return props.site.logo_url || `https://www.google.com/s2/favicons?domain=${domain.value}&sz=64`
-})
+  if (iconFailed.value || !domain.value)
+    return `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(props.site.name)}`;
+  return (
+    props.site.logo_url ||
+    `https://www.google.com/s2/favicons?domain=${domain.value}&sz=64`
+  );
+});
 
 const normalizedTags = computed(() => {
-  const tags = props.site.tags?.length ? props.site.tags : [props.site.categoryName || 'AI 工具']
-  return tags.slice(0, 3)
-})
+  const tags = props.site.tags?.length
+    ? props.site.tags
+    : [props.site.categoryName || "AI 工具"];
+  return tags.slice(0, 3);
+});
 
 const normalizedAudiences = computed(() => {
-  const audiences = props.site.audiences?.length ? props.site.audiences : ['学生', '程序员', '运营']
-  return audiences.slice(0, 3)
-})
+  const audiences = props.site.audiences?.length
+    ? props.site.audiences
+    : ["学生", "程序员", "运营"];
+  return audiences.slice(0, 3);
+});
 
 const handleIconError = () => {
-  iconFailed.value = true
-}
+  iconFailed.value = true;
+};
 </script>
 
 <style scoped>

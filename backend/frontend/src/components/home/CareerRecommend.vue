@@ -29,42 +29,42 @@
 defineProps({
   activeCareer: {
     type: String,
-    default: ''
-  }
-})
+    default: "",
+  },
+});
 
-defineEmits(['select-career'])
+defineEmits(["select-career"]);
 
 const careerRecommendations = [
   {
-    name: '学生',
-    scene: '论文写作',
-    icon: '学',
-    description: '文献检索、论文润色、翻译、PPT 制作和在线课程工具。',
-    tags: ['论文', 'PPT', '翻译']
+    name: "学生",
+    scene: "论文写作",
+    icon: "学",
+    description: "文献检索、论文润色、翻译、PPT 制作和在线课程工具。",
+    tags: ["论文", "PPT", "翻译"],
   },
   {
-    name: '程序员',
-    scene: '开发学习',
-    icon: '码',
-    description: 'AI 编程、代码托管、接口测试、技术文档和部署平台。',
-    tags: ['编程', '接口', '部署']
+    name: "程序员",
+    scene: "开发学习",
+    icon: "码",
+    description: "AI 编程、代码托管、接口测试、技术文档和部署平台。",
+    tags: ["编程", "接口", "部署"],
   },
   {
-    name: '设计师',
-    scene: '内容创作',
-    icon: '设',
-    description: 'AI 绘图、素材库、配色、字体、图片压缩和原型设计工具。',
-    tags: ['绘图', '素材', '设计']
+    name: "设计师",
+    scene: "内容创作",
+    icon: "设",
+    description: "AI 绘图、素材库、配色、字体、图片压缩和原型设计工具。",
+    tags: ["绘图", "素材", "设计"],
   },
   {
-    name: '运营',
-    scene: '自媒体',
-    icon: '营',
-    description: '热点分析、文案生成、排版工具、数据看板和短视频工具。',
-    tags: ['文案', '数据', '短视频']
-  }
-]
+    name: "运营",
+    scene: "自媒体",
+    icon: "营",
+    description: "热点分析、文案生成、排版工具、数据看板和短视频工具。",
+    tags: ["文案", "数据", "短视频"],
+  },
+];
 </script>
 
 <style scoped>
@@ -100,7 +100,10 @@ const careerRecommendations = [
   text-align: left;
   background: #fff;
   cursor: pointer;
-  transition: border-color .2s, transform .2s, box-shadow .2s;
+  transition:
+    border-color 0.2s,
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .career-card:hover,

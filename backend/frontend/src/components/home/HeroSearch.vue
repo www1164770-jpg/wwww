@@ -3,7 +3,9 @@
     <div class="hero-copy">
       <p class="eyebrow">AI 工具导航</p>
       <h1>根据你的职业，推荐最适合的 AI 工具</h1>
-      <p>搜索工具、职业场景或任务关键词，快速找到学习、办公、创作和编程入口。</p>
+      <p>
+        搜索工具、职业场景或任务关键词，快速找到学习、办公、创作和编程入口。
+      </p>
     </div>
 
     <form class="search-box" @submit.prevent="$emit('search')">
@@ -12,7 +14,7 @@
         type="search"
         placeholder="搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
         @input="$emit('update:modelValue', $event.target.value)"
-      >
+      />
       <button type="submit">搜索</button>
     </form>
 
@@ -28,11 +30,11 @@
 defineProps({
   modelValue: {
     type: String,
-    default: ''
-  }
-})
+    default: "",
+  },
+});
 
-defineEmits(['update:modelValue', 'search', 'show-all', 'show-favorites'])
+defineEmits(["update:modelValue", "search", "show-all", "show-favorites"]);
 </script>
 
 <style scoped>

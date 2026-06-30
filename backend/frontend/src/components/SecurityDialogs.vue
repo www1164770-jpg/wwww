@@ -1,6 +1,10 @@
 <template>
   <!-- 🔒 安全设置弹窗：修改密码 / 换绑邮箱 / 绑定手机 -->
-  <div v-if="currentModalType" class="auth-overlay glass-overlay" @click.self="closeModal">
+  <div
+    v-if="currentModalType"
+    class="auth-overlay glass-overlay"
+    @click.self="closeModal"
+  >
     <div class="auth-modal edit-modal" @click.stop>
       <button class="close-btn" @click="closeModal">×</button>
 
@@ -54,7 +58,9 @@
               :disabled="emailCountdown > 0"
               @click="sendEmailCode"
             >
-              {{ emailCountdown > 0 ? `${emailCountdown}s 后重发` : '获取验证码' }}
+              {{
+                emailCountdown > 0 ? `${emailCountdown}s 后重发` : "获取验证码"
+              }}
             </button>
           </div>
           <button class="btn-submit" @click="submitEmailBind">确认换绑</button>
@@ -83,7 +89,9 @@
               :disabled="phoneCountdown > 0"
               @click="sendPhoneCode"
             >
-              {{ phoneCountdown > 0 ? `${phoneCountdown}s 后重发` : '获取验证码' }}
+              {{
+                phoneCountdown > 0 ? `${phoneCountdown}s 后重发` : "获取验证码"
+              }}
             </button>
           </div>
           <button class="btn-submit" @click="submitPhoneBind">立即绑定</button>
@@ -94,176 +102,227 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { securityAPI, userAPI } from '@/utils/api'
+import { ref } from "vue";
+import { securityAPI, userAPI } from "@/utils/api";
 
-const emit = defineEmits(['toast', 'logout'])
+const emit = defineEmits(["toast", "logout"]);
 
 // --- Props & Emits ---
 // 父组件通过 v-model:show 控制弹窗显示
 const props = defineProps({
-  modelValue: { type: String, default: null },  // 'password' | 'email' | 'phone' | null
-  userInfo: { type: Object, default: () => ({ email: '未绑定邮箱', phone: '' }) }
-})
+  modelValue: { type: String, default: null }, // 'password' | 'email' | 'phone' | null
+  userInfo: {
+    type: Object,
+    default: () => ({ email: "未绑定邮箱", phone: "" }),
+  },
+});
 
-const currentModalType = ref(null)
+const currentModalType = ref(null);
 
 // Watch for changes from parent
-import { watch } from 'vue'
-watch(() => props.modelValue, (val) => {
-  currentModalType.value = val
-})
+import { watch } from "vue";
+watch(
+  () => props.modelValue,
+  (val) => {
+    currentModalType.value = val;
+  },
+);
 
 // --- 表单数据 ---
 const modalForm = ref({
-  oldPwd: '',
-  newPwd: '',
-  confirmPwd: '',
-  email: '',
-  emailCode: '',
-  phone: '',
-  phoneCode: ''
-})
+  oldPwd: "",
+  newPwd: "",
+  confirmPwd: "",
+  email: "",
+  emailCode: "",
+  phone: "",
+  phoneCode: "",
+});
 
 // --- 倒计时 ---
-const emailCountdown = ref(0)
-const phoneCountdown = ref(0)
-let emailTimer = null
-let phoneTimer = null
+const emailCountdown = ref(0);
+const phoneCountdown = ref(0);
+let emailTimer = null;
+let phoneTimer = null;
 
 // --- 清理 Timer ---
 function clearAllTimers() {
-  if (emailTimer) { clearInterval(emailTimer); emailTimer = null }
-  if (phoneTimer) { clearInterval(phoneTimer); phoneTimer = null }
+  if (emailTimer) {
+    clearInterval(emailTimer);
+    emailTimer = null;
+  }
+  if (phoneTimer) {
+    clearInterval(phoneTimer);
+    phoneTimer = null;
+  }
 }
 
 // --- 发送邮箱验证码 ---
 const sendEmailCode = async () => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(modalForm.value.email)) {
-    return emit('toast', '⚠️ 请输入正确的邮箱格式', 'error')
+    return emit("toast", "⚠️ 请输入正确的邮箱格式", "error");
   }
   try {
-    const res = await securityAPI.sendEmailCode(modalForm.value.email)
+    const res = await securityAPI.sendEmailCode(modalForm.value.email);
     if (res.data.code === 0) {
-      emit('toast', '📧 验证码已发送至邮箱，请查收', 'success')
-      emailCountdown.value = 60
+      emit("toast", "📧 验证码已发送至邮箱，请查收", "success");
+      emailCountdown.value = 60;
       emailTimer = setInterval(() => {
-        emailCountdown.value--
-        if (emailCountdown.value <= 0) clearInterval(emailTimer)
-      }, 1000)
+        emailCountdown.value--;
+        if (emailCountdown.value <= 0) clearInterval(emailTimer);
+      }, 1000);
     } else {
-      emit('toast', '❌ ' + res.data.msg, 'error')
+      emit("toast", "❌ " + res.data.msg, "error");
     }
   } catch (error) {
-    emit('toast', '❌ 发送失败：' + (error.response?.data?.msg || '网络错误'), 'error')
+    emit(
+      "toast",
+      "❌ 发送失败：" + (error.response?.data?.msg || "网络错误"),
+      "error",
+    );
   }
-}
+};
 
 // --- 发送手机验证码 ---
 const sendPhoneCode = async () => {
-  const phoneRegex = /^1[3-9]\d{9}$/
+  const phoneRegex = /^1[3-9]\d{9}$/;
   if (!phoneRegex.test(modalForm.value.phone)) {
-    return emit('toast', '⚠️ 请输入正确的11位手机号', 'error')
+    return emit("toast", "⚠️ 请输入正确的11位手机号", "error");
   }
   try {
-    const res = await securityAPI.sendSmsCode(modalForm.value.phone)
+    const res = await securityAPI.sendSmsCode(modalForm.value.phone);
     if (res.data.code === 0) {
-      emit('toast', '📱 验证码短信已发送', 'success')
-      phoneCountdown.value = 60
+      emit("toast", "📱 验证码短信已发送", "success");
+      phoneCountdown.value = 60;
       phoneTimer = setInterval(() => {
-        phoneCountdown.value--
-        if (phoneCountdown.value <= 0) clearInterval(phoneTimer)
-      }, 1000)
+        phoneCountdown.value--;
+        if (phoneCountdown.value <= 0) clearInterval(phoneTimer);
+      }, 1000);
     } else {
-      emit('toast', '❌ ' + res.data.msg, 'error')
+      emit("toast", "❌ " + res.data.msg, "error");
     }
   } catch (error) {
-    emit('toast', '❌ 发送失败：' + (error.response?.data?.msg || '网络错误'), 'error')
+    emit(
+      "toast",
+      "❌ 发送失败：" + (error.response?.data?.msg || "网络错误"),
+      "error",
+    );
   }
-}
+};
 
 // --- 提交邮箱绑定 ---
 const submitEmailBind = async () => {
   if (!modalForm.value.emailCode) {
-    return emit('toast', '⚠️ 请输入验证码', 'error')
+    return emit("toast", "⚠️ 请输入验证码", "error");
   }
   try {
-    const res = await securityAPI.bindEmail(modalForm.value.email, modalForm.value.emailCode)
+    const res = await securityAPI.bindEmail(
+      modalForm.value.email,
+      modalForm.value.emailCode,
+    );
     if (res.data.code === 0) {
-      emit('toast', '🎉 邮箱绑定成功！', 'success')
-      closeModal()
+      emit("toast", "🎉 邮箱绑定成功！", "success");
+      closeModal();
     } else {
-      emit('toast', '❌ ' + res.data.msg, 'error')
+      emit("toast", "❌ " + res.data.msg, "error");
     }
   } catch (error) {
-    emit('toast', '❌ 绑定失败：' + (error.response?.data?.msg || '验证码错误'), 'error')
+    emit(
+      "toast",
+      "❌ 绑定失败：" + (error.response?.data?.msg || "验证码错误"),
+      "error",
+    );
   }
-}
+};
 
 // --- 提交手机绑定 ---
 const submitPhoneBind = async () => {
   if (!modalForm.value.phoneCode) {
-    return emit('toast', '⚠️ 请输入验证码', 'error')
+    return emit("toast", "⚠️ 请输入验证码", "error");
   }
   try {
-    const res = await securityAPI.bindPhone(modalForm.value.phone, modalForm.value.phoneCode)
+    const res = await securityAPI.bindPhone(
+      modalForm.value.phone,
+      modalForm.value.phoneCode,
+    );
     if (res.data.code === 0) {
-      emit('toast', '🎉 手机绑定成功！', 'success')
-      closeModal()
+      emit("toast", "🎉 手机绑定成功！", "success");
+      closeModal();
     } else {
-      emit('toast', '❌ ' + res.data.msg, 'error')
+      emit("toast", "❌ " + res.data.msg, "error");
     }
   } catch (error) {
-    emit('toast', '❌ 绑定失败：' + (error.response?.data?.msg || '验证码错误'), 'error')
+    emit(
+      "toast",
+      "❌ 绑定失败：" + (error.response?.data?.msg || "验证码错误"),
+      "error",
+    );
   }
-}
+};
 
 // --- 提交修改密码 ---
 const submitPasswordChange = async () => {
-  if (!modalForm.value.oldPwd || !modalForm.value.newPwd || !modalForm.value.confirmPwd) {
-    return emit('toast', '⚠️ 请完整填写所有密码项', 'error')
+  if (
+    !modalForm.value.oldPwd ||
+    !modalForm.value.newPwd ||
+    !modalForm.value.confirmPwd
+  ) {
+    return emit("toast", "⚠️ 请完整填写所有密码项", "error");
   }
   if (modalForm.value.newPwd !== modalForm.value.confirmPwd) {
-    return emit('toast', '⚠️ 两次输入的新密码不一致！', 'error')
+    return emit("toast", "⚠️ 两次输入的新密码不一致！", "error");
   }
   if (modalForm.value.newPwd.length < 6) {
-    return emit('toast', '⚠️ 新密码不能少于 6 位', 'error')
+    return emit("toast", "⚠️ 新密码不能少于 6 位", "error");
   }
   try {
-    const res = await userAPI.changePassword(modalForm.value.oldPwd, modalForm.value.newPwd)
+    const res = await userAPI.changePassword(
+      modalForm.value.oldPwd,
+      modalForm.value.newPwd,
+    );
     if (res.data.code === 0) {
-      emit('toast', '🎉 密码修改成功！请重新登录', 'success')
-      closeModal()
-      setTimeout(() => { emit('logout') }, 1500)
+      emit("toast", "🎉 密码修改成功！请重新登录", "success");
+      closeModal();
+      setTimeout(() => {
+        emit("logout");
+      }, 1500);
     } else {
-      emit('toast', '❌ ' + res.data.msg, 'error')
+      emit("toast", "❌ " + res.data.msg, "error");
     }
   } catch (error) {
-    emit('toast', '❌ 修改失败：' + (error.response?.data?.msg || '网络错误'), 'error')
+    emit(
+      "toast",
+      "❌ 修改失败：" + (error.response?.data?.msg || "网络错误"),
+      "error",
+    );
   }
-}
+};
 
 // --- 打开弹窗 ---
 const openModal = (type) => {
-  currentModalType.value = type
-}
+  currentModalType.value = type;
+};
 
 // --- 关闭弹窗并重置表单 ---
 const closeModal = () => {
-  currentModalType.value = null
+  currentModalType.value = null;
   modalForm.value = {
-    oldPwd: '', newPwd: '', confirmPwd: '',
-    email: '', emailCode: '',
-    phone: '', phoneCode: ''
-  }
-  emailCountdown.value = 0
-  phoneCountdown.value = 0
-  clearAllTimers()
-}
+    oldPwd: "",
+    newPwd: "",
+    confirmPwd: "",
+    email: "",
+    emailCode: "",
+    phone: "",
+    phoneCode: "",
+  };
+  emailCountdown.value = 0;
+  phoneCountdown.value = 0;
+  clearAllTimers();
+};
 
 // 暴露 openModal 方法给父组件调用
-defineExpose({ openModal, closeModal })
+defineExpose({ openModal, closeModal });
 </script>
 
 <style scoped>

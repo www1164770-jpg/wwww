@@ -1,107 +1,170 @@
 <template>
-  <div class="admin-page">
-    <div class="admin-header block-shadow">
-      <h1>🛡️ 智汇导航 - 管理后台</h1>
-      <button class="btn-cancel" @click="$router.push('/')">返回前台首页</button>
-    </div>
-    
-    <div class="admin-content">
-      <div class="stat-card block-shadow">
-        <h3>今日新增用户</h3>
-        <p class="stat-num">0</p>
-      </div>
-      <div class="stat-card block-shadow">
-        <h3>待审核文章</h3>
-        <p class="stat-num">0</p>
-      </div>
-      <div class="stat-card block-shadow">
-        <h3>总访问量</h3>
-        <p class="stat-num">0</p>
-      </div>
-    </div>
+  <div class="page">
+    <AppHeader />
+    <main>
+      <aside>
+        <RouterLink to="/admin/dashboard">Dashboard</RouterLink>
+        <RouterLink to="/admin/sites">Sites</RouterLink>
+        <RouterLink to="/admin/categories">Categories</RouterLink>
+        <RouterLink to="/admin/tags">Tags</RouterLink>
+        <RouterLink to="/admin/users">Users</RouterLink>
+        <RouterLink to="/admin/comments">Comments</RouterLink>
+      </aside>
+      <section class="panel">
+        <h1>{{ sectionTitle }}</h1>
+        <div v-if="section === 'dashboard'" class="stats">
+          <div>
+            <strong>{{ dashboard.users || 0 }}</strong
+            ><span>Users</span>
+          </div>
+          <div>
+            <strong>{{ dashboard.sites || sites.length }}</strong
+            ><span>Sites</span>
+          </div>
+          <div>
+            <strong>{{ dashboard.categories || categories.length }}</strong
+            ><span>Categories</span>
+          </div>
+        </div>
+        <div v-else-if="section === 'sites'" class="table">
+          <div v-for="site in sites" :key="site.id" class="row">
+            <span>{{ site.name }}</span>
+            <a :href="site.url" target="_blank" rel="noreferrer">Visit</a>
+          </div>
+        </div>
+        <div v-else-if="section === 'categories'" class="table">
+          <div v-for="category in categories" :key="category.id" class="row">
+            <span>{{ category.name }}</span>
+            <small>#{{ category.id }}</small>
+          </div>
+        </div>
+        <div v-else-if="section === 'tags'" class="table">
+          <div v-for="tag in tags" :key="tag.id" class="row">
+            <span>{{ tag.name }}</span>
+            <small>{{ tag.type }}</small>
+          </div>
+        </div>
+        <div v-else-if="section === 'users'" class="table">
+          <div v-for="user in users" :key="user.id" class="row">
+            <span>{{ user.username || user.email }}</span>
+            <small>{{ user.role || user.status }}</small>
+          </div>
+        </div>
+        <EmptyState
+          v-else
+          title="Comments moderation"
+          description="Comment moderation endpoint can be connected here."
+        />
+      </section>
+    </main>
   </div>
 </template>
 
 <script setup>
-// 这里后续可以接入我们之前写的 /api/admin/stats 接口
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import AppHeader from "../components/layout/AppHeader.vue";
+import EmptyState from "../components/common/EmptyState.vue";
+import { adminAPI } from "../utils/api";
+
+const route = useRoute();
+const dashboard = ref({});
+const sites = ref([]);
+const categories = ref([]);
+const tags = ref([]);
+const users = ref([]);
+
+const section = computed(() => route.meta.adminSection || "dashboard");
+const sectionTitle = computed(
+  () => section.value[0].toUpperCase() + section.value.slice(1),
+);
+
+async function load() {
+  try {
+    if (section.value === "dashboard") {
+      const response = await adminAPI.getDashboard();
+      dashboard.value = response.data?.data || {};
+    }
+    if (section.value === "sites" || section.value === "dashboard") {
+      const response = await adminAPI.getSites({ per_page: 50 });
+      sites.value = response.data?.data?.items || response.data?.data || [];
+    }
+    if (section.value === "categories" || section.value === "dashboard") {
+      const response = await adminAPI.getCategories();
+      categories.value = response.data?.data || [];
+    }
+    if (section.value === "tags") {
+      const response = await adminAPI.getTags();
+      tags.value = response.data?.data || [];
+    }
+    if (section.value === "users") {
+      const response = await adminAPI.getUsers();
+      users.value = response.data?.data?.items || response.data?.data || [];
+    }
+  } catch {
+    // Keep admin shell usable even if one endpoint is not migrated yet.
+  }
+}
+
+watch(section, load);
+onMounted(load);
 </script>
 
 <style scoped>
-.admin-page {
+.page {
   min-height: 100vh;
-  padding: 48px clamp(18px, 4vw, 48px);
-  max-width: 1180px;
-  margin: 0 auto;
-  color: var(--mono-text);
-  animation: mono-rise-in 0.64s var(--mono-ease);
+  background: #f8fafc;
 }
-
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 18px;
-  padding: 22px 28px;
-  margin-bottom: 24px;
-  background: var(--mono-surface) !important;
-  border: 1px solid var(--mono-border);
-  border-radius: var(--mono-radius-lg);
-  box-shadow: var(--mono-shadow-sm);
-  backdrop-filter: blur(18px);
+main {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  width: min(1180px, calc(100% - 36px));
+  margin: 36px auto;
 }
-
-.admin-header h1 {
-  margin: 0;
-  font-size: clamp(24px, 3vw, 34px);
-  font-weight: 820;
-  letter-spacing: -0.06em;
-  filter: grayscale(1);
+aside,
+.panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  padding: 18px;
 }
-
-.admin-content {
+aside {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+a {
+  color: #111827;
+  text-decoration: none;
+  font-weight: 750;
+}
+.stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 14px;
 }
-
-.stat-card {
-  padding: 30px;
-  background: var(--mono-surface) !important;
-  border: 1px solid var(--mono-border);
-  border-radius: var(--mono-radius-lg);
-  text-align: center;
-  box-shadow: var(--mono-shadow-sm);
-  transition: transform var(--mono-base) var(--mono-ease), box-shadow var(--mono-base) var(--mono-ease), border-color var(--mono-base) var(--mono-ease);
+.stats div,
+.row {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
 }
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--mono-border-strong);
-  box-shadow: var(--mono-shadow-md);
+.stats strong {
+  display: block;
+  font-size: 34px;
 }
-
-.stat-card h3 {
-  margin: 0;
-  color: var(--mono-muted);
-  font-size: 14px;
-  font-weight: 650;
+.table {
+  display: grid;
+  gap: 10px;
 }
-
-.stat-num {
-  margin: 14px 0 0;
-  color: var(--mono-text);
-  font-size: 42px;
-  font-weight: 860;
-  letter-spacing: -0.06em;
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
 }
-
-@media (max-width: 760px) {
-  .admin-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .admin-content {
+@media (max-width: 820px) {
+  main {
     grid-template-columns: 1fr;
   }
 }

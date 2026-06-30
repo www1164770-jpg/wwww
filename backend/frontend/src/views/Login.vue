@@ -1,122 +1,120 @@
 <template>
-  <div class="login-page">
-    <div class="guard-container block-shadow">
-      <div id="authing-container"></div>
-    </div>
+  <div class="auth-page">
+    <form class="auth-panel" @submit.prevent="submit">
+      <RouterLink class="brand" to="/">AI Nav</RouterLink>
+      <h1>Login</h1>
+      <label>
+        Email or username
+        <input v-model.trim="account" autocomplete="username" required />
+      </label>
+      <label>
+        Password
+        <input
+          v-model="password"
+          autocomplete="current-password"
+          type="password"
+          required
+        />
+      </label>
+      <p v-if="error" class="error">{{ error }}</p>
+      <button type="submit" :disabled="loading">
+        {{ loading ? "Logging in..." : "Login" }}
+      </button>
+      <RouterLink to="/register">Create an account</RouterLink>
+    </form>
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
-import { Guard } from '@authing/guard';
-import '@authing/guard/dist/esm/guard.min.css';
+import { ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { authAPI } from "../utils/api";
 
-onMounted(() => {
-  // 1. 初始化核心引擎 (⚠️ 这里的 appId 必须填对，否则会直接变 null 导致白屏！)
-  // 1. 初始化核心引擎 
-  const authing = new Guard({
-    appId: '69fdee93f62848c14ce9d3a6', 
-    mode: 'normal',
-    
-    // ✨ 核心修改点：默认展示邮箱和密码的输入框
-    defaultLoginMethod: 'email-password', 
-    
-    // ✨ 告诉 Guard 你想要在界面上画出哪些登录选项卡
-    // 'email-password' = 邮箱密码登录
-    // 'email-code' = 邮箱验证码登录
-    // 'phone-code' = 手机验证码
-    loginMethods: ['email-password', 'email-code', 'phone-code'],
-    
-    // 第三方登录保持不变
-    socialConnections: ['github', 'wechat:pc', 'google'],
-    isSSO: false,
-  });
+const route = useRoute();
+const router = useRouter();
+const account = ref("");
+const password = ref("");
+const loading = ref(false);
+const error = ref("");
 
-  // 2. 强行挂载到页面上
-  authing.start('#authing-container');
+function dataOf(response) {
+  return response?.data?.data ?? response?.data ?? {};
+}
 
-  // 3. 监听登录成功并强制跳转
-// 3. 监听登录成功并强制跳转
-  authing.on('login', (userInfo) => {
-    console.log('登录成功，完整数据:', userInfo);
-    // 提取 Token
-    const token = userInfo.token || 
-                  userInfo.idToken || 
-                  userInfo.accessToken || 
-                  (userInfo.data && userInfo.data.token) ||
-                  (userInfo.data && userInfo.data.id_token);
-
-    if (token) {
-      localStorage.setItem('access_token', token);
-      localStorage.setItem('is_logged_in', 'true');
-      
-      // ✨ 完美提取用户名，如果没有就叫“智汇导航用户”
-      const username = userInfo.username || userInfo.nickname || (userInfo.data && userInfo.data.username) || '智汇导航用户';
-      
-      // ✨ 完美提取头像！(如果第三方没提供头像，给一个超级好看的默认渐变头像)
-      const avatar = userInfo.photo || userInfo.avatar || (userInfo.data && userInfo.data.photo) || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + username;
-
-      // 存入包含完整信息的对象
-      localStorage.setItem('user_info', JSON.stringify({ username, avatar }));
-
-      // 物理级跳转首页
-      window.location.href = '/';
+async function submit() {
+  loading.value = true;
+  error.value = "";
+  try {
+    const response = await authAPI.login(account.value, password.value);
+    const data = dataOf(response);
+    localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("refresh_token", data.refresh_token || "");
+    localStorage.setItem("user_info", JSON.stringify(data.user_info || {}));
+    localStorage.setItem("user_role", data.user_role || "user");
+    localStorage.setItem(
+      "questionnaire_completed",
+      String(Boolean(data.questionnaire_completed)),
+    );
+    localStorage.setItem("is_logged_in", "true");
+    if (!data.questionnaire_completed) {
+      router.push("/questionnaire");
     } else {
-      alert('未提取到 Token！');
+      router.push(route.query.redirect || "/");
     }
-  });
-});
+  } catch (err) {
+    error.value = err.response?.data?.msg || "Login failed";
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <style scoped>
-.login-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.auth-page {
+  display: grid;
   min-height: 100vh;
+  place-items: center;
+  background: #f8fafc;
   padding: 24px;
-  background:
-    radial-gradient(circle at 50% 15%, rgba(17,17,17,0.06), transparent 24rem),
-    var(--mono-bg);
-  animation: mono-rise-in 0.64s var(--mono-ease);
 }
-.guard-container {
-  padding: 22px;
-  border-radius: var(--mono-radius-xl);
-  background: var(--mono-surface) !important;
-  border: 1px solid var(--mono-border);
-  box-shadow: var(--mono-shadow-lg);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  min-width: 360px; 
-  min-height: 400px;
+.auth-panel {
+  display: grid;
+  gap: 16px;
+  width: min(420px, 100%);
+  padding: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
 }
-
-.guard-container :deep(.authing-ant-btn-primary),
-.guard-container :deep(button[type="submit"]) {
-  background: #111111 !important;
-  border-color: #111111 !important;
-  color: #ffffff !important;
-  border-radius: 999px !important;
-  box-shadow: 0 12px 28px rgba(17,17,17,0.16) !important;
+.brand {
+  color: #111827;
+  font-weight: 850;
+  text-decoration: none;
 }
-
-.guard-container :deep(input),
-.guard-container :deep(.authing-ant-input) {
-  border-radius: 14px !important;
-  border-color: var(--mono-border) !important;
+h1 {
+  margin: 0;
 }
-
-.guard-container :deep(a),
-.guard-container :deep(.authing-ant-tabs-tab-active) {
-  color: #111111 !important;
+label {
+  display: grid;
+  gap: 8px;
+  color: #374151;
+  font-weight: 700;
 }
-
-@media (max-width: 520px) {
-  .guard-container {
-    min-width: 0;
-    width: 100%;
-    padding: 16px;
-  }
+input {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+}
+button {
+  border: 0;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  padding: 13px;
+  font-weight: 800;
+}
+.error {
+  margin: 0;
+  color: #b91c1c;
 }
 </style>

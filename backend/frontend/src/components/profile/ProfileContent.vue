@@ -1,12 +1,14 @@
 <template>
   <section class="panel">
     <div class="heading">
-      <p>{{ mode === 'history' ? '互动足迹' : '内容管理' }}</p>
-      <h1>{{ mode === 'history' ? '最近访问' : '我的发布' }}</h1>
+      <p>{{ mode === "history" ? "互动足迹" : "内容管理" }}</p>
+      <h1>{{ mode === "history" ? "最近访问" : "我的发布" }}</h1>
     </div>
 
     <div class="list-card">
-      <div v-if="items.length === 0" class="empty">{{ mode === 'history' ? '暂无互动记录' : '暂无发布内容' }}</div>
+      <div v-if="items.length === 0" class="empty">
+        {{ mode === "history" ? "暂无互动记录" : "暂无发布内容" }}
+      </div>
       <button
         v-for="item in items"
         :key="item.id || item.name || item.title"
@@ -14,8 +16,10 @@
         class="row"
         @click="$emit('open-item', item)"
       >
-        <span>{{ item.title || item.target_name || item.name || '未命名内容' }}</span>
-        <small>{{ item.time || item.date || item.status || '刚刚' }}</small>
+        <span>{{
+          item.title || item.target_name || item.name || "未命名内容"
+        }}</span>
+        <small>{{ item.time || item.date || item.status || "刚刚" }}</small>
       </button>
     </div>
   </section>
@@ -25,15 +29,15 @@
 defineProps({
   mode: {
     type: String,
-    default: 'content'
+    default: "content",
   },
   items: {
     type: Array,
-    default: () => []
-  }
-})
+    default: () => [],
+  },
+});
 
-defineEmits(['open-item'])
+defineEmits(["open-item"]);
 </script>
 
 <style scoped>

@@ -5,7 +5,11 @@
       <h2>外观设置</h2>
       <label class="toggle">
         <span>深色模式</span>
-        <input :checked="darkMode" type="checkbox" @change="$emit('update:darkMode', $event.target.checked)">
+        <input
+          :checked="darkMode"
+          type="checkbox"
+          @change="$emit('update:darkMode', $event.target.checked)"
+        />
       </label>
     </section>
   </div>
@@ -15,15 +19,15 @@
 defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   darkMode: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-defineEmits(['update:darkMode', 'close'])
+defineEmits(["update:darkMode", "close"]);
 </script>
 
 <style scoped>
@@ -34,7 +38,7 @@ defineEmits(['update:darkMode', 'close'])
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(15, 23, 42, .45);
+  background: rgba(15, 23, 42, 0.45);
 }
 
 .modal {
