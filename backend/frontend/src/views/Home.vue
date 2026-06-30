@@ -4,8 +4,8 @@
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow">Vertical AI directory</p>
-          <h1>Find the right AI sites for your role and workflow.</h1>
+          <p class="eyebrow">AI 垂直领域导航</p>
+          <h1>按职业和工作流找到合适的 AI 网站。</h1>
           <SearchBar v-model="keyword" @search="goSearch" />
         </div>
       </section>
@@ -74,7 +74,13 @@ async function toggleFavorite(site) {
     router.push({ path: "/login", query: { redirect: "/" } });
     return;
   }
-  await favoriteAPI.addFavorite(site.id);
+  if (site.is_favorited) {
+    await favoriteAPI.removeFavorite(site.id);
+    site.is_favorited = false;
+  } else {
+    await favoriteAPI.addFavorite(site.id);
+    site.is_favorited = true;
+  }
 }
 
 async function loadHome() {

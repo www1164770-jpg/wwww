@@ -1,7 +1,7 @@
 <template>
   <div class="site-filter">
     <select v-model="local.category_id" @change="emitChange">
-      <option value="">All categories</option>
+      <option value="">全部分类</option>
       <option
         v-for="category in categories"
         :key="category.id"
@@ -11,26 +11,26 @@
       </option>
     </select>
     <select v-model="local.tag" @change="emitChange">
-      <option value="">All tags</option>
+      <option value="">全部标签</option>
       <option v-for="tag in tags" :key="tag.id || tag.name" :value="tag.name">
         {{ tag.name }}
       </option>
     </select>
     <select v-model="local.is_free" @change="emitChange">
-      <option value="">Free and paid</option>
-      <option value="free">Free</option>
-      <option value="paid">Paid</option>
+      <option value="">免费和付费</option>
+      <option value="free">免费</option>
+      <option value="paid">付费</option>
     </select>
     <select v-model="local.region" @change="emitChange">
-      <option value="">All regions</option>
-      <option value="domestic">Domestic</option>
-      <option value="international">International</option>
+      <option value="">全部地区</option>
+      <option value="domestic">国内</option>
+      <option value="international">国外</option>
     </select>
     <select v-model="local.sort" @change="emitChange">
-      <option value="recommend">Recommended</option>
-      <option value="hot">Hot</option>
-      <option value="latest">Latest</option>
-      <option value="rating">Rating</option>
+      <option value="recommend">推荐排序</option>
+      <option value="hot">热度最高</option>
+      <option value="latest">最新收录</option>
+      <option value="rating">评分最高</option>
     </select>
   </div>
 </template>

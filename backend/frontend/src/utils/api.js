@@ -190,6 +190,9 @@ export const adminAPI = {
   createTag: (data) => api.post("/admin/tags", data),
   updateTag: (id, data) => api.put(`/admin/tags/${id}`, data),
   deleteTag: (id) => api.delete(`/admin/tags/${id}`),
+  getComments: (params = {}) => api.get("/admin/comments", { params }),
+  reviewComment: (id, action) =>
+    api.post(`/admin/comments/${id}/review`, { action }),
   getPendingSites: () => api.get("/admin/pending_sites"),
   crawlHN: () => api.post("/admin/crawl_hn"),
   reviewSite: (id, action, reason = "") =>

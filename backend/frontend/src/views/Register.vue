@@ -2,31 +2,28 @@
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
       <RouterLink class="brand" to="/">AI Nav</RouterLink>
-      <h1>Register</h1>
-      <label>Username<input v-model.trim="form.username" required /></label>
+      <h1>注册账号</h1>
+      <label>用户名<input v-model.trim="form.username" required /></label>
       <label
-        >Email<input v-model.trim="form.email" type="email" required
+        >邮箱<input v-model.trim="form.email" type="email" required
       /></label>
       <label
-        >Password<input v-model="form.password" type="password" required
+        >密码<input v-model="form.password" type="password" required
       /></label>
       <label
-        >Confirm password<input
-          v-model="confirmPassword"
-          type="password"
-          required
+        >确认密码<input v-model="confirmPassword" type="password" required
       /></label>
       <div class="code-row">
-        <label>Email code<input v-model.trim="form.code" required /></label>
-        <button type="button" @click="sendCode">Send code</button>
+        <label>邮箱验证码<input v-model.trim="form.code" required /></label>
+        <button type="button" @click="sendCode">发送验证码</button>
       </div>
       <label class="check">
         <input v-model="accepted" type="checkbox" />
-        I agree to the service agreement
+        我已阅读并同意用户协议和隐私政策
       </label>
       <p v-if="message" :class="{ error: hasError }">{{ message }}</p>
-      <button type="submit">Create account</button>
-      <RouterLink to="/login">Already have an account</RouterLink>
+      <button type="submit">创建账号</button>
+      <RouterLink to="/login">已有账号？去登录</RouterLink>
     </form>
   </div>
 </template>
@@ -47,28 +44,28 @@ async function sendCode() {
   hasError.value = false;
   try {
     await authAPI.sendCode(form.email);
-    message.value = "Verification code sent.";
+    message.value = "验证码已发送";
   } catch (err) {
     hasError.value = true;
-    message.value = err.response?.data?.msg || "Unable to send code.";
+    message.value = err.response?.data?.msg || "验证码发送失败";
   }
 }
 
 async function submit() {
   hasError.value = true;
   if (form.password !== confirmPassword.value) {
-    message.value = "Passwords do not match.";
+    message.value = "两次输入的密码不一致";
     return;
   }
   if (!accepted.value) {
-    message.value = "Please accept the agreement.";
+    message.value = "请先同意用户协议";
     return;
   }
   try {
     await authAPI.register(form);
     router.push("/login");
   } catch (err) {
-    message.value = err.response?.data?.msg || "Registration failed.";
+    message.value = err.response?.data?.msg || "注册失败";
   }
 }
 </script>

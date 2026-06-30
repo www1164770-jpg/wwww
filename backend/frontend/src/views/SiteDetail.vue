@@ -2,76 +2,73 @@
   <div class="page">
     <AppHeader />
     <main class="detail">
-      <LoadingState
-        v-if="loading"
-        title="Loading site"
-        description="Fetching the site detail."
-      />
+      <LoadingState v-if="loading" text="正在加载网站详情..." />
       <EmptyState
         v-else-if="!site"
-        title="Site not found"
-        description="The requested site does not exist or is unavailable."
+        title="未找到网站"
+        description="该网站不存在或暂时不可用。"
       />
       <template v-else>
-      <section class="hero">
-        <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
-        <div>
-          <p>{{ site.category_name || "AI resource" }}</p>
-          <h1>{{ site.name }}</h1>
-          <span>{{ site.summary }}</span>
-          <div class="actions">
-            <button @click="toggleFavorite">
-              {{ site.is_favorited ? "Unfavorite" : "Favorite" }}
-            </button>
-            <button @click="visit">Visit official site</button>
+        <section class="hero">
+          <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
+          <div>
+            <p>{{ site.category_name || "AI 资源" }}</p>
+            <h1>{{ site.name }}</h1>
+            <span>{{ site.summary }}</span>
+            <div class="actions">
+              <button @click="toggleFavorite">
+                {{ site.is_favorited ? "取消收藏" : "收藏" }}
+              </button>
+              <button @click="visit">访问官网</button>
+            </div>
           </div>
-        </div>
-      </section>
-      <section class="facts">
-        <div>
-          <strong>Free</strong><span>{{ site.is_free ? "Yes" : "No" }}</span>
-        </div>
-        <div>
-          <strong>Login required</strong
-          ><span>{{ site.need_login ? "Yes" : "No" }}</span>
-        </div>
-        <div>
-          <strong>Region</strong><span>{{ site.region }}</span>
-        </div>
-        <div>
-          <strong>Recommend index</strong
-          ><span>{{ site.recommend_level || site.quality_score }}</span>
-        </div>
-        <div>
-          <strong>Rating</strong><span>{{ site.rating_avg || 0 }}</span>
-        </div>
-      </section>
-      <section class="content">
-        <h2>Details</h2>
-        <p><strong>Link:</strong> {{ site.url }}</p>
-        <p>{{ site.description || site.summary }}</p>
-        <div class="chips">
-          <span v-for="tag in site.tags" :key="tag">{{ tag }}</span>
-          <span v-for="occupation in site.occupations" :key="occupation">{{
-            occupation
-          }}</span>
-        </div>
-      </section>
-      <section>
-        <h2>Similar sites</h2>
-        <SiteList
-          :sites="site.similar_sites || []"
-          @favorite="favoriteSimilar"
-          @visit="visitSimilar"
-        />
-      </section>
-      <section>
-        <h2>Comments</h2>
-        <EmptyState
-          title="Comments are coming soon"
-          description="User reviews and ratings can be connected here."
-        />
-      </section>
+        </section>
+        <section class="facts">
+          <div>
+            <strong>是否免费</strong
+            ><span>{{ site.is_free ? "是" : "否" }}</span>
+          </div>
+          <div>
+            <strong>是否需要登录</strong
+            ><span>{{ site.need_login ? "是" : "否" }}</span>
+          </div>
+          <div>
+            <strong>地区</strong><span>{{ site.region }}</span>
+          </div>
+          <div>
+            <strong>推荐指数</strong
+            ><span>{{ site.recommend_level || site.quality_score }}</span>
+          </div>
+          <div>
+            <strong>用户评分</strong><span>{{ site.rating_avg || 0 }}</span>
+          </div>
+        </section>
+        <section class="content">
+          <h2>详细介绍</h2>
+          <p><strong>链接：</strong> {{ site.url }}</p>
+          <p>{{ site.description || site.summary }}</p>
+          <div class="chips">
+            <span v-for="tag in site.tags" :key="tag">{{ tag }}</span>
+            <span v-for="occupation in site.occupations" :key="occupation">{{
+              occupation
+            }}</span>
+          </div>
+        </section>
+        <section>
+          <h2>相似网站推荐</h2>
+          <SiteList
+            :sites="site.similar_sites || []"
+            @favorite="favoriteSimilar"
+            @visit="visitSimilar"
+          />
+        </section>
+        <section>
+          <h2>评论</h2>
+          <EmptyState
+            title="评论功能即将开放"
+            description="后续可在这里展示用户评价和评分。"
+          />
+        </section>
       </template>
     </main>
   </div>
@@ -117,7 +114,13 @@ async function visit() {
 }
 async function favoriteSimilar(item) {
   if (!localStorage.getItem("access_token")) return router.push("/login");
-  await favoriteAPI.addFavorite(item.id);
+  if (item.is_favorited) {
+    await favoriteAPI.removeFavorite(item.id);
+    item.is_favorited = false;
+  } else {
+    await favoriteAPI.addFavorite(item.id);
+    item.is_favorited = true;
+  }
 }
 async function visitSimilar(item) {
   await siteAPI.recordClick(item.id).catch(() => {});

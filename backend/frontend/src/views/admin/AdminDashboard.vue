@@ -1,54 +1,78 @@
 <template>
-  <AdminShell>
-    <h1>Dashboard</h1>
-    <LoadingState
-      v-if="loading"
-      title="Loading dashboard"
-      description="Fetching admin overview."
-    />
-    <div v-else class="stats">
-      <div>
-        <strong>{{ dashboard.users || users.length || 0 }}</strong>
-        <span>Users</span>
+  <AdminLayout>
+    <h1>数据概览</h1>
+    <p v-if="error" class="error">{{ error }}</p>
+    <LoadingState v-if="loading" text="正在加载后台数据..." />
+    <template v-else>
+      <div class="stats">
+        <AdminStatsCard label="总用户数" :value="stats.users" />
+        <AdminStatsCard label="网站资源数" :value="stats.sites" />
+        <AdminStatsCard label="分类数" :value="stats.categories" />
+        <AdminStatsCard label="标签数" :value="stats.tags" />
+        <AdminStatsCard label="总点击量" :value="stats.total_clicks" />
+        <AdminStatsCard label="总收藏量" :value="stats.total_favorites" />
       </div>
-      <div>
-        <strong>{{ dashboard.sites || sites.length || 0 }}</strong>
-        <span>Sites</span>
+      <div class="dashboard-grid">
+        <section>
+          <h2>网站点击排行</h2>
+          <div v-for="site in clickRanking" :key="site.id" class="rank-row">
+            <span>{{ site.name }}</span>
+            <strong>{{ site.click_count || site.clicks || 0 }}</strong>
+          </div>
+        </section>
+        <section>
+          <h2>网站收藏排行</h2>
+          <div v-for="site in favoriteRanking" :key="site.id" class="rank-row">
+            <span>{{ site.name }}</span>
+            <strong>{{ site.favorite_count || 0 }}</strong>
+          </div>
+        </section>
+        <section>
+          <h2>职业分布</h2>
+          <div
+            v-for="item in occupationDistribution"
+            :key="item.occupation || item.name"
+            class="rank-row"
+          >
+            <span>{{ item.occupation || item.name || "未填写" }}</span>
+            <strong>{{ item.count || 0 }}</strong>
+          </div>
+        </section>
       </div>
-      <div>
-        <strong>{{ dashboard.categories || categories.length || 0 }}</strong>
-        <span>Categories</span>
-      </div>
-    </div>
-  </AdminShell>
+    </template>
+  </AdminLayout>
 </template>
 
 <script setup>
 import { onMounted, ref } from "vue";
+import AdminLayout from "../../components/admin/AdminLayout.vue";
+import AdminStatsCard from "../../components/admin/AdminStatsCard.vue";
 import LoadingState from "../../components/common/LoadingState.vue";
 import { adminAPI } from "../../utils/api";
-import AdminShell from "./AdminShell.vue";
-import { readData } from "./adminHelpers";
 
 const loading = ref(false);
-const dashboard = ref({});
-const sites = ref([]);
-const categories = ref([]);
-const users = ref([]);
+const error = ref("");
+const stats = ref({});
+const clickRanking = ref([]);
+const favoriteRanking = ref([]);
+const occupationDistribution = ref([]);
+
+function payload(response) {
+  return response?.data?.data ?? response?.data ?? {};
+}
 
 onMounted(async () => {
   loading.value = true;
+  error.value = "";
   try {
-    const [dashboardRes, siteRes, categoryRes, userRes] = await Promise.all([
-      adminAPI.getDashboard().catch(() => ({ data: { data: {} } })),
-      adminAPI.getSites({ per_page: 50 }).catch(() => ({ data: { data: [] } })),
-      adminAPI.getCategories().catch(() => ({ data: { data: [] } })),
-      adminAPI.getUsers().catch(() => ({ data: { data: [] } })),
-    ]);
-    dashboard.value = dashboardRes.data?.data || dashboardRes.data || {};
-    sites.value = readData(siteRes);
-    categories.value = readData(categoryRes);
-    users.value = readData(userRes);
+    const data = payload(await adminAPI.getDashboard());
+    stats.value = data.stats || data;
+    clickRanking.value = data.click_ranking || data.top_click_sites || [];
+    favoriteRanking.value =
+      data.favorite_ranking || data.top_favorite_sites || [];
+    occupationDistribution.value = data.occupation_distribution || [];
+  } catch (err) {
+    error.value = err.response?.data?.msg || "后台数据加载失败";
   } finally {
     loading.value = false;
   }
@@ -56,26 +80,35 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-h1 {
+h1,
+h2 {
   margin-top: 0;
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px;
+  margin-bottom: 22px;
 }
-.stats div {
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+section {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 14px;
+  padding: 16px;
 }
-.stats strong {
-  display: block;
-  font-size: 34px;
+.rank-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #f3f4f6;
+  padding: 10px 0;
 }
-@media (max-width: 720px) {
-  .stats {
-    grid-template-columns: 1fr;
-  }
+.error {
+  color: #b91c1c;
+  font-weight: 750;
 }
 </style>

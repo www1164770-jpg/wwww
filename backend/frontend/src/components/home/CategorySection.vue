@@ -1,8 +1,8 @@
 <template>
   <section class="home-section">
     <div class="section-title">
-      <p>Explore</p>
-      <h2>Category navigation</h2>
+      <p>探索</p>
+      <h2>分类导航</h2>
     </div>
     <div class="category-grid">
       <RouterLink

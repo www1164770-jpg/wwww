@@ -67,14 +67,14 @@ def score_site(site, user_profile=None):
 
     reasons = []
     if occupation_score >= 1:
-        reasons.append(f"Because your occupation is {occupation}")
+        reasons.append(f"因为你的职业是 {occupation}")
     matched_tags = list(interests & site_tags)
     if matched_tags:
-        reasons.append(f"Because you follow {', '.join(matched_tags[:2])}")
+        reasons.append(f"因为你关注 {'、'.join(matched_tags[:2])}")
     if popularity_score >= 0.5:
-        reasons.append("Recently popular among users")
+        reasons.append("近期用户收藏较多")
     if not reasons:
-        reasons.append("High quality resource in this category")
+        reasons.append("这是该分类下的高质量资源")
 
     return round(score * 100, 2), reasons[0]
 
@@ -84,6 +84,14 @@ def rank_sites(sites, user_profile=None, limit=12):
     for site in sites:
         score, reason = score_site(site, user_profile)
         item = dict(site)
+        item.setdefault("id", site.get("id"))
+        item.setdefault("name", site.get("name"))
+        item.setdefault("url", site.get("url"))
+        item.setdefault("logo_url", site.get("logo_url"))
+        item.setdefault("summary", site.get("summary") or site.get("description") or "")
+        item.setdefault("tags", site.get("tags") or [])
+        item.setdefault("occupations", site.get("occupations") or [])
+        item["score"] = score
         item["recommend_score"] = score
         item["reason"] = reason
         scored.append(item)

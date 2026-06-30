@@ -1,8 +1,8 @@
 <template>
   <section class="home-section">
     <div class="section-title">
-      <p>Trending</p>
-      <h2>Hot sites</h2>
+      <p>热门</p>
+      <h2>热门网站</h2>
     </div>
     <SiteList
       :sites="sites"

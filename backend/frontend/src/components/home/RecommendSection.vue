@@ -1,8 +1,8 @@
 <template>
   <section class="home-section">
     <div class="section-title">
-      <p>{{ loggedIn ? "For you" : "Popular picks" }}</p>
-      <h2>{{ loggedIn ? "Recommended for you" : "Hot recommendations" }}</h2>
+      <p>{{ loggedIn ? "为你推荐" : "热门精选" }}</p>
+      <h2>{{ loggedIn ? "根据你的兴趣推荐" : "热门推荐" }}</h2>
     </div>
     <SiteList
       :sites="sites"

@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, create_refresh_token, verify_jwt_in_request
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Category, Website, ClickLog
+from models import db, User, Category, Website, ClickLog, Comment
 from sqlalchemy import func, text
 import pymysql
 
@@ -560,7 +560,8 @@ def register_admin_user_routes(app, db):
         try:
             total = db.session.execute(text("SELECT COUNT(*) as cnt FROM users WHERE deleted_at IS NULL")).fetchone()[0]
             rows = db.session.execute(
-                text("""SELECT id, username, email, avatar_url, created_at
+                text("""SELECT id, username, email, avatar_url, role,
+                               questionnaire_completed, status, created_at
                         FROM users WHERE deleted_at IS NULL
                         ORDER BY created_at DESC LIMIT :limit OFFSET :offset"""),
                 {'limit': per_page, 'offset': offset}
@@ -571,12 +572,68 @@ def register_admin_user_routes(app, db):
                 'username': r[1],
                 'email': r[2],
                 'avatar': r[3],
-                'created_at': r[4].strftime('%Y-%m-%d') if r[4] else ''
+                'role': r[4] or 'user',
+                'questionnaire_completed': bool(r[5]),
+                'status': r[6] or 'active',
+                'created_at': r[7].strftime('%Y-%m-%d') if r[7] else ''
             } for r in rows]
 
             return jsonify({'code': 0, 'data': {'users': users, 'total': total, 'page': page, 'per_page': per_page}})
         except Exception as e:
             app.logger.error(f'获取用户列表失败: {str(e)}')
+            return jsonify({'code': 500, 'msg': '服务器错误'}), 500
+
+    @app.route('/api/admin/comments', methods=['GET'])
+    @jwt_required()
+    def get_admin_comments():
+        """获取评论审核列表"""
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 50, type=int)
+        offset = (page - 1) * per_page
+
+        try:
+            rows = db.session.execute(
+                text("""SELECT c.id, c.content, c.rating, c.status, c.created_at,
+                               u.username, w.name AS site_name
+                        FROM comments c
+                        LEFT JOIN users u ON u.id = c.user_id
+                        LEFT JOIN websites w ON w.id = c.site_id
+                        ORDER BY c.created_at DESC
+                        LIMIT :limit OFFSET :offset"""),
+                {'limit': per_page, 'offset': offset}
+            ).fetchall()
+            comments = [{
+                'id': r[0],
+                'content': r[1],
+                'rating': r[2] or 0,
+                'status': r[3] or 'pending',
+                'created_at': r[4].strftime('%Y-%m-%d') if r[4] else '',
+                'username': r[5] or '匿名用户',
+                'site_name': r[6] or '未知网站'
+            } for r in rows]
+            return jsonify({'code': 0, 'data': {'comments': comments}})
+        except Exception as e:
+            app.logger.error(f'获取评论列表失败: {str(e)}')
+            return jsonify({'code': 500, 'msg': '服务器错误'}), 500
+
+    @app.route('/api/admin/comments/<int:comment_id>/review', methods=['POST'])
+    @jwt_required()
+    def review_admin_comment(comment_id):
+        """审核、驳回或删除评论"""
+        action = (request.get_json(silent=True) or {}).get('action')
+        status_map = {'approve': 'visible', 'reject': 'rejected', 'delete': 'deleted'}
+        if action not in status_map:
+            return jsonify({'code': 400, 'msg': '无效的审核动作'}), 400
+        try:
+            comment = Comment.query.get(comment_id)
+            if not comment:
+                return jsonify({'code': 404, 'msg': '评论不存在'}), 404
+            comment.status = status_map[action]
+            db.session.commit()
+            return jsonify({'code': 0, 'data': {'id': comment_id, 'status': comment.status}})
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f'评论审核失败: {str(e)}')
             return jsonify({'code': 500, 'msg': '服务器错误'}), 500
 
     @app.route('/api/admin/user/ban', methods=['POST'])

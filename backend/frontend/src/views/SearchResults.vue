@@ -2,24 +2,24 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>Search</h1>
-      <SearchBar v-model="keyword" :navigate-on-submit="false" @search="search" />
+      <h1>搜索结果</h1>
+      <SearchBar
+        v-model="keyword"
+        :navigate-on-submit="false"
+        @search="search"
+      />
       <SiteFilter
         v-model="filters"
         :categories="categories"
         :tags="tags"
         @change="search(keyword)"
       />
-      <LoadingState
-        v-if="loading"
-        title="Searching"
-        description="Looking for matching AI resources."
-      />
+      <LoadingState v-if="loading" text="正在搜索..." />
       <SiteList
         v-else
         :sites="sites"
-        empty-title="No matching sites"
-        empty-description="No related sites found. Try AI tools, programming, or design resources."
+        empty-title="没有匹配结果"
+        empty-description="没有找到相关网站，可以尝试 AI 工具、编程、设计资源等关键词。"
         @favorite="favorite"
         @visit="visit"
       />
@@ -76,7 +76,13 @@ async function search(value = keyword.value) {
 }
 async function favorite(site) {
   if (!localStorage.getItem("access_token")) return router.push("/login");
-  await favoriteAPI.addFavorite(site.id);
+  if (site.is_favorited) {
+    await favoriteAPI.removeFavorite(site.id);
+    site.is_favorited = false;
+  } else {
+    await favoriteAPI.addFavorite(site.id);
+    site.is_favorited = true;
+  }
 }
 async function visit(site) {
   await siteAPI.recordClick(site.id).catch(() => {});

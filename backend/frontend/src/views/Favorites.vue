@@ -2,11 +2,11 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>My favorites</h1>
+      <h1>我的收藏</h1>
       <label class="filter">
-        Category
+        分类
         <select v-model="selectedCategory">
-          <option value="">All categories</option>
+          <option value="">全部分类</option>
           <option
             v-for="category in categories"
             :key="category.id || category.name"
@@ -16,17 +16,13 @@
           </option>
         </select>
       </label>
-      <LoadingState
-        v-if="loading"
-        title="Loading favorites"
-        description="Fetching your saved sites."
-      />
+      <LoadingState v-if="loading" text="正在加载收藏..." />
       <SiteList
         v-else
         :sites="filteredFavorites"
         :favorite-ids="favorites.map((site) => site.id)"
-        empty-title="No favorites yet"
-        empty-description="Collect useful sites and add notes for later."
+        empty-title="暂无收藏"
+        empty-description="收藏实用网站后，会在这里集中展示。"
         @favorite="remove"
         @visit="visit"
       />

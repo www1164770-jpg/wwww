@@ -846,6 +846,69 @@ def get_growth_ranking():
 @app.route('/api/admin/dashboard', methods=['GET'])
 @jwt_required() # ✨ 这个装饰器要求请求头必须带 Authorization: Bearer <access_token>
 def admin_dashboard():
+    total_users = User.query.filter(User.deleted_at.is_(None)).count()
+    total_sites = Website.query.filter(Website.status != "deleted").count()
+    total_categories = Category.query.filter(Category.status != "deleted").count()
+    total_tags = Tag.query.count()
+    total_clicks = (
+        db.session.query(func.coalesce(func.sum(Website.click_count), 0)).scalar()
+        or 0
+    )
+    total_favorites = (
+        db.session.query(func.coalesce(func.sum(Website.favorite_count), 0)).scalar()
+        or 0
+    )
+
+    click_ranking = [
+        {
+            "id": site.id,
+            "name": site.name,
+            "click_count": site.click_count or site.clicks or 0,
+        }
+        for site in Website.query.filter(Website.status != "deleted")
+        .order_by(Website.click_count.desc())
+        .limit(8)
+        .all()
+    ]
+    favorite_ranking = [
+        {
+            "id": site.id,
+            "name": site.name,
+            "favorite_count": site.favorite_count or 0,
+        }
+        for site in Website.query.filter(Website.status != "deleted")
+        .order_by(Website.favorite_count.desc())
+        .limit(8)
+        .all()
+    ]
+    occupation_distribution = [
+        {"occupation": row[0] or "未填写", "count": row[1]}
+        for row in db.session.query(UserProfile.occupation, func.count(UserProfile.id))
+        .group_by(UserProfile.occupation)
+        .order_by(func.count(UserProfile.id).desc())
+        .limit(8)
+        .all()
+    ]
+
+    return jsonify(
+        {
+            "code": 0,
+            "msg": "success",
+            "data": {
+                "stats": {
+                    "users": total_users,
+                    "sites": total_sites,
+                    "categories": total_categories,
+                    "tags": total_tags,
+                    "total_clicks": int(total_clicks),
+                    "total_favorites": int(total_favorites),
+                },
+                "click_ranking": click_ranking,
+                "favorite_ranking": favorite_ranking,
+                "occupation_distribution": occupation_distribution,
+            },
+        }
+    ), 200
     """
     管理后台首页数据接口（需要 JWT 认证）。
 

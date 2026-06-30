@@ -2,23 +2,19 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>{{ currentCategory?.name || "Category" }}</h1>
+      <h1>{{ currentCategory?.name || "分类详情" }}</h1>
       <SiteFilter
         v-model="filters"
         :categories="children"
         :tags="tags"
         @change="loadSites"
       />
-      <LoadingState
-        v-if="loading"
-        title="Loading sites"
-        description="Finding matching AI resources."
-      />
+      <LoadingState v-if="loading" text="正在加载网站..." />
       <SiteList
         v-else
         :sites="sites"
-        empty-title="No sites in this category"
-        empty-description="Try a different tag, price, region, or sort option."
+        empty-title="该分类暂无网站"
+        empty-description="可以尝试切换标签、价格、地区或排序方式。"
         @favorite="favorite"
         @visit="visit"
       />

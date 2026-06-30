@@ -13,7 +13,7 @@ const props = defineProps({
   modelValue: { type: String, default: "" },
   placeholder: {
     type: String,
-    default: "Search AI tools, categories, tags...",
+    default: "搜索 AI 工具、分类、标签...",
   },
   navigateOnSubmit: { type: Boolean, default: true },
 });

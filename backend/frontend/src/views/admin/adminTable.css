@@ -1,20 +1,79 @@
 h1 {
   margin-top: 0;
 }
+.toolbar,
+.form-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.form-grid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.form-grid label {
+  display: grid;
+  gap: 6px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 750;
+}
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  min-width: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font: inherit;
+}
+.form-grid textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
 .table {
   display: grid;
   gap: 10px;
 }
 .row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  align-items: center;
   gap: 12px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 14px;
 }
-.row a {
+.row.header {
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 850;
+}
+.row a,
+button {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
   color: #2563eb;
+  padding: 8px 10px;
   text-decoration: none;
+  font-weight: 750;
+}
+button.primary {
+  border-color: #111827;
+  background: #111827;
+  color: #fff;
+}
+button.danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.error {
+  color: #b91c1c;
   font-weight: 750;
 }

@@ -4,7 +4,10 @@
       <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
       <div>
         <h3>{{ site.name }}</h3>
-        <p>{{ site.summary || site.description || "Useful AI resource" }}</p>
+        <p>{{ site.summary || site.description || "实用 AI 资源" }}</p>
+        <small class="reason">{{
+          site.reason || "根据你的职业和兴趣推荐"
+        }}</small>
       </div>
     </div>
     <div class="meta">
@@ -15,10 +18,10 @@
     </div>
     <div class="actions">
       <button type="button" @click="$emit('favorite', site)">
-        {{ favorited ? "Unfavorite" : "Favorite" }}
+        {{ favorited ? "取消收藏" : "收藏" }}
       </button>
-      <button type="button" @click="$emit('visit', site)">Visit</button>
-      <RouterLink :to="`/site/${site.id}`">Detail</RouterLink>
+      <button type="button" @click="$emit('visit', site)">访问网站</button>
+      <RouterLink :to="`/site/${site.id}`">查看详情</RouterLink>
     </div>
   </article>
 </template>
@@ -68,6 +71,12 @@ p {
   margin: 0;
   color: #6b7280;
   line-height: 1.5;
+}
+.reason {
+  display: block;
+  margin-top: 6px;
+  color: #2563eb;
+  font-weight: 750;
 }
 .meta {
   display: flex;

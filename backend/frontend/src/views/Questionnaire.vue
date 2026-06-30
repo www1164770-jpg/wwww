@@ -3,8 +3,8 @@
     <AppHeader />
     <main class="panel">
       <div>
-        <p class="eyebrow">Personalization</p>
-        <h1>Build your AI resource profile</h1>
+        <p class="eyebrow">个性化推荐</p>
+        <h1>完善你的 AI 资源画像</h1>
       </div>
       <QuestionnaireForm
         v-if="!loading"
@@ -15,11 +15,7 @@
         :preferences="options.preferences"
         @submit="submit"
       />
-      <LoadingState
-        v-else
-        title="Loading questionnaire"
-        description="Preparing personalization options."
-      />
+      <LoadingState v-else text="正在加载问卷..." />
       <p v-if="error" class="error">{{ error }}</p>
     </main>
   </div>
@@ -55,7 +51,7 @@ async function submit(form) {
     localStorage.setItem("questionnaire_completed", "true");
     router.push(route.query.redirect || "/");
   } catch (err) {
-    error.value = err.response?.data?.msg || "Unable to save questionnaire.";
+    error.value = err.response?.data?.msg || "问卷保存失败，请稍后重试";
   }
 }
 
@@ -65,8 +61,7 @@ onMounted(async () => {
     const response = await questionnaireAPI.get();
     Object.assign(options, dataOf(response));
   } catch (err) {
-    error.value =
-      err.response?.data?.msg || "Unable to load questionnaire options.";
+    error.value = err.response?.data?.msg || "问卷选项加载失败，请稍后重试";
   } finally {
     loading.value = false;
   }

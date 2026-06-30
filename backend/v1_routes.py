@@ -71,6 +71,35 @@ def register_v1_routes(app, get_db_connection):
             "occupation",
         )
 
+    def sync_site_relations(cursor, site_id, tags=None, occupations=None):
+        if tags is not None:
+            cursor.execute("DELETE FROM site_tags WHERE site_id=%s", (site_id,))
+            for tag_name in tags:
+                if not tag_name:
+                    continue
+                cursor.execute("SELECT id FROM tags WHERE name=%s", (tag_name,))
+                tag = cursor.fetchone()
+                if tag:
+                    tag_id = tag["id"]
+                else:
+                    cursor.execute(
+                        "INSERT INTO tags (name,type) VALUES (%s,%s)",
+                        (tag_name, "general"),
+                    )
+                    tag_id = cursor.lastrowid
+                cursor.execute(
+                    "INSERT IGNORE INTO site_tags (site_id, tag_id) VALUES (%s,%s)",
+                    (site_id, tag_id),
+                )
+        if occupations is not None:
+            cursor.execute("DELETE FROM site_occupations WHERE site_id=%s", (site_id,))
+            for occupation in occupations:
+                if occupation:
+                    cursor.execute(
+                        "INSERT IGNORE INTO site_occupations (site_id, occupation, weight) VALUES (%s,%s,%s)",
+                        (site_id, occupation, 1),
+                    )
+
     def normalize_site(row, tags=None, occupations=None):
         summary = row.get("summary") or row.get("description") or row.get("desc") or ""
         return {
@@ -92,6 +121,7 @@ def register_v1_routes(app, get_db_connection):
             "click_count": row.get("click_count") or row.get("clicks") or 0,
             "favorite_count": row.get("favorite_count") or 0,
             "rating_avg": float(row.get("rating_avg") or 0),
+            "status": row.get("status") or "approved",
             "created_at": row.get("created_at"),
         }
 
@@ -421,8 +451,14 @@ def register_v1_routes(app, get_db_connection):
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO websites (name,url,logo_url,summary,description,category_id,is_free,need_login,region,quality_score,recommend_level,status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'approved')", (data.get("name"), data.get("url"), data.get("logo_url"), data.get("summary"), data.get("description"), data.get("category_id"), data.get("is_free", 1), data.get("need_login", 0), data.get("region", "domestic"), data.get("quality_score", 0), data.get("recommend_level", 0)))
+                cursor.execute("INSERT INTO websites (name,url,logo_url,summary,description,category_id,is_free,need_login,region,quality_score,recommend_level,status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", (data.get("name"), data.get("url"), data.get("logo_url"), data.get("summary"), data.get("description"), data.get("category_id"), data.get("is_free", 1), data.get("need_login", 0), data.get("region", "domestic"), data.get("quality_score", 0), data.get("recommend_level", 0), data.get("status", "approved")))
                 site_id = cursor.lastrowid
+                sync_site_relations(
+                    cursor,
+                    site_id,
+                    data.get("tags"),
+                    data.get("occupations"),
+                )
             conn.commit()
         finally:
             conn.close()
@@ -444,13 +480,21 @@ def register_v1_routes(app, get_db_connection):
         allowed = ["name", "url", "logo_url", "summary", "description", "category_id", "is_free", "need_login", "region", "quality_score", "recommend_level", "status"]
         updates = [f"{key}=%s" for key in allowed if key in data]
         params = [data[key] for key in allowed if key in data]
-        if not updates:
+        if not updates and "tags" not in data and "occupations" not in data:
             return api_success()
-        params.append(site_id)
+        if updates:
+            params.append(site_id)
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute(f"UPDATE websites SET {', '.join(updates)} WHERE id=%s", params)
+                if updates:
+                    cursor.execute(f"UPDATE websites SET {', '.join(updates)} WHERE id=%s", params)
+                sync_site_relations(
+                    cursor,
+                    site_id,
+                    data.get("tags") if "tags" in data else None,
+                    data.get("occupations") if "occupations" in data else None,
+                )
             conn.commit()
         finally:
             conn.close()
@@ -465,7 +509,7 @@ def register_v1_routes(app, get_db_connection):
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT INTO categories (name,parent_id,icon,sort_order,status) VALUES (%s,%s,%s,%s,'active')", (data.get("name"), data.get("parent_id"), data.get("icon"), data.get("sort_order", 0)))
+                cursor.execute("INSERT INTO categories (name,parent_id,icon,sort_order,status) VALUES (%s,%s,%s,%s,%s)", (data.get("name"), data.get("parent_id"), data.get("icon"), data.get("sort_order", 0), data.get("status", "active")))
                 category_id = cursor.lastrowid
             conn.commit()
         finally:
@@ -482,7 +526,7 @@ def register_v1_routes(app, get_db_connection):
                 if request.method == "DELETE":
                     cursor.execute("UPDATE categories SET status='deleted' WHERE id=%s", (category_id,))
                 else:
-                    cursor.execute("UPDATE categories SET name=COALESCE(%s,name), parent_id=%s, icon=COALESCE(%s,icon), sort_order=COALESCE(%s,sort_order) WHERE id=%s", (data.get("name"), data.get("parent_id"), data.get("icon"), data.get("sort_order"), category_id))
+                    cursor.execute("UPDATE categories SET name=COALESCE(%s,name), parent_id=%s, icon=COALESCE(%s,icon), sort_order=COALESCE(%s,sort_order), status=COALESCE(%s,status) WHERE id=%s", (data.get("name"), data.get("parent_id"), data.get("icon"), data.get("sort_order"), data.get("status"), category_id))
             conn.commit()
         finally:
             conn.close()

@@ -2,17 +2,13 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>Categories</h1>
+      <h1>分类导航</h1>
       <SearchBar
         v-model="keyword"
         :navigate-on-submit="false"
-        placeholder="Search categories..."
+        placeholder="搜索分类名称..."
       />
-      <LoadingState
-        v-if="loading"
-        title="Loading categories"
-        description="Fetching category navigation."
-      />
+      <LoadingState v-if="loading" text="正在加载分类..." />
       <div v-else-if="filteredRoots.length" class="grid">
         <RouterLink
           v-for="category in filteredRoots"
@@ -23,11 +19,7 @@
           <strong>{{ category.name }}</strong>
         </RouterLink>
       </div>
-      <EmptyState
-        v-else
-        title="No categories"
-        description="No matching category was found."
-      />
+      <EmptyState v-else title="暂无分类" description="没有找到匹配的分类。" />
     </main>
   </div>
 </template>

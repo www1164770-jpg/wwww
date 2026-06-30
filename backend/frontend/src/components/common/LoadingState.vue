@@ -1,15 +1,16 @@
 <template>
   <div class="loading-state" role="status" aria-live="polite">
     <span class="spinner" aria-hidden="true"></span>
-    <strong>{{ title }}</strong>
-    <p>{{ description }}</p>
+    <strong>{{ text || title }}</strong>
+    <p v-if="description">{{ description }}</p>
   </div>
 </template>
 
 <script setup>
 defineProps({
-  title: { type: String, default: "Loading" },
-  description: { type: String, default: "Please wait while the data loads." },
+  text: { type: String, default: "" },
+  title: { type: String, default: "正在加载..." },
+  description: { type: String, default: "" },
 });
 </script>
 
