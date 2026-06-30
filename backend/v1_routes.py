@@ -100,6 +100,17 @@ def register_v1_routes(app, get_db_connection):
                         (site_id, occupation, 1),
                     )
 
+    def parse_json_list(value):
+        if not value:
+            return []
+        if isinstance(value, list):
+            return value
+        try:
+            parsed = json.loads(value)
+            return parsed if isinstance(parsed, list) else []
+        except (TypeError, ValueError):
+            return [item.strip() for item in str(value).split(",") if item.strip()]
+
     def normalize_site(row, tags=None, occupations=None):
         summary = row.get("summary") or row.get("description") or row.get("desc") or ""
         return {
@@ -123,6 +134,7 @@ def register_v1_routes(app, get_db_connection):
             "rating_avg": float(row.get("rating_avg") or 0),
             "status": row.get("status") or "approved",
             "created_at": row.get("created_at"),
+            "is_favorited": bool(row.get("is_favorited", False)),
         }
 
     def query_sites(limit=20, offset=0, category_id=None, keyword=None, tag=None, is_free=None, region=None, sort="recommend"):
@@ -272,6 +284,28 @@ def register_v1_routes(app, get_db_connection):
             conn.close()
         return api_success({"questionnaire_completed": True})
 
+    @app.route("/api/questionnaire/my", methods=["GET"])
+    @jwt_required()
+    def v1_my_questionnaire():
+        user = current_user_row()
+        if not user:
+            return api_error("user not found", 404, 404)
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM user_profiles WHERE user_id=%s", (user["id"],))
+                profile = cursor.fetchone() or {}
+        finally:
+            conn.close()
+        return api_success({
+            "occupation": profile.get("occupation") or "",
+            "skill_level": profile.get("skill_level") or "",
+            "interests": parse_json_list(profile.get("interests") or user.get("interests")),
+            "preferences": parse_json_list(profile.get("preferences")),
+            "purposes": parse_json_list(profile.get("purposes")),
+            "questionnaire_completed": bool(user.get("questionnaire_completed") or user.get("has_survey")),
+        })
+
     @app.route("/api/user/profile-tags", methods=["GET"])
     @jwt_required()
     def v1_profile_tags():
@@ -291,6 +325,19 @@ def register_v1_routes(app, get_db_connection):
         finally:
             conn.close()
         return api_success(rows)
+
+    @app.route("/api/categories/<int:category_id>", methods=["GET"])
+    def v1_category_detail(category_id):
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT id, parent_id, name, icon, sort_order, status FROM categories WHERE id=%s", (category_id,))
+                row = cursor.fetchone()
+        finally:
+            conn.close()
+        if not row:
+            return api_error("category not found", 404, 404)
+        return api_success(row)
 
     @app.route("/api/tags", methods=["GET"])
     def v1_tags():
@@ -349,11 +396,23 @@ def register_v1_routes(app, get_db_connection):
         return api_success(rank_sites(query_sites(limit=40), profile, request.args.get("limit", 8, type=int)))
 
     @app.route("/api/sites/<int:site_id>", methods=["GET"])
+    @jwt_required(optional=True)
     def v1_site_detail(site_id):
+        user = current_user_row() if get_jwt_identity() else None
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT w.*, c.name AS category_name FROM websites w LEFT JOIN categories c ON c.id=w.category_id WHERE w.id=%s", (site_id,))
+                cursor.execute(
+                    """
+                    SELECT w.*, c.name AS category_name,
+                    CASE WHEN f.site_id IS NULL THEN 0 ELSE 1 END AS is_favorited
+                    FROM websites w
+                    LEFT JOIN categories c ON c.id=w.category_id
+                    LEFT JOIN favorites f ON f.site_id=w.id AND f.user_id=%s
+                    WHERE w.id=%s
+                    """,
+                    (user["id"] if user else 0, site_id),
+                )
                 row = cursor.fetchone()
         finally:
             conn.close()
@@ -364,6 +423,20 @@ def register_v1_routes(app, get_db_connection):
         site = normalize_site(row, tags, occupations)
         site["similar_sites"] = [item for item in query_sites(limit=6, category_id=site["category_id"]) if item["id"] != site_id][:4]
         return api_success(site)
+
+    @app.route("/api/sites/<int:site_id>/similar", methods=["GET"])
+    def v1_similar_sites(site_id):
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT category_id FROM websites WHERE id=%s", (site_id,))
+                row = cursor.fetchone()
+        finally:
+            conn.close()
+        if not row:
+            return api_error("site not found", 404, 404)
+        items = [item for item in query_sites(limit=8, category_id=row.get("category_id")) if item["id"] != site_id][:6]
+        return api_success(items)
 
     @app.route("/api/sites/<int:site_id>/click", methods=["POST"])
     def v1_record_click(site_id):
@@ -408,7 +481,8 @@ def register_v1_routes(app, get_db_connection):
         try:
             with conn.cursor() as cursor:
                 cursor.execute("INSERT IGNORE INTO favorites (user_id, site_id, note) VALUES (%s,%s,%s)", (user["id"], site_id, data.get("note")))
-                cursor.execute("UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s", (site_id,))
+                if cursor.rowcount:
+                    cursor.execute("UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s", (site_id,))
             conn.commit()
         finally:
             conn.close()
@@ -422,7 +496,93 @@ def register_v1_routes(app, get_db_connection):
         try:
             with conn.cursor() as cursor:
                 cursor.execute("DELETE FROM favorites WHERE user_id=%s AND site_id=%s", (user["id"], site_id))
-                cursor.execute("UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s", (site_id,))
+                if cursor.rowcount:
+                    cursor.execute("UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s", (site_id,))
+            conn.commit()
+        finally:
+            conn.close()
+        return api_success()
+
+    @app.route("/api/sites/<int:site_id>/favorite", methods=["PUT"])
+    @jwt_required()
+    def v1_update_favorite_note(site_id):
+        user = current_user_row()
+        data = request.get_json(silent=True) or {}
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE favorites SET note=%s WHERE user_id=%s AND site_id=%s",
+                    (data.get("note", ""), user["id"], site_id),
+                )
+            conn.commit()
+        finally:
+            conn.close()
+        return api_success()
+
+    @app.route("/api/sites/<int:site_id>/comments", methods=["GET"])
+    @jwt_required(optional=True)
+    def v1_site_comments(site_id):
+        user = current_user_row() if get_jwt_identity() else None
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT cm.id, cm.user_id, cm.site_id, cm.content, cm.rating, cm.status, cm.created_at,
+                           u.username, CASE WHEN cm.user_id=%s THEN 1 ELSE 0 END AS can_delete
+                    FROM comments cm
+                    LEFT JOIN users u ON u.id=cm.user_id
+                    WHERE cm.site_id=%s AND COALESCE(cm.status, 'visible') IN ('visible', 'approved')
+                    ORDER BY cm.created_at DESC
+                    """,
+                    (user["id"] if user else 0, site_id),
+                )
+                rows = cursor.fetchall()
+        finally:
+            conn.close()
+        return api_success(rows)
+
+    @app.route("/api/sites/<int:site_id>/comments", methods=["POST"])
+    @jwt_required()
+    def v1_add_site_comment(site_id):
+        user = current_user_row()
+        data = request.get_json(silent=True) or {}
+        content = str(data.get("content") or "").strip()
+        rating = data.get("rating")
+        if not content:
+            return api_error("评论内容不能为空")
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO comments (user_id, site_id, content, rating, status) VALUES (%s,%s,%s,%s,%s)",
+                    (user["id"], site_id, content, rating, "visible"),
+                )
+                comment_id = cursor.lastrowid
+                cursor.execute(
+                    "UPDATE websites SET rating_avg=(SELECT AVG(rating) FROM comments WHERE site_id=%s AND rating IS NOT NULL AND COALESCE(status, 'visible') IN ('visible', 'approved')) WHERE id=%s",
+                    (site_id, site_id),
+                )
+            conn.commit()
+        finally:
+            conn.close()
+        return api_success({"id": comment_id}, status=201)
+
+    @app.route("/api/comments/<int:comment_id>", methods=["DELETE"])
+    @jwt_required()
+    def v1_delete_comment(comment_id):
+        user = current_user_row()
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT user_id FROM comments WHERE id=%s", (comment_id,))
+                comment = cursor.fetchone()
+                if not comment:
+                    return api_error("comment not found", 404, 404)
+                if comment.get("user_id") != user.get("id") and user.get("role") not in ("admin", "super_admin"):
+                    return api_error("forbidden", 403, 403)
+                cursor.execute("UPDATE comments SET status='deleted' WHERE id=%s", (comment_id,))
             conn.commit()
         finally:
             conn.close()
@@ -440,7 +600,7 @@ def register_v1_routes(app, get_db_connection):
 
     @app.route("/api/search/hot-keywords", methods=["GET"])
     def v1_hot_keywords():
-        return api_success(["AI tools", "programming", "design resources", "data analysis", "office efficiency"])
+        return api_success(["AI 工具", "编程开发", "设计资源", "数据分析", "办公效率"])
 
     @app.route("/api/admin/sites", methods=["GET", "POST"])
     @admin_required
@@ -563,6 +723,81 @@ def register_v1_routes(app, get_db_connection):
         finally:
             conn.close()
         return api_success()
+
+    @app.route("/api/admin/users", methods=["GET"])
+    @admin_required
+    def v1_admin_users():
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT u.id, u.username, u.email, u.role, u.questionnaire_completed,
+                           u.has_survey, u.status, u.created_at, p.occupation, p.skill_level,
+                           p.interests, p.preferences, p.purposes
+                    FROM users u
+                    LEFT JOIN user_profiles p ON p.user_id=u.id
+                    WHERE u.deleted_at IS NULL
+                    ORDER BY u.created_at DESC
+                    """
+                )
+                users = cursor.fetchall()
+        finally:
+            conn.close()
+        for user in users:
+            user["questionnaire"] = {
+                "occupation": user.pop("occupation", "") or "",
+                "skill_level": user.pop("skill_level", "") or "",
+                "interests": parse_json_list(user.pop("interests", "")),
+                "preferences": parse_json_list(user.pop("preferences", "")),
+                "purposes": parse_json_list(user.pop("purposes", "")),
+            }
+            user["questionnaire_completed"] = bool(user.get("questionnaire_completed") or user.get("has_survey"))
+        return api_success(users)
+
+    @app.route("/api/admin/comments", methods=["GET"])
+    @admin_required
+    def v1_admin_comments():
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT cm.id, cm.content, cm.rating, cm.status, cm.created_at,
+                           u.username, w.name AS site_name
+                    FROM comments cm
+                    LEFT JOIN users u ON u.id=cm.user_id
+                    LEFT JOIN websites w ON w.id=cm.site_id
+                    WHERE COALESCE(cm.status, 'visible') != 'deleted'
+                    ORDER BY cm.created_at DESC
+                    """
+                )
+                comments = cursor.fetchall()
+        finally:
+            conn.close()
+        return api_success(comments)
+
+    @app.route("/api/admin/comments/<int:comment_id>/review", methods=["POST"])
+    @admin_required
+    def v1_admin_review_comment(comment_id):
+        action = (request.get_json(silent=True) or {}).get("action", "approve")
+        status_map = {
+            "approve": "visible",
+            "approved": "visible",
+            "reject": "rejected",
+            "rejected": "rejected",
+            "delete": "deleted",
+            "violation": "violation",
+        }
+        next_status = status_map.get(action, "visible")
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("UPDATE comments SET status=%s WHERE id=%s", (next_status, comment_id))
+            conn.commit()
+        finally:
+            conn.close()
+        return api_success({"status": next_status})
 
     @app.route("/api/admin/users/<int:user_id>/status", methods=["PUT"])
     @admin_required

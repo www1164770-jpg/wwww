@@ -1,14 +1,14 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">AI Nav</RouterLink>
-      <h1>Login</h1>
+      <RouterLink class="brand" to="/">智汇 AI 导航</RouterLink>
+      <h1>登录账号</h1>
       <label>
-        Email or username
+        邮箱或用户名
         <input v-model.trim="account" autocomplete="username" required />
       </label>
       <label>
-        Password
+        密码
         <input
           v-model="password"
           autocomplete="current-password"
@@ -18,9 +18,9 @@
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button type="submit" :disabled="loading">
-        {{ loading ? "Logging in..." : "Login" }}
+        {{ loading ? "正在登录..." : "登录" }}
       </button>
-      <RouterLink to="/register">Create an account</RouterLink>
+      <RouterLink to="/register">还没有账号？去注册</RouterLink>
     </form>
   </div>
 </template>
@@ -62,7 +62,7 @@ async function submit() {
       router.push(route.query.redirect || "/");
     }
   } catch (err) {
-    error.value = err.response?.data?.msg || "Login failed";
+    error.value = err.response?.data?.msg || "登录失败，请检查账号和密码";
   } finally {
     loading.value = false;
   }

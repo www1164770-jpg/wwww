@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">AI Nav</RouterLink>
+      <RouterLink class="brand" to="/">智汇 AI 导航</RouterLink>
       <h1>注册账号</h1>
       <label>用户名<input v-model.trim="form.username" required /></label>
       <label
@@ -47,7 +47,7 @@ async function sendCode() {
     message.value = "验证码已发送";
   } catch (err) {
     hasError.value = true;
-    message.value = err.response?.data?.msg || "验证码发送失败";
+    message.value = err.response?.data?.msg || "验证码发送失败，请稍后重试";
   }
 }
 
@@ -58,14 +58,14 @@ async function submit() {
     return;
   }
   if (!accepted.value) {
-    message.value = "请先同意用户协议";
+    message.value = "请先同意用户协议和隐私政策";
     return;
   }
   try {
     await authAPI.register(form);
     router.push("/login");
   } catch (err) {
-    message.value = err.response?.data?.msg || "注册失败";
+    message.value = err.response?.data?.msg || "注册失败，请检查信息后重试";
   }
 }
 </script>

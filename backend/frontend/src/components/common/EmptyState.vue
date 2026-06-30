@@ -7,8 +7,8 @@
 
 <script setup>
 defineProps({
-  title: { type: String, default: "No data yet" },
-  description: { type: String, default: "Try a different keyword or filter." },
+  title: { type: String, default: "暂无数据" },
+  description: { type: String, default: "可以尝试更换关键词或筛选条件。" },
 });
 </script>
 

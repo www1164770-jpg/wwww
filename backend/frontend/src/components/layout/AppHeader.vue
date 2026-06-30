@@ -1,21 +1,21 @@
 <template>
   <header class="app-header">
-    <RouterLink class="brand" to="/">AI Nav</RouterLink>
+    <RouterLink class="brand" to="/">智汇 AI 导航</RouterLink>
     <nav class="nav-links">
-      <RouterLink to="/">Home</RouterLink>
-      <RouterLink to="/categories">Categories</RouterLink>
-      <RouterLink to="/search?q=AI tools">AI Tools</RouterLink>
-      <RouterLink to="/search?sort=hot">Hot</RouterLink>
-      <RouterLink to="/search?sort=latest">Latest</RouterLink>
-      <RouterLink v-if="loggedIn" to="/favorites">Favorites</RouterLink>
+      <RouterLink to="/">首页</RouterLink>
+      <RouterLink to="/categories">分类导航</RouterLink>
+      <RouterLink to="/search?q=AI 工具">AI 工具</RouterLink>
+      <RouterLink to="/search?sort=hot">热门</RouterLink>
+      <RouterLink to="/search?sort=latest">最新</RouterLink>
+      <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
     </nav>
     <div class="actions">
       <RouterLink v-if="loggedIn" class="avatar" to="/profile">{{
         initials
       }}</RouterLink>
       <template v-else>
-        <RouterLink to="/login">Login</RouterLink>
-        <RouterLink class="primary" to="/register">Register</RouterLink>
+        <RouterLink to="/login">登录</RouterLink>
+        <RouterLink class="primary" to="/register">注册</RouterLink>
       </template>
     </div>
   </header>

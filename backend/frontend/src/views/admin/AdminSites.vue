@@ -65,6 +65,16 @@
         </select>
       </label>
       <label>简介<textarea v-model.trim="form.summary"></textarea></label>
+      <label
+        >详细介绍<textarea v-model.trim="form.description"></textarea>
+      </label>
+      <label
+        >评分<input
+          v-model.number="form.quality_score"
+          type="number"
+          min="0"
+          max="100"
+      /></label>
       <div class="actions">
         <button class="primary" type="submit">
           {{ editingId ? "保存修改" : "新增网站" }}
@@ -77,19 +87,31 @@
     <LoadingState v-if="loading" text="正在加载网站..." />
     <div v-else-if="sites.length" class="table">
       <div class="row header">
-        <span>名称</span><span>URL</span><span>分类</span><span>推荐等级</span
-        ><span>点击</span><span>收藏</span><span>状态</span><span>操作</span>
+        <span>名称</span><span>URL</span><span>分类</span><span>标签</span
+        ><span>适用职业</span><span>免费</span><span>登录</span><span>地区</span
+        ><span>推荐等级</span><span>点击</span><span>收藏</span><span>评分</span
+        ><span>状态</span><span>操作</span>
       </div>
       <div v-for="site in sites" :key="site.id" class="row">
         <span>{{ site.name }}</span>
         <a :href="site.url" target="_blank" rel="noreferrer">访问</a>
         <span>{{ site.category_name || site.category_id || "-" }}</span>
+        <span>{{ listText(site.tags) }}</span>
+        <span>{{ listText(site.occupations) }}</span>
+        <span>{{ site.is_free ? "是" : "否" }}</span>
+        <span>{{ site.need_login ? "是" : "否" }}</span>
+        <span>{{ regionText(site.region) }}</span>
         <span>{{ site.recommend_level || 0 }}</span>
         <span>{{ site.click_count || site.clicks || 0 }}</span>
         <span>{{ site.favorite_count || 0 }}</span>
-        <span>{{ site.status || "approved" }}</span>
+        <span>{{ site.rating_avg || site.quality_score || 0 }}</span>
+        <span>{{ statusText(site.status) }}</span>
         <span class="actions">
           <button type="button" @click="editSite(site)">编辑</button>
+          <button type="button" @click="toggleStatus(site)">
+            {{ isDisabled(site) ? "上架" : "下架" }}
+          </button>
+          <button type="button" @click="setRecommend(site, 5)">推荐 5</button>
           <button class="danger" type="button" @click="deleteSite(site)">
             删除
           </button>
@@ -127,9 +149,11 @@ const form = reactive({
   is_free: 1,
   need_login: 0,
   region: "domestic",
+  quality_score: 0,
   recommend_level: 0,
   status: "approved",
   summary: "",
+  description: "",
 });
 
 function splitText(value) {
@@ -140,12 +164,38 @@ function splitText(value) {
 }
 
 function buildPayload() {
+  const { tagsText, occupationsText, ...payload } = form;
   return {
-    ...form,
+    ...payload,
     tags: splitText(form.tagsText),
     occupations: splitText(form.occupationsText),
     category_id: form.category_id || null,
   };
+}
+
+function listText(value) {
+  return Array.isArray(value) && value.length ? value.join("、") : "-";
+}
+
+function regionText(value) {
+  return { domestic: "国内", international: "国外" }[value] || value || "-";
+}
+
+function statusText(value) {
+  return (
+    {
+      approved: "已上架",
+      active: "已上架",
+      pending: "待审核",
+      disabled: "已下架",
+    }[value] ||
+    value ||
+    "已上架"
+  );
+}
+
+function isDisabled(site) {
+  return site.status === "disabled";
 }
 
 function resetForm() {
@@ -160,9 +210,11 @@ function resetForm() {
     is_free: 1,
     need_login: 0,
     region: "domestic",
+    quality_score: 0,
     recommend_level: 0,
     status: "approved",
     summary: "",
+    description: "",
   });
 }
 
@@ -178,9 +230,11 @@ function editSite(site) {
     is_free: site.is_free ? 1 : 0,
     need_login: site.need_login ? 1 : 0,
     region: site.region || "domestic",
+    quality_score: site.quality_score || 0,
     recommend_level: site.recommend_level || 0,
     status: site.status || "approved",
     summary: site.summary || "",
+    description: site.description || "",
   });
 }
 
@@ -218,6 +272,17 @@ async function saveSite() {
 async function deleteSite(site) {
   await adminAPI.deleteSite(site.id);
   sites.value = sites.value.filter((item) => item.id !== site.id);
+}
+
+async function toggleStatus(site) {
+  const nextStatus = isDisabled(site) ? "approved" : "disabled";
+  await adminAPI.updateSite(site.id, { status: nextStatus });
+  site.status = nextStatus;
+}
+
+async function setRecommend(site, level) {
+  await adminAPI.updateSite(site.id, { recommend_level: level });
+  site.recommend_level = level;
 }
 
 onMounted(load);

@@ -75,7 +75,9 @@ async function search(value = keyword.value) {
   }
 }
 async function favorite(site) {
-  if (!localStorage.getItem("access_token")) return router.push("/login");
+  if (!localStorage.getItem("access_token")) {
+    return router.push({ path: "/login", query: { redirect: route.fullPath } });
+  }
   if (site.is_favorited) {
     await favoriteAPI.removeFavorite(site.id);
     site.is_favorited = false;

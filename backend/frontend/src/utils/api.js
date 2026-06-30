@@ -140,6 +140,7 @@ export const userAPI = {
 export const questionnaireAPI = {
   get: () => api.get("/questionnaire"),
   submit: (data) => api.post("/questionnaire/submit", data),
+  getMyQuestionnaire: () => api.get("/questionnaire/my"),
   getProfileTags: () => api.get("/user/profile-tags"),
 };
 
@@ -150,6 +151,7 @@ export const siteAPI = {
   getLatest: (params = {}) => api.get("/sites/latest", { params }),
   getRecommend: (params = {}) => api.get("/sites/recommend", { params }),
   recordClick: (id) => api.post(`/sites/${id}/click`),
+  getSimilar: (id) => api.get(`/sites/${id}/similar`),
 };
 
 export const favoriteAPI = {
@@ -157,6 +159,8 @@ export const favoriteAPI = {
   addFavorite: (siteId, note = "") =>
     api.post(`/sites/${siteId}/favorite`, { note }),
   removeFavorite: (siteId) => api.delete(`/sites/${siteId}/favorite`),
+  updateNote: (siteId, note = "") =>
+    api.put(`/sites/${siteId}/favorite`, { note }),
 };
 
 export const searchAPI = {
@@ -167,6 +171,7 @@ export const searchAPI = {
 
 export const categoryAPI = {
   getCategories: () => api.get("/categories"),
+  getCategory: (id) => api.get(`/categories/${id}`),
 };
 
 export const tagAPI = {
@@ -204,6 +209,12 @@ export const adminAPI = {
     api.get("/admin/content-audit", { params: { status, page } }),
   reviewContent: (id, action, reason = "") =>
     api.post("/admin/review-content", { id, action, reason }),
+};
+
+export const commentAPI = {
+  getComments: (siteId) => api.get(`/sites/${siteId}/comments`),
+  addComment: (siteId, data) => api.post(`/sites/${siteId}/comments`, data),
+  deleteComment: (commentId) => api.delete(`/comments/${commentId}`),
 };
 
 export const navAPI = {

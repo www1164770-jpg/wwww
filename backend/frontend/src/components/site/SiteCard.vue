@@ -5,9 +5,9 @@
       <div>
         <h3>{{ site.name }}</h3>
         <p>{{ site.summary || site.description || "实用 AI 资源" }}</p>
-        <small class="reason">{{
-          site.reason || "根据你的职业和兴趣推荐"
-        }}</small>
+        <small class="reason">
+          推荐理由：{{ site.reason || "根据你的职业和兴趣推荐" }}
+        </small>
       </div>
     </div>
     <div class="meta">

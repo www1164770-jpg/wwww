@@ -19,10 +19,10 @@ import SiteCard from "./SiteCard.vue";
 defineProps({
   sites: { type: Array, default: () => [] },
   favoriteIds: { type: Array, default: () => [] },
-  emptyTitle: { type: String, default: "No sites found" },
+  emptyTitle: { type: String, default: "暂无网站" },
   emptyDescription: {
     type: String,
-    default: "Try AI tools, programming, or design resources.",
+    default: "可以尝试 AI 工具、编程、设计资源等关键词。",
   },
 });
 defineEmits(["favorite", "visit"]);

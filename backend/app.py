@@ -846,7 +846,12 @@ def get_growth_ranking():
 @app.route('/api/admin/dashboard', methods=['GET'])
 @jwt_required() # ✨ 这个装饰器要求请求头必须带 Authorization: Bearer <access_token>
 def admin_dashboard():
+    week_ago = datetime.utcnow() - timedelta(days=7)
     total_users = User.query.filter(User.deleted_at.is_(None)).count()
+    new_users = User.query.filter(
+        User.deleted_at.is_(None),
+        User.created_at >= week_ago,
+    ).count()
     total_sites = Website.query.filter(Website.status != "deleted").count()
     total_categories = Category.query.filter(Category.status != "deleted").count()
     total_tags = Tag.query.count()
@@ -889,6 +894,24 @@ def admin_dashboard():
         .limit(8)
         .all()
     ]
+    category_visit_ranking = [
+        {
+            "id": row[0],
+            "name": row[1] or "未分类",
+            "visit_count": int(row[2] or 0),
+        }
+        for row in db.session.query(
+            Category.id,
+            Category.name,
+            func.coalesce(func.sum(Website.click_count), 0),
+        )
+        .outerjoin(Website, Website.category_id == Category.id)
+        .filter(Category.status != "deleted")
+        .group_by(Category.id, Category.name)
+        .order_by(func.coalesce(func.sum(Website.click_count), 0).desc())
+        .limit(8)
+        .all()
+    ]
 
     return jsonify(
         {
@@ -897,6 +920,7 @@ def admin_dashboard():
             "data": {
                 "stats": {
                     "users": total_users,
+                    "new_users": new_users,
                     "sites": total_sites,
                     "categories": total_categories,
                     "tags": total_tags,
@@ -906,6 +930,7 @@ def admin_dashboard():
                 "click_ranking": click_ranking,
                 "favorite_ranking": favorite_ranking,
                 "occupation_distribution": occupation_distribution,
+                "category_visit_ranking": category_visit_ranking,
             },
         }
     ), 200

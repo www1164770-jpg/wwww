@@ -1,7 +1,7 @@
 <template>
   <form class="search-bar" @submit.prevent="submit">
     <input v-model.trim="keyword" :placeholder="placeholder" />
-    <button type="submit">Search</button>
+    <button type="submit">搜索</button>
   </form>
 </template>
 

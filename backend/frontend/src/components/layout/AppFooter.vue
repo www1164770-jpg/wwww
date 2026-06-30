@@ -1,10 +1,10 @@
 <template>
   <footer class="app-footer">
-    <div>AI Nav</div>
+    <div>智汇 AI 导航</div>
     <div class="links">
-      <span>Friendly links</span>
-      <span>Copyright 2026</span>
-      <span>ICP placeholder</span>
+      <span>友情链接</span>
+      <span>版权所有 2026</span>
+      <span>备案信息占位</span>
     </div>
   </footer>
 </template>
