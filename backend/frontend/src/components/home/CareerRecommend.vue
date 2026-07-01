@@ -1,5 +1,5 @@
 <template>
-  <section id="career" class="home-section career-section">
+  <section class="home-section career-section">
     <div class="section-heading">
       <p>职业推荐</p>
       <h2>选择你的职业，快速找到适合的工具组合。</h2>

@@ -11,8 +11,8 @@
         <RouterLink to="/categories">分类导航</RouterLink>
         <RouterLink to="/search?q=AI 工具">AI 工具</RouterLink>
         <RouterLink to="/#career">职业推荐</RouterLink>
-        <RouterLink to="/search?sort=hot">热门网站</RouterLink>
-        <RouterLink to="/search?sort=latest">最新收录</RouterLink>
+        <RouterLink to="/#hot">热门网站</RouterLink>
+        <RouterLink to="/#latest">最新收录</RouterLink>
         <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
       </nav>
 

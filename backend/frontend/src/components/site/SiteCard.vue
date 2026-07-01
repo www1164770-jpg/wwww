@@ -1,7 +1,7 @@
 <template>
   <article class="site-card">
     <div class="card-head">
-      <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
+      <img :src="logoSrc" :alt="site.name" @error="useFallbackLogo" />
       <div>
         <h3>{{ site.name }}</h3>
         <p>{{ site.summary || site.description || "实用 AI 资源" }}</p>
@@ -14,13 +14,18 @@
 
     <div class="meta">
       <span v-for="tag in visibleTags" :key="tag">{{ tag }}</span>
+      <span v-if="hiddenTagCount" class="more-tag">+{{ hiddenTagCount }}</span>
       <span v-for="occupation in visibleOccupations" :key="occupation">
         {{ occupation }}
       </span>
     </div>
 
     <div class="actions">
-      <button type="button" @click="$emit('favorite', site)">
+      <button
+        type="button"
+        class="favorite-action"
+        @click="$emit('favorite', site)"
+      >
         {{ favorited ? "取消收藏" : "收藏" }}
       </button>
       <button type="button" class="visit" @click="$emit('visit', site)">
@@ -32,7 +37,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps({
   site: { type: Object, required: true },
@@ -41,10 +46,27 @@ const props = defineProps({
 defineEmits(["favorite", "visit"]);
 
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=ai-nav";
-const visibleTags = computed(() => (props.site.tags || []).slice(0, 4));
+const logoFailed = ref(false);
+const allTags = computed(() => props.site.tags || []);
+const logoSrc = computed(() =>
+  logoFailed.value ? fallbackLogo : props.site.logo_url || fallbackLogo,
+);
+const visibleTags = computed(() => allTags.value.slice(0, 3));
+const hiddenTagCount = computed(() => Math.max(allTags.value.length - 3, 0));
 const visibleOccupations = computed(() =>
   (props.site.occupations || []).slice(0, 3),
 );
+
+watch(
+  () => props.site.logo_url,
+  () => {
+    logoFailed.value = false;
+  },
+);
+
+function useFallbackLogo() {
+  logoFailed.value = true;
+}
 </script>
 
 <style scoped>
@@ -129,6 +151,11 @@ p {
   font-weight: 750;
 }
 
+.meta .more-tag {
+  color: var(--color-primary-dark);
+  background: var(--color-soft-orange);
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -154,7 +181,8 @@ a {
     transform var(--transition),
     border-color var(--transition),
     color var(--transition),
-    background var(--transition);
+    background var(--transition),
+    box-shadow var(--transition);
 }
 
 button:hover,
@@ -162,6 +190,12 @@ a:hover {
   border-color: rgba(255, 112, 88, 0.38);
   color: var(--color-primary);
   transform: translateY(-1px);
+}
+
+.favorite-action:hover {
+  border-color: rgba(255, 112, 88, 0.58);
+  background: var(--color-soft-orange);
+  box-shadow: 0 10px 22px rgba(255, 112, 88, 0.12);
 }
 
 .visit {
@@ -174,5 +208,6 @@ a:hover {
 .visit:hover {
   background: var(--color-primary-dark);
   color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.26);
 }
 </style>

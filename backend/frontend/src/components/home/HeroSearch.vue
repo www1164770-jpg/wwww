@@ -3,8 +3,7 @@
     <div class="hero-copy">
       <h1>根据你的职业，推荐最适合的 AI 工具</h1>
       <p>
-        汇集高质量 AI
-        工具、效率网站和学习资源，用更清晰的导航帮你快速找到下一步要用的生产力工具。
+        收集、筛选和推荐高质量网站资源，让学习、工作、创作和项目开发更高效。
       </p>
     </div>
 
@@ -18,7 +17,7 @@
       <button type="submit" aria-label="搜索">搜索</button>
     </form>
 
-    <p class="hero-stats">AI 工具导航 · 职业推荐 · 高质量资源持续收录</p>
+    <p class="hero-stats">已收录工具 · 热门分类 · 个性化推荐已开启</p>
   </section>
 </template>
 
