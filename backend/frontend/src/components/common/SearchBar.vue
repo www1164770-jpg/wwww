@@ -1,7 +1,7 @@
 <template>
   <form class="search-bar" @submit.prevent="submit">
     <input v-model.trim="keyword" :placeholder="placeholder" />
-    <button type="submit">搜索</button>
+    <button type="submit" aria-label="搜索">搜索</button>
   </form>
 </template>
 
@@ -40,24 +40,55 @@ function submit() {
 
 <style scoped>
 .search-bar {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
   width: 100%;
+  min-height: 60px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
+
+.search-bar:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 16px 36px rgba(255, 112, 88, 0.14);
+}
+
 input {
-  flex: 1;
   min-width: 0;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 13px 14px;
-  font: inherit;
-}
-button {
   border: 0;
-  border-radius: 8px;
-  background: #111827;
-  color: #fff;
-  padding: 0 18px;
-  font-weight: 750;
+  background: transparent;
+  padding: 0 8px 0 22px;
+  outline: 0;
+}
+
+button {
+  align-self: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  margin-right: 6px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 0;
+  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.2);
+}
+
+button::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 0 auto;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  box-shadow: 8px 8px 0 -6px currentColor;
+  transform: rotate(-15deg);
 }
 </style>

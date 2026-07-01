@@ -31,7 +31,7 @@ defineEmits(["favorite", "visit"]);
 <style scoped>
 .site-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 20px;
 }
 </style>

@@ -25,42 +25,52 @@ import AppHeader from "../layout/AppHeader.vue";
 <style scoped>
 .admin-page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: var(--color-soft);
 }
+
 .admin-shell {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 240px 1fr;
   gap: 20px;
-  width: min(1240px, calc(100% - 36px));
-  margin: 36px auto;
+  width: min(1240px, calc(100% - 40px));
+  margin: 36px auto 72px;
 }
+
 .admin-sidebar,
 .admin-content {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
 }
+
 .admin-sidebar {
   display: grid;
   align-content: start;
   gap: 10px;
 }
+
 h1 {
-  margin: 0 0 12px;
-  font-size: 20px;
+  margin: 0 0 14px;
+  color: var(--color-heading);
+  font-size: 22px;
 }
+
 a {
-  border-radius: 8px;
-  color: #374151;
-  padding: 10px 12px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  padding: 10px 14px;
   text-decoration: none;
   font-weight: 750;
 }
-a.router-link-active {
-  background: #eef2ff;
-  color: #1d4ed8;
+
+a.router-link-active,
+a:hover {
+  background: var(--color-soft-orange);
+  color: var(--color-primary);
 }
+
 @media (max-width: 860px) {
   .admin-shell {
     grid-template-columns: 1fr;

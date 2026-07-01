@@ -11,7 +11,7 @@
       <template v-else>
         <section class="hero">
           <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
-          <div>
+          <div class="hero-copy">
             <p>{{ site.category_name || "AI 资源" }}</p>
             <h1>{{ site.name }}</h1>
             <span>{{ site.summary }}</span>
@@ -19,109 +19,133 @@
               <button @click="toggleFavorite">
                 {{ site.is_favorited ? "取消收藏" : "收藏" }}
               </button>
-              <button @click="visit">访问官网</button>
+              <button class="primary" @click="visit">访问官网</button>
             </div>
           </div>
         </section>
-        <section class="facts">
-          <div>
-            <strong>是否免费</strong
-            ><span>{{ site.is_free ? "是" : "否" }}</span>
-          </div>
-          <div>
-            <strong>是否需要登录</strong
-            ><span>{{ site.need_login ? "是" : "否" }}</span>
-          </div>
-          <div>
-            <strong>地区</strong><span>{{ site.region }}</span>
-          </div>
-          <div>
-            <strong>推荐指数</strong
-            ><span>{{ site.recommend_level || site.quality_score }}</span>
-          </div>
-          <div>
-            <strong>用户评分</strong><span>{{ site.rating_avg || 0 }}</span>
-          </div>
-        </section>
-        <section class="content">
-          <h2>详细介绍</h2>
-          <p><strong>链接：</strong> {{ site.url }}</p>
-          <p>{{ site.description || site.summary }}</p>
-          <div class="chips">
-            <span v-for="tag in site.tags" :key="tag">{{ tag }}</span>
-            <span v-for="occupation in site.occupations" :key="occupation">{{
-              occupation
-            }}</span>
-          </div>
-        </section>
-        <section>
-          <h2>相似网站推荐</h2>
-          <SiteList
-            :sites="site.similar_sites || []"
-            @favorite="favoriteSimilar"
-            @visit="visitSimilar"
-          />
-        </section>
-        <section>
-          <h2>评论</h2>
-          <form
-            v-if="loggedIn"
-            class="comment-form"
-            @submit.prevent="submitComment"
-          >
-            <label>
-              评分
-              <select v-model.number="commentForm.rating">
-                <option :value="5">5 分</option>
-                <option :value="4">4 分</option>
-                <option :value="3">3 分</option>
-                <option :value="2">2 分</option>
-                <option :value="1">1 分</option>
-              </select>
-            </label>
-            <label>
-              评论内容
-              <textarea
-                v-model.trim="commentForm.content"
-                placeholder="分享你的使用体验..."
-                required
-              ></textarea>
-            </label>
-            <button type="submit" :disabled="commentSubmitting">
-              {{ commentSubmitting ? "正在提交..." : "发表评论" }}
-            </button>
-          </form>
-          <button v-else type="button" @click="goLogin">登录后发表评论</button>
-          <LoadingState v-if="commentsLoading" text="正在加载评论..." />
-          <div v-else-if="comments.length" class="comment-list">
-            <article
-              v-for="comment in comments"
-              :key="comment.id"
-              class="comment-item"
-            >
-              <div>
-                <strong>{{ comment.username || "匿名用户" }}</strong>
+
+        <div class="detail-layout">
+          <div class="main-column">
+            <section class="content">
+              <h2>详细介绍</h2>
+              <p><strong>链接：</strong> {{ site.url }}</p>
+              <p>{{ site.description || site.summary }}</p>
+              <div class="chips">
+                <span v-for="tag in site.tags || []" :key="tag">{{ tag }}</span>
                 <span
-                  >{{ comment.rating || 0 }} 分 ·
-                  {{ toDate(comment.created_at) }}</span
+                  v-for="occupation in site.occupations || []"
+                  :key="occupation"
                 >
+                  {{ occupation }}
+                </span>
               </div>
-              <p>{{ comment.content }}</p>
-              <button
-                v-if="comment.can_delete"
-                type="button"
-                @click="deleteComment(comment)"
+            </section>
+
+            <section class="comments">
+              <h2>评论</h2>
+              <form
+                v-if="loggedIn"
+                class="comment-form"
+                @submit.prevent="submitComment"
               >
-                删除自己的评论
+                <label>
+                  评分
+                  <select v-model.number="commentForm.rating">
+                    <option :value="5">5 分</option>
+                    <option :value="4">4 分</option>
+                    <option :value="3">3 分</option>
+                    <option :value="2">2 分</option>
+                    <option :value="1">1 分</option>
+                  </select>
+                </label>
+                <label>
+                  评论内容
+                  <textarea
+                    v-model.trim="commentForm.content"
+                    placeholder="分享你的使用体验..."
+                    required
+                  ></textarea>
+                </label>
+                <button type="submit" :disabled="commentSubmitting">
+                  {{ commentSubmitting ? "正在提交..." : "发表评论" }}
+                </button>
+              </form>
+              <button
+                v-else
+                type="button"
+                class="login-comment"
+                @click="goLogin"
+              >
+                登录后发表评论
               </button>
-            </article>
+              <LoadingState v-if="commentsLoading" text="正在加载评论..." />
+              <div v-else-if="comments.length" class="comment-list">
+                <article
+                  v-for="comment in comments"
+                  :key="comment.id"
+                  class="comment-item"
+                >
+                  <div>
+                    <strong>{{ comment.username || "匿名用户" }}</strong>
+                    <span>
+                      {{ comment.rating || 0 }} 分 ·
+                      {{ toDate(comment.created_at) }}
+                    </span>
+                  </div>
+                  <p>{{ comment.content }}</p>
+                  <button
+                    v-if="comment.can_delete"
+                    type="button"
+                    class="ghost"
+                    @click="deleteComment(comment)"
+                  >
+                    删除自己的评论
+                  </button>
+                </article>
+              </div>
+              <EmptyState
+                v-else
+                title="暂无评论"
+                description="成为第一个分享使用体验的人。"
+              />
+            </section>
           </div>
-          <EmptyState
-            v-else
-            title="暂无评论"
-            description="成为第一个分享使用体验的人。"
-          />
-        </section>
+
+          <aside class="side-column">
+            <section class="facts">
+              <h2>网站信息</h2>
+              <div>
+                <strong>是否免费</strong>
+                <span>{{ site.is_free ? "是" : "否" }}</span>
+              </div>
+              <div>
+                <strong>是否需要登录</strong>
+                <span>{{ site.need_login ? "是" : "否" }}</span>
+              </div>
+              <div>
+                <strong>地区</strong>
+                <span>{{ site.region }}</span>
+              </div>
+              <div>
+                <strong>推荐指数</strong>
+                <span>{{ site.recommend_level || site.quality_score }}</span>
+              </div>
+              <div>
+                <strong>用户评分</strong>
+                <span>{{ site.rating_avg || 0 }}</span>
+              </div>
+            </section>
+
+            <section class="similar">
+              <h2>相似网站推荐</h2>
+              <SiteList
+                :sites="site.similar_sites || []"
+                @favorite="favoriteSimilar"
+                @visit="visitSimilar"
+              />
+            </section>
+          </aside>
+        </div>
       </template>
     </main>
   </div>
@@ -228,37 +252,100 @@ onMounted(load);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #ffffff;
 }
+
 .detail {
   display: grid;
   gap: 24px;
-  width: min(1080px, calc(100% - 36px));
-  margin: 36px auto;
+  width: min(1180px, calc(100% - 40px));
+  margin: 44px auto 72px;
 }
+
 .hero,
-.facts,
 .content,
-section {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
+.comments,
+.facts,
+.similar {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
   padding: 22px;
+  box-shadow: var(--shadow-soft);
 }
+
 .hero {
   display: flex;
-  gap: 20px;
+  gap: 22px;
+  align-items: center;
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  padding: clamp(26px, 5vw, 56px);
 }
-img {
-  width: 86px;
-  height: 86px;
-  border-radius: 8px;
+
+.hero img {
+  width: 96px;
+  height: 96px;
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  object-fit: cover;
+  background: var(--color-soft);
 }
+
+.hero-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.hero-copy p {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 850;
+}
+
 h1,
 h2,
 p {
   margin-top: 0;
 }
+
+h1 {
+  margin-bottom: 0;
+  color: var(--color-heading);
+  font-size: clamp(36px, 5vw, 58px);
+  line-height: 1.08;
+}
+
+h2 {
+  color: var(--color-heading);
+}
+
+.hero-copy span,
+.content p,
+.comment-item p {
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 22px;
+  align-items: start;
+}
+
+.main-column,
+.side-column {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+}
+
+.side-column {
+  position: sticky;
+  top: 92px;
+}
+
 .actions,
 .chips,
 .comment-form {
@@ -267,70 +354,121 @@ p {
   gap: 10px;
   margin-top: 16px;
 }
+
 .comment-form {
   display: grid;
 }
+
 button {
-  border: 0;
-  border-radius: 8px;
-  background: #111827;
-  color: #fff;
-  padding: 11px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-heading);
+  padding: 11px 16px;
   font-weight: 800;
 }
+
+button.primary,
+.comment-form button {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+}
+
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
+
 .facts div,
 .chips span {
   display: grid;
   gap: 6px;
-  border-radius: 8px;
-  background: #f3f4f6;
+  border-radius: 14px;
+  background: var(--color-soft);
   padding: 12px;
 }
+
+.facts span {
+  color: var(--color-text);
+}
+
 .chips span {
   display: inline-block;
+  color: var(--color-primary-dark);
+  background: var(--color-soft-orange);
+  font-weight: 750;
 }
+
 .comment-form label {
   display: grid;
   gap: 8px;
-  color: #374151;
+  color: var(--color-heading);
   font-weight: 750;
 }
+
 .comment-form select,
 .comment-form textarea {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 11px;
   font: inherit;
 }
+
 .comment-form textarea {
-  min-height: 96px;
+  min-height: 110px;
   resize: vertical;
 }
+
 .comment-list {
   display: grid;
   gap: 12px;
   margin-top: 16px;
 }
+
 .comment-item {
   display: grid;
   gap: 8px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border);
   padding-top: 14px;
 }
+
 .comment-item div {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px;
-  color: #6b7280;
+  color: var(--color-muted);
 }
-.comment-item p {
-  margin: 0;
-  color: #374151;
+
+.ghost {
+  justify-self: start;
+  color: #b91c1c;
+}
+
+.login-comment {
+  margin-bottom: 16px;
+}
+
+.similar :deep(.site-list) {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 960px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .side-column {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 </style>

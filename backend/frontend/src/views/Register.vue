@@ -1,8 +1,11 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">智汇 AI 导航</RouterLink>
-      <h1>注册账号</h1>
+      <RouterLink class="brand" to="/">智慧导航</RouterLink>
+      <div>
+        <p>开启个性化推荐</p>
+        <h1>注册账号</h1>
+      </div>
       <label>用户名<input v-model.trim="form.username" required /></label>
       <label
         >邮箱<input v-model.trim="form.email" type="email" required
@@ -10,12 +13,15 @@
       <label
         >密码<input v-model="form.password" type="password" required
       /></label>
-      <label
-        >确认密码<input v-model="confirmPassword" type="password" required
-      /></label>
+      <label>
+        确认密码
+        <input v-model="confirmPassword" type="password" required />
+      </label>
       <div class="code-row">
         <label>邮箱验证码<input v-model.trim="form.code" required /></label>
-        <button type="button" @click="sendCode">发送验证码</button>
+        <button type="button" class="secondary" @click="sendCode">
+          发送验证码
+        </button>
       </div>
       <label class="check">
         <input v-model="accepted" type="checkbox" />
@@ -23,7 +29,9 @@
       </label>
       <p v-if="message" :class="{ error: hasError }">{{ message }}</p>
       <button type="submit">创建账号</button>
-      <RouterLink to="/login">已有账号？去登录</RouterLink>
+      <RouterLink class="switch-link" to="/login">
+        已有账号？去登录
+      </RouterLink>
     </form>
   </div>
 </template>
@@ -75,52 +83,113 @@ async function submit() {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  background: #f8fafc;
+  background:
+    radial-gradient(
+      circle at 12% 20%,
+      rgba(191, 245, 237, 0.42),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 30%,
+      rgba(255, 112, 88, 0.16),
+      transparent 30%
+    ),
+    #ffffff;
   padding: 24px;
 }
+
 .auth-panel {
   display: grid;
   gap: 16px;
-  width: min(460px, 100%);
-  padding: 28px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
+  width: min(480px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 34px;
+  box-shadow: var(--shadow-card);
 }
+
 .brand {
-  color: #111827;
+  color: var(--color-primary);
   font-weight: 850;
   text-decoration: none;
 }
+
+p {
+  margin: 0 0 6px;
+  color: var(--color-muted);
+  font-weight: 750;
+}
+
+h1 {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: 34px;
+}
+
 label {
   display: grid;
   gap: 8px;
-  font-weight: 700;
+  color: var(--color-heading);
+  font-weight: 750;
 }
+
 input {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 12px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 13px 14px;
 }
+
 .code-row {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: end;
 }
+
 .check {
   grid-template-columns: auto 1fr;
   align-items: center;
+  color: var(--color-text);
 }
+
+.check input {
+  width: 18px;
+  height: 18px;
+}
+
 button {
   border: 0;
-  border-radius: 8px;
-  background: #111827;
-  color: #fff;
-  padding: 12px 14px;
-  font-weight: 800;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 13px 16px;
+  font-weight: 850;
+  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
 }
+
+.secondary {
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  color: var(--color-heading);
+  box-shadow: none;
+}
+
+.switch-link {
+  color: var(--color-primary);
+  text-align: center;
+  text-decoration: none;
+  font-weight: 750;
+}
+
 .error {
   color: #b91c1c;
+}
+
+@media (max-width: 560px) {
+  .code-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

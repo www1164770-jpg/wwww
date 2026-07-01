@@ -2,21 +2,19 @@
   <div class="page">
     <AppHeader />
     <main>
-      <section class="hero">
-        <div>
-          <p class="eyebrow">AI 垂直领域导航</p>
-          <h1>按职业和工作流找到合适的 AI 网站。</h1>
-          <SearchBar v-model="keyword" @search="goSearch" />
-        </div>
-      </section>
-
+      <HeroSearch v-model="keyword" @search="goSearch(keyword)" />
+      <ToolMarquee />
+      <CategorySection :categories="categories" />
+      <CareerRecommend
+        :active-career="activeCareer"
+        @select-career="selectCareer"
+      />
       <RecommendSection
         :sites="recommended"
         :logged-in="loggedIn"
         @favorite="toggleFavorite"
         @visit="visitSite"
       />
-      <CategorySection :categories="categories" />
       <HotSitesSection
         :sites="hotSites"
         @favorite="toggleFavorite"
@@ -27,6 +25,7 @@
         @favorite="toggleFavorite"
         @visit="visitSite"
       />
+      <FavoriteStack :sites="hotSites" @visit="visitSite" />
     </main>
     <AppFooter />
   </div>
@@ -37,15 +36,19 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
-import SearchBar from "../components/common/SearchBar.vue";
+import CareerRecommend from "../components/home/CareerRecommend.vue";
 import CategorySection from "../components/home/CategorySection.vue";
+import FavoriteStack from "../components/home/FavoriteStack.vue";
+import HeroSearch from "../components/home/HeroSearch.vue";
 import HotSitesSection from "../components/home/HotSitesSection.vue";
 import LatestSitesSection from "../components/home/LatestSitesSection.vue";
 import RecommendSection from "../components/home/RecommendSection.vue";
+import ToolMarquee from "../components/home/ToolMarquee.vue";
 import { categoryAPI, favoriteAPI, siteAPI } from "../utils/api";
 
 const router = useRouter();
 const keyword = ref("");
+const activeCareer = ref("");
 const categories = ref([]);
 const recommended = ref([]);
 const hotSites = ref([]);
@@ -58,6 +61,10 @@ function payload(response, fallback = []) {
 
 function goSearch(value) {
   router.push({ path: "/search", query: { q: value || "" } });
+}
+
+function selectCareer(career) {
+  activeCareer.value = career;
 }
 
 async function visitSite(site) {
@@ -107,38 +114,11 @@ onMounted(loadHome);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #ffffff;
 }
+
 main {
   display: grid;
-  gap: 42px;
-  width: min(1180px, calc(100% - 36px));
-  margin: 0 auto;
-  padding: 38px 0 56px;
-}
-.hero {
-  display: grid;
-  min-height: 360px;
-  align-items: center;
-  border-radius: 8px;
-  padding: clamp(28px, 6vw, 70px);
-  color: #fff;
-  background:
-    linear-gradient(90deg, rgba(17, 24, 39, 0.88), rgba(17, 24, 39, 0.28)),
-    url("../assets/hero.png") center/cover;
-}
-.hero > div {
-  max-width: 760px;
-}
-.eyebrow {
-  margin: 0 0 12px;
-  color: #bfdbfe;
-  font-weight: 850;
-}
-h1 {
-  margin: 0 0 24px;
-  font-size: clamp(36px, 7vw, 72px);
-  line-height: 1.02;
-  letter-spacing: 0;
+  gap: 0;
 }
 </style>

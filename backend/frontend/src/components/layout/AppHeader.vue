@@ -1,22 +1,30 @@
 <template>
   <header class="app-header">
-    <RouterLink class="brand" to="/">智汇 AI 导航</RouterLink>
-    <nav class="nav-links">
-      <RouterLink to="/">首页</RouterLink>
-      <RouterLink to="/categories">分类导航</RouterLink>
-      <RouterLink to="/search?q=AI 工具">AI 工具</RouterLink>
-      <RouterLink to="/search?sort=hot">热门</RouterLink>
-      <RouterLink to="/search?sort=latest">最新</RouterLink>
-      <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
-    </nav>
-    <div class="actions">
-      <RouterLink v-if="loggedIn" class="avatar" to="/profile">{{
-        initials
-      }}</RouterLink>
-      <template v-else>
-        <RouterLink to="/login">登录</RouterLink>
-        <RouterLink class="primary" to="/register">注册</RouterLink>
-      </template>
+    <div class="header-inner">
+      <RouterLink class="brand" to="/">
+        <span class="brand-mark">智</span>
+        <span>智慧导航</span>
+      </RouterLink>
+
+      <nav class="nav-links" aria-label="主导航">
+        <RouterLink to="/">首页</RouterLink>
+        <RouterLink to="/categories">分类导航</RouterLink>
+        <RouterLink to="/search?q=AI 工具">AI工具</RouterLink>
+        <RouterLink to="/#career">职业推荐</RouterLink>
+        <RouterLink to="/search?sort=hot">热门网站</RouterLink>
+        <RouterLink to="/search?sort=latest">最新收录</RouterLink>
+        <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
+      </nav>
+
+      <div class="actions">
+        <RouterLink v-if="loggedIn" class="avatar" to="/profile">
+          {{ initials }}
+        </RouterLink>
+        <template v-else>
+          <RouterLink class="login-link" to="/login">登录</RouterLink>
+          <RouterLink class="primary" to="/register">注册</RouterLink>
+        </template>
+      </div>
     </div>
   </header>
 </template>
@@ -42,51 +50,122 @@ const initials = computed(() =>
   position: sticky;
   top: 0;
   z-index: 20;
+  border-bottom: 1px solid #edf2f7;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+}
+
+.header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 16px clamp(18px, 5vw, 64px);
-  border-bottom: 1px solid #e5e7eb;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
+  gap: 24px;
+  width: min(1200px, calc(100% - 40px));
+  height: 72px;
+  margin: 0 auto;
 }
+
 .brand {
-  color: #111827;
-  font-size: 20px;
-  font-weight: 800;
-  text-decoration: none;
-}
-.nav-links,
-.actions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 14px;
-}
-a {
-  color: #4b5563;
+  gap: 10px;
+  color: var(--color-heading);
+  font-size: 18px;
+  font-weight: 850;
   text-decoration: none;
-  font-weight: 650;
+  white-space: nowrap;
 }
-.primary,
-.avatar {
-  border-radius: 999px;
-  background: #111827;
-  color: #fff;
-  padding: 9px 14px;
-}
-.avatar {
+
+.brand-mark {
   display: grid;
   width: 38px;
   height: 38px;
   place-items: center;
+  border-radius: 13px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), #ff9b75);
+  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.2);
+}
+
+.nav-links,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-links {
+  justify-content: center;
+  flex: 1;
+}
+
+a {
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    color var(--transition),
+    background var(--transition),
+    transform var(--transition);
+}
+
+.nav-links a {
+  min-height: 40px;
+  border-radius: var(--radius-pill);
+  padding: 10px 14px;
+}
+
+.nav-links a:hover,
+.nav-links a.router-link-active {
+  color: var(--color-primary);
+  background: var(--color-soft-orange);
+}
+
+.login-link {
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
+.primary,
+.avatar {
+  display: inline-grid;
+  min-height: 40px;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 0 18px;
+  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.18);
+}
+
+.primary:hover,
+.avatar:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
   padding: 0;
 }
-@media (max-width: 780px) {
-  .app-header,
+
+@media (max-width: 900px) {
+  .header-inner {
+    width: min(100% - 28px, 1200px);
+    height: auto;
+    min-height: 72px;
+    flex-wrap: wrap;
+    padding: 12px 0;
+  }
+
   .nav-links {
-    align-items: flex-start;
-    flex-direction: column;
+    order: 3;
+    flex-basis: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
   }
 }
 </style>

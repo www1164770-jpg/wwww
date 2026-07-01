@@ -1,11 +1,14 @@
 <template>
-  <section class="home-section">
+  <section class="home-section hot-section">
     <div class="section-title">
       <p>热门</p>
-      <h2>热门网站</h2>
+      <h2>热门推荐</h2>
+      <span>近期访问和收藏热度较高的网站资源。</span>
     </div>
     <SiteList
       :sites="sites"
+      empty-title="暂无热门网站"
+      empty-description="热门网站数据加载后会展示在这里。"
       @favorite="$emit('favorite', $event)"
       @visit="$emit('visit', $event)"
     />
@@ -19,16 +22,13 @@ defineEmits(["favorite", "visit"]);
 </script>
 
 <style scoped>
-.home-section {
+.hot-section {
   display: grid;
-  gap: 18px;
+  gap: 24px;
+  padding: 46px 0 30px;
 }
-.section-title p {
-  margin: 0 0 6px;
-  color: #2563eb;
-  font-weight: 800;
-}
-.section-title h2 {
-  margin: 0;
+
+.section-title span {
+  color: var(--color-text);
 }
 </style>

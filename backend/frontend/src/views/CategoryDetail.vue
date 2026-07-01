@@ -2,22 +2,35 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>{{ currentCategory?.name || "分类详情" }}</h1>
-      <SiteFilter
-        v-model="filters"
-        :categories="children"
-        :tags="tags"
-        @change="loadSites"
-      />
-      <LoadingState v-if="loading" text="正在加载网站..." />
-      <SiteList
-        v-else
-        :sites="sites"
-        empty-title="该分类暂无网站"
-        empty-description="可以尝试切换标签、价格、地区或排序方式。"
-        @favorite="favorite"
-        @visit="visit"
-      />
+      <section class="category-hero">
+        <p>分类详情</p>
+        <h1>{{ currentCategory?.name || "分类详情" }}</h1>
+        <span>继续使用现有分类和筛选接口，展示该分类下的网站资源。</span>
+      </section>
+
+      <div class="content-layout">
+        <aside class="filter-panel">
+          <h2>筛选工具</h2>
+          <SiteFilter
+            v-model="filters"
+            :categories="children"
+            :tags="tags"
+            @change="loadSites"
+          />
+        </aside>
+
+        <section class="results-panel">
+          <LoadingState v-if="loading" text="正在加载网站..." />
+          <SiteList
+            v-else
+            :sites="sites"
+            empty-title="该分类暂无网站"
+            empty-description="可以尝试切换标签、价格、地区或排序方式。"
+            @favorite="favorite"
+            @visit="visit"
+          />
+        </section>
+      </div>
     </main>
   </div>
 </template>
@@ -96,12 +109,84 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #ffffff;
 }
+
 main {
   display: grid;
-  gap: 20px;
-  width: min(1180px, calc(100% - 36px));
-  margin: 36px auto;
+  gap: 24px;
+  width: min(1180px, calc(100% - 40px));
+  margin: 44px auto 72px;
+}
+
+.category-hero {
+  display: grid;
+  gap: 10px;
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  padding: clamp(30px, 5vw, 58px);
+}
+
+.category-hero p {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: 850;
+}
+
+h1 {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: clamp(36px, 5vw, 56px);
+}
+
+.category-hero span {
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.content-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.filter-panel {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.filter-panel h2 {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: 20px;
+}
+
+.filter-panel :deep(.site-filter) {
+  grid-template-columns: 1fr;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.results-panel {
+  min-width: 0;
+}
+
+@media (max-width: 920px) {
+  .content-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-panel {
+    position: static;
+  }
 }
 </style>

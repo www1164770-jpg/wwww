@@ -2,27 +2,34 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>我的收藏</h1>
-      <label class="filter">
-        分类
-        <select v-model="selectedCategory">
-          <option value="">全部分类</option>
-          <option
-            v-for="category in categories"
-            :key="category.id || category.name"
-            :value="String(category.id || category.name)"
-          >
-            {{ category.name }}
-          </option>
-        </select>
-      </label>
+      <section class="hero">
+        <div>
+          <p>我的收藏</p>
+          <h1>收藏网站卡片网格</h1>
+          <span>集中管理你保存过的 AI 工具和高频资源。</span>
+        </div>
+        <label class="filter">
+          分类
+          <select v-model="selectedCategory">
+            <option value="">全部分类</option>
+            <option
+              v-for="category in categories"
+              :key="category.id || category.name"
+              :value="String(category.id || category.name)"
+            >
+              {{ category.name }}
+            </option>
+          </select>
+        </label>
+      </section>
+
       <LoadingState v-if="loading" text="正在加载收藏..." />
       <SiteList
         v-else
         :sites="filteredFavorites"
         :favorite-ids="favorites.map((site) => site.id)"
         empty-title="暂无收藏"
-        empty-description="收藏实用网站后，会在这里集中展示。"
+        empty-description="去首页发现适合你的 AI 工具"
         @favorite="remove"
         @visit="visit"
       />
@@ -77,25 +84,61 @@ onMounted(load);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #ffffff;
 }
+
 main {
   display: grid;
-  gap: 20px;
-  width: min(1180px, calc(100% - 36px));
-  margin: 36px auto;
+  gap: 24px;
+  width: min(1180px, calc(100% - 40px));
+  margin: 44px auto 72px;
 }
+
+.hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  border-radius: var(--radius-large);
+  background: linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  padding: clamp(28px, 5vw, 58px);
+}
+
+.hero p {
+  margin: 0 0 8px;
+  color: var(--color-primary);
+  font-weight: 850;
+}
+
+h1 {
+  margin: 0 0 10px;
+  color: var(--color-heading);
+  font-size: clamp(34px, 5vw, 54px);
+}
+
+.hero span {
+  color: var(--color-text);
+}
+
 .filter {
   display: grid;
   gap: 8px;
   width: min(280px, 100%);
-  color: #374151;
+  color: var(--color-heading);
   font-weight: 750;
 }
+
 select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #fff;
-  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 </style>

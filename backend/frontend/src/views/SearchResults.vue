@@ -2,12 +2,16 @@
   <div class="page">
     <AppHeader />
     <main>
-      <h1>搜索结果</h1>
-      <SearchBar
-        v-model="keyword"
-        :navigate-on-submit="false"
-        @search="search"
-      />
+      <section class="search-hero">
+        <h1>搜索结果</h1>
+        <p>输入工具、网站或使用场景，继续调用原有搜索接口获取结果。</p>
+        <SearchBar
+          v-model="keyword"
+          :navigate-on-submit="false"
+          @search="search"
+        />
+      </section>
+
       <SiteFilter
         v-model="filters"
         :categories="categories"
@@ -110,12 +114,50 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #ffffff;
 }
+
 main {
   display: grid;
-  gap: 20px;
-  width: min(1180px, calc(100% - 36px));
-  margin: 36px auto;
+  gap: 22px;
+  width: min(1180px, calc(100% - 40px));
+  margin: 44px auto 72px;
+}
+
+.search-hero {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(
+      circle at 12% 24%,
+      rgba(191, 245, 237, 0.34),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 88% 32%,
+      rgba(255, 112, 88, 0.14),
+      transparent 30%
+    ),
+    #ffffff;
+  padding: clamp(30px, 5vw, 64px);
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: clamp(38px, 6vw, 60px);
+}
+
+.search-hero p {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.search-hero :deep(.search-bar) {
+  max-width: 720px;
 }
 </style>

@@ -70,17 +70,31 @@ function emitChange() {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 12px;
+  box-shadow: var(--shadow-soft);
 }
+
 select {
   min-width: 0;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 10px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #ffffff;
+  color: var(--color-heading);
+  padding: 11px 12px;
 }
+
 @media (max-width: 900px) {
   .site-filter {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .site-filter {
+    grid-template-columns: 1fr;
   }
 }
 </style>

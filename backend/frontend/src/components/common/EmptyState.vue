@@ -14,19 +14,23 @@ defineProps({
 
 <style scoped>
 .empty-state {
-  padding: 34px;
-  text-align: center;
-  color: #6b7280;
   border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  background: #f9fafb;
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 38px 24px;
+  color: var(--color-muted);
+  text-align: center;
 }
+
 strong {
   display: block;
-  color: #111827;
   margin-bottom: 8px;
+  color: var(--color-heading);
+  font-size: 18px;
 }
+
 p {
   margin: 0;
+  line-height: 1.65;
 }
 </style>

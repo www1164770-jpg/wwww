@@ -1,42 +1,45 @@
 <template>
   <form class="questionnaire-form" @submit.prevent="$emit('submit', form)">
-    <label>
-      职业
-      <select v-model="form.occupation" required>
-        <option disabled value="">请选择职业</option>
-        <option v-for="item in occupations" :key="item" :value="item">
-          {{ labelText(item) }}
-        </option>
-      </select>
-    </label>
-    <label>
-      能力水平
-      <select v-model="form.skill_level" required>
-        <option disabled value="">请选择能力水平</option>
-        <option v-for="item in skillLevels" :key="item" :value="item">
-          {{ labelText(item) }}
-        </option>
-      </select>
-    </label>
+    <div class="select-grid">
+      <label>
+        职业
+        <select v-model="form.occupation" required>
+          <option disabled value="">请选择职业</option>
+          <option v-for="item in occupations" :key="item" :value="item">
+            {{ labelText(item) }}
+          </option>
+        </select>
+      </label>
+      <label>
+        能力水平
+        <select v-model="form.skill_level" required>
+          <option disabled value="">请选择能力水平</option>
+          <option v-for="item in skillLevels" :key="item" :value="item">
+            {{ labelText(item) }}
+          </option>
+        </select>
+      </label>
+    </div>
+
     <fieldset>
       <legend>使用目的</legend>
-      <label v-for="item in purposes" :key="item">
+      <label v-for="item in purposes" :key="item" class="pill-option">
         <input v-model="form.purposes" type="checkbox" :value="item" />
-        {{ labelText(item) }}
+        <span>{{ labelText(item) }}</span>
       </label>
     </fieldset>
     <fieldset>
       <legend>兴趣方向</legend>
-      <label v-for="item in interests" :key="item">
+      <label v-for="item in interests" :key="item" class="pill-option">
         <input v-model="form.interests" type="checkbox" :value="item" />
-        {{ labelText(item) }}
+        <span>{{ labelText(item) }}</span>
       </label>
     </fieldset>
     <fieldset>
       <legend>偏好</legend>
-      <label v-for="item in preferences" :key="item">
+      <label v-for="item in preferences" :key="item" class="pill-option">
         <input v-model="form.preferences" type="checkbox" :value="item" />
-        {{ labelText(item) }}
+        <span>{{ labelText(item) }}</span>
       </label>
     </fieldset>
     <button type="submit">保存问卷</button>
@@ -112,34 +115,92 @@ function labelText(value) {
 <style scoped>
 .questionnaire-form {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
-label,
-fieldset {
+
+.select-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+label {
   display: grid;
   gap: 8px;
+  color: var(--color-heading);
+  font-weight: 750;
 }
-fieldset {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-}
-legend {
-  color: #111827;
-  font-weight: 800;
-}
+
 select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 12px 14px;
 }
+
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 18px;
+}
+
+legend {
+  color: var(--color-heading);
+  font-weight: 850;
+  padding: 0 8px;
+}
+
+.pill-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.pill-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pill-option span {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  color: var(--color-text);
+  padding: 9px 14px;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    transform var(--transition);
+}
+
+.pill-option input:checked + span {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.pill-option:hover span {
+  transform: translateY(-1px);
+}
+
 button {
   border: 0;
-  border-radius: 8px;
-  background: #111827;
-  color: #fff;
-  padding: 13px;
-  font-weight: 800;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 14px;
+  font-weight: 850;
+  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+}
+
+@media (max-width: 680px) {
+  .select-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
