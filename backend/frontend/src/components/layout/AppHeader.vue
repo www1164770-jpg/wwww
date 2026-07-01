@@ -9,7 +9,7 @@
       <nav class="nav-links" aria-label="主导航">
         <RouterLink to="/">首页</RouterLink>
         <RouterLink to="/categories">分类导航</RouterLink>
-        <RouterLink to="/search?q=AI 工具">AI工具</RouterLink>
+        <RouterLink to="/search?q=AI 工具">AI 工具</RouterLink>
         <RouterLink to="/#career">职业推荐</RouterLink>
         <RouterLink to="/search?sort=hot">热门网站</RouterLink>
         <RouterLink to="/search?sort=latest">最新收录</RouterLink>
@@ -50,9 +50,9 @@ const initials = computed(() =>
   position: sticky;
   top: 0;
   z-index: 20;
-  border-bottom: 1px solid #edf2f7;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.78);
+  background: #ffffff;
+  backdrop-filter: blur(18px);
 }
 
 .header-inner {
@@ -81,7 +81,7 @@ const initials = computed(() =>
   width: 38px;
   height: 38px;
   place-items: center;
-  border-radius: 13px;
+  border-radius: 14px;
   color: #ffffff;
   background: linear-gradient(135deg, var(--color-primary), #ff9b75);
   box-shadow: 0 12px 24px rgba(255, 112, 88, 0.2);
@@ -91,12 +91,19 @@ const initials = computed(() =>
 .actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .nav-links {
-  justify-content: center;
   flex: 1;
+  justify-content: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav-links::-webkit-scrollbar {
+  display: none;
 }
 
 a {
@@ -113,7 +120,8 @@ a {
 .nav-links a {
   min-height: 40px;
   border-radius: var(--radius-pill);
-  padding: 10px 14px;
+  padding: 10px 15px;
+  white-space: nowrap;
 }
 
 .nav-links a:hover,
@@ -124,7 +132,11 @@ a {
 
 .login-link {
   min-height: 40px;
-  padding: 10px 12px;
+  border: 1px solid rgba(255, 112, 88, 0.28);
+  border-radius: var(--radius-pill);
+  background: var(--color-soft-orange);
+  color: var(--color-primary);
+  padding: 10px 16px;
 }
 
 .primary,
@@ -142,6 +154,7 @@ a {
 .primary:hover,
 .avatar:hover {
   background: var(--color-primary-dark);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -164,8 +177,28 @@ a {
     order: 3;
     flex-basis: 100%;
     justify-content: flex-start;
-    overflow-x: auto;
     padding-bottom: 2px;
+  }
+}
+
+@media (max-width: 560px) {
+  .header-inner {
+    width: min(100% - 24px, 1200px);
+    gap: 12px;
+  }
+
+  .brand {
+    font-size: 16px;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .login-link,
+  .primary {
+    min-height: 38px;
+    padding-inline: 13px;
   }
 }
 </style>

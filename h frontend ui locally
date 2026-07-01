@@ -1,0 +1,35 @@
+[33mcommit dbed0dfb8421329b8442aa4ecc83b82b6e290a46[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: www1164770-jpg <www1164770@gmail.com>
+Date:   Wed Jul 1 08:50:01 2026 +0800
+
+    redesign frontend ui without changing functionality
+
+ .../frontend/src/components/admin/AdminLayout.vue  |  42 [32m+[m[31m-[m
+ .../frontend/src/components/common/EmptyState.vue  |  16 [32m+[m[31m-[m
+ .../frontend/src/components/common/SearchBar.vue   |  57 [32m++[m[31m-[m
+ .../src/components/home/CareerRecommend.vue        |  89 [32m++[m[31m--[m
+ .../src/components/home/CategorySection.vue        | 161 [32m++++++[m[31m--[m
+ .../frontend/src/components/home/FavoriteStack.vue | 119 [32m++++[m[31m--[m
+ .../frontend/src/components/home/HeroSearch.vue    | 149 [32m++++[m[31m---[m
+ .../src/components/home/HotSitesSection.vue        |  22 [32m+[m[31m-[m
+ .../src/components/home/LatestSitesSection.vue     |  20 [32m+[m[31m-[m
+ .../src/components/home/RecommendSection.vue       |  26 [32m+[m[31m-[m
+ .../frontend/src/components/home/ToolMarquee.vue   |  77 [32m++++[m
+ .../frontend/src/components/layout/AppFooter.vue   |  19 [32m+[m[31m-[m
+ .../frontend/src/components/layout/AppHeader.vue   | 159 [32m+++++[m[31m--[m
+ .../components/questionnaire/QuestionnaireForm.vue | 145 [32m+++++[m[31m--[m
+ backend/frontend/src/components/site/SiteCard.vue  | 137 [32m++++[m[31m--[m
+ .../frontend/src/components/site/SiteFilter.vue    |  22 [32m+[m[31m-[m
+ backend/frontend/src/components/site/SiteList.vue  |   4 [32m+[m[31m-[m
+ backend/frontend/src/style.css                     | 459 [32m+++++[m[31m----------------[m
+ backend/frontend/src/views/Categories.vue          | 111 [32m++++[m[31m-[m
+ backend/frontend/src/views/CategoryDetail.vue      | 125 [32m+++++[m[31m-[m
+ backend/frontend/src/views/Favorites.vue           |  91 [32m++[m[31m--[m
+ backend/frontend/src/views/Home.vue                |  60 [32m+[m[31m--[m
+ backend/frontend/src/views/Login.vue               |  83 [32m+++[m[31m-[m
+ backend/frontend/src/views/Questionnaire.vue       |  55 [32m++[m[31m-[m
+ backend/frontend/src/views/Register.vue            | 115 [32m++++[m[31m--[m
+ backend/frontend/src/views/SearchResults.vue       |  62 [32m++[m[31m-[m
+ backend/frontend/src/views/SiteDetail.vue          | 388 [32m+++++++++++[m[31m------[m
+ backend/frontend/src/views/admin/adminTable.css    |  54 [32m++[m[31m-[m
+ 28 files changed, 1830 insertions(+), 1037 deletions(-)

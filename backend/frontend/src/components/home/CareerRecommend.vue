@@ -66,30 +66,29 @@ const careerRecommendations = [
 <style scoped>
 .career-section {
   display: grid;
-  gap: 24px;
-  padding: 46px 0 34px;
-}
-
-.career-section {
+  gap: 28px;
+  margin-top: 28px;
   border-radius: var(--radius-large);
   background: linear-gradient(180deg, #ffffff 0%, #fff8f6 100%);
+  padding: 54px 34px 42px;
 }
 
 .career-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .career-card {
   display: grid;
-  gap: 13px;
-  min-height: 230px;
+  gap: 14px;
+  min-height: 238px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 20px;
+  padding: 22px;
   text-align: left;
   background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   transition:
     border-color var(--transition),
     transform var(--transition),
@@ -100,17 +99,17 @@ const careerRecommendations = [
 .career-card:hover,
 .career-card.active {
   border-color: rgba(255, 112, 88, 0.5);
-  background: var(--color-soft-orange);
-  transform: translateY(-4px);
+  background: #fffaf8;
+  transform: translateY(-5px);
   box-shadow: var(--shadow-card);
 }
 
 .career-icon {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   place-items: center;
-  border-radius: 16px;
+  border-radius: 18px;
   color: #ffffff;
   background: var(--color-primary);
   font-weight: 850;
@@ -143,12 +142,20 @@ const careerRecommendations = [
 }
 
 @media (max-width: 980px) {
+  .career-section {
+    padding-inline: 24px;
+  }
+
   .career-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .career-section {
+    padding-inline: 18px;
+  }
+
   .career-grid {
     grid-template-columns: 1fr;
   }

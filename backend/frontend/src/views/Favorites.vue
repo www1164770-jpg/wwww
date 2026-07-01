@@ -29,7 +29,7 @@
         :sites="filteredFavorites"
         :favorite-ids="favorites.map((site) => site.id)"
         empty-title="暂无收藏"
-        empty-description="去首页发现适合你的 AI 工具"
+        empty-description="去首页发现适合你的 AI 工具。"
         @favorite="remove"
         @visit="visit"
       />
@@ -84,14 +84,14 @@ onMounted(load);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
 }
 
 main {
   display: grid;
-  gap: 24px;
+  gap: 26px;
   width: min(1180px, calc(100% - 40px));
-  margin: 44px auto 72px;
+  margin: 48px auto 78px;
 }
 
 .hero {
@@ -99,9 +99,16 @@ main {
   align-items: end;
   justify-content: space-between;
   gap: 24px;
-  border-radius: var(--radius-large);
-  background: linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
-  padding: clamp(28px, 5vw, 58px);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 12% 22%,
+      rgba(191, 245, 237, 0.32),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  padding: clamp(32px, 5vw, 64px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
 .hero p {

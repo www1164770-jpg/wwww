@@ -73,7 +73,7 @@ function emitChange() {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
-  padding: 12px;
+  padding: 14px;
   box-shadow: var(--shadow-soft);
 }
 
@@ -83,7 +83,7 @@ select {
   border-radius: 14px;
   background: #ffffff;
   color: var(--color-heading);
-  padding: 11px 12px;
+  padding: 12px;
 }
 
 @media (max-width: 900px) {

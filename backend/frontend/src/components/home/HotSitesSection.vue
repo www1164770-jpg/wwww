@@ -1,9 +1,9 @@
 <template>
   <section class="home-section hot-section">
     <div class="section-title">
-      <p>热门</p>
-      <h2>热门推荐</h2>
-      <span>近期访问和收藏热度较高的网站资源。</span>
+      <p>热门网站</p>
+      <h2>近期更受欢迎的 AI 资源</h2>
+      <span>按访问、收藏和推荐热度整理，适合快速发现值得尝试的网站。</span>
     </div>
     <SiteList
       :sites="sites"
@@ -24,11 +24,12 @@ defineEmits(["favorite", "visit"]);
 <style scoped>
 .hot-section {
   display: grid;
-  gap: 24px;
-  padding: 46px 0 30px;
+  gap: 28px;
+  padding: 58px 0 38px;
 }
 
 .section-title span {
   color: var(--color-text);
+  line-height: 1.75;
 }
 </style>

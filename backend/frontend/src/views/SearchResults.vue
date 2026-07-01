@@ -114,21 +114,21 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
 }
 
 main {
   display: grid;
-  gap: 22px;
+  gap: 24px;
   width: min(1180px, calc(100% - 40px));
-  margin: 44px auto 72px;
+  margin: 48px auto 78px;
 }
 
 .search-hero {
   display: grid;
   justify-items: center;
-  gap: 16px;
-  border-radius: var(--radius-large);
+  gap: 18px;
+  border-radius: 24px;
   background:
     radial-gradient(
       circle at 12% 24%,
@@ -141,8 +141,9 @@ main {
       transparent 30%
     ),
     #ffffff;
-  padding: clamp(30px, 5vw, 64px);
+  padding: clamp(36px, 5vw, 70px);
   text-align: center;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
 h1 {
@@ -158,6 +159,6 @@ h1 {
 }
 
 .search-hero :deep(.search-bar) {
-  max-width: 720px;
+  max-width: 760px;
 }
 </style>

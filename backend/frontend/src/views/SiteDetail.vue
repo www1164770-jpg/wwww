@@ -252,14 +252,14 @@ onMounted(load);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
 }
 
 .detail {
   display: grid;
-  gap: 24px;
+  gap: 26px;
   width: min(1180px, calc(100% - 40px));
-  margin: 44px auto 72px;
+  margin: 48px auto 78px;
 }
 
 .hero,
@@ -270,22 +270,28 @@ onMounted(load);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
-  padding: 22px;
+  padding: 24px;
   box-shadow: var(--shadow-soft);
 }
 
 .hero {
   display: flex;
-  gap: 22px;
+  gap: 24px;
   align-items: center;
-  border-radius: var(--radius-large);
-  background: linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
-  padding: clamp(26px, 5vw, 56px);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 12% 22%,
+      rgba(191, 245, 237, 0.32),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  padding: clamp(30px, 5vw, 62px);
 }
 
 .hero img {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
   object-fit: cover;
@@ -330,14 +336,14 @@ h2 {
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 22px;
+  gap: 24px;
   align-items: start;
 }
 
 .main-column,
 .side-column {
   display: grid;
-  gap: 22px;
+  gap: 24px;
   min-width: 0;
 }
 
@@ -366,6 +372,17 @@ button {
   color: var(--color-heading);
   padding: 11px 16px;
   font-weight: 800;
+  transition:
+    transform var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    background var(--transition);
+}
+
+button:hover {
+  border-color: rgba(255, 112, 88, 0.38);
+  color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
 button.primary,
@@ -374,6 +391,12 @@ button.primary,
   background: var(--color-primary);
   color: #ffffff;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+}
+
+button.primary:hover,
+.comment-form button:hover {
+  background: var(--color-primary-dark);
+  color: #ffffff;
 }
 
 .facts {
@@ -385,7 +408,7 @@ button.primary,
 .chips span {
   display: grid;
   gap: 6px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--color-soft);
   padding: 12px;
 }
@@ -412,12 +435,12 @@ button.primary,
 .comment-form textarea {
   border: 1px solid var(--color-border);
   border-radius: 14px;
-  padding: 11px;
+  padding: 12px;
   font: inherit;
 }
 
 .comment-form textarea {
-  min-height: 110px;
+  min-height: 116px;
   resize: vertical;
 }
 

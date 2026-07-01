@@ -9,7 +9,7 @@
 <script setup>
 defineProps({
   text: { type: String, default: "" },
-  title: { type: String, default: "正在加载..." },
+  title: { type: String, default: "正在加载资源..." },
   description: { type: String, default: "" },
 });
 </script>
@@ -18,28 +18,34 @@ defineProps({
 .loading-state {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  padding: 34px;
+  gap: 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 38px 24px;
+  color: var(--color-muted);
   text-align: center;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
 }
+
 .spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #111827;
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--color-border-soft);
+  border-top-color: var(--color-primary);
   border-radius: 999px;
   animation: spin 0.8s linear infinite;
 }
+
 strong {
-  color: #111827;
+  color: var(--color-heading);
+  font-size: 18px;
 }
+
 p {
   margin: 0;
+  line-height: 1.65;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

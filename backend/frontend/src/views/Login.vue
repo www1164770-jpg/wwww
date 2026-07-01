@@ -90,18 +90,18 @@ async function submit() {
       rgba(255, 112, 88, 0.16),
       transparent 30%
     ),
-    #ffffff;
+    linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
   padding: 24px;
 }
 
 .auth-panel {
   display: grid;
-  gap: 16px;
-  width: min(440px, 100%);
+  gap: 18px;
+  width: min(460px, 100%);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-large);
-  background: rgba(255, 255, 255, 0.94);
-  padding: 34px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  padding: clamp(28px, 5vw, 40px);
   box-shadow: var(--shadow-card);
 }
 
@@ -133,6 +133,7 @@ label {
 input {
   border: 1px solid var(--color-border);
   border-radius: 14px;
+  background: #ffffff;
   padding: 13px 14px;
 }
 
@@ -141,9 +142,19 @@ button {
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #ffffff;
-  padding: 13px;
+  padding: 14px;
   font-weight: 850;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    box-shadow var(--transition);
+}
+
+button:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
 }
 
 button:disabled {

@@ -2,8 +2,10 @@
   <section class="home-section category-section">
     <aside class="category-copy">
       <p>热门分类</p>
-      <h2>热门工具分类</h2>
-      <span>按学习、创作、开发和效率场景浏览高质量 AI 工具。</span>
+      <h2>按场景浏览 AI 工具</h2>
+      <span
+        >从学习、创作、开发到效率办公，把常用资源整理成更容易扫描的分类入口。</span
+      >
       <div class="category-menu">
         <RouterLink
           v-for="category in categories"
@@ -44,9 +46,9 @@ defineProps({ categories: { type: Array, default: () => [] } });
 <style scoped>
 .category-section {
   display: grid;
-  grid-template-columns: minmax(220px, 300px) 1fr;
-  gap: 34px;
-  padding: 92px 0 40px;
+  grid-template-columns: minmax(220px, 310px) 1fr;
+  gap: 42px;
+  padding: 110px 0 52px;
 }
 
 .category-copy {
@@ -56,32 +58,32 @@ defineProps({ categories: { type: Array, default: () => [] } });
 .category-copy p {
   margin: 0 0 8px;
   color: var(--color-primary);
-  font-weight: 800;
+  font-weight: 850;
 }
 
 .category-copy h2 {
   margin: 0;
   color: var(--color-heading);
-  font-size: clamp(32px, 4vw, 44px);
+  font-size: clamp(32px, 4vw, 46px);
   line-height: 1.12;
 }
 
 .category-copy > span {
   display: block;
-  margin-top: 14px;
+  margin-top: 16px;
   color: var(--color-text);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .category-menu {
   display: grid;
-  gap: 8px;
-  margin-top: 28px;
+  gap: 10px;
+  margin-top: 30px;
 }
 
 .category-menu a {
   border-radius: var(--radius-pill);
-  padding: 11px 16px;
+  padding: 12px 17px;
   color: var(--color-text);
   text-decoration: none;
   font-weight: 750;
@@ -96,20 +98,21 @@ defineProps({ categories: { type: Array, default: () => [] } });
 .category-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .category-card {
   display: grid;
   align-content: start;
-  gap: 12px;
-  min-height: 180px;
+  gap: 14px;
+  min-height: 190px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
-  padding: 20px;
+  padding: 22px;
   color: var(--color-heading);
   text-decoration: none;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   transition:
     transform var(--transition),
     box-shadow var(--transition),
@@ -118,16 +121,16 @@ defineProps({ categories: { type: Array, default: () => [] } });
 
 .category-card:hover {
   border-color: rgba(255, 112, 88, 0.34);
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   box-shadow: var(--shadow-card);
 }
 
 .category-card span {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   place-items: center;
-  border-radius: 16px;
+  border-radius: 18px;
   color: var(--color-primary);
   background: var(--color-soft-orange);
   font-weight: 850;
@@ -155,7 +158,7 @@ defineProps({ categories: { type: Array, default: () => [] } });
 
 @media (max-width: 720px) {
   .category-section {
-    padding-top: 64px;
+    padding-top: 72px;
   }
 
   .category-grid {

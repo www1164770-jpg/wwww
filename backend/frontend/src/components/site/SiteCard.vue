@@ -50,12 +50,13 @@ const visibleOccupations = computed(() =>
 <style scoped>
 .site-card {
   display: grid;
-  gap: 16px;
-  min-height: 260px;
+  gap: 18px;
+  min-height: 278px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
-  padding: 20px;
+  padding: 22px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   transition:
     transform var(--transition),
     box-shadow var(--transition),
@@ -64,8 +65,8 @@ const visibleOccupations = computed(() =>
 
 .site-card:hover {
   border-color: rgba(255, 112, 88, 0.32);
-  transform: translateY(-4px);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-card);
 }
 
 .card-head {
@@ -76,10 +77,10 @@ const visibleOccupations = computed(() =>
 
 img {
   flex: 0 0 auto;
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border: 1px solid var(--color-border-soft);
-  border-radius: 16px;
+  border-radius: 18px;
   object-fit: cover;
   background: var(--color-soft);
 }
@@ -103,7 +104,8 @@ p {
 
 .reason {
   display: block;
-  border-radius: 14px;
+  border: 1px solid rgba(255, 112, 88, 0.16);
+  border-radius: 16px;
   background: var(--color-soft-orange);
   color: var(--color-primary-dark);
   padding: 10px 12px;
@@ -144,7 +146,7 @@ a {
   border-radius: var(--radius-pill);
   background: #ffffff;
   color: var(--color-heading);
-  padding: 0 13px;
+  padding: 0 14px;
   text-decoration: none;
   font-size: 13px;
   font-weight: 800;
@@ -166,6 +168,7 @@ a:hover {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: #ffffff;
+  box-shadow: 0 10px 22px rgba(255, 112, 88, 0.18);
 }
 
 .visit:hover {

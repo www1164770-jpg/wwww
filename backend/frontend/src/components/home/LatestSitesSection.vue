@@ -1,9 +1,9 @@
 <template>
   <section class="home-section latest-section">
     <div class="section-title">
-      <p>最新</p>
-      <h2>最新收录</h2>
-      <span>持续整理新上线和新发现的高质量工具网站。</span>
+      <p>最新收录</p>
+      <h2>新发现的高质量工具</h2>
+      <span>持续整理新上线和新发现的 AI 工具、效率站点与创作资源。</span>
     </div>
     <SiteList
       :sites="sites"
@@ -24,11 +24,12 @@ defineEmits(["favorite", "visit"]);
 <style scoped>
 .latest-section {
   display: grid;
-  gap: 24px;
-  padding: 46px 0 34px;
+  gap: 28px;
+  padding: 58px 0 48px;
 }
 
 .section-title span {
   color: var(--color-text);
+  line-height: 1.75;
 }
 </style>

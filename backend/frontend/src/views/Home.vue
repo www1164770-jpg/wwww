@@ -114,7 +114,7 @@ onMounted(loadHome);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #ffffff 45%, #fffaf8 100%);
 }
 
 main {

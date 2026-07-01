@@ -66,21 +66,21 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
 }
 
 main {
   display: grid;
-  gap: 24px;
+  gap: 28px;
   width: min(1120px, calc(100% - 40px));
-  margin: 44px auto 72px;
+  margin: 48px auto 78px;
 }
 
 .hero {
   display: grid;
   justify-items: center;
   gap: 18px;
-  border-radius: var(--radius-large);
+  border-radius: 24px;
   background:
     radial-gradient(
       circle at 10% 20%,
@@ -93,8 +93,9 @@ main {
       transparent 30%
     ),
     #ffffff;
-  padding: clamp(34px, 6vw, 70px);
+  padding: clamp(38px, 6vw, 76px);
   text-align: center;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
 h1 {
@@ -112,25 +113,26 @@ h1 {
 }
 
 .hero :deep(.search-bar) {
-  max-width: 680px;
+  max-width: 700px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .grid a {
   display: grid;
-  gap: 12px;
-  min-height: 170px;
+  gap: 14px;
+  min-height: 178px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
   color: var(--color-heading);
-  padding: 20px;
+  padding: 22px;
   text-decoration: none;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   transition:
     transform var(--transition),
     box-shadow var(--transition),
@@ -139,16 +141,16 @@ h1 {
 
 .grid a:hover {
   border-color: rgba(255, 112, 88, 0.34);
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   box-shadow: var(--shadow-card);
 }
 
 .grid span {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   place-items: center;
-  border-radius: 16px;
+  border-radius: 18px;
   background: var(--color-soft-orange);
   color: var(--color-primary);
   font-weight: 850;

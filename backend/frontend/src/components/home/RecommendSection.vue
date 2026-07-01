@@ -2,8 +2,12 @@
   <section class="home-section recommend-section">
     <div class="section-title">
       <p>{{ loggedIn ? "为你推荐" : "热门推荐" }}</p>
-      <h2>{{ loggedIn ? "为你推荐" : "热门推荐" }}</h2>
-      <span>根据你的职业、兴趣方向和收藏行为生成推荐。</span>
+      <h2>
+        {{ loggedIn ? "根据你的画像精选工具" : "正在被更多人使用的工具" }}
+      </h2>
+      <span
+        >结合职业、兴趣方向和收藏行为，优先展示更适合你当前任务的资源。</span
+      >
     </div>
     <SiteList
       :sites="sites"
@@ -27,12 +31,12 @@ defineEmits(["favorite", "visit"]);
 <style scoped>
 .recommend-section {
   display: grid;
-  gap: 24px;
-  padding: 70px 0 30px;
+  gap: 28px;
+  padding: 84px 0 38px;
 }
 
 .section-title span {
   color: var(--color-text);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 </style>

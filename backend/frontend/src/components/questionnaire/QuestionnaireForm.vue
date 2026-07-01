@@ -115,7 +115,7 @@ function labelText(value) {
 <style scoped>
 .questionnaire-form {
   display: grid;
-  gap: 22px;
+  gap: 24px;
 }
 
 .select-grid {
@@ -135,7 +135,7 @@ select {
   border: 1px solid var(--color-border);
   border-radius: 14px;
   background: #ffffff;
-  padding: 12px 14px;
+  padding: 13px 14px;
 }
 
 fieldset {
@@ -144,7 +144,8 @@ fieldset {
   gap: 10px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 18px;
+  background: #ffffff;
+  padding: 20px;
 }
 
 legend {
@@ -170,7 +171,7 @@ legend {
   border-radius: var(--radius-pill);
   background: #ffffff;
   color: var(--color-text);
-  padding: 9px 14px;
+  padding: 10px 15px;
   transition:
     background var(--transition),
     border-color var(--transition),
@@ -193,7 +194,7 @@ button {
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #ffffff;
-  padding: 14px;
+  padding: 15px;
   font-weight: 850;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
 }

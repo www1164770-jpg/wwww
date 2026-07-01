@@ -2,10 +2,10 @@
   <section class="favorite-band">
     <div class="favorite-stack">
       <div class="favorite-copy">
-        <p>常用工具栈</p>
-        <h2>这些是高频用户真正常用的工具</h2>
+        <p>常用工具栏</p>
+        <h2>高频用户正在反复打开的工具</h2>
         <span>
-          根据收藏、点击和评分综合排序，展示最值得优先尝试的网站资源。
+          根据收藏、点击和评分综合排序，帮助你优先试用更稳定、更常用的网站资源。
         </span>
       </div>
 
@@ -38,15 +38,21 @@ defineEmits(["visit"]);
 
 <style scoped>
 .favorite-band {
-  margin-top: 46px;
-  background: #f1f5f9;
-  padding: 90px 0;
+  margin-top: 54px;
+  background:
+    radial-gradient(
+      circle at 12% 20%,
+      rgba(255, 112, 88, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  padding: 96px 0;
 }
 
 .favorite-stack {
   display: grid;
-  grid-template-columns: minmax(240px, 360px) 1fr;
-  gap: 34px;
+  grid-template-columns: minmax(240px, 370px) 1fr;
+  gap: 42px;
   width: min(1200px, calc(100% - 40px));
   margin: 0 auto;
 }
@@ -72,7 +78,7 @@ h2 {
 .favorite-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 button,
@@ -81,10 +87,11 @@ button,
   gap: 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 18px;
+  padding: 20px;
   color: var(--color-heading);
   text-align: left;
   background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
 }
 
 button {
@@ -96,7 +103,7 @@ button {
 
 button:hover {
   border-color: rgba(255, 112, 88, 0.34);
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-card);
 }
 

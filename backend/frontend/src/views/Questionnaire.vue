@@ -83,18 +83,18 @@ onMounted(async () => {
       rgba(255, 112, 88, 0.16),
       transparent 30%
     ),
-    #ffffff;
+    linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
 }
 
 .panel {
   display: grid;
-  gap: 28px;
-  width: min(920px, calc(100% - 40px));
-  margin: 48px auto 72px;
+  gap: 30px;
+  width: min(940px, calc(100% - 40px));
+  margin: 52px auto 78px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-large);
-  background: rgba(255, 255, 255, 0.94);
-  padding: clamp(24px, 4vw, 40px);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  padding: clamp(24px, 4vw, 42px);
   box-shadow: var(--shadow-card);
 }
 

@@ -109,22 +109,29 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
 }
 
 main {
   display: grid;
-  gap: 24px;
+  gap: 26px;
   width: min(1180px, calc(100% - 40px));
-  margin: 44px auto 72px;
+  margin: 48px auto 78px;
 }
 
 .category-hero {
   display: grid;
-  gap: 10px;
-  border-radius: var(--radius-large);
-  background: linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
-  padding: clamp(30px, 5vw, 58px);
+  gap: 12px;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at 12% 22%,
+      rgba(191, 245, 237, 0.32),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  padding: clamp(34px, 5vw, 64px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
 .category-hero p {
@@ -147,7 +154,7 @@ h1 {
 .content-layout {
   display: grid;
   grid-template-columns: 300px 1fr;
-  gap: 22px;
+  gap: 24px;
   align-items: start;
 }
 
@@ -155,11 +162,11 @@ h1 {
   position: sticky;
   top: 92px;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
-  padding: 18px;
+  padding: 20px;
   box-shadow: var(--shadow-soft);
 }
 

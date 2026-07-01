@@ -3,7 +3,8 @@
     <div class="hero-copy">
       <h1>根据你的职业，推荐最适合的 AI 工具</h1>
       <p>
-        收集、筛选和推荐高质量网站资源，让学习、工作、创作和项目开发更高效。
+        汇集高质量 AI
+        工具、效率网站和学习资源，用更清晰的导航帮你快速找到下一步要用的生产力工具。
       </p>
     </div>
 
@@ -17,7 +18,7 @@
       <button type="submit" aria-label="搜索">搜索</button>
     </form>
 
-    <p class="hero-stats">已收录工具 · 热门分类 · 个性化推荐已开启</p>
+    <p class="hero-stats">AI 工具导航 · 职业推荐 · 高质量资源持续收录</p>
   </section>
 </template>
 
@@ -35,44 +36,44 @@ defineEmits(["update:modelValue", "search", "show-all", "show-favorites"]);
 <style scoped>
 .hero-search {
   display: grid;
-  min-height: clamp(520px, 62vh, 620px);
+  min-height: clamp(540px, 64vh, 660px);
   place-items: center;
   align-content: center;
-  gap: 26px;
-  padding: 92px 20px 76px;
+  gap: 28px;
+  padding: 96px 20px 82px;
   background:
     radial-gradient(
-      circle at 10% 20%,
-      rgba(191, 245, 237, 0.45),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 90% 35%,
-      rgba(255, 112, 88, 0.2),
+      circle at 14% 18%,
+      rgba(191, 245, 237, 0.42),
       transparent 30%
     ),
-    linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+    radial-gradient(
+      circle at 88% 28%,
+      rgba(255, 112, 88, 0.18),
+      transparent 32%
+    ),
+    linear-gradient(180deg, #ffffff 0%, #fffdfc 54%, #ffffff 100%);
 }
 
 .hero-copy {
   display: grid;
   justify-items: center;
   gap: 18px;
-  max-width: 900px;
+  max-width: 930px;
   text-align: center;
 }
 
 h1 {
   margin: 0;
   color: var(--color-heading);
-  font-size: clamp(42px, 7vw, 64px);
-  font-weight: 800;
+  font-size: clamp(40px, 7vw, 68px);
+  font-weight: 850;
   line-height: 1.08;
 }
 
 .hero-copy p {
   margin: 0;
-  max-width: 680px;
+  max-width: 700px;
   color: var(--color-text);
   font-size: 18px;
   line-height: 1.75;
@@ -81,12 +82,12 @@ h1 {
 .search-box {
   display: grid;
   grid-template-columns: 1fr auto;
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   min-height: 64px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: #ffffff;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.08);
   transition:
     border-color var(--transition),
     box-shadow var(--transition);
@@ -94,30 +95,40 @@ h1 {
 
 .search-box:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 18px 45px rgba(255, 112, 88, 0.14);
+  box-shadow: 0 22px 60px rgba(255, 112, 88, 0.16);
 }
 
 .search-box input {
   min-width: 0;
   border: 0;
   background: transparent;
-  padding: 0 6px 0 26px;
+  padding: 0 8px 0 28px;
   color: var(--color-heading);
   outline: 0;
 }
 
 .search-box button {
   align-self: center;
-  width: 52px;
-  height: 52px;
-  min-width: 52px;
-  margin-right: 6px;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  margin-right: 5px;
   border: 0;
   border-radius: 50%;
   color: #ffffff;
   background: var(--color-primary);
   font-size: 0;
-  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.22);
+  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.24);
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    box-shadow var(--transition);
+}
+
+.search-box button:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(255, 112, 88, 0.28);
 }
 
 .search-box button::before {
@@ -136,13 +147,13 @@ h1 {
   margin: 0;
   color: var(--color-muted);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 @media (max-width: 640px) {
   .hero-search {
-    min-height: 500px;
-    padding-top: 64px;
+    min-height: 520px;
+    padding-top: 66px;
   }
 
   .search-box {
@@ -155,9 +166,9 @@ h1 {
   }
 
   .search-box button {
-    width: 46px;
-    height: 46px;
-    min-width: 46px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
   }
 }
 </style>
