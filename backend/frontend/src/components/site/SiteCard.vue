@@ -1,7 +1,11 @@
 <template>
   <article class="site-card">
     <div class="card-head">
-      <img :src="logoSrc" :alt="site.name" @error="useFallbackLogo" />
+      <img
+        :src="logoSrc"
+        :alt="`${site.name || '网站'} Logo`"
+        @error="useFallbackLogo"
+      />
       <div>
         <h3>{{ site.name }}</h3>
         <p>{{ site.summary || site.description || "实用 AI 资源" }}</p>
@@ -73,6 +77,7 @@ function useFallbackLogo() {
 .site-card {
   display: grid;
   gap: 18px;
+  min-width: 0;
   min-height: 278px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -112,6 +117,7 @@ h3 {
   color: var(--color-heading);
   font-size: 18px;
   line-height: 1.3;
+  word-break: break-word;
 }
 
 p {
@@ -140,13 +146,16 @@ p {
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 8px;
+  min-width: 0;
 }
 
 .meta span {
+  max-width: 100%;
   border-radius: var(--radius-pill);
   background: var(--color-soft);
   color: var(--color-text);
   padding: 6px 10px;
+  overflow-wrap: anywhere;
   font-size: 12px;
   font-weight: 750;
 }
@@ -186,13 +195,17 @@ a {
 }
 
 button:hover,
-a:hover {
+a:hover,
+button:focus-visible,
+a:focus-visible {
   border-color: rgba(255, 112, 88, 0.38);
   color: var(--color-primary);
   transform: translateY(-1px);
+  outline: none;
 }
 
-.favorite-action:hover {
+.favorite-action:hover,
+.favorite-action:focus-visible {
   border-color: rgba(255, 112, 88, 0.58);
   background: var(--color-soft-orange);
   box-shadow: 0 10px 22px rgba(255, 112, 88, 0.12);
@@ -205,9 +218,26 @@ a:hover {
   box-shadow: 0 10px 22px rgba(255, 112, 88, 0.18);
 }
 
-.visit:hover {
+.visit:hover,
+.visit:focus-visible {
   background: var(--color-primary-dark);
   color: #ffffff;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.26);
+}
+
+@media (max-width: 520px) {
+  .site-card {
+    padding: 18px;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  button,
+  a {
+    width: 100%;
+  }
 }
 </style>

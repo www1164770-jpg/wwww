@@ -1,48 +1,53 @@
 <template>
   <form class="questionnaire-form" @submit.prevent="$emit('submit', form)">
-    <div class="select-grid">
-      <label>
-        职业
-        <select v-model="form.occupation" required>
-          <option disabled value="">请选择职业</option>
-          <option v-for="item in occupations" :key="item" :value="item">
-            {{ labelText(item) }}
-          </option>
-        </select>
-      </label>
-      <label>
-        能力水平
-        <select v-model="form.skill_level" required>
-          <option disabled value="">请选择能力水平</option>
-          <option v-for="item in skillLevels" :key="item" :value="item">
-            {{ labelText(item) }}
-          </option>
-        </select>
-      </label>
-    </div>
+    <section class="question-card">
+      <h2>基础画像</h2>
+      <div class="select-grid">
+        <label>
+          职业
+          <select v-model="form.occupation" required>
+            <option disabled value="">请选择职业</option>
+            <option v-for="item in occupations" :key="item" :value="item">
+              {{ labelText(item) }}
+            </option>
+          </select>
+        </label>
+        <label>
+          能力水平
+          <select v-model="form.skill_level" required>
+            <option disabled value="">请选择能力水平</option>
+            <option v-for="item in skillLevels" :key="item" :value="item">
+              {{ labelText(item) }}
+            </option>
+          </select>
+        </label>
+      </div>
+    </section>
 
-    <fieldset>
+    <fieldset class="question-card">
       <legend>使用目的</legend>
       <label v-for="item in purposes" :key="item" class="pill-option">
         <input v-model="form.purposes" type="checkbox" :value="item" />
         <span>{{ labelText(item) }}</span>
       </label>
     </fieldset>
-    <fieldset>
+    <fieldset class="question-card">
       <legend>兴趣方向</legend>
       <label v-for="item in interests" :key="item" class="pill-option">
         <input v-model="form.interests" type="checkbox" :value="item" />
         <span>{{ labelText(item) }}</span>
       </label>
     </fieldset>
-    <fieldset>
-      <legend>偏好</legend>
+    <fieldset class="question-card">
+      <legend>资源偏好</legend>
       <label v-for="item in preferences" :key="item" class="pill-option">
         <input v-model="form.preferences" type="checkbox" :value="item" />
         <span>{{ labelText(item) }}</span>
       </label>
     </fieldset>
-    <button type="submit">保存问卷</button>
+    <div class="submit-bar">
+      <button type="submit">保存问卷</button>
+    </div>
   </form>
 </template>
 
@@ -115,13 +120,39 @@ function labelText(value) {
 <style scoped>
 .questionnaire-form {
   display: grid;
-  gap: 24px;
+  gap: 18px;
+}
+
+.question-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 22px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+}
+
+.question-card h2,
+legend {
+  width: 100%;
+  margin: 0;
+  color: var(--color-heading);
+  font-size: 20px;
+  font-weight: 850;
+}
+
+fieldset {
+  margin: 0;
 }
 
 .select-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
 }
 
 label {
@@ -132,26 +163,12 @@ label {
 }
 
 select {
+  width: 100%;
+  min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: 14px;
   background: #ffffff;
   padding: 13px 14px;
-}
-
-fieldset {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: #ffffff;
-  padding: 20px;
-}
-
-legend {
-  color: var(--color-heading);
-  font-weight: 850;
-  padding: 0 8px;
 }
 
 .pill-option {
@@ -176,32 +193,61 @@ legend {
     background var(--transition),
     border-color var(--transition),
     color var(--transition),
-    transform var(--transition);
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .pill-option input:checked + span {
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: #ffffff;
+  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.16);
 }
 
-.pill-option:hover span {
+.pill-option:hover span,
+.pill-option input:focus-visible + span {
+  border-color: rgba(255, 112, 88, 0.48);
   transform: translateY(-1px);
 }
 
+.submit-bar {
+  position: sticky;
+  bottom: 18px;
+  display: flex;
+  justify-content: flex-end;
+  border: 1px solid rgba(229, 231, 235, 0.82);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 12px;
+  backdrop-filter: blur(14px);
+}
+
 button {
+  min-width: 160px;
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #ffffff;
-  padding: 15px;
+  padding: 15px 20px;
   font-weight: 850;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+}
+
+button:hover,
+button:focus-visible {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  outline: none;
 }
 
 @media (max-width: 680px) {
   .select-grid {
     grid-template-columns: 1fr;
+  }
+
+  .submit-bar,
+  button {
+    width: 100%;
   }
 }
 </style>

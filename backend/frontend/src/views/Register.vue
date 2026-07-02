@@ -1,24 +1,47 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">智慧导航</RouterLink>
-      <div>
+      <RouterLink class="brand" to="/">智汇导航</RouterLink>
+      <div class="auth-heading">
         <p>开启个性化推荐</p>
         <h1>注册账号</h1>
       </div>
-      <label>用户名<input v-model.trim="form.username" required /></label>
-      <label
-        >邮箱<input v-model.trim="form.email" type="email" required
-      /></label>
-      <label
-        >密码<input v-model="form.password" type="password" required
-      /></label>
+      <label>
+        用户名
+        <input v-model.trim="form.username" autocomplete="username" required />
+      </label>
+      <label>
+        邮箱
+        <input
+          v-model.trim="form.email"
+          autocomplete="email"
+          type="email"
+          required
+        />
+      </label>
+      <label>
+        密码
+        <input
+          v-model="form.password"
+          autocomplete="new-password"
+          type="password"
+          required
+        />
+      </label>
       <label>
         确认密码
-        <input v-model="confirmPassword" type="password" required />
+        <input
+          v-model="confirmPassword"
+          autocomplete="new-password"
+          type="password"
+          required
+        />
       </label>
       <div class="code-row">
-        <label>邮箱验证码<input v-model.trim="form.code" required /></label>
+        <label>
+          邮箱验证码
+          <input v-model.trim="form.code" required />
+        </label>
         <button type="button" class="secondary" @click="sendCode">
           发送验证码
         </button>
@@ -27,7 +50,9 @@
         <input v-model="accepted" type="checkbox" />
         我已阅读并同意用户协议和隐私政策
       </label>
-      <p v-if="message" :class="{ error: hasError }">{{ message }}</p>
+      <p v-if="message" :class="{ error: hasError, success: !hasError }">
+        {{ message }}
+      </p>
       <button type="submit">创建账号</button>
       <RouterLink class="switch-link" to="/login">
         已有账号？去登录
@@ -115,9 +140,9 @@ async function submit() {
   text-decoration: none;
 }
 
-p {
+.auth-heading p {
   margin: 0 0 6px;
-  color: var(--color-muted);
+  color: #718096;
   font-weight: 750;
 }
 
@@ -144,7 +169,7 @@ input {
 
 .code-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   align-items: end;
 }
@@ -174,10 +199,12 @@ button {
     box-shadow var(--transition);
 }
 
-button:hover {
+button:hover,
+button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
+  outline: none;
 }
 
 .secondary {
@@ -187,8 +214,10 @@ button:hover {
   box-shadow: none;
 }
 
-.secondary:hover {
+.secondary:hover,
+.secondary:focus-visible {
   background: #ffe8e0;
+  color: var(--color-primary-dark);
 }
 
 .switch-link {
@@ -198,8 +227,18 @@ button:hover {
   font-weight: 750;
 }
 
+.switch-link:hover,
+.switch-link:focus-visible {
+  color: var(--color-primary-dark);
+  outline: none;
+}
+
 .error {
   color: #b91c1c;
+}
+
+.success {
+  color: #047857;
 }
 
 @media (max-width: 560px) {

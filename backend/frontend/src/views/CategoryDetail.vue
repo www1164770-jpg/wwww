@@ -3,14 +3,18 @@
     <AppHeader />
     <main>
       <section class="category-hero">
-        <p>分类详情</p>
         <h1>{{ currentCategory?.name || "分类详情" }}</h1>
-        <span>继续使用现有分类和筛选接口，展示该分类下的网站资源。</span>
+        <p>
+          {{
+            currentCategory?.description ||
+            "按标签、价格、地区和排序方式筛选该分类下的网站资源。"
+          }}
+        </p>
       </section>
 
       <div class="content-layout">
         <aside class="filter-panel">
-          <h2>筛选工具</h2>
+          <h2>筛选条件</h2>
           <SiteFilter
             v-model="filters"
             :categories="children"
@@ -24,8 +28,8 @@
           <SiteList
             v-else
             :sites="sites"
-            empty-title="该分类暂无网站"
-            empty-description="可以尝试切换标签、价格、地区或排序方式。"
+            empty-title="暂无符合条件的资源"
+            empty-description="可以尝试调整筛选条件"
             @favorite="favorite"
             @visit="visit"
           />
@@ -109,7 +113,7 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
+  background: #ffffff;
 }
 
 main {
@@ -134,26 +138,22 @@ main {
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
-.category-hero p {
-  margin: 0;
-  color: var(--color-primary);
-  font-weight: 850;
-}
-
 h1 {
   margin: 0;
   color: var(--color-heading);
   font-size: clamp(36px, 5vw, 56px);
 }
 
-.category-hero span {
-  color: var(--color-text);
+.category-hero p {
+  max-width: 720px;
+  margin: 0;
+  color: #718096;
   line-height: 1.7;
 }
 
 .content-layout {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -194,6 +194,13 @@ h1 {
 
   .filter-panel {
     position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  main {
+    width: min(100% - 28px, 1180px);
+    margin-top: 32px;
   }
 }
 </style>

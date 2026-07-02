@@ -10,16 +10,22 @@
       />
       <template v-else>
         <section class="hero">
-          <img :src="site.logo_url || fallbackLogo" :alt="site.name" />
+          <img
+            :src="logoSrc"
+            :alt="`${site.name || '网站'} Logo`"
+            @error="logoFailed = true"
+          />
           <div class="hero-copy">
             <p>{{ site.category_name || "AI 资源" }}</p>
             <h1>{{ site.name }}</h1>
-            <span>{{ site.summary }}</span>
+            <span>{{ site.summary || site.description }}</span>
             <div class="actions">
-              <button @click="toggleFavorite">
+              <button type="button" @click="toggleFavorite">
                 {{ site.is_favorited ? "取消收藏" : "收藏" }}
               </button>
-              <button class="primary" @click="visit">访问官网</button>
+              <button type="button" class="primary" @click="visit">
+                访问官网
+              </button>
             </div>
           </div>
         </section>
@@ -28,21 +34,22 @@
           <div class="main-column">
             <section class="content">
               <h2>详细介绍</h2>
-              <p><strong>链接：</strong> {{ site.url }}</p>
-              <p>{{ site.description || site.summary }}</p>
-              <div class="chips">
-                <span v-for="tag in site.tags || []" :key="tag">{{ tag }}</span>
-                <span
-                  v-for="occupation in site.occupations || []"
-                  :key="occupation"
-                >
-                  {{ occupation }}
-                </span>
-              </div>
+              <p>{{ site.description || site.summary || "暂无详细介绍。" }}</p>
+              <a
+                class="site-url"
+                :href="site.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ site.url }}
+              </a>
             </section>
 
             <section class="comments">
-              <h2>评论</h2>
+              <div class="section-head">
+                <h2>评论区域</h2>
+                <p>分享你的使用体验，帮助其他用户判断是否适合。</p>
+              </div>
               <form
                 v-if="loggedIn"
                 class="comment-form"
@@ -113,7 +120,7 @@
 
           <aside class="side-column">
             <section class="facts">
-              <h2>网站信息</h2>
+              <h2>基础信息</h2>
               <div>
                 <strong>是否免费</strong>
                 <span>{{ site.is_free ? "是" : "否" }}</span>
@@ -124,11 +131,13 @@
               </div>
               <div>
                 <strong>地区</strong>
-                <span>{{ site.region }}</span>
+                <span>{{ site.region || "暂未填写" }}</span>
               </div>
               <div>
                 <strong>推荐指数</strong>
-                <span>{{ site.recommend_level || site.quality_score }}</span>
+                <span>{{
+                  site.recommend_level || site.quality_score || "暂无"
+                }}</span>
               </div>
               <div>
                 <strong>用户评分</strong>
@@ -136,10 +145,35 @@
               </div>
             </section>
 
+            <section class="tags-card">
+              <h2>标签</h2>
+              <div class="chips">
+                <span v-for="tag in site.tags || []" :key="tag">{{ tag }}</span>
+                <span v-if="!(site.tags || []).length">暂无标签</span>
+              </div>
+            </section>
+
+            <section class="tags-card">
+              <h2>适用职业</h2>
+              <div class="chips">
+                <span
+                  v-for="occupation in site.occupations || []"
+                  :key="occupation"
+                >
+                  {{ occupation }}
+                </span>
+                <span v-if="!(site.occupations || []).length"
+                  >暂无适用职业</span
+                >
+              </div>
+            </section>
+
             <section class="similar">
               <h2>相似网站推荐</h2>
               <SiteList
                 :sites="site.similar_sites || []"
+                empty-title="暂无相似网站"
+                empty-description="后续会根据分类和标签继续补充推荐。"
                 @favorite="favoriteSimilar"
                 @visit="visitSimilar"
               />
@@ -152,7 +186,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
@@ -169,7 +203,18 @@ const commentsLoading = ref(false);
 const commentSubmitting = ref(false);
 const commentForm = reactive({ rating: 5, content: "" });
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=site";
+const logoFailed = ref(false);
 const loggedIn = computed(() => Boolean(localStorage.getItem("access_token")));
+const logoSrc = computed(() =>
+  logoFailed.value ? fallbackLogo : site.value?.logo_url || fallbackLogo,
+);
+
+watch(
+  () => site.value?.logo_url,
+  () => {
+    logoFailed.value = false;
+  },
+);
 
 function toDate(value) {
   if (!value) return "";
@@ -252,7 +297,7 @@ onMounted(load);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
+  background: #ffffff;
 }
 
 .detail {
@@ -266,7 +311,8 @@ onMounted(load);
 .content,
 .comments,
 .facts,
-.similar {
+.similar,
+.tags-card {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
@@ -290,8 +336,9 @@ onMounted(load);
 }
 
 .hero img {
-  width: 104px;
-  height: 104px;
+  flex: 0 0 auto;
+  width: 108px;
+  height: 108px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
   object-fit: cover;
@@ -301,6 +348,7 @@ onMounted(load);
 .hero-copy {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
 .hero-copy p {
@@ -320,16 +368,19 @@ h1 {
   color: var(--color-heading);
   font-size: clamp(36px, 5vw, 58px);
   line-height: 1.08;
+  word-break: break-word;
 }
 
 h2 {
+  margin-bottom: 14px;
   color: var(--color-heading);
 }
 
 .hero-copy span,
 .content p,
-.comment-item p {
-  color: var(--color-text);
+.comment-item p,
+.section-head p {
+  color: #718096;
   line-height: 1.7;
 }
 
@@ -365,13 +416,15 @@ h2 {
   display: grid;
 }
 
-button {
+button,
+.site-url {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: #ffffff;
   color: var(--color-heading);
   padding: 11px 16px;
   font-weight: 800;
+  text-decoration: none;
   transition:
     transform var(--transition),
     border-color var(--transition),
@@ -379,10 +432,14 @@ button {
     background var(--transition);
 }
 
-button:hover {
+button:hover,
+button:focus-visible,
+.site-url:hover,
+.site-url:focus-visible {
   border-color: rgba(255, 112, 88, 0.38);
   color: var(--color-primary);
   transform: translateY(-1px);
+  outline: none;
 }
 
 button.primary,
@@ -394,9 +451,17 @@ button.primary,
 }
 
 button.primary:hover,
-.comment-form button:hover {
+button.primary:focus-visible,
+.comment-form button:hover,
+.comment-form button:focus-visible {
   background: var(--color-primary-dark);
   color: #ffffff;
+}
+
+.site-url {
+  display: inline-flex;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .facts {
@@ -404,8 +469,7 @@ button.primary:hover,
   gap: 12px;
 }
 
-.facts div,
-.chips span {
+.facts div {
   display: grid;
   gap: 6px;
   border-radius: 16px;
@@ -419,8 +483,12 @@ button.primary:hover,
 
 .chips span {
   display: inline-block;
-  color: var(--color-primary-dark);
+  max-width: 100%;
+  border-radius: var(--radius-pill);
   background: var(--color-soft-orange);
+  color: var(--color-primary-dark);
+  padding: 8px 12px;
+  overflow-wrap: anywhere;
   font-weight: 750;
 }
 
@@ -488,10 +556,26 @@ button.primary:hover,
   }
 }
 
+@media (max-width: 768px) {
+  .detail {
+    width: min(100% - 28px, 1180px);
+    margin-top: 32px;
+  }
+}
+
 @media (max-width: 640px) {
   .hero {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
   }
 }
 </style>

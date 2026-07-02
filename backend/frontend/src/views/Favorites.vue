@@ -4,9 +4,8 @@
     <main>
       <section class="hero">
         <div>
-          <p>我的收藏</p>
-          <h1>收藏网站卡片网格</h1>
-          <span>集中管理你保存过的 AI 工具和高频资源。</span>
+          <h1>我的收藏</h1>
+          <p>这里保存了你常用和感兴趣的网站资源。</p>
         </div>
         <label class="filter">
           分类
@@ -29,7 +28,9 @@
         :sites="filteredFavorites"
         :favorite-ids="favorites.map((site) => site.id)"
         empty-title="暂无收藏"
-        empty-description="去首页发现适合你的 AI 工具。"
+        empty-description="去首页发现适合你的 AI 工具"
+        empty-action-text="去首页看看"
+        empty-action-to="/"
         @favorite="remove"
         @visit="visit"
       />
@@ -84,7 +85,7 @@ onMounted(load);
 <style scoped>
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
+  background: #ffffff;
 }
 
 main {
@@ -111,20 +112,16 @@ main {
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
 }
 
-.hero p {
-  margin: 0 0 8px;
-  color: var(--color-primary);
-  font-weight: 850;
-}
-
 h1 {
   margin: 0 0 10px;
   color: var(--color-heading);
   font-size: clamp(34px, 5vw, 54px);
 }
 
-.hero span {
-  color: var(--color-text);
+.hero p {
+  margin: 0;
+  color: #718096;
+  line-height: 1.7;
 }
 
 .filter {
@@ -143,6 +140,11 @@ select {
 }
 
 @media (max-width: 760px) {
+  main {
+    width: min(100% - 28px, 1180px);
+    margin-top: 32px;
+  }
+
   .hero {
     align-items: stretch;
     flex-direction: column;

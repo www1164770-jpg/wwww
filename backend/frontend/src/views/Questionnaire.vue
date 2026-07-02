@@ -3,9 +3,8 @@
     <AppHeader />
     <main class="panel">
       <div class="panel-heading">
-        <p class="eyebrow">个性化推荐</p>
-        <h1>完善你的 AI 资源画像</h1>
-        <span>选择职业、兴趣和偏好后，系统会继续使用原有接口生成推荐。</span>
+        <h1>完成职业问卷</h1>
+        <p>系统将根据你的职业、兴趣和使用目标推荐更适合的网站资源。</p>
       </div>
       <QuestionnaireForm
         v-if="!loading"
@@ -89,7 +88,7 @@ onMounted(async () => {
 .panel {
   display: grid;
   gap: 30px;
-  width: min(940px, calc(100% - 40px));
+  width: min(980px, calc(100% - 40px));
   margin: 52px auto 78px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
@@ -104,10 +103,6 @@ onMounted(async () => {
   text-align: center;
 }
 
-.eyebrow {
-  color: var(--color-primary);
-}
-
 h1 {
   margin: 0;
   color: var(--color-heading);
@@ -115,8 +110,10 @@ h1 {
   line-height: 1.12;
 }
 
-.panel-heading span {
-  color: var(--color-text);
+.panel-heading p {
+  max-width: 700px;
+  margin: 0 auto;
+  color: #718096;
   line-height: 1.7;
 }
 
@@ -124,5 +121,12 @@ h1 {
   margin: 0;
   color: #b91c1c;
   font-weight: 750;
+}
+
+@media (max-width: 768px) {
+  .panel {
+    width: min(100% - 28px, 980px);
+    margin-top: 32px;
+  }
 }
 </style>

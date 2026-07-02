@@ -4,29 +4,38 @@
     <main>
       <section class="search-hero">
         <h1>搜索结果</h1>
-        <p>输入工具、网站或使用场景，继续调用原有搜索接口获取结果。</p>
+        <p v-if="keyword">与“{{ keyword }}”相关的资源</p>
+        <p v-else>输入工具、网站或使用场景，发现更适合你的资源。</p>
         <SearchBar
           v-model="keyword"
           :navigate-on-submit="false"
+          placeholder="搜索 AI 工具、编程开发、设计资源、学习成长..."
           @search="search"
         />
       </section>
 
-      <SiteFilter
-        v-model="filters"
-        :categories="categories"
-        :tags="tags"
-        @change="search(keyword)"
-      />
-      <LoadingState v-if="loading" text="正在搜索..." />
-      <SiteList
-        v-else
-        :sites="sites"
-        empty-title="没有匹配结果"
-        empty-description="没有找到相关网站，可以尝试 AI 工具、编程、设计资源等关键词。"
-        @favorite="favorite"
-        @visit="visit"
-      />
+      <section class="result-layout">
+        <aside class="filter-panel">
+          <h2>筛选资源</h2>
+          <SiteFilter
+            v-model="filters"
+            :categories="categories"
+            :tags="tags"
+            @change="search(keyword)"
+          />
+        </aside>
+        <section class="results-panel">
+          <LoadingState v-if="loading" text="正在搜索..." />
+          <SiteList
+            v-else
+            :sites="sites"
+            empty-title="暂无搜索结果"
+            empty-description="可以试试“AI工具 / 编程开发 / 设计资源 / 学习成长”"
+            @favorite="favorite"
+            @visit="visit"
+          />
+        </section>
+      </section>
     </main>
   </div>
 </template>
@@ -114,7 +123,7 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
+  background: #ffffff;
 }
 
 main {
@@ -154,11 +163,64 @@ h1 {
 
 .search-hero p {
   margin: 0;
-  color: var(--color-text);
+  color: #718096;
   line-height: 1.7;
 }
 
 .search-hero :deep(.search-bar) {
-  max-width: 760px;
+  max-width: 780px;
+}
+
+.result-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.filter-panel {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.filter-panel h2 {
+  margin: 0;
+  color: var(--color-heading);
+  font-size: 20px;
+}
+
+.filter-panel :deep(.site-filter) {
+  grid-template-columns: 1fr;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.results-panel {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .result-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  main {
+    width: min(100% - 28px, 1180px);
+    margin-top: 32px;
+  }
 }
 </style>

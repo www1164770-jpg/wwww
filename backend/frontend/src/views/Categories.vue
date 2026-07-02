@@ -3,27 +3,38 @@
     <AppHeader />
     <main>
       <section class="hero">
-        <h1>分类导航</h1>
-        <p>按场景快速找到适合学习、工作、创作和项目开发的 AI 工具。</p>
+        <div>
+          <h1>分类导航</h1>
+          <p>按行业和使用场景快速找到高质量网站资源。</p>
+        </div>
         <SearchBar
           v-model="keyword"
           :navigate-on-submit="false"
           placeholder="搜索分类名称..."
         />
       </section>
+
       <LoadingState v-if="loading" text="正在加载分类..." />
       <div v-else-if="filteredRoots.length" class="grid">
         <RouterLink
           v-for="category in filteredRoots"
           :key="category.id"
+          class="category-card"
           :to="`/category/${category.id}`"
         >
-          <span>{{ category.icon || "AI" }}</span>
+          <span class="category-icon">{{ category.icon || "AI" }}</span>
           <strong>{{ category.name }}</strong>
-          <small>查看该分类下的精选工具</small>
+          <small>{{
+            category.description || "查看该分类下的精选网站资源"
+          }}</small>
+          <span class="card-action">查看资源</span>
         </RouterLink>
       </div>
-      <EmptyState v-else title="暂无分类" description="没有找到匹配的分类。" />
+      <EmptyState
+        v-else
+        title="暂无分类"
+        description="可以尝试更换关键词或稍后再来查看。"
+      />
     </main>
   </div>
 </template>
@@ -66,7 +77,7 @@ onMounted(async () => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
+  background: #ffffff;
 }
 
 main {
@@ -79,7 +90,7 @@ main {
 .hero {
   display: grid;
   justify-items: center;
-  gap: 18px;
+  gap: 22px;
   border-radius: 24px;
   background:
     radial-gradient(
@@ -107,8 +118,8 @@ h1 {
 
 .hero p {
   max-width: 640px;
-  margin: 0;
-  color: var(--color-text);
+  margin: 12px 0 0;
+  color: #718096;
   line-height: 1.7;
 }
 
@@ -118,14 +129,15 @@ h1 {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
   gap: 18px;
 }
 
-.grid a {
+.category-card {
   display: grid;
   gap: 14px;
-  min-height: 178px;
+  min-width: 0;
+  min-height: 210px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
@@ -139,16 +151,18 @@ h1 {
     border-color var(--transition);
 }
 
-.grid a:hover {
+.category-card:hover,
+.category-card:focus-visible {
   border-color: rgba(255, 112, 88, 0.34);
   transform: translateY(-5px);
   box-shadow: var(--shadow-card);
+  outline: none;
 }
 
-.grid span {
+.category-icon {
   display: grid;
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
   place-items: center;
   border-radius: 18px;
   background: var(--color-soft-orange);
@@ -156,7 +170,33 @@ h1 {
   font-weight: 850;
 }
 
-.grid small {
-  color: var(--color-muted);
+strong {
+  font-size: 20px;
+}
+
+small {
+  color: #718096;
+  line-height: 1.65;
+}
+
+.card-action {
+  display: inline-grid;
+  width: max-content;
+  min-height: 38px;
+  place-items: center;
+  margin-top: auto;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 0 15px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+@media (max-width: 768px) {
+  main {
+    width: min(100% - 28px, 1120px);
+    margin-top: 32px;
+  }
 }
 </style>

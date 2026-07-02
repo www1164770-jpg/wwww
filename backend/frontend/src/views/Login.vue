@@ -1,14 +1,19 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">智慧导航</RouterLink>
-      <div>
+      <RouterLink class="brand" to="/">智汇导航</RouterLink>
+      <div class="auth-heading">
         <p>欢迎回来</p>
         <h1>登录账号</h1>
       </div>
       <label>
         邮箱或用户名
-        <input v-model.trim="account" autocomplete="username" required />
+        <input
+          v-model.trim="account"
+          autocomplete="username"
+          aria-label="邮箱或用户名"
+          required
+        />
       </label>
       <label>
         密码
@@ -16,6 +21,7 @@
           v-model="password"
           autocomplete="current-password"
           type="password"
+          aria-label="密码"
           required
         />
       </label>
@@ -111,9 +117,9 @@ async function submit() {
   text-decoration: none;
 }
 
-p {
+.auth-heading p {
   margin: 0 0 6px;
-  color: var(--color-muted);
+  color: #718096;
   font-weight: 750;
 }
 
@@ -131,6 +137,7 @@ label {
 }
 
 input {
+  min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: 14px;
   background: #ffffff;
@@ -151,10 +158,12 @@ button {
     box-shadow var(--transition);
 }
 
-button:hover {
+button:hover,
+button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
+  outline: none;
 }
 
 button:disabled {
@@ -169,8 +178,15 @@ button:disabled {
   font-weight: 750;
 }
 
+.switch-link:hover,
+.switch-link:focus-visible {
+  color: var(--color-primary-dark);
+  outline: none;
+}
+
 .error {
   margin: 0;
   color: #b91c1c;
+  font-weight: 750;
 }
 </style>

@@ -3,7 +3,7 @@
     <div class="header-inner">
       <RouterLink class="brand" to="/">
         <span class="brand-mark">智</span>
-        <span>智慧导航</span>
+        <span>智汇导航</span>
       </RouterLink>
 
       <nav class="nav-links" aria-label="主导航">
@@ -17,7 +17,12 @@
       </nav>
 
       <div class="actions">
-        <RouterLink v-if="loggedIn" class="avatar" to="/profile">
+        <RouterLink
+          v-if="loggedIn"
+          class="avatar"
+          to="/profile"
+          aria-label="个人中心"
+        >
           {{ initials }}
         </RouterLink>
         <template v-else>
@@ -51,7 +56,7 @@ const initials = computed(() =>
   top: 0;
   z-index: 20;
   border-bottom: 1px solid rgba(229, 231, 235, 0.78);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(18px);
 }
 
@@ -61,6 +66,7 @@ const initials = computed(() =>
   justify-content: space-between;
   gap: 24px;
   width: min(1200px, calc(100% - 40px));
+  min-width: 0;
   height: 72px;
   margin: 0 auto;
 }
@@ -68,6 +74,7 @@ const initials = computed(() =>
 .brand {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   gap: 10px;
   color: var(--color-heading);
   font-size: 18px;
@@ -92,12 +99,12 @@ const initials = computed(() =>
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .nav-links {
   flex: 1;
   justify-content: center;
-  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -125,9 +132,11 @@ a {
 }
 
 .nav-links a:hover,
+.nav-links a:focus-visible,
 .nav-links a.router-link-active {
   color: var(--color-primary);
   background: var(--color-soft-orange);
+  outline: none;
 }
 
 .login-link {
@@ -152,10 +161,13 @@ a {
 }
 
 .primary:hover,
-.avatar:hover {
+.primary:focus-visible,
+.avatar:hover,
+.avatar:focus-visible {
   background: var(--color-primary-dark);
   color: #ffffff;
   transform: translateY(-1px);
+  outline: none;
 }
 
 .avatar {

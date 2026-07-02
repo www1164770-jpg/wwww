@@ -1,37 +1,52 @@
 <template>
   <div class="site-filter">
-    <select v-model="local.category_id" @change="emitChange">
-      <option value="">全部分类</option>
-      <option
-        v-for="category in categories"
-        :key="category.id"
-        :value="category.id"
-      >
-        {{ category.name }}
-      </option>
-    </select>
-    <select v-model="local.tag" @change="emitChange">
-      <option value="">全部标签</option>
-      <option v-for="tag in tags" :key="tag.id || tag.name" :value="tag.name">
-        {{ tag.name }}
-      </option>
-    </select>
-    <select v-model="local.is_free" @change="emitChange">
-      <option value="">免费和付费</option>
-      <option value="free">免费</option>
-      <option value="paid">付费</option>
-    </select>
-    <select v-model="local.region" @change="emitChange">
-      <option value="">全部地区</option>
-      <option value="domestic">国内</option>
-      <option value="international">国外</option>
-    </select>
-    <select v-model="local.sort" @change="emitChange">
-      <option value="recommend">推荐排序</option>
-      <option value="hot">热度最高</option>
-      <option value="latest">最新收录</option>
-      <option value="rating">评分最高</option>
-    </select>
+    <label>
+      <span>分类</span>
+      <select v-model="local.category_id" @change="emitChange">
+        <option value="">全部分类</option>
+        <option
+          v-for="category in categories"
+          :key="category.id"
+          :value="category.id"
+        >
+          {{ category.name }}
+        </option>
+      </select>
+    </label>
+    <label>
+      <span>标签</span>
+      <select v-model="local.tag" @change="emitChange">
+        <option value="">全部标签</option>
+        <option v-for="tag in tags" :key="tag.id || tag.name" :value="tag.name">
+          {{ tag.name }}
+        </option>
+      </select>
+    </label>
+    <label>
+      <span>价格</span>
+      <select v-model="local.is_free" @change="emitChange">
+        <option value="">免费和付费</option>
+        <option value="free">免费</option>
+        <option value="paid">付费</option>
+      </select>
+    </label>
+    <label>
+      <span>地区</span>
+      <select v-model="local.region" @change="emitChange">
+        <option value="">全部地区</option>
+        <option value="domestic">国内</option>
+        <option value="international">国外</option>
+      </select>
+    </label>
+    <label>
+      <span>排序</span>
+      <select v-model="local.sort" @change="emitChange">
+        <option value="recommend">推荐排序</option>
+        <option value="hot">热度最高</option>
+        <option value="latest">最新收录</option>
+        <option value="rating">评分最高</option>
+      </select>
+    </label>
   </div>
 </template>
 
@@ -77,7 +92,21 @@ function emitChange() {
   box-shadow: var(--shadow-soft);
 }
 
+label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--color-heading);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+span {
+  color: var(--color-muted);
+}
+
 select {
+  width: 100%;
   min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: 14px;

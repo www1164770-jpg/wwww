@@ -1,6 +1,11 @@
 <template>
   <form class="search-bar" @submit.prevent="submit">
-    <input v-model.trim="keyword" :placeholder="placeholder" />
+    <input
+      v-model.trim="keyword"
+      type="search"
+      :placeholder="placeholder"
+      aria-label="搜索关键词"
+    />
     <button type="submit" aria-label="搜索">搜索</button>
   </form>
 </template>
@@ -41,7 +46,7 @@ function submit() {
 <style scoped>
 .search-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   width: 100%;
   min-height: 62px;
   border: 1px solid var(--color-border);
@@ -85,10 +90,12 @@ button {
     box-shadow var(--transition);
 }
 
-button:hover {
+button:hover,
+button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 16px 30px rgba(255, 112, 88, 0.26);
+  outline: none;
 }
 
 button::before {

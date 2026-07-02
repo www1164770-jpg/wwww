@@ -8,7 +8,7 @@
 
 <script setup>
 defineProps({
-  text: { type: String, default: "" },
+  text: { type: String, default: "正在加载资源..." },
   title: { type: String, default: "正在加载资源..." },
   description: { type: String, default: "" },
 });
@@ -22,14 +22,14 @@ defineProps({
   border: 1px dashed #cbd5e1;
   border-radius: var(--radius-card);
   background: #ffffff;
-  padding: 38px 24px;
+  padding: 42px 24px;
   color: var(--color-muted);
   text-align: center;
 }
 
 .spinner {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border: 3px solid var(--color-border-soft);
   border-top-color: var(--color-primary);
   border-radius: 999px;
@@ -42,6 +42,7 @@ strong {
 }
 
 p {
+  max-width: 460px;
   margin: 0;
   line-height: 1.65;
 }

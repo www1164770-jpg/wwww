@@ -9,7 +9,13 @@
       @visit="$emit('visit', $event)"
     />
   </div>
-  <EmptyState v-else :title="emptyTitle" :description="emptyDescription" />
+  <EmptyState
+    v-else
+    :title="emptyTitle"
+    :description="emptyDescription"
+    :action-text="emptyActionText"
+    :action-to="emptyActionTo"
+  />
 </template>
 
 <script setup>
@@ -22,8 +28,10 @@ defineProps({
   emptyTitle: { type: String, default: "暂无网站" },
   emptyDescription: {
     type: String,
-    default: "可以尝试 AI 工具、编程、设计资源等关键词。",
+    default: "可以试试 AI 工具、编程开发、设计资源等关键词。",
   },
+  emptyActionText: { type: String, default: "" },
+  emptyActionTo: { type: [String, Object], default: "" },
 });
 defineEmits(["favorite", "visit"]);
 </script>
@@ -31,7 +39,15 @@ defineEmits(["favorite", "visit"]);
 <style scoped>
 .site-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
   gap: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .site-list {
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 16px;
+  }
 }
 </style>

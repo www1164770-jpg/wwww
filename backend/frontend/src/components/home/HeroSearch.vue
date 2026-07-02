@@ -11,6 +11,7 @@
       <input
         :value="modelValue"
         type="search"
+        aria-label="搜索 AI 工具、网站或使用场景"
         placeholder="搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
         @input="$emit('update:modelValue', $event.target.value)"
       />
@@ -80,7 +81,7 @@ h1 {
 
 .search-box {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   width: min(760px, 100%);
   min-height: 64px;
   border: 1px solid var(--color-border);
@@ -124,10 +125,12 @@ h1 {
     box-shadow var(--transition);
 }
 
-.search-box button:hover {
+.search-box button:hover,
+.search-box button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 18px 34px rgba(255, 112, 88, 0.28);
+  outline: none;
 }
 
 .search-box button::before {
