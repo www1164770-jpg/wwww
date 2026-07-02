@@ -18,12 +18,21 @@
           <div class="hero-copy">
             <p>{{ site.category_name || "AI 资源" }}</p>
             <h1>{{ site.name }}</h1>
-            <span>{{ site.summary || site.description }}</span>
+            <span>{{ site.summary || "暂无简介" }}</span>
             <div class="actions">
-              <button type="button" @click="toggleFavorite">
+              <button
+                type="button"
+                :aria-label="site.is_favorited ? '取消收藏' : '收藏'"
+                @click="toggleFavorite"
+              >
                 {{ site.is_favorited ? "取消收藏" : "收藏" }}
               </button>
-              <button type="button" class="primary" @click="visit">
+              <button
+                type="button"
+                class="primary"
+                aria-label="访问官网"
+                @click="visit"
+              >
                 访问官网
               </button>
             </div>
@@ -34,7 +43,7 @@
           <div class="main-column">
             <section class="content">
               <h2>详细介绍</h2>
-              <p>{{ site.description || site.summary || "暂无详细介绍。" }}</p>
+              <p>{{ site.description || "暂无详细介绍" }}</p>
               <a
                 class="site-url"
                 :href="site.url"
@@ -173,7 +182,7 @@
               <SiteList
                 :sites="site.similar_sites || []"
                 empty-title="暂无相似网站"
-                empty-description="后续会根据分类和标签继续补充推荐。"
+                empty-description="后续会根据标签和职业推荐更多相似资源"
                 @favorite="favoriteSimilar"
                 @visit="visitSimilar"
               />

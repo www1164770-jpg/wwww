@@ -1,15 +1,15 @@
 <template>
   <div class="loading-state" role="status" aria-live="polite">
     <span class="spinner" aria-hidden="true"></span>
-    <strong>{{ text || title }}</strong>
+    <strong>{{ text || title || "正在加载资源..." }}</strong>
     <p v-if="description">{{ description }}</p>
   </div>
 </template>
 
 <script setup>
 defineProps({
-  text: { type: String, default: "正在加载资源..." },
-  title: { type: String, default: "正在加载资源..." },
+  text: { type: String, default: "" },
+  title: { type: String, default: "" },
   description: { type: String, default: "" },
 });
 </script>
@@ -19,7 +19,7 @@ defineProps({
   display: grid;
   justify-items: center;
   gap: 12px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
   padding: 42px 24px;

@@ -160,6 +160,7 @@ h1 {
 }
 
 .category-icon {
+  position: relative;
   display: grid;
   width: 54px;
   height: 54px;
@@ -167,7 +168,21 @@ h1 {
   border-radius: 18px;
   background: var(--color-soft-orange);
   color: var(--color-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 850;
+  letter-spacing: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 112, 88, 0.16);
+}
+
+.category-icon::after {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  content: "";
 }
 
 strong {

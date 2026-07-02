@@ -3,9 +3,9 @@
     <AppHeader />
     <main>
       <section class="search-hero">
-        <h1>搜索结果</h1>
-        <p v-if="keyword">与“{{ keyword }}”相关的资源</p>
-        <p v-else>输入工具、网站或使用场景，发现更适合你的资源。</p>
+        <h1 v-if="keyword">与“{{ keyword }}”相关的资源</h1>
+        <h1 v-else>搜索资源</h1>
+        <p>输入工具、网站或使用场景，发现更适合你的资源。</p>
         <SearchBar
           v-model="keyword"
           :navigate-on-submit="false"

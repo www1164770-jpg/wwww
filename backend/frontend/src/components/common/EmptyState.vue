@@ -31,7 +31,7 @@ defineProps({
   display: grid;
   justify-items: center;
   gap: 10px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--color-border);
   border-radius: var(--radius-card);
   background: #ffffff;
   padding: 42px 24px;
@@ -47,6 +47,7 @@ defineProps({
   border-radius: 18px;
   background: var(--color-soft-orange);
   color: var(--color-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 22px;
   font-weight: 850;
 }
