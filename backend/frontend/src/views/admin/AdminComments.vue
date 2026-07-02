@@ -112,18 +112,8 @@ async function review(comment, action) {
   setBusy(comment.id, true);
   try {
     await adminAPI.reviewComment(comment.id, action);
-    if (action === "delete") {
-      comments.value = comments.value.filter((item) => item.id !== comment.id);
-      successToast("删除成功");
-      return;
-    }
-    comment.status =
-      {
-        approve: "visible",
-        reject: "rejected",
-        violation: "violation",
-      }[action] || "rejected";
-    successToast("保存成功");
+    await load();
+    successToast(action === "delete" ? "删除成功" : "保存成功");
   } catch (err) {
     error.value = err.response?.data?.msg || "操作失败，请稍后重试";
     errorToast(error.value);

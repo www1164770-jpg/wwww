@@ -24,7 +24,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import QuestionnaireForm from "../components/questionnaire/QuestionnaireForm.vue";
@@ -32,7 +32,6 @@ import { questionnaireAPI } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
-const route = useRoute();
 const error = ref("");
 const loading = ref(false);
 const submitting = ref(false);
@@ -66,7 +65,7 @@ async function submit(form) {
     await questionnaireAPI.submit(form);
     localStorage.setItem("questionnaire_completed", "true");
     successToast("问卷保存成功");
-    router.push(route.query.redirect || "/");
+    router.push("/");
   } catch (err) {
     error.value = err.response?.data?.msg || "问卷保存失败，请稍后重试";
     errorToast(error.value);

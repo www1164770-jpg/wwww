@@ -129,7 +129,7 @@ function isAdmin() {
 }
 
 function questionnaireCompleted() {
-  return localStorage.getItem("questionnaire_completed") !== "false";
+  return localStorage.getItem("questionnaire_completed") === "true";
 }
 
 router.beforeEach((to) => {

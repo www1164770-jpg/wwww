@@ -24,6 +24,25 @@ def register_v1_routes(app, get_db_connection):
         finally:
             conn.close()
 
+    def record_behavior(user_id=None, site_id=None, behavior_type="", keyword=None):
+        if not user_id:
+            return
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO user_behaviors (user_id, site_id, behavior_type, keyword)
+                    VALUES (%s,%s,%s,%s)
+                    """,
+                    (user_id, site_id, behavior_type, keyword),
+                )
+            conn.commit()
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
     def admin_required(fn):
         @wraps(fn)
         @jwt_required()
@@ -145,9 +164,22 @@ def register_v1_routes(app, get_db_connection):
             where.append("(w.category_id=%s OR c.parent_id=%s)")
             params.extend([category_id, category_id])
         if keyword:
-            where.append("(w.name LIKE %s OR w.summary LIKE %s OR w.description LIKE %s OR w.url LIKE %s)")
+            joins += """
+                LEFT JOIN site_tags st_search ON st_search.site_id = w.id
+                LEFT JOIN tags t_search ON t_search.id = st_search.tag_id
+                LEFT JOIN site_occupations so_search ON so_search.site_id = w.id
+            """
+            where.append(
+                """
+                (
+                    w.name LIKE %s OR w.summary LIKE %s OR w.description LIKE %s OR
+                    w.url LIKE %s OR c.name LIKE %s OR t_search.name LIKE %s OR
+                    so_search.occupation LIKE %s
+                )
+                """
+            )
             like = f"%{keyword}%"
-            params.extend([like, like, like, like])
+            params.extend([like, like, like, like, like, like, like])
         if tag:
             joins += " LEFT JOIN site_tags st_filter ON st_filter.site_id = w.id LEFT JOIN tags t_filter ON t_filter.id = st_filter.tag_id"
             where.append("t_filter.name=%s")
@@ -355,7 +387,7 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/sites", methods=["GET"])
     def v1_sites():
         page = request.args.get("page", 1, type=int)
-        per_page = request.args.get("per_page", 20, type=int)
+        per_page = request.args.get("per_page", request.args.get("page_size", 20, type=int), type=int)
         items = query_sites(
             limit=per_page,
             offset=max(page - 1, 0) * per_page,
@@ -435,11 +467,28 @@ def register_v1_routes(app, get_db_connection):
             conn.close()
         if not row:
             return api_error("site not found", 404, 404)
-        items = [item for item in query_sites(limit=8, category_id=row.get("category_id")) if item["id"] != site_id][:6]
+        seen = {site_id}
+        items = []
+        for item in query_sites(limit=8, category_id=row.get("category_id")):
+            if item["id"] not in seen:
+                items.append(item)
+                seen.add(item["id"])
+        for tag_name in site_tags([site_id]).get(site_id, []):
+            if len(items) >= 6:
+                break
+            for item in query_sites(limit=6, tag=tag_name):
+                if item["id"] not in seen:
+                    items.append(item)
+                    seen.add(item["id"])
+                    if len(items) >= 6:
+                        break
+        items = items[:6]
         return api_success(items)
 
     @app.route("/api/sites/<int:site_id>/click", methods=["POST"])
+    @jwt_required(optional=True)
     def v1_record_click(site_id):
+        user = current_user_row() if get_jwt_identity() else None
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -447,6 +496,7 @@ def register_v1_routes(app, get_db_connection):
             conn.commit()
         finally:
             conn.close()
+        record_behavior(user.get("id") if user else None, site_id, "click")
         return api_success()
 
     @app.route("/api/favorites", methods=["GET"])
@@ -477,31 +527,37 @@ def register_v1_routes(app, get_db_connection):
     def v1_add_favorite(site_id):
         user = current_user_row()
         data = request.get_json(silent=True) or {}
+        inserted = False
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute("INSERT IGNORE INTO favorites (user_id, site_id, note) VALUES (%s,%s,%s)", (user["id"], site_id, data.get("note")))
                 if cursor.rowcount:
+                    inserted = True
                     cursor.execute("UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s", (site_id,))
             conn.commit()
         finally:
             conn.close()
-        return api_success()
+        if inserted:
+            record_behavior(user.get("id"), site_id, "favorite")
+        return api_success({"favorited": True, "created": inserted})
 
     @app.route("/api/sites/<int:site_id>/favorite", methods=["DELETE"])
     @jwt_required()
     def v1_remove_favorite(site_id):
         user = current_user_row()
+        removed = False
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute("DELETE FROM favorites WHERE user_id=%s AND site_id=%s", (user["id"], site_id))
                 if cursor.rowcount:
+                    removed = True
                     cursor.execute("UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s", (site_id,))
             conn.commit()
         finally:
             conn.close()
-        return api_success()
+        return api_success({"favorited": False, "removed": removed})
 
     @app.route("/api/sites/<int:site_id>/favorite", methods=["PUT"])
     @jwt_required()
@@ -589,9 +645,24 @@ def register_v1_routes(app, get_db_connection):
         return api_success()
 
     @app.route("/api/search", methods=["GET"])
+    @jwt_required(optional=True)
     def v1_search():
         q = request.args.get("q", "")
-        return api_success({"items": query_sites(limit=request.args.get("limit", 30, type=int), keyword=q, tag=request.args.get("tag"), category_id=request.args.get("category_id"), sort=request.args.get("sort", "recommend")), "q": q})
+        user = current_user_row() if get_jwt_identity() else None
+        if q:
+            record_behavior(user.get("id") if user else None, None, "search", q)
+        return api_success({
+            "items": query_sites(
+                limit=request.args.get("limit", 30, type=int),
+                keyword=q,
+                tag=request.args.get("tag"),
+                category_id=request.args.get("category_id"),
+                is_free=request.args.get("is_free"),
+                region=request.args.get("region"),
+                sort=request.args.get("sort", "recommend"),
+            ),
+            "q": q,
+        })
 
     @app.route("/api/search/suggest", methods=["GET"])
     def v1_search_suggest():
@@ -601,6 +672,63 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/search/hot-keywords", methods=["GET"])
     def v1_hot_keywords():
         return api_success(["AI 工具", "编程开发", "设计资源", "数据分析", "办公效率"])
+
+    @app.route("/api/admin/dashboard", methods=["GET"])
+    @admin_required
+    def v1_admin_dashboard():
+        data = {
+            "stats": {
+                "users": 0,
+                "new_users": 0,
+                "sites": 0,
+                "categories": 0,
+                "tags": 0,
+                "total_clicks": 0,
+                "total_favorites": 0,
+            },
+            "click_ranking": [],
+            "favorite_ranking": [],
+            "occupation_distribution": [],
+            "category_visit_ranking": [],
+        }
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) AS count FROM users WHERE deleted_at IS NULL")
+                data["stats"]["users"] = cursor.fetchone().get("count", 0)
+                cursor.execute("SELECT COUNT(*) AS count FROM users WHERE DATE(created_at)=CURDATE() AND deleted_at IS NULL")
+                data["stats"]["new_users"] = cursor.fetchone().get("count", 0)
+                cursor.execute("SELECT COUNT(*) AS count FROM websites WHERE COALESCE(status, 'approved') != 'deleted'")
+                data["stats"]["sites"] = cursor.fetchone().get("count", 0)
+                cursor.execute("SELECT COUNT(*) AS count FROM categories WHERE COALESCE(status, 'active') != 'deleted'")
+                data["stats"]["categories"] = cursor.fetchone().get("count", 0)
+                cursor.execute("SELECT COUNT(*) AS count FROM tags")
+                data["stats"]["tags"] = cursor.fetchone().get("count", 0)
+                cursor.execute("SELECT COALESCE(SUM(COALESCE(click_count, clicks, 0)),0) AS total FROM websites")
+                data["stats"]["total_clicks"] = cursor.fetchone().get("total", 0)
+                cursor.execute("SELECT COALESCE(SUM(COALESCE(favorite_count,0)),0) AS total FROM websites")
+                data["stats"]["total_favorites"] = cursor.fetchone().get("total", 0)
+                cursor.execute("SELECT id, name, COALESCE(click_count, clicks, 0) AS click_count FROM websites WHERE COALESCE(status, 'approved') IN ('approved','active') ORDER BY COALESCE(click_count, clicks, 0) DESC LIMIT 8")
+                data["click_ranking"] = cursor.fetchall()
+                cursor.execute("SELECT id, name, COALESCE(favorite_count,0) AS favorite_count FROM websites WHERE COALESCE(status, 'approved') IN ('approved','active') ORDER BY COALESCE(favorite_count,0) DESC LIMIT 8")
+                data["favorite_ranking"] = cursor.fetchall()
+                cursor.execute("SELECT occupation, COUNT(*) AS count FROM user_profiles WHERE occupation IS NOT NULL AND occupation != '' GROUP BY occupation ORDER BY count DESC LIMIT 8")
+                data["occupation_distribution"] = cursor.fetchall()
+                cursor.execute(
+                    """
+                    SELECT c.id, c.name, COALESCE(SUM(COALESCE(w.click_count, w.clicks, 0)),0) AS visit_count
+                    FROM categories c
+                    LEFT JOIN websites w ON w.category_id = c.id
+                    WHERE COALESCE(c.status, 'active') != 'deleted'
+                    GROUP BY c.id, c.name
+                    ORDER BY visit_count DESC
+                    LIMIT 8
+                    """
+                )
+                data["category_visit_ranking"] = cursor.fetchall()
+        finally:
+            conn.close()
+        return api_success(data)
 
     @app.route("/api/admin/sites", methods=["GET", "POST"])
     @admin_required

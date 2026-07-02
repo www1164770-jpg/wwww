@@ -261,6 +261,7 @@ async function load() {
   try {
     const response = await siteAPI.getSite(route.params.id);
     site.value = response.data?.data ?? response.data ?? null;
+    await loadSimilarSites();
     await loadComments();
   } catch (err) {
     error.value = err.response?.data?.msg || "网站详情加载失败，请稍后重试";
@@ -268,6 +269,15 @@ async function load() {
     errorToast(error.value);
   } finally {
     loading.value = false;
+  }
+}
+async function loadSimilarSites() {
+  if (!site.value?.id) return;
+  try {
+    const response = await siteAPI.getSimilar(site.value.id);
+    site.value.similar_sites = response.data?.data ?? response.data ?? [];
+  } catch {
+    site.value.similar_sites = site.value.similar_sites || [];
   }
 }
 async function loadComments() {
@@ -341,6 +351,10 @@ async function submitComment() {
   if (commentSubmitting.value) return;
   if (!commentForm.content.trim()) {
     errorToast("请输入评论内容");
+    return;
+  }
+  if (!commentForm.rating) {
+    errorToast("请选择评分");
     return;
   }
   commentSubmitting.value = true;

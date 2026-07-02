@@ -157,8 +157,10 @@ async function loadHome() {
     categories.value = payload(categoryRes.value, [])
       .filter((item) => !item.parent_id)
       .slice(0, 8);
-    recommended.value = payload(recommendRes.value, []);
-    hotSites.value = payload(hotRes.value, []);
+    const hotPayload = payload(hotRes.value, []);
+    const recommendPayload = payload(recommendRes.value, []);
+    hotSites.value = hotPayload;
+    recommended.value = recommendPayload.length ? recommendPayload : hotPayload;
     latestSites.value = payload(latestRes.value, []);
   } catch {
     error.value = "首页数据加载失败，请稍后重试";

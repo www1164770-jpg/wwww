@@ -122,7 +122,7 @@ async function toggleStatus(user) {
   setBusy(user.id, true);
   try {
     await adminAPI.updateUserStatus(user.id, nextStatus);
-    user.status = nextStatus;
+    await load();
     successToast("保存成功");
   } catch (err) {
     error.value = err.response?.data?.msg || "操作失败，请稍后重试";
