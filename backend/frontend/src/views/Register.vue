@@ -42,8 +42,13 @@
           邮箱验证码
           <input v-model.trim="form.code" required />
         </label>
-        <button type="button" class="secondary" @click="sendCode">
-          发送验证码
+        <button
+          type="button"
+          class="secondary"
+          :disabled="codeLoading || submitLoading"
+          @click="sendCode"
+        >
+          {{ codeLoading ? "发送中..." : "发送验证码" }}
         </button>
       </div>
       <label class="check">
@@ -53,7 +58,9 @@
       <p v-if="message" :class="{ error: hasError, success: !hasError }">
         {{ message }}
       </p>
-      <button type="submit">创建账号</button>
+      <button type="submit" :disabled="submitLoading">
+        {{ submitLoading ? "处理中..." : "创建账号" }}
+      </button>
       <RouterLink class="switch-link" to="/login">
         已有账号？去登录
       </RouterLink>
@@ -65,6 +72,7 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { authAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
 const form = reactive({ username: "", email: "", password: "", code: "" });
@@ -72,33 +80,74 @@ const confirmPassword = ref("");
 const accepted = ref(false);
 const message = ref("");
 const hasError = ref(false);
+const codeLoading = ref(false);
+const submitLoading = ref(false);
+
+function isEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function setError(value) {
+  hasError.value = true;
+  message.value = value;
+  errorToast(value);
+}
 
 async function sendCode() {
+  if (codeLoading.value) return;
+  if (!isEmail(form.email)) {
+    setError("请输入正确的邮箱地址");
+    return;
+  }
+  codeLoading.value = true;
   hasError.value = false;
   try {
     await authAPI.sendCode(form.email);
     message.value = "验证码已发送";
+    successToast("验证码已发送");
   } catch (err) {
     hasError.value = true;
     message.value = err.response?.data?.msg || "验证码发送失败，请稍后重试";
+    errorToast(message.value);
+  } finally {
+    codeLoading.value = false;
   }
 }
 
 async function submit() {
-  hasError.value = true;
+  if (submitLoading.value) return;
+  if (!form.username.trim()) {
+    setError("请输入用户名");
+    return;
+  }
+  if (!isEmail(form.email)) {
+    setError("请输入正确的邮箱地址");
+    return;
+  }
+  if (!form.password) {
+    setError("请输入密码");
+    return;
+  }
   if (form.password !== confirmPassword.value) {
-    message.value = "两次输入的密码不一致";
+    setError("两次输入的密码不一致");
     return;
   }
   if (!accepted.value) {
-    message.value = "请先同意用户协议和隐私政策";
+    setError("请先同意用户协议和隐私政策");
     return;
   }
+  submitLoading.value = true;
+  hasError.value = false;
   try {
     await authAPI.register(form);
+    successToast("注册成功，请登录");
     router.push("/login");
   } catch (err) {
+    hasError.value = true;
     message.value = err.response?.data?.msg || "注册失败，请检查信息后重试";
+    errorToast(message.value);
+  } finally {
+    submitLoading.value = false;
   }
 }
 </script>
@@ -205,6 +254,12 @@ button:focus-visible {
   transform: translateY(-1px);
   box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
   outline: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
 }
 
 .secondary {

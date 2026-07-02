@@ -24,6 +24,7 @@
           <RecommendSection
             :sites="recommended"
             :logged-in="loggedIn"
+            :favorite-pending-ids="favoritePendingIds"
             @favorite="toggleFavorite"
             @visit="visitSite"
           />
@@ -32,6 +33,7 @@
         <section id="hot">
           <HotSitesSection
             :sites="hotSites"
+            :favorite-pending-ids="favoritePendingIds"
             @favorite="toggleFavorite"
             @visit="visitSite"
           />
@@ -40,6 +42,7 @@
         <section id="latest">
           <LatestSitesSection
             :sites="latestSites"
+            :favorite-pending-ids="favoritePendingIds"
             @favorite="toggleFavorite"
             @visit="visitSite"
           />
@@ -71,6 +74,7 @@ import ToolMarquee from "../components/home/ToolMarquee.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import { categoryAPI, favoriteAPI, siteAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
 const keyword = ref("");
@@ -80,6 +84,7 @@ const hotSites = ref([]);
 const latestSites = ref([]);
 const loading = ref(false);
 const error = ref("");
+const favoritePendingIds = ref([]);
 const loggedIn = computed(() => Boolean(localStorage.getItem("access_token")));
 
 function payload(response, fallback = []) {
@@ -104,12 +109,26 @@ async function toggleFavorite(site) {
     router.push({ path: "/login", query: { redirect: "/" } });
     return;
   }
-  if (site.is_favorited) {
-    await favoriteAPI.removeFavorite(site.id);
-    site.is_favorited = false;
-  } else {
-    await favoriteAPI.addFavorite(site.id);
-    site.is_favorited = true;
+  if (favoritePendingIds.value.includes(site.id)) return;
+  const wasFavorited = Boolean(site.is_favorited);
+  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
+  try {
+    if (wasFavorited) {
+      await favoriteAPI.removeFavorite(site.id);
+      site.is_favorited = false;
+      successToast("已取消收藏");
+    } else {
+      await favoriteAPI.addFavorite(site.id);
+      site.is_favorited = true;
+      successToast("已收藏");
+    }
+  } catch {
+    site.is_favorited = wasFavorited;
+    errorToast("操作失败，请稍后重试");
+  } finally {
+    favoritePendingIds.value = favoritePendingIds.value.filter(
+      (id) => id !== site.id,
+    );
   }
 }
 
@@ -132,6 +151,7 @@ async function loadHome() {
     );
     if (failed) {
       error.value = "首页数据加载失败，请稍后重试";
+      errorToast(error.value);
     }
 
     categories.value = payload(categoryRes.value, [])
@@ -142,6 +162,7 @@ async function loadHome() {
     latestSites.value = payload(latestRes.value, []);
   } catch {
     error.value = "首页数据加载失败，请稍后重试";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }

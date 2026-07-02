@@ -28,9 +28,11 @@
       <button
         type="button"
         class="favorite-action"
+        :disabled="favoritePending"
+        :aria-label="favoriteLabel"
         @click="$emit('favorite', site)"
       >
-        {{ favorited ? "取消收藏" : "收藏" }}
+        {{ favoritePending ? "处理中..." : favoriteLabel }}
       </button>
       <button type="button" class="visit" @click="$emit('visit', site)">
         访问网站
@@ -46,6 +48,7 @@ import { computed, ref, watch } from "vue";
 const props = defineProps({
   site: { type: Object, required: true },
   favorited: { type: Boolean, default: false },
+  favoritePending: { type: Boolean, default: false },
 });
 defineEmits(["favorite", "visit"]);
 
@@ -60,6 +63,10 @@ const hiddenTagCount = computed(() => Math.max(allTags.value.length - 3, 0));
 const visibleOccupations = computed(() =>
   (props.site.occupations || []).slice(0, 3),
 );
+const isFavorited = computed(
+  () => Boolean(props.site.is_favorited) || props.favorited,
+);
+const favoriteLabel = computed(() => (isFavorited.value ? "取消收藏" : "收藏"));
 
 watch(
   () => props.site.logo_url,
@@ -202,6 +209,12 @@ a:focus-visible {
   color: var(--color-primary);
   transform: translateY(-1px);
   outline: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
 }
 
 .favorite-action:hover,

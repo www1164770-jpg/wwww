@@ -40,6 +40,7 @@
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { authAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
 const router = useRouter();
@@ -53,6 +54,17 @@ function dataOf(response) {
 }
 
 async function submit() {
+  if (loading.value) return;
+  if (!account.value.trim()) {
+    error.value = "请输入邮箱或用户名";
+    errorToast(error.value);
+    return;
+  }
+  if (!password.value) {
+    error.value = "请输入密码";
+    errorToast(error.value);
+    return;
+  }
   loading.value = true;
   error.value = "";
   try {
@@ -67,6 +79,7 @@ async function submit() {
       String(Boolean(data.questionnaire_completed)),
     );
     localStorage.setItem("is_logged_in", "true");
+    successToast("登录成功");
     if (!data.questionnaire_completed) {
       router.push("/questionnaire");
     } else {
@@ -74,6 +87,7 @@ async function submit() {
     }
   } catch (err) {
     error.value = err.response?.data?.msg || "登录失败，请检查账号和密码";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }

@@ -37,7 +37,7 @@ watch(keyword, (value) => emit("update:modelValue", value || ""));
 function submit() {
   const value = (keyword.value || "").trim();
   emit("search", value);
-  if (props.navigateOnSubmit && value) {
+  if (props.navigateOnSubmit) {
     router.push({ path: "/search", query: { q: value } });
   }
 }

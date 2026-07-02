@@ -11,6 +11,7 @@
     </div>
     <SiteList
       :sites="sites"
+      :favorite-pending-ids="favoritePendingIds"
       empty-title="暂无推荐"
       empty-description="完成问卷或收藏更多工具后，将生成更贴合你的推荐。"
       @favorite="$emit('favorite', $event)"
@@ -24,6 +25,7 @@ import SiteList from "../site/SiteList.vue";
 defineProps({
   sites: { type: Array, default: () => [] },
   loggedIn: { type: Boolean, default: false },
+  favoritePendingIds: { type: Array, default: () => [] },
 });
 defineEmits(["favorite", "visit"]);
 </script>

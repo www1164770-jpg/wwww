@@ -26,9 +26,11 @@
         </aside>
         <section class="results-panel">
           <LoadingState v-if="loading" text="正在搜索..." />
+          <EmptyState v-else-if="error" title="搜索失败" :description="error" />
           <SiteList
             v-else
             :sites="sites"
+            :favorite-pending-ids="favoritePendingIds"
             empty-title="暂无搜索结果"
             empty-description="可以试试“AI工具 / 编程开发 / 设计资源 / 学习成长”"
             @favorite="favorite"
@@ -44,6 +46,7 @@
 import { onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
+import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SearchBar from "../components/common/SearchBar.vue";
 import SiteFilter from "../components/site/SiteFilter.vue";
@@ -55,6 +58,7 @@ import {
   siteAPI,
   tagAPI,
 } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
 const router = useRouter();
@@ -70,6 +74,8 @@ const sites = ref([]);
 const categories = ref([]);
 const tags = ref([]);
 const loading = ref(false);
+const error = ref("");
+const favoritePendingIds = ref([]);
 
 async function search(value = keyword.value) {
   const nextValue = value || "";
@@ -79,10 +85,15 @@ async function search(value = keyword.value) {
     query: { q: nextValue, sort: filters.sort },
   });
   loading.value = true;
+  error.value = "";
   try {
     const response = await searchAPI.search({ q: nextValue, ...filters });
     const payload = response.data?.data ?? response.data ?? {};
     sites.value = payload.items || payload || [];
+  } catch (err) {
+    sites.value = [];
+    error.value = err.response?.data?.msg || "搜索失败，请稍后重试";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }
@@ -91,12 +102,26 @@ async function favorite(site) {
   if (!localStorage.getItem("access_token")) {
     return router.push({ path: "/login", query: { redirect: route.fullPath } });
   }
-  if (site.is_favorited) {
-    await favoriteAPI.removeFavorite(site.id);
-    site.is_favorited = false;
-  } else {
-    await favoriteAPI.addFavorite(site.id);
-    site.is_favorited = true;
+  if (favoritePendingIds.value.includes(site.id)) return;
+  const wasFavorited = Boolean(site.is_favorited);
+  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
+  try {
+    if (wasFavorited) {
+      await favoriteAPI.removeFavorite(site.id);
+      site.is_favorited = false;
+      successToast("已取消收藏");
+    } else {
+      await favoriteAPI.addFavorite(site.id);
+      site.is_favorited = true;
+      successToast("已收藏");
+    }
+  } catch {
+    site.is_favorited = wasFavorited;
+    errorToast("操作失败，请稍后重试");
+  } finally {
+    favoritePendingIds.value = favoritePendingIds.value.filter(
+      (id) => id !== site.id,
+    );
   }
 }
 async function visit(site) {
@@ -110,12 +135,16 @@ watch(
   },
 );
 onMounted(async () => {
-  const [categoryRes, tagRes] = await Promise.all([
-    categoryAPI.getCategories(),
-    tagAPI.getTags(),
-  ]);
-  categories.value = categoryRes.data?.data || [];
-  tags.value = tagRes.data?.data || [];
+  try {
+    const [categoryRes, tagRes] = await Promise.all([
+      categoryAPI.getCategories(),
+      tagAPI.getTags(),
+    ]);
+    categories.value = categoryRes.data?.data || [];
+    tags.value = tagRes.data?.data || [];
+  } catch {
+    errorToast("筛选数据加载失败，请稍后重试");
+  }
   await search();
 });
 </script>

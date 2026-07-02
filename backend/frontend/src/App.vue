@@ -24,17 +24,37 @@
       </div>
     </div>
   </transition>
+  <ToastNotification
+    :message="toast.message"
+    :type="toast.type"
+    @dismiss="toast.message = ''"
+  />
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import ToastNotification from "./components/ToastNotification.vue";
 
 const showConsent = ref(false);
+const toast = reactive({ message: "", type: "info" });
+
+function handleToast(event) {
+  toast.message = "";
+  requestAnimationFrame(() => {
+    toast.type = event.detail?.type || "info";
+    toast.message = event.detail?.message || "";
+  });
+}
 
 onMounted(() => {
   if (!localStorage.getItem("cookie_consent_status")) {
     showConsent.value = true;
   }
+  window.addEventListener("app-toast", handleToast);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("app-toast", handleToast);
 });
 
 const handleConsent = (status) => {

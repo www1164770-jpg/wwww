@@ -19,6 +19,11 @@
 
       <section class="content">
         <LoadingState v-if="loading" text="正在加载个人中心..." />
+        <EmptyState
+          v-else-if="error"
+          title="个人中心加载失败"
+          :description="error"
+        />
         <template v-else>
           <section id="questionnaire" class="panel">
             <div class="section-head">
@@ -51,6 +56,7 @@
             <h2>我的推荐</h2>
             <SiteList
               :sites="profile.recommendations || []"
+              :favorite-pending-ids="favoritePendingIds"
               empty-title="暂无推荐"
               empty-description="完成问卷后会在这里展示个性化推荐。"
               empty-action-text="完善问卷"
@@ -97,7 +103,13 @@
                   autocomplete="new-password"
                 />
               </label>
-              <button type="button" @click="changePassword">更新</button>
+              <button
+                type="button"
+                :disabled="passwordLoading"
+                @click="changePassword"
+              >
+                {{ passwordLoading ? "处理中..." : "更新" }}
+              </button>
             </div>
           </section>
         </template>
@@ -113,11 +125,15 @@ import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { favoriteAPI, siteAPI, userAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const profile = ref({});
 const oldPassword = ref("");
 const newPassword = ref("");
 const loading = ref(false);
+const error = ref("");
+const passwordLoading = ref(false);
+const favoritePendingIds = ref([]);
 const hasQuestionnaire = computed(() => Boolean(profile.value.profile));
 
 const labelMap = {
@@ -168,20 +184,38 @@ function roleText(value) {
 
 async function load() {
   loading.value = true;
+  error.value = "";
   try {
     const response = await userAPI.getProfile();
     profile.value = response.data?.data || {};
+  } catch (err) {
+    error.value = err.response?.data?.msg || "个人中心加载失败，请稍后重试";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }
 }
 async function favorite(site) {
-  if (site.is_favorited) {
-    await favoriteAPI.removeFavorite(site.id);
-    site.is_favorited = false;
-  } else {
-    await favoriteAPI.addFavorite(site.id);
-    site.is_favorited = true;
+  if (favoritePendingIds.value.includes(site.id)) return;
+  const wasFavorited = Boolean(site.is_favorited);
+  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
+  try {
+    if (wasFavorited) {
+      await favoriteAPI.removeFavorite(site.id);
+      site.is_favorited = false;
+      successToast("已取消收藏");
+    } else {
+      await favoriteAPI.addFavorite(site.id);
+      site.is_favorited = true;
+      successToast("已收藏");
+    }
+  } catch {
+    site.is_favorited = wasFavorited;
+    errorToast("操作失败，请稍后重试");
+  } finally {
+    favoritePendingIds.value = favoritePendingIds.value.filter(
+      (id) => id !== site.id,
+    );
   }
 }
 async function visit(site) {
@@ -189,9 +223,22 @@ async function visit(site) {
   window.open(site.url, "_blank", "noopener,noreferrer");
 }
 async function changePassword() {
-  await userAPI.changePassword(oldPassword.value, newPassword.value);
-  oldPassword.value = "";
-  newPassword.value = "";
+  if (passwordLoading.value) return;
+  if (!oldPassword.value || !newPassword.value) {
+    errorToast("请输入密码");
+    return;
+  }
+  passwordLoading.value = true;
+  try {
+    await userAPI.changePassword(oldPassword.value, newPassword.value);
+    oldPassword.value = "";
+    newPassword.value = "";
+    successToast("保存成功");
+  } catch (err) {
+    errorToast(err.response?.data?.msg || "操作失败，请稍后重试");
+  } finally {
+    passwordLoading.value = false;
+  }
 }
 onMounted(load);
 </script>
@@ -354,6 +401,12 @@ button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   outline: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
 }
 
 @media (max-width: 900px) {

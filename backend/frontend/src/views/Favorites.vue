@@ -23,10 +23,12 @@
       </section>
 
       <LoadingState v-if="loading" text="正在加载收藏..." />
+      <EmptyState v-else-if="error" title="收藏加载失败" :description="error" />
       <SiteList
         v-else
         :sites="filteredFavorites"
         :favorite-ids="favorites.map((site) => site.id)"
+        :favorite-pending-ids="favoritePendingIds"
         empty-title="暂无收藏"
         empty-description="去首页发现适合你的 AI 工具"
         empty-action-text="去首页看看"
@@ -41,14 +43,18 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import AppHeader from "../components/layout/AppHeader.vue";
+import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { categoryAPI, favoriteAPI, siteAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const favorites = ref([]);
 const categories = ref([]);
 const selectedCategory = ref("");
 const loading = ref(false);
+const error = ref("");
+const favoritePendingIds = ref([]);
 const filteredFavorites = computed(() => {
   if (!selectedCategory.value) return favorites.value;
   return favorites.value.filter((site) => {
@@ -59,6 +65,7 @@ const filteredFavorites = computed(() => {
 
 async function load() {
   loading.value = true;
+  error.value = "";
   try {
     const [favoriteRes, categoryRes] = await Promise.all([
       favoriteAPI.getFavorites(),
@@ -66,14 +73,31 @@ async function load() {
     ]);
     const payload = favoriteRes.data?.data ?? favoriteRes.data ?? [];
     favorites.value = payload.items || payload || [];
+    favorites.value.forEach((site) => {
+      site.is_favorited = true;
+    });
     categories.value = categoryRes.data?.data || categoryRes.data || [];
+  } catch (err) {
+    error.value = err.response?.data?.msg || "收藏加载失败，请稍后重试";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }
 }
 async function remove(site) {
-  await favoriteAPI.removeFavorite(site.id);
-  favorites.value = favorites.value.filter((item) => item.id !== site.id);
+  if (favoritePendingIds.value.includes(site.id)) return;
+  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
+  try {
+    await favoriteAPI.removeFavorite(site.id);
+    favorites.value = favorites.value.filter((item) => item.id !== site.id);
+    successToast("已取消收藏");
+  } catch {
+    errorToast("操作失败，请稍后重试");
+  } finally {
+    favoritePendingIds.value = favoritePendingIds.value.filter(
+      (id) => id !== site.id,
+    );
+  }
 }
 async function visit(site) {
   await siteAPI.recordClick(site.id).catch(() => {});

@@ -7,6 +7,7 @@
     </div>
     <SiteList
       :sites="sites"
+      :favorite-pending-ids="favoritePendingIds"
       empty-title="暂无热门网站"
       empty-description="热门网站数据加载后会展示在这里。"
       @favorite="$emit('favorite', $event)"
@@ -17,7 +18,10 @@
 
 <script setup>
 import SiteList from "../site/SiteList.vue";
-defineProps({ sites: { type: Array, default: () => [] } });
+defineProps({
+  sites: { type: Array, default: () => [] },
+  favoritePendingIds: { type: Array, default: () => [] },
+});
 defineEmits(["favorite", "visit"]);
 </script>
 

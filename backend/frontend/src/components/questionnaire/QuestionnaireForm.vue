@@ -46,7 +46,9 @@
       </label>
     </fieldset>
     <div class="submit-bar">
-      <button type="submit">保存问卷</button>
+      <button type="submit" :disabled="submitting">
+        {{ submitting ? "处理中..." : "保存问卷" }}
+      </button>
     </div>
   </form>
 </template>
@@ -60,6 +62,7 @@ defineProps({
   interests: { type: Array, default: () => [] },
   skillLevels: { type: Array, default: () => [] },
   preferences: { type: Array, default: () => [] },
+  submitting: { type: Boolean, default: false },
 });
 defineEmits(["submit"]);
 
@@ -238,6 +241,12 @@ button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
   outline: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
 }
 
 @media (max-width: 680px) {

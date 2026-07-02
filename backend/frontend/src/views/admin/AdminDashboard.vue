@@ -1,6 +1,9 @@
 <template>
   <AdminLayout>
-    <h1>数据概览</h1>
+    <div class="page-head">
+      <h1>数据概览</h1>
+      <p>查看用户、资源、收藏和访问趋势的后台概览。</p>
+    </div>
     <p v-if="error" class="error">{{ error }}</p>
     <LoadingState v-if="loading" text="正在加载后台数据..." />
     <template v-else>
@@ -94,6 +97,7 @@ import AdminStatsCard from "../../components/admin/AdminStatsCard.vue";
 import EmptyState from "../../components/common/EmptyState.vue";
 import LoadingState from "../../components/common/LoadingState.vue";
 import { adminAPI } from "../../utils/api";
+import { errorToast } from "../../utils/toast";
 
 const loading = ref(false);
 const error = ref("");
@@ -121,6 +125,7 @@ onMounted(async () => {
       data.category_visit_ranking || data.category_ranking || [];
   } catch (err) {
     error.value = err.response?.data?.msg || "后台数据加载失败";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }

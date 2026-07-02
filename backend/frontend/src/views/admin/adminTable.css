@@ -3,6 +3,22 @@ h1 {
   color: var(--color-heading);
 }
 
+.page-head {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.page-head p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.6;
+}
+
 .toolbar,
 .form-grid {
   display: grid;
@@ -91,6 +107,11 @@ button.primary {
 button.danger {
   border-color: #fecaca;
   color: #b91c1c;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 .error {

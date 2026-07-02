@@ -1,6 +1,9 @@
 <template>
   <AdminLayout>
-    <h1>用户管理</h1>
+    <div class="page-head">
+      <h1>用户管理</h1>
+      <p>查看用户账号、问卷状态，并处理禁用或解禁操作。</p>
+    </div>
     <p v-if="error" class="error">{{ error }}</p>
     <LoadingState v-if="loading" text="正在加载用户..." />
     <div v-else-if="users.length" class="table">
@@ -17,8 +20,18 @@
         <span>{{ user.status === "disabled" ? "已禁用" : "正常" }}</span>
         <span>{{ toDate(user.created_at) }}</span>
         <span>
-          <button type="button" @click="toggleStatus(user)">
-            {{ user.status === "disabled" ? "解禁" : "禁用" }}
+          <button
+            type="button"
+            :disabled="isBusy(user.id)"
+            @click="toggleStatus(user)"
+          >
+            {{
+              isBusy(user.id)
+                ? "处理中..."
+                : user.status === "disabled"
+                  ? "解禁"
+                  : "禁用"
+            }}
           </button>
           <button type="button" @click="toggleQuestionnaire(user)">
             查看问卷
@@ -46,12 +59,14 @@ import AdminLayout from "../../components/admin/AdminLayout.vue";
 import EmptyState from "../../components/common/EmptyState.vue";
 import LoadingState from "../../components/common/LoadingState.vue";
 import { adminAPI } from "../../utils/api";
+import { errorToast, successToast } from "../../utils/toast";
 import { readData, toDate } from "./adminHelpers";
 
 const loading = ref(false);
 const error = ref("");
 const users = ref([]);
 const expandedUserId = ref(null);
+const busyIds = ref([]);
 const labelMap = {
   programmer: "程序员",
   designer: "设计师",
@@ -79,6 +94,16 @@ function labelText(value) {
   return labelMap[value] || value || "未填写";
 }
 
+function isBusy(id) {
+  return busyIds.value.includes(id);
+}
+
+function setBusy(id, busy) {
+  busyIds.value = busy
+    ? [...busyIds.value, id]
+    : busyIds.value.filter((item) => item !== id);
+}
+
 async function load() {
   loading.value = true;
   error.value = "";
@@ -86,6 +111,7 @@ async function load() {
     users.value = readData(await adminAPI.getUsers());
   } catch (err) {
     error.value = err.response?.data?.msg || "用户加载失败";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }
@@ -93,8 +119,17 @@ async function load() {
 
 async function toggleStatus(user) {
   const nextStatus = user.status === "disabled" ? "active" : "disabled";
-  await adminAPI.updateUserStatus(user.id, nextStatus);
-  user.status = nextStatus;
+  setBusy(user.id, true);
+  try {
+    await adminAPI.updateUserStatus(user.id, nextStatus);
+    user.status = nextStatus;
+    successToast("保存成功");
+  } catch (err) {
+    error.value = err.response?.data?.msg || "操作失败，请稍后重试";
+    errorToast(error.value);
+  } finally {
+    setBusy(user.id, false);
+  }
 }
 
 function toggleQuestionnaire(user) {

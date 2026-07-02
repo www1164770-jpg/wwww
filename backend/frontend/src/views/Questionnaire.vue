@@ -13,6 +13,7 @@
         :interests="options.interests"
         :skill-levels="options.skill_levels"
         :preferences="options.preferences"
+        :submitting="submitting"
         @submit="submit"
       />
       <LoadingState v-else text="正在加载问卷..." />
@@ -28,11 +29,13 @@ import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import QuestionnaireForm from "../components/questionnaire/QuestionnaireForm.vue";
 import { questionnaireAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
 const route = useRoute();
 const error = ref("");
 const loading = ref(false);
+const submitting = ref(false);
 const options = reactive({
   occupations: [],
   purposes: [],
@@ -46,12 +49,29 @@ function dataOf(response) {
 }
 
 async function submit(form) {
+  if (submitting.value) return;
+  if (!form.occupation) {
+    error.value = "请选择你的职业";
+    errorToast(error.value);
+    return;
+  }
+  if (!form.interests.length) {
+    error.value = "请选择至少一个兴趣方向";
+    errorToast(error.value);
+    return;
+  }
+  submitting.value = true;
+  error.value = "";
   try {
     await questionnaireAPI.submit(form);
     localStorage.setItem("questionnaire_completed", "true");
+    successToast("问卷保存成功");
     router.push(route.query.redirect || "/");
   } catch (err) {
     error.value = err.response?.data?.msg || "问卷保存失败，请稍后重试";
+    errorToast(error.value);
+  } finally {
+    submitting.value = false;
   }
 }
 
@@ -62,6 +82,7 @@ onMounted(async () => {
     Object.assign(options, dataOf(response));
   } catch (err) {
     error.value = err.response?.data?.msg || "问卷选项加载失败，请稍后重试";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }

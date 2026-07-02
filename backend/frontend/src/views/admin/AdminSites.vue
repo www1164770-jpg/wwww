@@ -1,6 +1,9 @@
 <template>
   <AdminLayout>
-    <h1>网站管理</h1>
+    <div class="page-head">
+      <h1>网站管理</h1>
+      <p>维护网站资源、分类、标签、状态和推荐等级。</p>
+    </div>
     <p v-if="error" class="error">{{ error }}</p>
     <form class="form-grid" @submit.prevent="saveSite">
       <label>网站名称<input v-model.trim="form.name" required /></label>
@@ -76,8 +79,8 @@
           max="100"
       /></label>
       <div class="actions">
-        <button class="primary" type="submit">
-          {{ editingId ? "保存修改" : "新增网站" }}
+        <button class="primary" type="submit" :disabled="saving">
+          {{ saving ? "处理中..." : editingId ? "保存修改" : "新增网站" }}
         </button>
         <button v-if="editingId" type="button" @click="resetForm">
           取消编辑
@@ -107,13 +110,36 @@
         <span>{{ site.rating_avg || site.quality_score || 0 }}</span>
         <span>{{ statusText(site.status) }}</span>
         <span class="actions">
-          <button type="button" @click="editSite(site)">编辑</button>
-          <button type="button" @click="toggleStatus(site)">
-            {{ isDisabled(site) ? "上架" : "下架" }}
+          <button
+            type="button"
+            @click="editSite(site)"
+            :disabled="isBusy(site.id)"
+          >
+            编辑
           </button>
-          <button type="button" @click="setRecommend(site, 5)">推荐 5</button>
-          <button class="danger" type="button" @click="deleteSite(site)">
-            删除
+          <button
+            type="button"
+            :disabled="isBusy(site.id)"
+            @click="toggleStatus(site)"
+          >
+            {{
+              isBusy(site.id) ? "处理中..." : isDisabled(site) ? "上架" : "下架"
+            }}
+          </button>
+          <button
+            type="button"
+            :disabled="isBusy(site.id)"
+            @click="setRecommend(site, 5)"
+          >
+            推荐 5
+          </button>
+          <button
+            class="danger"
+            type="button"
+            :disabled="isBusy(site.id)"
+            @click="deleteSite(site)"
+          >
+            {{ isBusy(site.id) ? "处理中..." : "删除" }}
           </button>
         </span>
       </div>
@@ -132,6 +158,7 @@ import AdminLayout from "../../components/admin/AdminLayout.vue";
 import EmptyState from "../../components/common/EmptyState.vue";
 import LoadingState from "../../components/common/LoadingState.vue";
 import { adminAPI } from "../../utils/api";
+import { errorToast, successToast } from "../../utils/toast";
 import { readData } from "./adminHelpers";
 
 const loading = ref(false);
@@ -139,6 +166,8 @@ const error = ref("");
 const sites = ref([]);
 const categories = ref([]);
 const editingId = ref(null);
+const saving = ref(false);
+const busyIds = ref([]);
 const form = reactive({
   name: "",
   url: "",
@@ -198,6 +227,16 @@ function isDisabled(site) {
   return site.status === "disabled";
 }
 
+function isBusy(id) {
+  return busyIds.value.includes(id);
+}
+
+function setBusy(id, busy) {
+  busyIds.value = busy
+    ? [...busyIds.value, id]
+    : busyIds.value.filter((item) => item !== id);
+}
+
 function resetForm() {
   editingId.value = null;
   Object.assign(form, {
@@ -250,12 +289,26 @@ async function load() {
     categories.value = readData(categoryRes);
   } catch (err) {
     error.value = err.response?.data?.msg || "网站列表加载失败";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }
 }
 
 async function saveSite() {
+  if (saving.value) return;
+  if (!form.name.trim()) {
+    error.value = "网站名称不能为空";
+    errorToast(error.value);
+    return;
+  }
+  if (!form.url.trim()) {
+    error.value = "网站 URL 不能为空";
+    errorToast(error.value);
+    return;
+  }
+  saving.value = true;
+  error.value = "";
   try {
     if (editingId.value) {
       await adminAPI.updateSite(editingId.value, buildPayload());
@@ -264,25 +317,57 @@ async function saveSite() {
     }
     resetForm();
     await load();
+    successToast("保存成功");
   } catch (err) {
     error.value = err.response?.data?.msg || "网站保存失败";
+    errorToast(error.value);
+  } finally {
+    saving.value = false;
   }
 }
 
 async function deleteSite(site) {
-  await adminAPI.deleteSite(site.id);
-  sites.value = sites.value.filter((item) => item.id !== site.id);
+  if (!window.confirm(`确认删除「${site.name || "该网站"}」吗？`)) return;
+  setBusy(site.id, true);
+  try {
+    await adminAPI.deleteSite(site.id);
+    sites.value = sites.value.filter((item) => item.id !== site.id);
+    successToast("删除成功");
+  } catch (err) {
+    error.value = err.response?.data?.msg || "删除失败";
+    errorToast(error.value);
+  } finally {
+    setBusy(site.id, false);
+  }
 }
 
 async function toggleStatus(site) {
   const nextStatus = isDisabled(site) ? "approved" : "disabled";
-  await adminAPI.updateSite(site.id, { status: nextStatus });
-  site.status = nextStatus;
+  setBusy(site.id, true);
+  try {
+    await adminAPI.updateSite(site.id, { status: nextStatus });
+    site.status = nextStatus;
+    successToast("保存成功");
+  } catch (err) {
+    error.value = err.response?.data?.msg || "操作失败，请稍后重试";
+    errorToast(error.value);
+  } finally {
+    setBusy(site.id, false);
+  }
 }
 
 async function setRecommend(site, level) {
-  await adminAPI.updateSite(site.id, { recommend_level: level });
-  site.recommend_level = level;
+  setBusy(site.id, true);
+  try {
+    await adminAPI.updateSite(site.id, { recommend_level: level });
+    site.recommend_level = level;
+    successToast("保存成功");
+  } catch (err) {
+    error.value = err.response?.data?.msg || "操作失败，请稍后重试";
+    errorToast(error.value);
+  } finally {
+    setBusy(site.id, false);
+  }
 }
 
 onMounted(load);

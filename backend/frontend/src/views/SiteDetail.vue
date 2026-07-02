@@ -4,9 +4,9 @@
     <main class="detail">
       <LoadingState v-if="loading" text="正在加载网站详情..." />
       <EmptyState
-        v-else-if="!site"
-        title="未找到网站"
-        description="该网站不存在或暂时不可用。"
+        v-else-if="error || !site"
+        :title="error ? '网站详情加载失败' : '未找到网站'"
+        :description="error || '该网站不存在或暂时不可用。'"
       />
       <template v-else>
         <section class="hero">
@@ -22,10 +22,17 @@
             <div class="actions">
               <button
                 type="button"
+                :disabled="favoriteLoading"
                 :aria-label="site.is_favorited ? '取消收藏' : '收藏'"
                 @click="toggleFavorite"
               >
-                {{ site.is_favorited ? "取消收藏" : "收藏" }}
+                {{
+                  favoriteLoading
+                    ? "处理中..."
+                    : site.is_favorited
+                      ? "取消收藏"
+                      : "收藏"
+                }}
               </button>
               <button
                 type="button"
@@ -83,7 +90,7 @@
                   ></textarea>
                 </label>
                 <button type="submit" :disabled="commentSubmitting">
-                  {{ commentSubmitting ? "正在提交..." : "发表评论" }}
+                  {{ commentSubmitting ? "处理中..." : "发表评论" }}
                 </button>
               </form>
               <button
@@ -113,9 +120,14 @@
                     v-if="comment.can_delete"
                     type="button"
                     class="ghost"
+                    :disabled="deletingCommentId === comment.id"
                     @click="deleteComment(comment)"
                   >
-                    删除自己的评论
+                    {{
+                      deletingCommentId === comment.id
+                        ? "处理中..."
+                        : "删除自己的评论"
+                    }}
                   </button>
                 </article>
               </div>
@@ -181,6 +193,7 @@
               <h2>相似网站推荐</h2>
               <SiteList
                 :sites="site.similar_sites || []"
+                :favorite-pending-ids="favoritePendingIds"
                 empty-title="暂无相似网站"
                 empty-description="后续会根据标签和职业推荐更多相似资源"
                 @favorite="favoriteSimilar"
@@ -202,14 +215,19 @@ import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { commentAPI, favoriteAPI, siteAPI } from "../utils/api";
+import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
 const router = useRouter();
 const site = ref(null);
 const loading = ref(false);
+const error = ref("");
 const comments = ref([]);
 const commentsLoading = ref(false);
 const commentSubmitting = ref(false);
+const favoriteLoading = ref(false);
+const favoritePendingIds = ref([]);
+const deletingCommentId = ref(null);
 const commentForm = reactive({ rating: 5, content: "" });
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=site";
 const logoFailed = ref(false);
@@ -239,10 +257,15 @@ function goLogin() {
 
 async function load() {
   loading.value = true;
+  error.value = "";
   try {
     const response = await siteAPI.getSite(route.params.id);
     site.value = response.data?.data ?? response.data ?? null;
     await loadComments();
+  } catch (err) {
+    error.value = err.response?.data?.msg || "网站详情加载失败，请稍后重试";
+    site.value = null;
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }
@@ -252,18 +275,33 @@ async function loadComments() {
   try {
     const response = await commentAPI.getComments(route.params.id);
     comments.value = response.data?.data ?? response.data ?? [];
+  } catch {
+    comments.value = [];
+    errorToast("评论加载失败，请稍后重试");
   } finally {
     commentsLoading.value = false;
   }
 }
 async function toggleFavorite() {
   if (!loggedIn.value) return goLogin();
-  if (site.value.is_favorited) {
-    await favoriteAPI.removeFavorite(site.value.id);
-    site.value.is_favorited = false;
-  } else {
-    await favoriteAPI.addFavorite(site.value.id);
-    site.value.is_favorited = true;
+  if (favoriteLoading.value) return;
+  const wasFavorited = Boolean(site.value.is_favorited);
+  favoriteLoading.value = true;
+  try {
+    if (wasFavorited) {
+      await favoriteAPI.removeFavorite(site.value.id);
+      site.value.is_favorited = false;
+      successToast("已取消收藏");
+    } else {
+      await favoriteAPI.addFavorite(site.value.id);
+      site.value.is_favorited = true;
+      successToast("已收藏");
+    }
+  } catch {
+    site.value.is_favorited = wasFavorited;
+    errorToast("操作失败，请稍后重试");
+  } finally {
+    favoriteLoading.value = false;
   }
 }
 async function visit() {
@@ -272,12 +310,26 @@ async function visit() {
 }
 async function favoriteSimilar(item) {
   if (!loggedIn.value) return goLogin();
-  if (item.is_favorited) {
-    await favoriteAPI.removeFavorite(item.id);
-    item.is_favorited = false;
-  } else {
-    await favoriteAPI.addFavorite(item.id);
-    item.is_favorited = true;
+  if (favoritePendingIds.value.includes(item.id)) return;
+  const wasFavorited = Boolean(item.is_favorited);
+  favoritePendingIds.value = [...favoritePendingIds.value, item.id];
+  try {
+    if (wasFavorited) {
+      await favoriteAPI.removeFavorite(item.id);
+      item.is_favorited = false;
+      successToast("已取消收藏");
+    } else {
+      await favoriteAPI.addFavorite(item.id);
+      item.is_favorited = true;
+      successToast("已收藏");
+    }
+  } catch {
+    item.is_favorited = wasFavorited;
+    errorToast("操作失败，请稍后重试");
+  } finally {
+    favoritePendingIds.value = favoritePendingIds.value.filter(
+      (id) => id !== item.id,
+    );
   }
 }
 async function visitSimilar(item) {
@@ -286,19 +338,36 @@ async function visitSimilar(item) {
 }
 async function submitComment() {
   if (!loggedIn.value) return goLogin();
+  if (commentSubmitting.value) return;
+  if (!commentForm.content.trim()) {
+    errorToast("请输入评论内容");
+    return;
+  }
   commentSubmitting.value = true;
   try {
     await commentAPI.addComment(site.value.id, { ...commentForm });
     commentForm.content = "";
     commentForm.rating = 5;
     await loadComments();
+    successToast("保存成功");
+  } catch (err) {
+    errorToast(err.response?.data?.msg || "操作失败，请稍后重试");
   } finally {
     commentSubmitting.value = false;
   }
 }
 async function deleteComment(comment) {
-  await commentAPI.deleteComment(comment.id);
-  comments.value = comments.value.filter((item) => item.id !== comment.id);
+  if (!window.confirm("确认删除这条评论吗？")) return;
+  deletingCommentId.value = comment.id;
+  try {
+    await commentAPI.deleteComment(comment.id);
+    comments.value = comments.value.filter((item) => item.id !== comment.id);
+    successToast("删除成功");
+  } catch (err) {
+    errorToast(err.response?.data?.msg || "操作失败，请稍后重试");
+  } finally {
+    deletingCommentId.value = null;
+  }
 }
 onMounted(load);
 </script>
@@ -449,6 +518,12 @@ button:focus-visible,
   color: var(--color-primary);
   transform: translateY(-1px);
   outline: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
 }
 
 button.primary,

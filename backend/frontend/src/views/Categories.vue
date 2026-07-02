@@ -15,6 +15,7 @@
       </section>
 
       <LoadingState v-if="loading" text="正在加载分类..." />
+      <EmptyState v-else-if="error" title="分类加载失败" :description="error" />
       <div v-else-if="filteredRoots.length" class="grid">
         <RouterLink
           v-for="category in filteredRoots"
@@ -46,10 +47,12 @@ import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SearchBar from "../components/common/SearchBar.vue";
 import { categoryAPI } from "../utils/api";
+import { errorToast } from "../utils/toast";
 
 const categories = ref([]);
 const keyword = ref("");
 const loading = ref(false);
+const error = ref("");
 const roots = computed(() =>
   categories.value.filter((item) => !item.parent_id),
 );
@@ -65,9 +68,13 @@ const filteredRoots = computed(() => {
 
 onMounted(async () => {
   loading.value = true;
+  error.value = "";
   try {
     const response = await categoryAPI.getCategories();
     categories.value = response.data?.data || response.data || [];
+  } catch (err) {
+    error.value = err.response?.data?.msg || "分类加载失败，请稍后重试";
+    errorToast(error.value);
   } finally {
     loading.value = false;
   }

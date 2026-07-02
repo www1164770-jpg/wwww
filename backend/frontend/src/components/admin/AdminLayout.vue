@@ -4,12 +4,24 @@
     <main class="admin-shell">
       <aside class="admin-sidebar">
         <h1>后台管理</h1>
-        <RouterLink to="/admin/dashboard">数据概览</RouterLink>
-        <RouterLink to="/admin/sites">网站管理</RouterLink>
-        <RouterLink to="/admin/categories">分类管理</RouterLink>
-        <RouterLink to="/admin/tags">标签管理</RouterLink>
-        <RouterLink to="/admin/users">用户管理</RouterLink>
-        <RouterLink to="/admin/comments">评论审核</RouterLink>
+        <RouterLink to="/admin/dashboard" exact-active-class="active"
+          >数据概览</RouterLink
+        >
+        <RouterLink to="/admin/sites" exact-active-class="active"
+          >网站管理</RouterLink
+        >
+        <RouterLink to="/admin/categories" exact-active-class="active"
+          >分类管理</RouterLink
+        >
+        <RouterLink to="/admin/tags" exact-active-class="active"
+          >标签管理</RouterLink
+        >
+        <RouterLink to="/admin/users" exact-active-class="active"
+          >用户管理</RouterLink
+        >
+        <RouterLink to="/admin/comments" exact-active-class="active"
+          >评论审核</RouterLink
+        >
       </aside>
       <section class="admin-content">
         <slot></slot>
@@ -65,7 +77,7 @@ a {
   font-weight: 750;
 }
 
-a.router-link-active,
+a.active,
 a:hover {
   background: var(--color-soft-orange);
   color: var(--color-primary);
