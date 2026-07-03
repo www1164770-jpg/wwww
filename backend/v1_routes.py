@@ -1,4 +1,5 @@
 import json
+import random
 from functools import wraps
 
 from flask import jsonify, request
@@ -232,6 +233,42 @@ def register_v1_routes(app, get_db_connection):
         "短视频",
     ]
     blocked_names = ["百度"]
+    career_ai_keywords = {
+        "学生": ["学习", "论文", "PPT", "编程入门", "效率", "AI", "写作"],
+        "前端开发": ["前端", "Vue", "React", "JavaScript", "代码", "编程", "开发", "AI"],
+        "后端开发": ["后端", "Python", "Flask", "API", "数据库", "代码", "编程", "AI"],
+        "产品经理": ["产品", "原型", "需求", "文档", "流程图", "数据分析", "AI"],
+        "UI/UX 设计师": ["设计", "UI", "UX", "Figma", "图标", "图片", "绘图", "AI"],
+        "运营": ["运营", "文案", "内容", "数据分析", "增长", "办公", "AI"],
+        "教师": ["教学", "课件", "PPT", "学习", "题库", "教育", "AI"],
+        "自媒体创作者": ["写作", "视频", "剪辑", "图片", "内容创作", "AIGC", "AI"],
+        "数据分析师": ["数据分析", "可视化", "Python", "SQL", "报表", "AI"],
+        "其他": ["AI", "效率", "学习", "办公", "写作"],
+    }
+    career_preferred_names = {
+        "学生": ["ChatGPT", "Kimi", "Perplexity", "Poe", "Notion", "ProcessOn", "Bilibili", "Coursera"],
+        "前端开发": ["GitHub", "MDN Web Docs", "Vue 官方文档", "Stack Overflow", "Vercel", "CodePen", "ChatGPT"],
+        "后端开发": ["GitHub", "Flask 官方文档", "Postman", "Stack Overflow", "Docker", "LeetCode", "ChatGPT"],
+        "产品经理": ["Notion", "ProcessOn", "飞书", "Figma", "Trello", "ChatGPT"],
+        "UI/UX 设计师": ["Figma", "Canva", "Iconfont", "Unsplash", "Midjourney", "Dribbble", "Runway"],
+        "运营": ["ChatGPT", "Canva", "Notion", "飞书", "ProcessOn", "豆包"],
+        "教师": ["ChatGPT", "Kimi", "Canva", "ProcessOn", "Bilibili", "Coursera"],
+        "自媒体创作者": ["ChatGPT", "Canva", "Runway", "Midjourney", "豆包", "Bilibili"],
+        "数据分析师": ["Kaggle", "Tableau", "Power BI", "Jupyter", "Python", "SQL", "ChatGPT"],
+        "其他": ["ChatGPT", "Claude", "Gemini", "Notion", "Figma", "Canva"],
+    }
+    career_reasons = {
+        "学生": "适合学习、论文写作和知识整理。",
+        "前端开发": "适合前端开发、代码学习和项目构建。",
+        "后端开发": "适合后端开发、接口调试和代码辅助。",
+        "产品经理": "适合需求分析、产品文档和流程梳理。",
+        "UI/UX 设计师": "适合界面设计、素材查找和创意生成。",
+        "运营": "适合内容运营、文案生成和数据分析。",
+        "教师": "适合课件制作、教学设计和资料整理。",
+        "自媒体创作者": "适合内容创作、视频脚本和图片生成。",
+        "数据分析师": "适合数据分析、报表整理和效率提升。",
+        "其他": "适合学习、工作和创作场景使用。",
+    }
 
     def parse_id_list(value):
         ids = []
@@ -248,6 +285,7 @@ def register_v1_routes(app, get_db_connection):
             site.get("description"),
             site.get("category_name"),
             *(site.get("tags") or []),
+            *(site.get("occupations") or []),
         ]
         return " ".join(str(item) for item in parts if item).lower()
 
@@ -372,20 +410,77 @@ def register_v1_routes(app, get_db_connection):
             )
             items.extend(fallback)
             seen.update(item["id"] for item in fallback)
-        if len(items) < limit and exclude_ids:
-            repeat_items = query_resource_sites(
-                limit - len(items),
-                category,
-                tag,
-                [],
-                sort="random",
-            )
-            items.extend([item for item in repeat_items if item["id"] not in seen])
         return items[:limit]
 
-    def query_sites(limit=20, offset=0, category_id=None, keyword=None, tag=None, is_free=None, region=None, sort="recommend"):
+    def query_career_sites(occupation, limit=8, ai_only=False, exclude_ids=None):
+        occupation = str(occupation or "").strip()
+        exclude_ids = exclude_ids or []
+        if not occupation:
+            return []
+        keywords = career_ai_keywords.get(occupation, career_ai_keywords["其他"])
+        preferred_names = career_preferred_names.get(occupation, career_preferred_names["其他"])
+        resource_keywords = list(dict.fromkeys(ai_keywords + fallback_keywords + keywords))
+        reason = career_reasons.get(occupation, career_reasons["其他"])
+        candidates = query_resource_sites(
+            limit=max(limit * 8, 40),
+            category=None,
+            exclude_ids=exclude_ids,
+            sort="hot",
+        )
+        candidates.extend(
+            query_sites(
+                limit=max(limit * 8, 40),
+                sort="recommend",
+                exclude_ids=exclude_ids,
+            )
+        )
+
+        seen = set()
+        scored = []
+        for site in candidates:
+            site_id = site.get("id")
+            if not site_id or site_id in seen:
+                continue
+            seen.add(site_id)
+            text = site_text(site)
+            exact_occupation = occupation in (site.get("occupations") or [])
+            keyword_hits = sum(1 for keyword in keywords if keyword.lower() in text)
+            name = str(site.get("name") or "").lower()
+            preferred_index = next(
+                (
+                    index
+                    for index, preferred_name in enumerate(preferred_names)
+                    if preferred_name.lower() in name or name in preferred_name.lower()
+                ),
+                None,
+            )
+            preferred_score = 0 if preferred_index is None else len(preferred_names) - preferred_index
+            if not exact_occupation and not keyword_hits and not preferred_score:
+                continue
+            if not is_resource_site(site, resource_keywords):
+                continue
+            item = dict(site)
+            item["reason"] = reason
+            scored.append(
+                (
+                    preferred_score,
+                    int(exact_occupation),
+                    keyword_hits,
+                    item.get("recommend_level") or 0,
+                    item.get("quality_score") or 0,
+                    item.get("click_count") or 0,
+                    random.random(),
+                    item,
+                )
+            )
+
+        scored.sort(key=lambda row: row[:7], reverse=True)
+        return [row[-1] for row in scored[:limit]]
+
+    def query_sites(limit=20, offset=0, category_id=None, keyword=None, tag=None, is_free=None, region=None, sort="recommend", exclude_ids=None):
         website_columns = table_columns("websites")
         category_columns = table_columns("categories")
+        exclude_ids = exclude_ids or []
         where = []
         params = []
         joins = "LEFT JOIN categories c ON c.id = w.category_id"
@@ -422,6 +517,10 @@ def register_v1_routes(app, get_db_connection):
         if region and "region" in website_columns:
             where.append("w.region=%s")
             params.append(region)
+        if exclude_ids:
+            placeholders = ",".join(["%s"] * len(exclude_ids))
+            where.append(f"w.id NOT IN ({placeholders})")
+            params.extend(exclude_ids)
         if "click_count" in website_columns and "clicks" in website_columns:
             click_expr = "COALESCE(w.click_count, w.clicks, 0)"
         elif "click_count" in website_columns:
@@ -660,13 +759,24 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/sites/random", methods=["GET"])
     def v1_random_sites():
         limit = max(1, min(request.args.get("limit", 8, type=int), 50))
+        exclude_ids = parse_id_list(request.args.get("exclude_ids"))
+        occupation = request.args.get("occupation")
+        if occupation:
+            return api_success(
+                query_career_sites(
+                    occupation=occupation,
+                    limit=limit,
+                    exclude_ids=exclude_ids,
+                    ai_only=request.args.get("category") == "AI工具",
+                )
+            )
         return api_success(
             random_resource_sites(
                 limit=limit,
                 category=request.args.get("category"),
                 tag=request.args.get("tag"),
                 scene=request.args.get("scene"),
-                exclude_ids=parse_id_list(request.args.get("exclude_ids")),
+                exclude_ids=exclude_ids,
             )
         )
 
@@ -674,16 +784,18 @@ def register_v1_routes(app, get_db_connection):
     def v1_hot_sites():
         limit = max(1, min(request.args.get("limit", 8, type=int), 50))
         category = request.args.get("category")
+        exclude_ids = parse_id_list(request.args.get("exclude_ids"))
         if request.args.get("ai_only") in ("1", "true", "True") or category:
             return api_success(
                 query_resource_sites(
                     limit=limit,
                     category=category,
                     tag=request.args.get("tag"),
+                    exclude_ids=exclude_ids,
                     sort="hot",
                 )
             )
-        return api_success(query_sites(limit=limit, sort="hot"))
+        return api_success(query_sites(limit=limit, sort="hot", exclude_ids=exclude_ids))
 
     @app.route("/api/sites/latest", methods=["GET"])
     def v1_latest_sites():
@@ -692,6 +804,18 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/sites/recommend", methods=["GET"])
     @jwt_required(optional=True)
     def v1_recommend_sites():
+        limit = max(1, min(request.args.get("limit", 8, type=int), 50))
+        exclude_ids = parse_id_list(request.args.get("exclude_ids"))
+        occupation = request.args.get("occupation")
+        if occupation:
+            return api_success(
+                query_career_sites(
+                    occupation=occupation,
+                    limit=limit,
+                    exclude_ids=exclude_ids,
+                    ai_only=request.args.get("ai_only") in ("1", "true", "True"),
+                )
+            )
         profile = {"occupation": "", "interests": []}
         if get_jwt_identity():
             user = current_user_row()
@@ -706,13 +830,16 @@ def register_v1_routes(app, get_db_connection):
                     profile = {"occupation": "", "interests": []}
                 finally:
                     conn.close()
-        limit = request.args.get("limit", 8, type=int)
-        source_sites = query_sites(limit=40)
+        source_sites = query_sites(limit=40, exclude_ids=exclude_ids)
         if not profile.get("occupation") and not profile.get("interests"):
-            source_sites = query_sites(limit=40, sort="hot") or source_sites
+            source_sites = query_sites(limit=40, sort="hot", exclude_ids=exclude_ids) or source_sites
         ranked = rank_sites(source_sites, profile, limit)
         if not ranked:
-            ranked = rank_sites(query_sites(limit=40, sort="hot"), {}, limit)
+            ranked = rank_sites(
+                query_sites(limit=40, sort="hot", exclude_ids=exclude_ids),
+                {},
+                limit,
+            )
         return api_success(ranked)
 
     @app.route("/api/sites/<int:site_id>", methods=["GET"])

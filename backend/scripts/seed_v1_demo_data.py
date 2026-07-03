@@ -11,6 +11,44 @@ from db_pool import get_connection
 
 CATEGORIES = ["AI工具", "编程开发", "设计资源", "学习成长", "效率办公"]
 TAGS = ["AI", "AIGC", "编程", "设计", "文档", "效率", "学习", "写作", "绘图", "办公"]
+OCCUPATIONS = [
+    "学生",
+    "前端开发",
+    "后端开发",
+    "产品经理",
+    "UI/UX 设计师",
+    "运营",
+    "教师",
+    "自媒体创作者",
+    "数据分析师",
+]
+
+SITE_OCCUPATIONS = {
+    "ChatGPT": ["学生", "前端开发", "后端开发", "产品经理", "运营", "教师", "自媒体创作者", "数据分析师"],
+    "Claude": ["学生", "前端开发", "后端开发", "产品经理", "运营", "教师", "自媒体创作者", "数据分析师"],
+    "Gemini": ["学生", "产品经理", "运营", "教师", "自媒体创作者", "数据分析师"],
+    "Perplexity": ["学生", "产品经理", "教师", "数据分析师"],
+    "Poe": ["学生", "前端开发", "后端开发", "运营", "自媒体创作者"],
+    "Kimi": ["学生", "产品经理", "运营", "教师", "数据分析师"],
+    "通义千问": ["学生", "前端开发", "后端开发", "运营", "教师", "自媒体创作者"],
+    "文心一言": ["学生", "产品经理", "运营", "教师", "自媒体创作者"],
+    "豆包": ["学生", "运营", "教师", "自媒体创作者"],
+    "Midjourney": ["UI/UX 设计师", "运营", "自媒体创作者"],
+    "Runway": ["UI/UX 设计师", "运营", "自媒体创作者"],
+    "Stable Diffusion": ["UI/UX 设计师", "运营", "自媒体创作者"],
+    "GitHub": ["前端开发", "后端开发", "数据分析师"],
+    "MDN Web Docs": ["学生", "前端开发"],
+    "Vue 官方文档": ["学生", "前端开发"],
+    "Flask 官方文档": ["学生", "后端开发"],
+    "LeetCode": ["学生", "前端开发", "后端开发", "数据分析师"],
+    "Figma": ["产品经理", "UI/UX 设计师"],
+    "Canva": ["学生", "产品经理", "UI/UX 设计师", "运营", "教师", "自媒体创作者"],
+    "Iconfont": ["前端开发", "UI/UX 设计师"],
+    "Unsplash": ["UI/UX 设计师", "运营", "教师", "自媒体创作者"],
+    "Notion": ["学生", "产品经理", "运营", "教师", "自媒体创作者", "数据分析师"],
+    "飞书": ["产品经理", "运营", "教师", "数据分析师"],
+    "ProcessOn": ["学生", "产品经理", "教师", "数据分析师"],
+}
 
 SITES = [
     {
@@ -96,6 +134,18 @@ SITES = [
         "quality_score": 92,
         "recommend_level": 4,
         "click_count": 690,
+    },
+    {
+        "name": "Stable Diffusion",
+        "url": "https://stability.ai",
+        "logo_url": "https://stability.ai/favicon.ico",
+        "summary": "开源生态活跃的 AI 图像生成模型与工具。",
+        "description": "适合生成式图片、视觉探索、设计参考和创意内容制作。",
+        "category": "AI工具",
+        "tags": ["AI", "AIGC", "绘图", "设计"],
+        "quality_score": 92,
+        "recommend_level": 4,
+        "click_count": 700,
     },
     {
         "name": "Kimi",
@@ -356,6 +406,17 @@ def link_site_tag(cursor, site_id, tag_id):
     )
 
 
+def link_site_occupation(cursor, site_id, occupation, columns):
+    data = {"site_id": site_id, "occupation": occupation, "weight": 1}
+    available = {key: value for key, value in data.items() if key in columns}
+    names = list(available.keys())
+    placeholders = ", ".join(["%s"] * len(names))
+    cursor.execute(
+        f"INSERT IGNORE INTO site_occupations ({', '.join(names)}) VALUES ({placeholders})",
+        [available[name] for name in names],
+    )
+
+
 def main():
     conn = get_connection()
     inserted = 0
@@ -364,6 +425,10 @@ def main():
             category_columns = table_columns(cursor, "categories")
             tag_columns = table_columns(cursor, "tags")
             website_columns = table_columns(cursor, "websites")
+            try:
+                occupation_columns = table_columns(cursor, "site_occupations")
+            except Exception:
+                occupation_columns = set()
 
             category_ids = {
                 name: get_or_create_category(cursor, name, category_columns)
@@ -381,6 +446,9 @@ def main():
                 inserted += int(created)
                 for tag_name in site["tags"]:
                     link_site_tag(cursor, site_id, tag_ids[tag_name])
+                if {"site_id", "occupation"}.issubset(occupation_columns):
+                    for occupation in SITE_OCCUPATIONS.get(site["name"], OCCUPATIONS):
+                        link_site_occupation(cursor, site_id, occupation, occupation_columns)
 
         conn.commit()
     except Exception:

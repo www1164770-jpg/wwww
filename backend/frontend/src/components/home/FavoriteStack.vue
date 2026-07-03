@@ -2,22 +2,22 @@
   <section class="favorite-band">
     <div class="favorite-stack">
       <div class="favorite-copy">
-        <p>常用工具栏</p>
-        <h2>高频用户正在反复打开的工具</h2>
+        <p>常用工具推荐</p>
+        <h2>精选高频使用的网站资源</h2>
         <span>
-          根据收藏、点击和评分综合排序，帮助你优先试用更稳定、更常用的网站资源。
+          适合日常学习、工作和创作的高质量工具，优先避开首页其他推荐区已展示的网站。
         </span>
       </div>
 
-      <div v-if="sites.length" class="favorite-list">
+      <div v-if="displaySites.length" class="favorite-list">
         <button
-          v-for="site in sites.slice(0, 6)"
-          :key="site.id"
+          v-for="site in displaySites"
+          :key="site.id || site.url || site.name"
           type="button"
-          @click="$emit('visit', site)"
+          @click="visitSite(site)"
         >
           <strong>{{ site.name }}</strong>
-          <small>{{ site.desc || site.description || site.url }}</small>
+          <small>{{ site.summary || site.description || site.url }}</small>
         </button>
       </div>
       <div v-else class="empty-note">暂无常用工具数据</div>
@@ -26,14 +26,64 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
   sites: {
     type: Array,
     default: () => [],
   },
 });
 
-defineEmits(["visit"]);
+const emit = defineEmits(["visit"]);
+
+const fallbackSites = [
+  {
+    name: "Notion",
+    url: "https://www.notion.so",
+    summary: "笔记、知识库和项目管理工具。",
+  },
+  {
+    name: "飞书",
+    url: "https://www.feishu.cn",
+    summary: "团队协作、文档和项目沟通平台。",
+  },
+  {
+    name: "ProcessOn",
+    url: "https://www.processon.com",
+    summary: "在线流程图和思维导图工具。",
+  },
+  {
+    name: "Figma",
+    url: "https://www.figma.com",
+    summary: "在线协作设计与原型工具。",
+  },
+  {
+    name: "Canva",
+    url: "https://www.canva.com",
+    summary: "在线设计与内容创作工具。",
+  },
+  {
+    name: "GitHub",
+    url: "https://github.com",
+    summary: "代码托管与协作开发平台。",
+  },
+];
+
+const displaySites = computed(() => {
+  const sites = props.sites.filter((site) => site?.name);
+  return (sites.length ? sites : fallbackSites).slice(0, 6);
+});
+
+function normalizeUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
+function visitSite(site) {
+  emit("visit", { ...site, url: normalizeUrl(site.url) });
+}
 </script>
 
 <style scoped>
@@ -101,9 +151,11 @@ button {
     border-color var(--transition);
 }
 
-button:hover {
+button:hover,
+button:focus-visible {
   border-color: rgba(255, 112, 88, 0.34);
   transform: translateY(-4px);
+  outline: none;
   box-shadow: var(--shadow-card);
 }
 

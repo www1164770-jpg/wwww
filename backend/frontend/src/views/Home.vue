@@ -12,15 +12,53 @@
       </div>
 
       <template v-else>
-        <section id="categories" class="home-anchor-section">
+        <section id="categories" class="home-anchor-section reveal-on-scroll">
           <CategorySection :categories="categories" />
         </section>
 
-        <section id="career" class="home-anchor-section">
-          <CareerRecommend @select-career="goSearch" />
+        <section id="career" class="home-anchor-section reveal-on-scroll">
+          <CareerRecommend
+            :active-career="selectedCareer?.key || ''"
+            @select-career="handleSelectCareer"
+          />
         </section>
 
-        <section id="recommend" class="home-anchor-section">
+        <section
+          v-if="selectedCareer"
+          id="career-sites"
+          class="home-anchor-section career-sites-section reveal-on-scroll"
+        >
+          <div class="section-heading">
+            <span class="eyebrow">职业推荐</span>
+            <h2>适合「{{ selectedCareer.name }}」的 AI 网站</h2>
+            <p>根据职业场景、兴趣方向和网站质量为你推荐。</p>
+          </div>
+
+          <LoadingState
+            v-if="careerLoading"
+            text="正在匹配适合该职业的网站..."
+          />
+
+          <EmptyState
+            v-else-if="careerError || !careerSites.length"
+            title="暂无适合该职业的 AI 网站"
+            description="可以先在后台添加该职业相关的网站资源"
+          />
+
+          <div v-else class="site-grid">
+            <SiteCard
+              v-for="site in careerSites"
+              :key="site.id || site.url || site.name"
+              :site="site"
+              :favorited="Boolean(site.is_favorited)"
+              :favorite-pending="favoritePendingIds.includes(site.id)"
+              @favorite="toggleFavorite"
+              @visit="visitSite"
+            />
+          </div>
+        </section>
+
+        <section id="recommend" class="home-anchor-section reveal-on-scroll">
           <RecommendSection
             :sites="recommended"
             :logged-in="loggedIn"
@@ -30,7 +68,7 @@
           />
         </section>
 
-        <section id="hot" class="home-anchor-section">
+        <section id="hot" class="home-anchor-section reveal-on-scroll">
           <HotSitesSection
             :sites="hotSites"
             :favorite-pending-ids="favoritePendingIds"
@@ -42,7 +80,7 @@
           />
         </section>
 
-        <section id="latest" class="home-anchor-section">
+        <section id="latest" class="home-anchor-section reveal-on-scroll">
           <LatestSitesSection
             :sites="latestSites"
             :favorite-pending-ids="favoritePendingIds"
@@ -51,8 +89,11 @@
           />
         </section>
 
-        <section id="favorite-stack">
-          <FavoriteStack :sites="hotSites" @visit="visitSite" />
+        <section
+          id="favorite-stack"
+          class="home-anchor-section reveal-on-scroll"
+        >
+          <FavoriteStack :sites="favoriteStackSites" @visit="visitSite" />
         </section>
       </template>
     </main>
@@ -62,7 +103,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -76,6 +117,7 @@ import RecommendSection from "../components/home/RecommendSection.vue";
 import ToolMarquee from "../components/home/ToolMarquee.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
+import SiteCard from "../components/site/SiteCard.vue";
 import { categoryAPI, favoriteAPI, siteAPI, unwrapList } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
@@ -85,13 +127,20 @@ const categories = ref([]);
 const recommended = ref([]);
 const hotSites = ref([]);
 const marqueeSites = ref([]);
+const favoriteStackSites = ref([]);
 const latestSites = ref([]);
 const loading = ref(false);
 const error = ref("");
 const hotRefreshing = ref(false);
 const hotError = ref("");
+const selectedCareer = ref(null);
+const careerSites = ref([]);
+const careerLoading = ref(false);
+const careerError = ref("");
+const lastCareerSiteIds = ref([]);
 const favoritePendingIds = ref([]);
 const loggedIn = computed(() => Boolean(localStorage.getItem("access_token")));
+let revealObserver = null;
 
 const aiKeywords = [
   "AI",
@@ -111,6 +160,31 @@ const aiKeywords = [
   "开发",
   "学习",
   "文档",
+  "代码",
+  "前端",
+  "后端",
+  "数据分析",
+  "可视化",
+  "产品",
+  "原型",
+  "流程图",
+  "UI",
+  "UX",
+  "教学",
+  "课件",
+  "办公",
+  "GitHub",
+  "MDN",
+  "Vue",
+  "React",
+  "JavaScript",
+  "Python",
+  "Flask",
+  "SQL",
+  "Figma",
+  "Canva",
+  "Notion",
+  "ProcessOn",
 ];
 
 const blockedKeywords = [
@@ -124,8 +198,130 @@ const blockedKeywords = [
 ];
 const blockedNames = ["百度"];
 
+const fallbackPopularSites = [
+  {
+    id: "fallback-chatgpt",
+    name: "ChatGPT",
+    url: "https://chatgpt.com",
+    category_name: "AI",
+    external_only: true,
+  },
+  {
+    id: "fallback-claude",
+    name: "Claude",
+    url: "https://claude.ai",
+    category_name: "AI",
+    external_only: true,
+  },
+  {
+    id: "fallback-gemini",
+    name: "Gemini",
+    url: "https://gemini.google.com",
+    category_name: "AI",
+    external_only: true,
+  },
+  {
+    id: "fallback-perplexity",
+    name: "Perplexity",
+    url: "https://www.perplexity.ai",
+    category_name: "AI 搜索",
+    external_only: true,
+  },
+  {
+    id: "fallback-github",
+    name: "GitHub",
+    url: "https://github.com",
+    category_name: "开发工具",
+    external_only: true,
+  },
+  {
+    id: "fallback-mdn",
+    name: "MDN Web Docs",
+    url: "https://developer.mozilla.org",
+    category_name: "开发文档",
+    external_only: true,
+  },
+  {
+    id: "fallback-vue",
+    name: "Vue 官方文档",
+    url: "https://cn.vuejs.org",
+    category_name: "开发文档",
+    external_only: true,
+  },
+  {
+    id: "fallback-flask",
+    name: "Flask 官方文档",
+    url: "https://flask.palletsprojects.com",
+    category_name: "开发文档",
+    external_only: true,
+  },
+  {
+    id: "fallback-leetcode",
+    name: "LeetCode",
+    url: "https://leetcode.cn",
+    category_name: "学习成长",
+    external_only: true,
+  },
+  {
+    id: "fallback-figma",
+    name: "Figma",
+    url: "https://www.figma.com",
+    category_name: "设计资源",
+    external_only: true,
+  },
+  {
+    id: "fallback-canva",
+    name: "Canva",
+    url: "https://www.canva.com",
+    category_name: "设计资源",
+    external_only: true,
+  },
+  {
+    id: "fallback-iconfont",
+    name: "Iconfont",
+    url: "https://www.iconfont.cn",
+    category_name: "图标",
+    external_only: true,
+  },
+  {
+    id: "fallback-notion",
+    name: "Notion",
+    url: "https://www.notion.so",
+    category_name: "效率办公",
+    external_only: true,
+  },
+  {
+    id: "fallback-feishu",
+    name: "飞书",
+    url: "https://www.feishu.cn",
+    category_name: "效率办公",
+    external_only: true,
+  },
+  {
+    id: "fallback-processon",
+    name: "ProcessOn",
+    url: "https://www.processon.com",
+    category_name: "流程图",
+    external_only: true,
+  },
+].sort(() => Math.random() - 0.5);
+
+const careerFallbackSites = {
+  学生: ["ChatGPT", "Perplexity", "Notion", "ProcessOn"],
+  前端开发: ["GitHub", "MDN Web Docs", "Vue 官方文档", "ChatGPT"],
+  后端开发: ["GitHub", "Flask 官方文档", "LeetCode", "ChatGPT"],
+  产品经理: ["Notion", "ProcessOn", "飞书", "Figma", "ChatGPT"],
+  "UI/UX 设计师": ["Figma", "Canva", "Iconfont"],
+  运营: ["ChatGPT", "Canva", "Notion", "飞书"],
+  教师: ["ChatGPT", "Canva", "ProcessOn"],
+  自媒体创作者: ["ChatGPT", "Canva"],
+  数据分析师: ["ChatGPT"],
+  其他: ["ChatGPT", "Claude", "Gemini", "Notion"],
+};
+
 function getSettledData(result, fallback = []) {
   if (result.status !== "fulfilled") return fallback;
+  if (Array.isArray(result.value)) return result.value;
   return unwrapList(result.value);
 }
 
@@ -139,6 +335,63 @@ function normalizeUrl(url) {
   return `https://${url}`;
 }
 
+function getSiteKey(site) {
+  return site?.id || site?.url || site?.name;
+}
+
+function dedupeSites(list = [], usedKeys = new Set()) {
+  const result = [];
+  for (const site of normalizeList(list)) {
+    const key = getSiteKey(site);
+    if (!key || usedKeys.has(key)) continue;
+    usedKeys.add(key);
+    result.push(site);
+  }
+  return result;
+}
+
+function siteIds(sites = []) {
+  return normalizeList(sites)
+    .map((site) => site.id)
+    .filter(Boolean);
+}
+
+function idsParam(ids = []) {
+  return Array.from(new Set(ids.filter(Boolean))).join(",");
+}
+
+function fillWithFallback(sites, limit, usedKeys = new Set()) {
+  const result = dedupeSites(
+    [...normalizeList(sites), ...fallbackPopularSites],
+    usedKeys,
+  ).slice(0, limit);
+  if (result.length >= limit) return result;
+
+  const resultKeys = new Set(result.map(getSiteKey));
+  const supplements = fallbackPopularSites
+    .filter((site) => !resultKeys.has(getSiteKey(site)))
+    .slice(0, limit - result.length);
+  return [...result, ...supplements];
+}
+
+function fillCareerFallback(sites, career, limit) {
+  const names =
+    careerFallbackSites[career?.name] || careerFallbackSites["其他"];
+  const careerPool = names
+    .map((name) => fallbackPopularSites.find((site) => site.name === name))
+    .filter(Boolean);
+  return dedupeSites([...normalizeList(sites), ...careerPool], new Set()).slice(
+    0,
+    limit,
+  );
+}
+
+function hasSameSiteIds(nextSites, previousIds) {
+  const nextIds = siteIds(nextSites);
+  if (!nextIds.length || nextIds.length !== previousIds.length) return false;
+  return nextIds.every((id, index) => id === previousIds[index]);
+}
+
 function isLikelyAiResource(site) {
   const text = [
     site.name,
@@ -146,6 +399,7 @@ function isLikelyAiResource(site) {
     site.description,
     site.category_name,
     ...(Array.isArray(site.tags) ? site.tags : []),
+    ...(Array.isArray(site.occupations) ? site.occupations : []),
   ]
     .filter(Boolean)
     .join(" ")
@@ -187,7 +441,7 @@ async function visitSite(site) {
       await siteAPI.recordClick(site.id);
     }
   } catch {
-    // click logging should not block navigation
+    // Click logging should never block opening the website.
   }
 }
 
@@ -219,44 +473,49 @@ async function toggleFavorite(site) {
   }
 }
 
-async function loadHotAiSites({
+async function requestHotSites({
   excludeCurrent = false,
   preserveOnError = false,
+  excludeIds = [],
+  targetRef = hotSites,
 } = {}) {
   hotError.value = "";
-  const excludeIds = excludeCurrent
-    ? hotSites.value
-        .map((site) => site.id)
-        .filter(Boolean)
-        .join(",")
-    : "";
+  const requestExcludeIds = excludeCurrent
+    ? [...excludeIds, ...siteIds(targetRef.value)]
+    : excludeIds;
+  const exclude_ids = idsParam(requestExcludeIds);
+
+  try {
+    const hotRes = await siteAPI.getHot({
+      limit: 8,
+      ai_only: 1,
+      exclude_ids,
+    });
+    const sites = filterAiResources(unwrapList(hotRes));
+    if (sites.length || !preserveOnError) {
+      targetRef.value = sites;
+    }
+    if (sites.length) return sites;
+  } catch {
+    // Fall through to the random resource pool.
+  }
+
   try {
     const randomRes = await siteAPI.getRandom({
       limit: 8,
       category: "AI工具",
       scene: "homepage",
-      exclude_ids: excludeIds,
+      exclude_ids,
     });
-    const randomSites = filterAiResources(unwrapList(randomRes));
-    if (randomSites.length || !preserveOnError) {
-      hotSites.value = randomSites;
+    const sites = filterAiResources(unwrapList(randomRes));
+    if (sites.length || !preserveOnError) {
+      targetRef.value = sites;
     }
-    if (randomSites.length) return randomSites;
-  } catch {
-    // fall through to hot AI resources
-  }
-
-  try {
-    const hotRes = await siteAPI.getHot({ limit: 8, ai_only: 1 });
-    const hotAiSites = filterAiResources(unwrapList(hotRes));
-    if (hotAiSites.length || !preserveOnError) {
-      hotSites.value = hotAiSites;
-    }
-    return hotAiSites;
+    return sites;
   } catch {
     hotError.value = "AI 资源更新失败，请稍后重试";
     if (!preserveOnError) {
-      hotSites.value = [];
+      targetRef.value = [];
     }
     throw new Error(hotError.value);
   }
@@ -266,7 +525,20 @@ async function refreshHotSites() {
   if (hotRefreshing.value) return;
   hotRefreshing.value = true;
   try {
-    await loadHotAiSites({ excludeCurrent: true, preserveOnError: true });
+    const preservedSections = [
+      ...marqueeSites.value,
+      ...favoriteStackSites.value,
+      ...recommended.value,
+      ...latestSites.value,
+      ...careerSites.value,
+    ];
+    const sites = await requestHotSites({
+      excludeCurrent: true,
+      preserveOnError: true,
+      excludeIds: siteIds(preservedSections),
+    });
+    const usedKeys = new Set(preservedSections.map(getSiteKey));
+    hotSites.value = fillWithFallback(sites, 8, usedKeys);
   } catch {
     errorToast(hotError.value || "AI 资源更新失败，请稍后重试");
   } finally {
@@ -274,16 +546,74 @@ async function refreshHotSites() {
   }
 }
 
-async function loadMarqueeSites() {
+async function loadCareerSites(career) {
+  selectedCareer.value = career;
+  careerSites.value = [];
+  careerError.value = "";
+  careerLoading.value = true;
+  const exclude_ids = idsParam(
+    siteIds([
+      ...marqueeSites.value,
+      ...hotSites.value,
+      ...favoriteStackSites.value,
+      ...recommended.value,
+      ...latestSites.value,
+      ...careerSites.value,
+    ]),
+  );
+
+  try {
+    const recommendRes = await siteAPI.getRecommend({
+      occupation: career.name,
+      limit: 8,
+      ai_only: 1,
+      exclude_ids,
+    });
+    let sites = filterAiResources(unwrapList(recommendRes));
+
+    if (!sites.length || hasSameSiteIds(sites, lastCareerSiteIds.value)) {
+      const randomRes = await siteAPI.getRandom({
+        limit: 8,
+        category: "AI工具",
+        scene: "career",
+        occupation: career.name,
+        exclude_ids,
+      });
+      sites = filterAiResources(unwrapList(randomRes));
+    }
+
+    careerSites.value = fillCareerFallback(sites, career, 8);
+    lastCareerSiteIds.value = siteIds(careerSites.value);
+  } catch {
+    careerError.value = "职业推荐加载失败，请稍后重试";
+    careerSites.value = [];
+  } finally {
+    careerLoading.value = false;
+  }
+}
+
+async function handleSelectCareer(career) {
+  await loadCareerSites(career);
+  await nextTick();
+  observeRevealElements();
+  const target = document.getElementById("career-sites");
+  if (target) {
+    const top = target.getBoundingClientRect().top + window.scrollY - 96;
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+}
+
+async function loadMarqueeSites(excludeIds = []) {
   try {
     const response = await siteAPI.getRandom({
       limit: 16,
       category: "AI工具",
       scene: "marquee",
+      exclude_ids: idsParam(excludeIds),
     });
-    marqueeSites.value = filterAiResources(unwrapList(response));
+    return filterAiResources(unwrapList(response));
   } catch {
-    marqueeSites.value = [];
+    return [];
   }
 }
 
@@ -291,27 +621,64 @@ async function loadHome() {
   loading.value = true;
   error.value = "";
   try {
-    const [categoryRes, recommendRes, latestRes, hotRes] =
-      await Promise.allSettled([
-        categoryAPI.getCategories(),
-        siteAPI.getRecommend({ limit: 8 }),
-        siteAPI.getLatest({ limit: 8 }),
-        loadHotAiSites(),
-        loadMarqueeSites(),
-      ]);
+    const usedKeys = new Set();
+    const [categoryRes, marqueeRes] = await Promise.allSettled([
+      categoryAPI.getCategories(),
+      loadMarqueeSites(),
+    ]);
 
     const categoryData = getSettledData(categoryRes, []);
-    const latestData = getSettledData(latestRes, []);
-    const recommendData = getSettledData(recommendRes, []);
-
     categories.value = categoryData
       .filter((item) => !item.parent_id)
       .slice(0, 8);
-    latestSites.value = normalizeList(latestData);
-    const normalizedRecommend = normalizeList(recommendData);
-    recommended.value = normalizedRecommend.length
-      ? normalizedRecommend
-      : hotSites.value;
+
+    marqueeSites.value = fillWithFallback(
+      getSettledData(marqueeRes, []),
+      16,
+      usedKeys,
+    );
+
+    const [hotRes] = await Promise.allSettled([
+      requestHotSites({ excludeIds: siteIds(marqueeSites.value) }),
+    ]);
+    hotSites.value = fillWithFallback(getSettledData(hotRes, []), 8, usedKeys);
+
+    const [favoriteRes] = await Promise.allSettled([
+      requestHotSites({
+        excludeIds: siteIds([...marqueeSites.value, ...hotSites.value]),
+        targetRef: favoriteStackSites,
+      }),
+    ]);
+    favoriteStackSites.value = fillWithFallback(
+      getSettledData(favoriteRes, []),
+      6,
+      usedKeys,
+    );
+
+    const excludeForRest = idsParam(
+      siteIds([
+        ...marqueeSites.value,
+        ...hotSites.value,
+        ...favoriteStackSites.value,
+      ]),
+    );
+    const [recommendRes, latestRes] = await Promise.allSettled([
+      siteAPI.getRecommend({ limit: 8, exclude_ids: excludeForRest }),
+      siteAPI.getLatest({ limit: 12 }),
+    ]);
+
+    recommended.value = dedupeSites(
+      filterAiResources(getSettledData(recommendRes, [])),
+      usedKeys,
+    ).slice(0, 8);
+    if (!recommended.value.length) {
+      recommended.value = fillWithFallback([], 8, usedKeys);
+    }
+
+    latestSites.value = dedupeSites(
+      getSettledData(latestRes, []),
+      usedKeys,
+    ).slice(0, 8);
 
     if (
       !recommended.value.length &&
@@ -319,9 +686,7 @@ async function loadHome() {
       !latestSites.value.length
     ) {
       error.value =
-        hotRes.status === "rejected"
-          ? hotError.value
-          : "暂无网站数据，请检查后端接口或数据库演示数据";
+        hotError.value || "暂无网站数据，请检查后端接口或数据库演示数据";
       errorToast(error.value);
     } else {
       error.value = "";
@@ -334,7 +699,56 @@ async function loadHome() {
   }
 }
 
-onMounted(loadHome);
+function observeRevealElements() {
+  const elements = Array.from(document.querySelectorAll(".reveal-on-scroll"));
+  const reduceMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    elements.forEach((element) => element.classList.add("is-visible"));
+    return;
+  }
+
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            revealObserver?.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.14,
+        rootMargin: "0px 0px -60px 0px",
+      },
+    );
+  }
+
+  elements.forEach((element, index) => {
+    if (element.classList.contains("is-visible")) return;
+    if (element.dataset.revealObserved === "1") return;
+    element.style.setProperty(
+      "--reveal-delay",
+      `${Math.min(index * 45, 260)}ms`,
+    );
+    element.dataset.revealObserved = "1";
+    revealObserver.observe(element);
+  });
+}
+
+onMounted(async () => {
+  await loadHome();
+  await nextTick();
+  observeRevealElements();
+});
+
+onBeforeUnmount(() => {
+  revealObserver?.disconnect();
+  revealObserver = null;
+});
 </script>
 
 <style scoped>
@@ -353,10 +767,57 @@ onMounted(loadHome);
   margin: 80px auto;
 }
 
+.career-sites-section {
+  display: grid;
+  gap: 28px;
+  padding: 42px 0 38px;
+}
+
+.career-sites-section .section-heading {
+  width: min(var(--container), calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 112, 88, 0.1);
+  color: #ff7058;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.site-grid {
+  display: grid;
+  width: min(var(--container), calc(100% - 40px));
+  margin: 0 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
 @media (max-width: 768px) {
   .home-state {
     width: min(100% - 28px, var(--container));
     margin: 56px auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .career-sites-section .section-heading,
+  .site-grid {
+    width: min(100% - 28px, var(--container));
+  }
+
+  .site-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

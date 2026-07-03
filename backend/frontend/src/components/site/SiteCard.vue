@@ -1,42 +1,66 @@
 <template>
-  <article class="site-card">
-    <div class="card-head">
-      <img
-        :src="logoSrc"
-        :alt="`${site.name || '网站'} Logo`"
-        @error="useFallbackLogo"
-      />
-      <div>
-        <h3>{{ site.name }}</h3>
-        <p>{{ site.summary || site.description || "网站资源" }}</p>
+  <article class="site-card reveal-on-scroll">
+    <div class="site-card__inner">
+      <div class="card-head">
+        <button
+          type="button"
+          class="site-card__logo-button"
+          :aria-label="`访问 ${site.name || '网站'}`"
+          @click="openSite"
+        >
+          <img
+            :src="logoSrc"
+            :alt="`${site.name || '网站'} Logo`"
+            @error="useFallbackLogo"
+          />
+        </button>
+
+        <div>
+          <h3>
+            <button
+              type="button"
+              class="site-card__title-button"
+              :aria-label="`访问 ${site.name || '网站'}`"
+              @click="openSite"
+            >
+              {{ site.name }}
+            </button>
+          </h3>
+          <p>{{ site.summary || site.description || "网站资源" }}</p>
+        </div>
       </div>
-    </div>
 
-    <small class="reason">
-      推荐理由：{{ site.reason || "根据你的职业和兴趣推荐" }}
-    </small>
+      <small class="reason">
+        推荐理由：{{ site.reason || "根据你的职业和兴趣推荐" }}
+      </small>
 
-    <div class="meta">
-      <span>{{ categoryLabel }}</span>
-      <span v-for="tag in visibleTags" :key="tag">{{ tag }}</span>
-      <span v-if="hiddenTagCount" class="more-tag">+{{ hiddenTagCount }}</span>
-      <span v-for="occupation in visibleOccupations" :key="occupation">
-        {{ occupation }}
-      </span>
-    </div>
+      <div class="meta">
+        <span>{{ categoryLabel }}</span>
+        <span v-for="tag in visibleTags" :key="tag">{{ tag }}</span>
+        <span v-if="hiddenTagCount" class="more-tag"
+          >+{{ hiddenTagCount }}</span
+        >
+        <span v-for="occupation in visibleOccupations" :key="occupation">
+          {{ occupation }}
+        </span>
+      </div>
 
-    <div class="actions">
-      <button
-        type="button"
-        class="favorite-action"
-        :disabled="favoritePending"
-        :aria-label="favoriteLabel"
-        @click="$emit('favorite', site)"
-      >
-        {{ favoritePending ? "处理中..." : favoriteLabel }}
-      </button>
-      <button type="button" class="visit" @click="visitSite">访问网站</button>
-      <RouterLink :to="`/site/${site.id}`">查看详情</RouterLink>
+      <div class="actions">
+        <button
+          v-if="canUseSiteActions"
+          type="button"
+          class="favorite-action"
+          :disabled="favoritePending"
+          :aria-label="favoriteLabel"
+          @click="$emit('favorite', site)"
+        >
+          {{ favoritePending ? "处理中..." : favoriteLabel }}
+        </button>
+        <button type="button" class="visit" @click="openSite">访问网站</button>
+        <RouterLink v-if="canUseSiteActions" :to="`/site/${site.id}`">
+          查看详情
+        </RouterLink>
+      </div>
     </div>
   </article>
 </template>
@@ -69,6 +93,9 @@ const isFavorited = computed(
   () => Boolean(props.site.is_favorited) || props.favorited,
 );
 const favoriteLabel = computed(() => (isFavorited.value ? "取消收藏" : "收藏"));
+const canUseSiteActions = computed(
+  () => props.site.id && !props.site.external_only,
+);
 
 watch(
   () => props.site.logo_url,
@@ -87,13 +114,18 @@ function normalizeUrl(url) {
   return `https://${url}`;
 }
 
-function visitSite() {
-  emit("visit", { ...props.site, url: normalizeUrl(props.site.url) });
+function openSite() {
+  const normalizedUrl = normalizeUrl(props.site?.url);
+  emit("visit", { ...props.site, url: normalizedUrl });
 }
 </script>
 
 <style scoped>
 .site-card {
+  min-width: 0;
+}
+
+.site-card__inner {
   display: grid;
   gap: 18px;
   min-width: 0;
@@ -109,7 +141,7 @@ function visitSite() {
     border-color var(--transition);
 }
 
-.site-card:hover {
+.site-card:hover .site-card__inner {
   border-color: rgba(255, 112, 88, 0.32);
   transform: translateY(-5px);
   box-shadow: var(--shadow-card);
@@ -121,8 +153,27 @@ function visitSite() {
   min-width: 0;
 }
 
-img {
-  flex: 0 0 auto;
+.site-card__logo-button {
+  display: inline-grid;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  place-items: center;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.site-card__logo-button:hover,
+.site-card__logo-button:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.site-card__logo-button img {
   width: 56px;
   height: 56px;
   border: 1px solid var(--color-border-soft);
@@ -133,10 +184,29 @@ img {
 
 h3 {
   margin: 0 0 7px;
+}
+
+.site-card__title-button {
+  display: inline;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
   color: var(--color-heading);
+  padding: 0;
+  text-align: left;
   font-size: 18px;
+  font-weight: 800;
   line-height: 1.3;
   word-break: break-word;
+  cursor: pointer;
+}
+
+.site-card__title-button:hover,
+.site-card__title-button:focus-visible {
+  color: #ff7058;
+  text-decoration: underline;
+  outline: none;
 }
 
 p {
@@ -192,8 +262,8 @@ p {
   margin-top: auto;
 }
 
-button,
-a {
+.actions button,
+.actions a {
   display: inline-grid;
   min-height: 40px;
   place-items: center;
@@ -213,17 +283,17 @@ a {
     box-shadow var(--transition);
 }
 
-button:hover,
-a:hover,
-button:focus-visible,
-a:focus-visible {
+.actions button:hover,
+.actions a:hover,
+.actions button:focus-visible,
+.actions a:focus-visible {
   border-color: rgba(255, 112, 88, 0.38);
   color: var(--color-primary);
   transform: translateY(-1px);
   outline: none;
 }
 
-button:disabled {
+.actions button:disabled {
   cursor: wait;
   opacity: 0.68;
   transform: none;
@@ -237,21 +307,21 @@ button:disabled {
 }
 
 .visit {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #ffffff;
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
   box-shadow: 0 10px 22px rgba(255, 112, 88, 0.18);
 }
 
 .visit:hover,
 .visit:focus-visible {
-  background: var(--color-primary-dark);
-  color: #ffffff;
+  background: var(--color-primary-dark) !important;
+  color: #ffffff !important;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.26);
 }
 
 @media (max-width: 520px) {
-  .site-card {
+  .site-card__inner {
     padding: 18px;
   }
 
@@ -260,8 +330,8 @@ button:disabled {
     flex-direction: column;
   }
 
-  button,
-  a {
+  .actions button,
+  .actions a {
     width: 100%;
   }
 }

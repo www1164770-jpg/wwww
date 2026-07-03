@@ -30,6 +30,8 @@ html {
   min-height: 100%;
   overflow-y: scroll;
   background: #ffffff;
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
@@ -107,6 +109,25 @@ select:focus {
 .page-section {
   width: min(var(--container), calc(100% - 40px));
   margin: 0 auto;
+}
+
+.home-anchor-section {
+  scroll-margin-top: 96px;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .section-title,
@@ -247,6 +268,12 @@ textarea,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   *,
   *::before,
   *::after {
