@@ -8,6 +8,12 @@ const routes = [
     component: () => import("../views/Login.vue"),
   },
   {
+    path: "/authing/callback",
+    name: "AuthingCallback",
+    component: () => import("../views/AuthingCallback.vue"),
+    meta: { public: true },
+  },
+  {
     path: "/register",
     name: "Register",
     component: () => import("../views/Register.vue"),
@@ -133,6 +139,10 @@ function questionnaireCompleted() {
 }
 
 router.beforeEach((to) => {
+  if (to.meta.public) {
+    return true;
+  }
+
   if (to.meta.requiresAuth && !isLoggedIn()) {
     return { path: "/login", query: { redirect: to.fullPath } };
   }

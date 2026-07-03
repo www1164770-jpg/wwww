@@ -29,6 +29,9 @@
       <button type="submit" :disabled="loading">
         {{ loading ? "正在登录..." : "登录" }}
       </button>
+      <button type="button" class="authing-button" @click="loginWithAuthing">
+        使用 Authing 登录
+      </button>
       <RouterLink class="switch-link" to="/register">
         还没有账号？去注册
       </RouterLink>
@@ -47,7 +50,9 @@ const router = useRouter();
 const account = ref("");
 const password = ref("");
 const loading = ref(false);
-const error = ref("");
+const error = ref(
+  route.query.authing_error ? "Authing 登录失败，请稍后重试" : "",
+);
 
 async function submit() {
   if (loading.value) return;
@@ -87,6 +92,17 @@ async function submit() {
   } finally {
     loading.value = false;
   }
+}
+
+function loginWithAuthing() {
+  const redirect = route.query.redirect || "/";
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
+  const backendBase = apiBase.replace(/\/api\/?$/, "");
+
+  window.location.href = `${backendBase}/api/authing/login?redirect=${encodeURIComponent(
+    redirect,
+  )}`;
 }
 </script>
 
@@ -179,6 +195,20 @@ button:focus-visible {
 button:disabled {
   cursor: wait;
   opacity: 0.72;
+}
+
+.authing-button {
+  border: 1px solid rgba(255, 112, 88, 0.34);
+  background: #ffffff;
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+.authing-button:hover,
+.authing-button:focus-visible {
+  background: rgba(255, 112, 88, 0.08);
+  color: var(--color-primary-dark);
+  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.12);
 }
 
 .switch-link {

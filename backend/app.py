@@ -21,7 +21,7 @@
 
 import os  # 操作系统接口，用于读取环境变量和文件路径
 from dotenv import load_dotenv  # 从 .env 文件加载环境变量，保护敏感配置不硬编码
-from flask import Flask, jsonify, request, redirect  # Flask 核心：应用实例、JSON响应、请求对象、重定向
+from flask import Flask, jsonify, request, redirect, session, url_for, g  # Flask 核心：应用实例、JSON响应、请求对象、重定向
 from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调用后端接口
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
 import time  # 时间工具，用于时间戳记录和延迟控制
@@ -55,6 +55,10 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from recommend_service import rank_sites
 from v1_routes import register_v1_routes
+from authing_service import AuthingService
+import base64
+import secrets
+from urllib.parse import urlencode
 
 # 导入连接池模块
 from db_pool import get_connection as pool_get_connection
@@ -66,17 +70,256 @@ import app_extensions
 load_dotenv()  # 将 .env 文件中的键值对注入到系统环境变量，后续通过 os.getenv() 读取
 
 app = Flask(__name__)  # 创建 Flask 应用实例，__name__ 用于确定资源文件的根路径
+app.secret_key = (
+    os.getenv("FLASK_SECRET_KEY")
+    or os.getenv("SECRET_KEY")
+    or os.getenv("JWT_SECRET_KEY")
+    or "dev-secret-key-change-me"
+)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+
+def get_limiter_storage_uri():
+    """Redis 不可用时降级到内存限流，避免本地首页接口被限流器拦成 500。"""
+    try:
+        redis.StrictRedis.from_url(REDIS_URL, decode_responses=True).ping()
+        return REDIS_URL
+    except Exception as e:
+        print(f"Redis unavailable for rate limiter, using memory storage: {e}")
+        return "memory://"
+
+def table_columns(cursor, table_name):
+    cursor.execute(f"SHOW COLUMNS FROM {table_name}")
+    return {row["Field"] for row in cursor.fetchall()}
+
+
+def create_project_token(user):
+    return create_access_token(
+        identity=user.get("username"),
+        additional_claims={
+            "user_id": user.get("id"),
+            "username": user.get("username"),
+            "email": user.get("email"),
+            "role": user.get("role") or "user",
+        },
+        expires_delta=timedelta(days=7),
+    )
+
+
+def frontend_authing_error(error_code):
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    return redirect(f"{frontend_url}/login?authing_error={error_code}")
+
+
+def normalize_frontend_redirect(path):
+    if not path or not str(path).startswith("/") or str(path).startswith("//"):
+        return "/"
+    return str(path)
+
+
+def find_or_create_authing_user(authing_user):
+    authing_sub = authing_user.get("sub") or authing_user.get("id")
+    email = authing_user.get("email")
+    username = (
+        authing_user.get("name")
+        or authing_user.get("nickname")
+        or authing_user.get("username")
+        or email
+        or f"authing_{authing_sub}"
+    )
+    avatar = authing_user.get("picture") or authing_user.get("avatar")
+
+    if not authing_sub:
+        raise RuntimeError("Authing user missing sub")
+
+    conn = get_db_connection()
+
+    try:
+        with conn.cursor() as cursor:
+            columns = table_columns(cursor, "users")
+            lookup_clauses = []
+            lookup_params = []
+            if "authing_sub" in columns:
+                lookup_clauses.append("authing_sub=%s")
+                lookup_params.append(authing_sub)
+            if email:
+                lookup_clauses.append("email=%s")
+                lookup_params.append(email)
+            if not lookup_clauses:
+                raise RuntimeError("No available user lookup field for Authing")
+
+            cursor.execute(
+                f"""
+                SELECT *
+                FROM users
+                WHERE {" OR ".join(lookup_clauses)}
+                LIMIT 1
+                """,
+                lookup_params,
+            )
+            user = cursor.fetchone()
+
+            if user:
+                updates = []
+                params = []
+                if "authing_sub" in columns:
+                    updates.append("authing_sub=%s")
+                    params.append(authing_sub)
+                if "avatar_url" in columns and avatar:
+                    updates.append("avatar_url=%s")
+                    params.append(avatar)
+                elif "avatar" in columns and avatar:
+                    updates.append("avatar=%s")
+                    params.append(avatar)
+                if "login_provider" in columns:
+                    updates.append("login_provider=%s")
+                    params.append("authing")
+                if updates:
+                    params.append(user["id"])
+                    cursor.execute(
+                        f"UPDATE users SET {', '.join(updates)} WHERE id=%s",
+                        params,
+                    )
+                    conn.commit()
+
+                cursor.execute("SELECT * FROM users WHERE id=%s", (user["id"],))
+                return cursor.fetchone()
+
+            insert_data = {
+                "username": username,
+                "email": email or f"{authing_sub}@authing.local",
+                "password_hash": "",
+                "role": "user",
+                "authing_sub": authing_sub,
+                "login_provider": "authing",
+                "questionnaire_completed": 0,
+                "created_at": datetime.now(),
+            }
+            if "status" in columns:
+                insert_data["status"] = "active"
+            if "avatar_url" in columns:
+                insert_data["avatar_url"] = avatar
+            elif "avatar" in columns:
+                insert_data["avatar"] = avatar
+
+            if "username" in columns:
+                cursor.execute("SELECT id FROM users WHERE username=%s LIMIT 1", (username,))
+                if cursor.fetchone():
+                    insert_data["username"] = f"{username}_{authing_sub[:8]}"
+
+            insert_data = {
+                key: value
+                for key, value in insert_data.items()
+                if key in columns and value is not None
+            }
+            names = list(insert_data.keys())
+            placeholders = ", ".join(["%s"] * len(names))
+            cursor.execute(
+                f"INSERT INTO users ({', '.join(names)}) VALUES ({placeholders})",
+                [insert_data[name] for name in names],
+            )
+            conn.commit()
+
+            cursor.execute("SELECT * FROM users WHERE id=%s", (cursor.lastrowid,))
+            return cursor.fetchone()
+
+    finally:
+        conn.close()
+
+@app.route("/api/authing/login")
+def authing_login():
+    redirect_path = normalize_frontend_redirect(request.args.get("redirect", "/"))
+
+    state_payload = {
+        "nonce": secrets.token_urlsafe(16),
+        "redirect": redirect_path,
+    }
+
+    state = base64.urlsafe_b64encode(
+        json.dumps(state_payload).encode("utf-8")
+    ).decode("utf-8")
+
+    session["authing_state_nonce"] = state_payload["nonce"]
+
+    try:
+        authing = AuthingService()
+        login_url = authing.build_login_url(state)
+    except Exception as exc:
+        print("Authing login error:", exc)
+        return frontend_authing_error("authing_failed")
+
+    return redirect(login_url)
+
+@app.route("/api/authing/callback")
+def authing_callback():
+    code = request.args.get("code")
+    state = request.args.get("state")
+    error = request.args.get("error")
+
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+    if error:
+        return redirect(f"{frontend_url}/login?authing_error={error}")
+
+    if not code:
+        return redirect(f"{frontend_url}/login?authing_error=missing_code")
+
+    try:
+        state_payload = json.loads(
+            base64.urlsafe_b64decode(state.encode("utf-8")).decode("utf-8")
+        )
+    except Exception:
+        return redirect(f"{frontend_url}/login?authing_error=invalid_state")
+
+    expected_nonce = session.get("authing_state_nonce")
+
+    if not expected_nonce or state_payload.get("nonce") != expected_nonce:
+        return redirect(f"{frontend_url}/login?authing_error=state_mismatch")
+
+    try:
+        authing = AuthingService()
+
+        token_data = authing.exchange_code_for_token(code)
+        access_token = token_data.get("access_token")
+
+        if not access_token:
+            return redirect(f"{frontend_url}/login?authing_error=missing_access_token")
+
+        authing_user = authing.get_user_info(access_token)
+
+        user = find_or_create_authing_user(authing_user)
+
+        project_token = create_project_token(user)
+
+        questionnaire_completed = int(user.get("questionnaire_completed", 0) or 0)
+
+        redirect_path = normalize_frontend_redirect(state_payload.get("redirect"))
+        session.pop("authing_state_nonce", None)
+
+        query = urlencode(
+            {
+                "token": project_token,
+                "questionnaire_completed": questionnaire_completed,
+                "redirect": redirect_path,
+            }
+        )
+
+        return redirect(f"{frontend_url}/authing/callback?{query}")
+
+    except Exception as exc:
+        print("Authing callback error:", exc)
+        return redirect(f"{frontend_url}/login?authing_error=authing_failed")
 
 #初始化接口防刷限制器
 limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["5000 per day", "1000 per hour"], # 全局默认限制：每个 IP 每天最多 5000 次请求
-    storage_uri=os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    storage_uri=get_limiter_storage_uri()
 )
 
 # 初始化 Redis 和 线程池
-redis_client = redis.StrictRedis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379/0"), decode_responses=True)
+redis_client = redis.StrictRedis.from_url(REDIS_URL, decode_responses=True)
 executor = ThreadPoolExecutor(max_workers=10)
 
 # 数据库配置（请改成你自己的！）
@@ -341,7 +584,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_pass}@{d
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对象修改追踪，节省内存，避免不必要的警告
 
 # ===== JWT Token 配置 =====
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.getenv('JWT_SECRET_KEY', 'dev-secret-change-me'))
+app.config['SECRET_KEY'] = app.secret_key
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', app.config['SECRET_KEY'])  # JWT 签名密钥，生产环境必须使用强随机字符串
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)   # Access Token 1小时过期，用于日常接口鉴权
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # Refresh Token 30天过期，用于无感刷新 Access Token
@@ -407,12 +650,12 @@ def setup_search_engine():
 
 
 # ================= 1. 配置 Authing 客户端 =================
-AUTHING_APP_ID = os.getenv('AUTHING_APP_ID', '69fdee93f62848c14ce9d3a6')
-AUTHING_APP_SECRET = os.getenv('AUTHING_APP_SECRET', '381eeae3cd314fb80665a8235a03bc71')
-AUTHING_APP_HOST = os.getenv('AUTHING_APP_HOST', 'https://zhihuidh.authing.cn')
+AUTHING_APP_ID = os.getenv('AUTHING_APP_ID')
+AUTHING_APP_SECRET = os.getenv('AUTHING_APP_SECRET')
+AUTHING_APP_HOST = os.getenv('AUTHING_APP_HOST') or os.getenv('AUTHING_ISSUER')
 
 auth_client = None
-if AUTHING_APP_ID:
+if AUTHING_APP_ID and AUTHING_APP_SECRET and AUTHING_APP_HOST:
     try:
         auth_client = AuthenticationClient(
             app_id=AUTHING_APP_ID,
@@ -1931,7 +2174,7 @@ limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["200 per day", "50 per hour"],
-    storage_uri=os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    storage_uri=get_limiter_storage_uri()
 )
 
 # 【应用防刷】给敏感接口加上限制 (在之前的路由上加装饰器)
@@ -2218,7 +2461,12 @@ def delete_website(id):
 # =====================================================================
 # 注册所有扩展模块（统一在此处注册，确保 app 实例已完全初始化）
 # =====================================================================
-register_v1_routes(app, get_db_connection)
+try:
+    register_v1_routes(app, get_db_connection)
+    print("V1 routes registered successfully")
+except Exception as e:
+    print(f"Failed to register v1 routes: {e}")
+    raise
 app_extensions.register_redis_sync_scheduler(app, scheduler, redis_client)
 app_extensions.register_password_reset_routes(app, redis_client)
 app_extensions.register_token_refresh_route(app)
