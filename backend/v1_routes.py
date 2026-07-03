@@ -8,6 +8,8 @@ from recommend_service import rank_sites
 
 
 def register_v1_routes(app, get_db_connection):
+    columns_cache = {}
+
     def api_success(data=None, msg="success", status=200):
         return jsonify({"code": 0, "msg": msg, "data": data if data is not None else {}}), status
 
@@ -42,6 +44,20 @@ def register_v1_routes(app, get_db_connection):
             pass
         finally:
             conn.close()
+
+    def table_columns(table):
+        if table in columns_cache:
+            return columns_cache[table]
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(f"SHOW COLUMNS FROM {table}")
+                columns_cache[table] = {row["Field"] for row in cursor.fetchall()}
+        except Exception:
+            columns_cache[table] = set()
+        finally:
+            conn.close()
+        return columns_cache[table]
 
     def admin_required(fn):
         @wraps(fn)
@@ -166,55 +182,270 @@ def register_v1_routes(app, get_db_connection):
             "status": row.get("status") or "approved",
             "created_at": row.get("created_at"),
             "is_favorited": bool(row.get("is_favorited", False)),
+            "reason": row.get("reason") or "热门优质资源",
         }
 
+    ai_keywords = [
+        "AI",
+        "人工智能",
+        "AI工具",
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "AIGC",
+        "生成式",
+        "智能",
+        "模型",
+        "写作",
+        "绘图",
+        "编程",
+        "设计",
+        "效率",
+    ]
+    fallback_keywords = [
+        "开发",
+        "编程",
+        "代码",
+        "设计",
+        "学习",
+        "文档",
+        "效率",
+        "办公",
+        "协作",
+        "Figma",
+        "Canva",
+        "GitHub",
+        "MDN",
+        "Vue",
+        "Flask",
+        "LeetCode",
+        "Notion",
+        "ProcessOn",
+    ]
+    blocked_keywords = [
+        "王者荣耀",
+        "和平精英",
+        "抖音",
+        "快手",
+        "游戏",
+        "手游",
+        "短视频",
+    ]
+    blocked_names = ["百度"]
+
+    def parse_id_list(value):
+        ids = []
+        for item in str(value or "").split(","):
+            item = item.strip()
+            if item.isdigit():
+                ids.append(int(item))
+        return ids
+
+    def site_text(site):
+        parts = [
+            site.get("name"),
+            site.get("summary"),
+            site.get("description"),
+            site.get("category_name"),
+            *(site.get("tags") or []),
+        ]
+        return " ".join(str(item) for item in parts if item).lower()
+
+    def is_resource_site(site, keywords):
+        text = site_text(site)
+        name = str(site.get("name") or "").lower()
+        if any(keyword.lower() == name for keyword in blocked_names):
+            return False
+        if any(keyword.lower() in text for keyword in blocked_keywords):
+            return False
+        return any(keyword.lower() in text for keyword in keywords)
+
+    def query_resource_sites(limit=8, category=None, tag=None, exclude_ids=None, sort="random", fallback=False):
+        website_columns = table_columns("websites")
+        category_columns = table_columns("categories")
+        exclude_ids = exclude_ids or []
+        keywords = fallback_keywords if fallback else ai_keywords
+        joins = [
+            "LEFT JOIN categories c ON c.id = w.category_id",
+            "LEFT JOIN site_tags st_match ON st_match.site_id = w.id",
+            "LEFT JOIN tags t_match ON t_match.id = st_match.tag_id",
+        ]
+        where = []
+        params = []
+        if "status" in website_columns:
+            where.append("COALESCE(w.status, 'approved') IN ('approved', 'active')")
+        if category:
+            if str(category).isdigit():
+                where.append("w.category_id=%s")
+                params.append(int(category))
+            elif "name" in category_columns:
+                where.append("c.name=%s")
+                params.append(category)
+        if tag:
+            joins.extend([
+                "LEFT JOIN site_tags st_filter ON st_filter.site_id = w.id",
+                "LEFT JOIN tags t_filter ON t_filter.id = st_filter.tag_id",
+            ])
+            where.append("t_filter.name=%s")
+            params.append(tag)
+        if exclude_ids:
+            placeholders = ",".join(["%s"] * len(exclude_ids))
+            where.append(f"w.id NOT IN ({placeholders})")
+            params.extend(exclude_ids)
+
+        text_fields = []
+        for column in ("name", "summary", "description", "url"):
+            if column in website_columns:
+                text_fields.append(f"w.{column}")
+        if "name" in category_columns:
+            text_fields.append("c.name")
+        text_fields.append("t_match.name")
+
+        match_clauses = []
+        for keyword in keywords:
+            per_keyword = [f"{field} LIKE %s" for field in text_fields]
+            match_clauses.append(f"({' OR '.join(per_keyword)})")
+            params.extend([f"%{keyword}%"] * len(text_fields))
+        where.append(f"({' OR '.join(match_clauses)})")
+
+        blocked_clauses = []
+        for keyword in blocked_keywords:
+            per_keyword = [f"{field} LIKE %s" for field in text_fields]
+            blocked_clauses.append(f"({' OR '.join(per_keyword)})")
+            params.extend([f"%{keyword}%"] * len(text_fields))
+        where.append(f"NOT ({' OR '.join(blocked_clauses)})")
+
+        if "click_count" in website_columns and "clicks" in website_columns:
+            click_expr = "COALESCE(w.click_count, w.clicks, 0)"
+        elif "click_count" in website_columns:
+            click_expr = "COALESCE(w.click_count, 0)"
+        elif "clicks" in website_columns:
+            click_expr = "COALESCE(w.clicks, 0)"
+        else:
+            click_expr = "0"
+        order_sql = "RAND()" if sort == "random" else f"{click_expr} DESC"
+        params.append(limit)
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT w.*, c.name AS category_name
+                    FROM websites w
+                    {' '.join(joins)}
+                    WHERE {' AND '.join(where)}
+                    GROUP BY w.id
+                    ORDER BY {order_sql}
+                    LIMIT %s
+                    """,
+                    params,
+                )
+                rows = cursor.fetchall()
+        finally:
+            conn.close()
+        ids = [row["id"] for row in rows]
+        tags = site_tags(ids)
+        occupations = site_occupations(ids)
+        if fallback:
+            reason = "适合学习、工作和创作场景使用"
+        elif sort == "hot":
+            reason = "根据热门度和资源质量推荐"
+        else:
+            reason = "AI 工具随机推荐"
+        items = [normalize_site(row, tags.get(row["id"], []), occupations.get(row["id"], [])) for row in rows]
+        for item in items:
+            item["reason"] = reason
+        return [item for item in items if is_resource_site(item, keywords)]
+
+    def random_resource_sites(limit=8, category=None, tag=None, scene=None, exclude_ids=None):
+        exclude_ids = exclude_ids or []
+        items = query_resource_sites(limit, category, tag, exclude_ids, sort="random")
+        seen = {item["id"] for item in items}
+        if len(items) < limit:
+            fallback = query_resource_sites(
+                limit - len(items),
+                None,
+                None,
+                exclude_ids + list(seen),
+                sort="random",
+                fallback=True,
+            )
+            items.extend(fallback)
+            seen.update(item["id"] for item in fallback)
+        if len(items) < limit and exclude_ids:
+            repeat_items = query_resource_sites(
+                limit - len(items),
+                category,
+                tag,
+                [],
+                sort="random",
+            )
+            items.extend([item for item in repeat_items if item["id"] not in seen])
+        return items[:limit]
+
     def query_sites(limit=20, offset=0, category_id=None, keyword=None, tag=None, is_free=None, region=None, sort="recommend"):
-        where = ["COALESCE(w.status, 'approved') IN ('approved', 'active')"]
+        website_columns = table_columns("websites")
+        category_columns = table_columns("categories")
+        where = []
         params = []
         joins = "LEFT JOIN categories c ON c.id = w.category_id"
+        if "status" in website_columns:
+            where.append("COALESCE(w.status, 'approved') IN ('approved', 'active')")
         if category_id:
-            where.append("(w.category_id=%s OR c.parent_id=%s)")
-            params.extend([category_id, category_id])
+            if "parent_id" in category_columns:
+                where.append("(w.category_id=%s OR c.parent_id=%s)")
+                params.extend([category_id, category_id])
+            else:
+                where.append("w.category_id=%s")
+                params.append(category_id)
         if keyword:
-            joins += """
-                LEFT JOIN site_tags st_search ON st_search.site_id = w.id
-                LEFT JOIN tags t_search ON t_search.id = st_search.tag_id
-                LEFT JOIN site_occupations so_search ON so_search.site_id = w.id
-            """
-            where.append(
-                """
-                (
-                    w.name LIKE %s OR w.summary LIKE %s OR w.description LIKE %s OR
-                    w.url LIKE %s OR c.name LIKE %s OR t_search.name LIKE %s OR
-                    so_search.occupation LIKE %s
-                )
-                """
-            )
+            joins += " LEFT JOIN site_tags st_search ON st_search.site_id = w.id LEFT JOIN tags t_search ON t_search.id = st_search.tag_id"
+            joins += " LEFT JOIN site_occupations so_search ON so_search.site_id = w.id"
+            search_fields = []
+            for column in ("name", "summary", "description", "url"):
+                if column in website_columns:
+                    search_fields.append(f"w.{column} LIKE %s")
+            if "name" in category_columns:
+                search_fields.append("c.name LIKE %s")
+            search_fields.extend(["t_search.name LIKE %s", "so_search.occupation LIKE %s"])
+            where.append(f"({' OR '.join(search_fields)})")
             like = f"%{keyword}%"
-            params.extend([like, like, like, like, like, like, like])
+            params.extend([like] * len(search_fields))
         if tag:
             joins += " LEFT JOIN site_tags st_filter ON st_filter.site_id = w.id LEFT JOIN tags t_filter ON t_filter.id = st_filter.tag_id"
             where.append("t_filter.name=%s")
             params.append(tag)
-        if is_free in ("free", "1", "true", True):
+        if "is_free" in website_columns and is_free in ("free", "1", "true", True):
             where.append("COALESCE(w.is_free, 1)=1")
-        elif is_free in ("paid", "0", "false", False):
+        elif "is_free" in website_columns and is_free in ("paid", "0", "false", False):
             where.append("COALESCE(w.is_free, 1)=0")
-        if region:
+        if region and "region" in website_columns:
             where.append("w.region=%s")
             params.append(region)
+        if "click_count" in website_columns and "clicks" in website_columns:
+            click_expr = "COALESCE(w.click_count, w.clicks, 0)"
+        elif "click_count" in website_columns:
+            click_expr = "COALESCE(w.click_count, 0)"
+        elif "clicks" in website_columns:
+            click_expr = "COALESCE(w.clicks, 0)"
+        else:
+            click_expr = "0"
+        latest_expr = "w.created_at DESC" if "created_at" in website_columns else "w.id DESC"
+        quality_expr = "w.quality_score DESC" if "quality_score" in website_columns else click_expr + " DESC"
+        recommend_expr = "w.recommend_level DESC, " if "recommend_level" in website_columns else ""
         order_map = {
-            "hot": "COALESCE(w.click_count, w.clicks, 0) DESC",
-            "latest": "w.created_at DESC",
-            "rating": "w.rating_avg DESC",
-            "recommend": "w.recommend_level DESC, w.quality_score DESC, COALESCE(w.click_count, w.clicks, 0) DESC",
+            "hot": f"{click_expr} DESC",
+            "latest": latest_expr,
+            "rating": "w.rating_avg DESC" if "rating_avg" in website_columns else quality_expr,
+            "recommend": f"{recommend_expr}{quality_expr}, {click_expr} DESC",
         }
         params.extend([limit, offset])
+        where_sql = f"WHERE {' AND '.join(where)}" if where else ""
         sql = f"""
             SELECT w.*, c.name AS category_name
             FROM websites w
             {joins}
-            WHERE {' AND '.join(where)}
+            {where_sql}
             GROUP BY w.id
             ORDER BY {order_map.get(sort, order_map['recommend'])}
             LIMIT %s OFFSET %s
@@ -361,10 +592,24 @@ def register_v1_routes(app, get_db_connection):
 
     @app.route("/api/categories", methods=["GET"])
     def v1_categories():
+        category_columns = table_columns("categories")
+        parent_expr = "parent_id" if "parent_id" in category_columns else "NULL AS parent_id"
+        icon_expr = "icon" if "icon" in category_columns else "'' AS icon"
+        sort_expr = "sort_order" if "sort_order" in category_columns else "0 AS sort_order"
+        status_expr = "status" if "status" in category_columns else "'active' AS status"
+        where_sql = "WHERE COALESCE(status, 'active')='active'" if "status" in category_columns else ""
+        order_sql = "COALESCE(parent_id, 0), sort_order, id" if "parent_id" in category_columns else "sort_order, id"
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT id, parent_id, name, icon, sort_order, status FROM categories WHERE COALESCE(status, 'active')='active' ORDER BY COALESCE(parent_id, 0), sort_order, id")
+                cursor.execute(
+                    f"""
+                    SELECT id, {parent_expr}, name, {icon_expr}, {sort_expr}, {status_expr}
+                    FROM categories
+                    {where_sql}
+                    ORDER BY {order_sql}
+                    """
+                )
                 rows = cursor.fetchall()
         finally:
             conn.close()
@@ -412,9 +657,33 @@ def register_v1_routes(app, get_db_connection):
         )
         return api_success({"items": items, "page": page, "per_page": per_page})
 
+    @app.route("/api/sites/random", methods=["GET"])
+    def v1_random_sites():
+        limit = max(1, min(request.args.get("limit", 8, type=int), 50))
+        return api_success(
+            random_resource_sites(
+                limit=limit,
+                category=request.args.get("category"),
+                tag=request.args.get("tag"),
+                scene=request.args.get("scene"),
+                exclude_ids=parse_id_list(request.args.get("exclude_ids")),
+            )
+        )
+
     @app.route("/api/sites/hot", methods=["GET"])
     def v1_hot_sites():
-        return api_success(query_sites(limit=request.args.get("limit", 8, type=int), sort="hot"))
+        limit = max(1, min(request.args.get("limit", 8, type=int), 50))
+        category = request.args.get("category")
+        if request.args.get("ai_only") in ("1", "true", "True") or category:
+            return api_success(
+                query_resource_sites(
+                    limit=limit,
+                    category=category,
+                    tag=request.args.get("tag"),
+                    sort="hot",
+                )
+            )
+        return api_success(query_sites(limit=limit, sort="hot"))
 
     @app.route("/api/sites/latest", methods=["GET"])
     def v1_latest_sites():

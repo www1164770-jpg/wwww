@@ -16,6 +16,16 @@ export function unwrapResponse(response) {
   return payload;
 }
 
+export function unwrapList(response) {
+  const payload = response?.data;
+  const data = payload?.data ?? payload;
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.list)) return data.list;
+  if (Array.isArray(data?.rows)) return data.rows;
+  return [];
+}
+
 function readPayload(response) {
   return unwrapResponse(response) ?? {};
 }
@@ -154,6 +164,7 @@ export const questionnaireAPI = {
 export const siteAPI = {
   getSites: (params = {}) => api.get("/sites", { params }),
   getSite: (id) => api.get(`/sites/${id}`),
+  getRandom: (params = {}) => api.get("/sites/random", { params }),
   getHot: (params = {}) => api.get("/sites/hot", { params }),
   getLatest: (params = {}) => api.get("/sites/latest", { params }),
   getRecommend: (params = {}) => api.get("/sites/recommend", { params }),

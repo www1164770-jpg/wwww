@@ -8,7 +8,7 @@
       />
       <div>
         <h3>{{ site.name }}</h3>
-        <p>{{ site.summary || site.description || "实用 AI 资源" }}</p>
+        <p>{{ site.summary || site.description || "网站资源" }}</p>
       </div>
     </div>
 
@@ -17,6 +17,7 @@
     </small>
 
     <div class="meta">
+      <span>{{ categoryLabel }}</span>
       <span v-for="tag in visibleTags" :key="tag">{{ tag }}</span>
       <span v-if="hiddenTagCount" class="more-tag">+{{ hiddenTagCount }}</span>
       <span v-for="occupation in visibleOccupations" :key="occupation">
@@ -34,9 +35,7 @@
       >
         {{ favoritePending ? "处理中..." : favoriteLabel }}
       </button>
-      <button type="button" class="visit" @click="$emit('visit', site)">
-        访问网站
-      </button>
+      <button type="button" class="visit" @click="visitSite">访问网站</button>
       <RouterLink :to="`/site/${site.id}`">查看详情</RouterLink>
     </div>
   </article>
@@ -50,11 +49,14 @@ const props = defineProps({
   favorited: { type: Boolean, default: false },
   favoritePending: { type: Boolean, default: false },
 });
-defineEmits(["favorite", "visit"]);
+const emit = defineEmits(["favorite", "visit"]);
 
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=ai-nav";
 const logoFailed = ref(false);
 const allTags = computed(() => props.site.tags || []);
+const categoryLabel = computed(
+  () => props.site.category_name || allTags.value[0] || "网站资源",
+);
 const logoSrc = computed(() =>
   logoFailed.value ? fallbackLogo : props.site.logo_url || fallbackLogo,
 );
@@ -77,6 +79,16 @@ watch(
 
 function useFallbackLogo() {
   logoFailed.value = true;
+}
+
+function normalizeUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
+function visitSite() {
+  emit("visit", { ...props.site, url: normalizeUrl(props.site.url) });
 }
 </script>
 
