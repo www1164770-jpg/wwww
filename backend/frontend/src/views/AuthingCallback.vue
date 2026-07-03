@@ -24,18 +24,31 @@ function normalizeRedirect(path) {
   return String(path);
 }
 
+function isValidJwt(token) {
+  return token && String(token).split(".").length === 3;
+}
+
+function clearAuthStorage() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("questionnaire_completed");
+  localStorage.removeItem("is_logged_in");
+}
+
 onMounted(() => {
   const token = route.query.token;
   const questionnaireCompleted = route.query.questionnaire_completed === "1";
   const redirect = normalizeRedirect(route.query.redirect);
 
-  if (!token) {
-    router.replace("/login?error=authing_failed");
+  if (!isValidJwt(token)) {
+    clearAuthStorage();
+    router.replace("/login?authing_error=invalid_token");
     return;
   }
 
-  localStorage.setItem("access_token", token);
   localStorage.setItem("token", token);
+  localStorage.setItem("access_token", token);
   localStorage.setItem(
     "questionnaire_completed",
     questionnaireCompleted ? "true" : "false",

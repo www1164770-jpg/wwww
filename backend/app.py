@@ -94,7 +94,7 @@ def table_columns(cursor, table_name):
 
 
 def create_project_token(user):
-    return create_access_token(
+    token = create_access_token(
         identity=user.get("username"),
         additional_claims={
             "user_id": user.get("id"),
@@ -104,6 +104,13 @@ def create_project_token(user):
         },
         expires_delta=timedelta(days=7),
     )
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+    return token
+
+
+def is_valid_jwt_string(token):
+    return isinstance(token, str) and len(token.split(".")) == 3
 
 
 def frontend_authing_error(error_code):
@@ -279,17 +286,32 @@ def authing_callback():
     try:
         authing = AuthingService()
 
-        token_data = authing.exchange_code_for_token(code)
+        try:
+            token_data = authing.exchange_code_for_token(code)
+        except Exception as exc:
+            print("Authing token exchange error:", exc)
+            return frontend_authing_error("token_exchange_failed")
+
         access_token = token_data.get("access_token")
 
         if not access_token:
-            return redirect(f"{frontend_url}/login?authing_error=missing_access_token")
+            return frontend_authing_error("token_exchange_failed")
 
-        authing_user = authing.get_user_info(access_token)
+        try:
+            authing_user = authing.get_user_info(access_token)
+        except Exception as exc:
+            print("Authing userinfo error:", exc)
+            return frontend_authing_error("userinfo_failed")
 
-        user = find_or_create_authing_user(authing_user)
+        try:
+            user = find_or_create_authing_user(authing_user)
+        except Exception as exc:
+            print("Authing user sync error:", exc)
+            return frontend_authing_error("user_sync_failed")
 
         project_token = create_project_token(user)
+        if not is_valid_jwt_string(project_token):
+            return frontend_authing_error("jwt_failed")
 
         questionnaire_completed = int(user.get("questionnaire_completed", 0) or 0)
 

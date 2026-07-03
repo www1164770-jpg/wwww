@@ -8,23 +8,47 @@
 
       <nav class="nav-links" aria-label="主导航">
         <RouterLink to="/">首页</RouterLink>
-        <RouterLink to="/categories">分类导航</RouterLink>
-        <RouterLink to="/search?q=AI 工具">AI 工具</RouterLink>
-        <RouterLink to="/#career">职业推荐</RouterLink>
-        <RouterLink to="/#hot">热门网站</RouterLink>
-        <RouterLink to="/#latest">最新收录</RouterLink>
+        <RouterLink to="/#categories" @click="scrollToSection('categories')"
+          >分类导航</RouterLink
+        >
+        <RouterLink to="/#tools" @click="scrollToSection('tools')"
+          >AI 工具</RouterLink
+        >
+        <RouterLink to="/#career" @click="scrollToSection('career')"
+          >职业推荐</RouterLink
+        >
+        <RouterLink to="/#hot" @click="scrollToSection('hot')"
+          >热门网站</RouterLink
+        >
+        <RouterLink to="/#latest" @click="scrollToSection('latest')"
+          >最新收录</RouterLink
+        >
         <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
       </nav>
 
       <div class="actions">
-        <RouterLink
-          v-if="loggedIn"
-          class="avatar"
-          to="/profile"
-          aria-label="个人中心"
-        >
-          {{ initials }}
-        </RouterLink>
+        <div v-if="loggedIn" class="user-menu">
+          <button
+            class="avatar"
+            type="button"
+            aria-label="打开用户菜单"
+            :aria-expanded="menuOpen"
+            @click="toggleMenu"
+          >
+            {{ initials }}
+          </button>
+          <div v-if="menuOpen" class="dropdown" role="menu">
+            <RouterLink to="/profile" role="menuitem" @click="closeMenu">
+              个人中心
+            </RouterLink>
+            <RouterLink to="/favorites" role="menuitem" @click="closeMenu">
+              我的收藏
+            </RouterLink>
+            <button type="button" role="menuitem" @click="logout">
+              退出登录
+            </button>
+          </div>
+        </div>
         <template v-else>
           <RouterLink class="login-link" to="/login">登录</RouterLink>
           <RouterLink class="primary" to="/register">注册</RouterLink>
@@ -35,12 +59,28 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-const loggedIn = computed(() => Boolean(localStorage.getItem("access_token")));
+const route = useRoute();
+const router = useRouter();
+const menuOpen = ref(false);
+const authTick = ref(0);
+
+const loggedIn = computed(() => {
+  authTick.value;
+  route.fullPath;
+  const token =
+    localStorage.getItem("token") || localStorage.getItem("access_token");
+  return Boolean(token && String(token).split(".").length === 3);
+});
 const user = computed(() => {
+  authTick.value;
+  route.fullPath;
   try {
-    return JSON.parse(localStorage.getItem("user_info") || "{}");
+    return JSON.parse(
+      localStorage.getItem("user_info") || localStorage.getItem("user") || "{}",
+    );
   } catch {
     return {};
   }
@@ -48,6 +88,50 @@ const user = computed(() => {
 const initials = computed(() =>
   (user.value.username || "U").slice(0, 1).toUpperCase(),
 );
+
+function scrollToSection(id) {
+  if (window.location.pathname !== "/") return;
+  const target = document.getElementById(id);
+  if (!target) return;
+  const top = target.getBoundingClientRect().top + window.scrollY - 88;
+  window.scrollTo({ top, behavior: "smooth" });
+}
+
+function refreshAuthState() {
+  authTick.value += 1;
+}
+
+function toggleMenu() {
+  menuOpen.value = !menuOpen.value;
+}
+
+function closeMenu() {
+  menuOpen.value = false;
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("questionnaire_completed");
+  localStorage.removeItem("user");
+  localStorage.removeItem("user_info");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("is_logged_in");
+  closeMenu();
+  refreshAuthState();
+  router.push("/login");
+}
+
+onMounted(() => {
+  window.addEventListener("storage", refreshAuthState);
+  window.addEventListener("focus", refreshAuthState);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("storage", refreshAuthState);
+  window.removeEventListener("focus", refreshAuthState);
+});
 </script>
 
 <style scoped>
@@ -173,7 +257,53 @@ a {
 .avatar {
   width: 42px;
   height: 42px;
+  border: 0;
   padding: 0;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  min-width: 148px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+}
+
+.dropdown a,
+.dropdown button {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: #ffffff;
+  color: var(--color-text);
+  padding: 12px 14px;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.dropdown a:hover,
+.dropdown a:focus-visible,
+.dropdown button:hover,
+.dropdown button:focus-visible {
+  background: var(--color-soft-orange);
+  color: var(--color-primary);
+  outline: none;
 }
 
 @media (max-width: 900px) {

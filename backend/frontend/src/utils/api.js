@@ -31,82 +31,43 @@ function readPayload(response) {
 }
 
 function clearAuthAndRedirect() {
+  localStorage.removeItem("token");
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
+  localStorage.removeItem("user");
   localStorage.removeItem("user_info");
   localStorage.removeItem("user_role");
   localStorage.removeItem("questionnaire_completed");
   localStorage.removeItem("is_logged_in");
-  if (window.location.pathname !== "/login") {
+  if (!["/login", "/authing/callback"].includes(window.location.pathname)) {
     window.location.href = "/login";
   }
 }
 
-let isRefreshing = false;
-let pendingRequests = [];
-
-function resolvePending(token) {
-  pendingRequests.forEach(({ resolve }) => resolve(token));
-  pendingRequests = [];
-}
-
-function rejectPending(error) {
-  pendingRequests.forEach(({ reject }) => reject(error));
-  pendingRequests = [];
+function isValidJwt(token) {
+  return token && String(token).split(".").length === 3;
 }
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
+  const token =
+    localStorage.getItem("token") || localStorage.getItem("access_token");
+  if (isValidJwt(token)) {
     config.headers.Authorization = `Bearer ${token}`;
+  } else {
+    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    if (config.headers) {
+      delete config.headers.Authorization;
+    }
   }
   return config;
 });
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config || {};
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      const refreshToken = localStorage.getItem("refresh_token");
-      if (!refreshToken) {
-        clearAuthAndRedirect();
-        return Promise.reject(error);
-      }
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          pendingRequests.push({
-            resolve: (token) => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              resolve(api(originalRequest));
-            },
-            reject,
-          });
-        });
-      }
-      originalRequest._retry = true;
-      isRefreshing = true;
-      try {
-        const response = await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
-          null,
-          {
-            headers: { Authorization: `Bearer ${refreshToken}` },
-          },
-        );
-        const payload = readPayload(response);
-        const token = payload.access_token || response.data.access_token;
-        localStorage.setItem("access_token", token);
-        resolvePending(token);
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        rejectPending(refreshError);
-        clearAuthAndRedirect();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+  (error) => {
+    if (error.response?.status === 401) {
+      clearAuthAndRedirect();
     }
     return Promise.reject(error);
   },

@@ -6,6 +6,7 @@ const routes = [
     path: "/login",
     name: "Login",
     component: () => import("../views/Login.vue"),
+    meta: { public: true },
   },
   {
     path: "/authing/callback",
@@ -17,6 +18,7 @@ const routes = [
     path: "/register",
     name: "Register",
     component: () => import("../views/Register.vue"),
+    meta: { public: true },
   },
   {
     path: "/questionnaire",
@@ -118,49 +120,58 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior() {
-    return { top: 0 };
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+
+    if (to.hash) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            el: to.hash,
+            top: 88,
+            behavior: "smooth",
+          });
+        }, 80);
+      });
+    }
+
+    return { top: 0, behavior: "smooth" };
   },
 });
 
 function isLoggedIn() {
-  return Boolean(
-    localStorage.getItem("access_token") ||
-    localStorage.getItem("refresh_token"),
-  );
+  const token =
+    localStorage.getItem("token") || localStorage.getItem("access_token");
+  return Boolean(token && String(token).split(".").length === 3);
 }
 
 function isAdmin() {
   return ["admin", "super_admin"].includes(localStorage.getItem("user_role"));
 }
 
-function questionnaireCompleted() {
-  return localStorage.getItem("questionnaire_completed") === "true";
-}
-
 router.beforeEach((to) => {
-  if (to.meta.public) {
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
+  const isPublic = to.matched.some((record) => record.meta.public);
+
+  if (isPublic && to.path !== "/login") {
     return true;
   }
 
-  if (to.meta.requiresAuth && !isLoggedIn()) {
+  if (to.path === "/login" && isLoggedIn()) {
+    return { path: "/" };
+  }
+
+  if (requiresAuth && !isLoggedIn()) {
     return { path: "/login", query: { redirect: to.fullPath } };
   }
 
-  if (to.meta.requiresAdmin && !isAdmin()) {
+  if (requiresAdmin && !isAdmin()) {
     return isLoggedIn()
       ? { path: "/" }
       : { path: "/login", query: { redirect: to.fullPath } };
-  }
-
-  if (
-    isLoggedIn() &&
-    !questionnaireCompleted() &&
-    !to.meta.allowIncompleteQuestionnaire &&
-    to.path !== "/login" &&
-    to.path !== "/register"
-  ) {
-    return { path: "/questionnaire", query: { redirect: to.fullPath } };
   }
 
   return true;

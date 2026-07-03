@@ -50,9 +50,18 @@ const router = useRouter();
 const account = ref("");
 const password = ref("");
 const loading = ref(false);
-const error = ref(
-  route.query.authing_error ? "Authing 登录失败，请稍后重试" : "",
-);
+const authingErrorMessages = {
+  invalid_token: "登录凭证无效，请重新登录。",
+  jwt_failed: "生成登录凭证失败，请检查后端 JWT 配置。",
+  state_mismatch:
+    "登录状态校验失败，请重新登录，并检查 localhost 与 127.0.0.1 是否混用。",
+  token_exchange_failed:
+    "Authing 授权码换取 token 失败，请检查 App ID、App Secret 和回调地址。",
+  userinfo_failed: "获取 Authing 用户信息失败，请检查 Authing 应用配置。",
+  user_sync_failed: "同步用户信息失败，请检查 users 表字段。",
+  authing_failed: "Authing 登录失败，请稍后重试。",
+};
+const error = ref(authingErrorMessages[route.query.authing_error] || "");
 
 async function submit() {
   if (loading.value) return;
@@ -71,6 +80,7 @@ async function submit() {
   try {
     const response = await authAPI.login(account.value, password.value);
     const data = unwrapResponse(response) || {};
+    localStorage.setItem("token", data.access_token);
     localStorage.setItem("access_token", data.access_token);
     localStorage.setItem("refresh_token", data.refresh_token || "");
     localStorage.setItem("user_info", JSON.stringify(data.user_info || {}));
