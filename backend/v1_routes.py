@@ -530,10 +530,13 @@ def register_v1_routes(app, get_db_connection):
         else:
             click_expr = "0"
         latest_expr = "w.created_at DESC" if "created_at" in website_columns else "w.id DESC"
-        quality_expr = "w.quality_score DESC" if "quality_score" in website_columns else click_expr + " DESC"
+        quality_value = "COALESCE(w.quality_score, 0)" if "quality_score" in website_columns else "0"
+        favorite_value = "COALESCE(w.favorite_count, 0)" if "favorite_count" in website_columns else "0"
+        rating_value = "COALESCE(w.rating_avg, 0)" if "rating_avg" in website_columns else "0"
+        quality_expr = f"{quality_value} DESC" if "quality_score" in website_columns else click_expr + " DESC"
         recommend_expr = "w.recommend_level DESC, " if "recommend_level" in website_columns else ""
         order_map = {
-            "hot": f"{click_expr} DESC",
+            "hot": f"{click_expr} DESC, {favorite_value} DESC, {rating_value} DESC, {quality_value} DESC",
             "latest": latest_expr,
             "rating": "w.rating_avg DESC" if "rating_avg" in website_columns else quality_expr,
             "recommend": f"{recommend_expr}{quality_expr}, {click_expr} DESC",
@@ -743,7 +746,11 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/sites", methods=["GET"])
     def v1_sites():
         page = request.args.get("page", 1, type=int)
-        per_page = request.args.get("per_page", request.args.get("page_size", 20, type=int), type=int)
+        per_page = request.args.get(
+            "limit",
+            request.args.get("per_page", request.args.get("page_size", 20, type=int), type=int),
+            type=int,
+        )
         items = query_sites(
             limit=per_page,
             offset=max(page - 1, 0) * per_page,
@@ -753,6 +760,7 @@ def register_v1_routes(app, get_db_connection):
             is_free=request.args.get("is_free"),
             region=request.args.get("region"),
             sort=request.args.get("sort", "recommend"),
+            exclude_ids=parse_id_list(request.args.get("exclude_ids")),
         )
         return api_success({"items": items, "page": page, "per_page": per_page})
 

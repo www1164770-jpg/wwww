@@ -3,7 +3,7 @@
     <AppHeader />
 
     <main class="home-main">
-      <HeroSearch v-model="keyword" @search="goSearch(keyword)" />
+      <HeroSearch v-model="keyword" @search="goSearch" />
       <ToolMarquee :sites="marqueeSites" @visit="visitSite" />
 
       <div v-if="loading || error" class="home-state">
@@ -13,7 +13,12 @@
 
       <template v-else>
         <section id="categories" class="home-anchor-section reveal-on-scroll">
-          <CategorySection :categories="categories" />
+          <CategorySection
+            :categories="categories"
+            :category-sites-map="categorySitesMap"
+            :loading-category-sites="loadingCategorySites"
+            @visit-site="visitSite"
+          />
         </section>
 
         <section id="career" class="home-anchor-section reveal-on-scroll">
@@ -103,7 +108,14 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUpdated,
+  ref,
+} from "vue";
 import { useRouter } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -124,6 +136,8 @@ import { errorToast, successToast } from "../utils/toast";
 const router = useRouter();
 const keyword = ref("");
 const categories = ref([]);
+const categorySitesMap = ref({});
+const loadingCategorySites = ref(false);
 const recommended = ref([]);
 const hotSites = ref([]);
 const marqueeSites = ref([]);
@@ -386,6 +400,36 @@ function fillCareerFallback(sites, career, limit) {
   );
 }
 
+async function loadCategorySites(hotCategories, excludeIds = []) {
+  const nextMap = {};
+  const usedKeys = new Set();
+  loadingCategorySites.value = true;
+  try {
+    await Promise.all(
+      hotCategories.map(async (category) => {
+        try {
+          const response = await siteAPI.getSites({
+            category_id: category.id,
+            limit: 4,
+            page_size: 4,
+            sort: "hot",
+            exclude_ids: idsParam(excludeIds),
+          });
+          nextMap[category.id] = dedupeSites(
+            unwrapList(response),
+            usedKeys,
+          ).slice(0, 4);
+        } catch {
+          nextMap[category.id] = [];
+        }
+      }),
+    );
+    categorySitesMap.value = nextMap;
+  } finally {
+    loadingCategorySites.value = false;
+  }
+}
+
 function hasSameSiteIds(nextSites, previousIds) {
   const nextIds = siteIds(nextSites);
   if (!nextIds.length || nextIds.length !== previousIds.length) return false;
@@ -426,7 +470,9 @@ function filterAiResources(sites) {
 }
 
 function goSearch(value) {
-  router.push({ path: "/search", query: { q: value || "" } });
+  const nextValue = (value || keyword.value || "").trim();
+  if (!nextValue) return;
+  router.push({ path: "/search", query: { q: nextValue } });
 }
 
 async function visitSite(site) {
@@ -630,7 +676,7 @@ async function loadHome() {
     const categoryData = getSettledData(categoryRes, []);
     categories.value = categoryData
       .filter((item) => !item.parent_id)
-      .slice(0, 8);
+      .slice(0, 6);
 
     marqueeSites.value = fillWithFallback(
       getSettledData(marqueeRes, []),
@@ -653,6 +699,15 @@ async function loadHome() {
       getSettledData(favoriteRes, []),
       6,
       usedKeys,
+    );
+
+    await loadCategorySites(
+      categories.value,
+      siteIds([
+        ...marqueeSites.value,
+        ...hotSites.value,
+        ...favoriteStackSites.value,
+      ]),
     );
 
     const excludeForRest = idsParam(
@@ -716,31 +771,36 @@ function observeRevealElements() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
-            revealObserver?.unobserve(entry.target);
+          } else {
+            entry.target.classList.remove("is-visible");
           }
         });
       },
       {
-        threshold: 0.14,
-        rootMargin: "0px 0px -60px 0px",
+        threshold: 0.16,
+        rootMargin: "0px 0px -40px 0px",
       },
     );
   }
 
   elements.forEach((element, index) => {
-    if (element.classList.contains("is-visible")) return;
-    if (element.dataset.revealObserved === "1") return;
+    if (element.dataset.revealBound === "1") return;
     element.style.setProperty(
       "--reveal-delay",
-      `${Math.min(index * 45, 260)}ms`,
+      `${Math.min(index * 35, 220)}ms`,
     );
-    element.dataset.revealObserved = "1";
+    element.dataset.revealBound = "1";
     revealObserver.observe(element);
   });
 }
 
 onMounted(async () => {
   await loadHome();
+  await nextTick();
+  observeRevealElements();
+});
+
+onUpdated(async () => {
   await nextTick();
   observeRevealElements();
 });

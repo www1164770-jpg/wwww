@@ -117,7 +117,7 @@ select:focus {
 
 .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(28px) scale(0.985);
+  transform: translateY(32px) scale(0.98);
   transition:
     opacity 0.65s ease,
     transform 0.65s ease;
