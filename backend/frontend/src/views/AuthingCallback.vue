@@ -24,8 +24,10 @@ function normalizeRedirect(path) {
   return String(path);
 }
 
-function isValidJwt(token) {
-  return token && String(token).split(".").length === 3;
+function isValidToken(token) {
+  const value = String(token || "");
+  if (value.length <= 20) return false;
+  return !value.includes(".") || value.split(".").length === 3;
 }
 
 function clearAuthStorage() {
@@ -41,7 +43,7 @@ onMounted(() => {
   const questionnaireCompleted = route.query.questionnaire_completed === "1";
   const redirect = normalizeRedirect(route.query.redirect);
 
-  if (!isValidJwt(token)) {
+  if (!isValidToken(token)) {
     clearAuthStorage();
     router.replace("/login?authing_error=invalid_token");
     return;

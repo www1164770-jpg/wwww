@@ -343,6 +343,11 @@ limiter = Limiter(
 # 初始化 Redis 和 线程池
 redis_client = redis.StrictRedis.from_url(REDIS_URL, decode_responses=True)
 executor = ThreadPoolExecutor(max_workers=10)
+login_failures = {}
+
+LOGIN_FAILURE_WINDOW_SECONDS = 300
+LOGIN_FAILURE_LIMIT = 5
+LOGIN_LOCK_SECONDS = 60
 
 # 数据库配置（请改成你自己的！）
 DB_CONFIG = {
@@ -357,6 +362,56 @@ DB_CONFIG = {
 def get_db_connection():
     """从连接池获取一个数据库连接（推荐使用此函数替代直连）"""
     return pool_get_connection()
+
+
+def login_rate_key(account):
+    ip = get_remote_address() or request.remote_addr or "unknown"
+    normalized_account = (account or "").strip().lower() or "unknown"
+    return f"{ip}:{normalized_account}"
+
+
+def get_login_retry_after(key):
+    record = login_failures.get(key)
+    if not record:
+        return 0
+
+    now = time.time()
+    lock_until = record.get("lock_until", 0)
+    if lock_until > now:
+        return int(lock_until - now) + 1
+
+    if now - record.get("first_failed_at", now) > LOGIN_FAILURE_WINDOW_SECONDS:
+        login_failures.pop(key, None)
+
+    return 0
+
+
+def record_login_failure(key):
+    now = time.time()
+    record = login_failures.get(key)
+    if not record or now - record.get("first_failed_at", now) > LOGIN_FAILURE_WINDOW_SECONDS:
+        record = {"count": 0, "first_failed_at": now, "lock_until": 0}
+
+    record["count"] += 1
+    if record["count"] >= LOGIN_FAILURE_LIMIT:
+        record["lock_until"] = now + LOGIN_LOCK_SECONDS
+    login_failures[key] = record
+    return get_login_retry_after(key)
+
+
+def clear_login_failures(key):
+    login_failures.pop(key, None)
+
+
+@app.errorhandler(429)
+def handle_rate_limit(error):
+    retry_after = getattr(error, "retry_after", None) or LOGIN_LOCK_SECONDS
+    return jsonify({
+        "code": 429,
+        "message": "请求过于频繁，请稍后再试",
+        "msg": "请求过于频繁，请稍后再试",
+        "retry_after": int(retry_after),
+    }), 429
 
 def async_save_click(item_id):
     """异步将点击日志写入 MySQL"""
@@ -462,9 +517,22 @@ def register():
 
 # ================= 3. 用户登录 =================
 @app.route('/api/auth/login', methods=['POST'])
-@limiter.limit("5 per minute", error_message="密码尝试次数过多，请稍后再试")
 def login():
-    account, password = request.json.get('account'), request.json.get('password')
+    data = request.get_json(silent=True) or {}
+    account, password = data.get('account'), data.get('password')
+    failure_key = login_rate_key(account)
+    retry_after = get_login_retry_after(failure_key)
+
+    if retry_after > 0:
+        return jsonify({
+            'code': 429,
+            'message': '请求过于频繁，请稍后再试',
+            'msg': '请求过于频繁，请稍后再试',
+            'retry_after': retry_after,
+        }), 429
+
+    if not account or not password:
+        return jsonify({'code': 400, 'msg': '请输入账号和密码'}), 400
     
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -474,6 +542,7 @@ def login():
     conn.close()
 
     if user and check_password_hash(user['password_hash'], password):
+        clear_login_failures(failure_key)
         access_token = create_access_token(identity=user['username'])
         refresh_token = create_refresh_token(identity=user['username'])
         user_info = {
@@ -500,8 +569,17 @@ def login():
             'user_role': role,
             'questionnaire_completed': questionnaire_completed,
         })
-        
-    return jsonify({'code': 401, 'msg': '账号或密码错误'})
+
+    retry_after = record_login_failure(failure_key)
+    if retry_after > 0:
+        return jsonify({
+            'code': 429,
+            'message': '请求过于频繁，请稍后再试',
+            'msg': '请求过于频繁，请稍后再试',
+            'retry_after': retry_after,
+        }), 429
+
+    return jsonify({'code': 401, 'msg': '账号或密码错误'}), 401
 
 # ================= 4. 注销账户 (逻辑删除 + 7天冷静期) =================
 @app.route('/api/user/delete-account', methods=['POST'])
@@ -2195,7 +2273,7 @@ def chat():
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["5000 per day", "1000 per hour"],
     storage_uri=get_limiter_storage_uri()
 )
 

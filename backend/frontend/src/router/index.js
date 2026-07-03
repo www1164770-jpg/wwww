@@ -144,7 +144,11 @@ const router = createRouter({
 function isLoggedIn() {
   const token =
     localStorage.getItem("token") || localStorage.getItem("access_token");
-  return Boolean(token && String(token).split(".").length === 3);
+  const value = String(token || "");
+  return Boolean(
+    value.length > 20 &&
+    (!value.includes(".") || value.split(".").length === 3),
+  );
 }
 
 function isAdmin() {

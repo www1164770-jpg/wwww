@@ -44,14 +44,16 @@ function clearAuthAndRedirect() {
   }
 }
 
-function isValidJwt(token) {
-  return token && String(token).split(".").length === 3;
+function isValidToken(token) {
+  const value = String(token || "");
+  if (value.length <= 20) return false;
+  return !value.includes(".") || value.split(".").length === 3;
 }
 
 api.interceptors.request.use((config) => {
   const token =
     localStorage.getItem("token") || localStorage.getItem("access_token");
-  if (isValidJwt(token)) {
+  if (isValidToken(token)) {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
     localStorage.removeItem("token");
@@ -66,6 +68,20 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.data?.retry_after;
+      const message = retryAfter
+        ? `请求过于频繁，请 ${retryAfter} 秒后再试`
+        : "请求过于频繁，请稍后再试";
+      error.response.data = {
+        ...error.response.data,
+        message,
+        msg: message,
+      };
+      error.message = message;
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
       clearAuthAndRedirect();
     }
