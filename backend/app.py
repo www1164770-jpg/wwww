@@ -407,17 +407,20 @@ def setup_search_engine():
 
 
 # ================= 1. 配置 Authing 客户端 =================
-# ⚠️ 这里替换为你自己的 Authing 密钥和域名
-AUTHING_APP_ID = os.getenv('AUTHING_APP_ID')
-AUTHING_APP_SECRET = os.getenv('AUTHING_APP_SECRET')
-AUTHING_APP_HOST = os.getenv('AUTHING_APP_HOST')
+AUTHING_APP_ID = os.getenv('AUTHING_APP_ID', '69fdee93f62848c14ce9d3a6')
+AUTHING_APP_SECRET = os.getenv('AUTHING_APP_SECRET', '381eeae3cd314fb80665a8235a03bc71')
+AUTHING_APP_HOST = os.getenv('AUTHING_APP_HOST', 'https://zhihuidh.authing.cn')
 
-# 初始化认证客户端
-auth_client = AuthenticationClient(
-    app_id=AUTHING_APP_ID,
-    app_secret=AUTHING_APP_SECRET,
-    app_host=AUTHING_APP_HOST
-)
+auth_client = None
+if AUTHING_APP_ID:
+    try:
+        auth_client = AuthenticationClient(
+            app_id=AUTHING_APP_ID,
+            app_secret=AUTHING_APP_SECRET,
+            app_host=AUTHING_APP_HOST
+        )
+    except Exception as e:
+        print(f"⚠️ Authing 客户端初始化失败（不影响核心功能）: {e}")
 
 # ================= 2. 编写全局 Token 验证装饰器 =================
 def require_auth(f):
@@ -437,9 +440,11 @@ def require_auth(f):
     返回：
         decorated: 包装后的函数，具备 Token 验证能力
     """
-    @wraps(f)  # 保留原函数的 __name__、__doc__ 等元信息，避免路由注册冲突
+    @wraps(f)
     def decorated(*args, **kwargs):
-        # 1. 检查有没有带请求头
+        if not auth_client:
+            return jsonify({"error": "Authing 服务未配置"}), 503
+        
         auth_header = request.headers.get('Authorization', None)
         if not auth_header:
             return jsonify({"error": "未提供 Authorization 凭证"}), 401
