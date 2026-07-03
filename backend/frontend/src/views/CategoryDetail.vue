@@ -53,7 +53,13 @@ import LoadingState from "../components/common/LoadingState.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import SiteFilter from "../components/site/SiteFilter.vue";
 import SiteList from "../components/site/SiteList.vue";
-import { categoryAPI, favoriteAPI, siteAPI, tagAPI } from "../utils/api";
+import {
+  categoryAPI,
+  favoriteAPI,
+  siteAPI,
+  tagAPI,
+  unwrapResponse,
+} from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
@@ -80,6 +86,25 @@ const children = computed(() =>
   ),
 );
 
+function flattenCategories(value) {
+  const source = Array.isArray(value)
+    ? value
+    : value?.items || value?.categories || [];
+  const result = new Map();
+  const visit = (item) => {
+    if (!item || result.has(item.id)) return;
+    result.set(item.id, item);
+    (item.children || []).forEach(visit);
+  };
+  source.forEach(visit);
+  return [...result.values()];
+}
+
+function listFromResponse(response) {
+  const payload = unwrapResponse(response) ?? [];
+  return payload.items || payload;
+}
+
 async function loadSites(nextFilters = filters) {
   loading.value = true;
   error.value = "";
@@ -88,8 +113,7 @@ async function loadSites(nextFilters = filters) {
       ...nextFilters,
       category_id: nextFilters.category_id || route.params.id,
     });
-    const payload = response.data?.data ?? response.data ?? {};
-    sites.value = payload.items || payload || [];
+    sites.value = listFromResponse(response);
   } catch (err) {
     error.value = err.response?.data?.msg || "网站加载失败，请稍后重试";
     errorToast(error.value);
@@ -133,8 +157,8 @@ onMounted(async () => {
       categoryAPI.getCategories(),
       tagAPI.getTags(),
     ]);
-    categories.value = categoryRes.data?.data || categoryRes.data || [];
-    tags.value = tagRes.data?.data || tagRes.data || [];
+    categories.value = flattenCategories(unwrapResponse(categoryRes));
+    tags.value = unwrapResponse(tagRes) || [];
   } catch (err) {
     error.value = err.response?.data?.msg || "筛选数据加载失败，请稍后重试";
     errorToast(error.value);

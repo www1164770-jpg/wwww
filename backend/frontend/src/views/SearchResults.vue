@@ -57,6 +57,7 @@ import {
   searchAPI,
   siteAPI,
   tagAPI,
+  unwrapResponse,
 } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
@@ -77,6 +78,25 @@ const loading = ref(false);
 const error = ref("");
 const favoritePendingIds = ref([]);
 
+function flattenCategories(value) {
+  const source = Array.isArray(value)
+    ? value
+    : value?.items || value?.categories || [];
+  const result = new Map();
+  const visit = (item) => {
+    if (!item || result.has(item.id)) return;
+    result.set(item.id, item);
+    (item.children || []).forEach(visit);
+  };
+  source.forEach(visit);
+  return [...result.values()];
+}
+
+function listFromResponse(response) {
+  const payload = unwrapResponse(response) ?? [];
+  return payload.items || payload;
+}
+
 async function search(value = keyword.value) {
   const nextValue = value || "";
   keyword.value = nextValue;
@@ -88,8 +108,7 @@ async function search(value = keyword.value) {
   error.value = "";
   try {
     const response = await searchAPI.search({ q: nextValue, ...filters });
-    const payload = response.data?.data ?? response.data ?? {};
-    sites.value = payload.items || payload || [];
+    sites.value = listFromResponse(response);
   } catch (err) {
     sites.value = [];
     error.value = err.response?.data?.msg || "搜索失败，请稍后重试";
@@ -140,8 +159,8 @@ onMounted(async () => {
       categoryAPI.getCategories(),
       tagAPI.getTags(),
     ]);
-    categories.value = categoryRes.data?.data || [];
-    tags.value = tagRes.data?.data || [];
+    categories.value = flattenCategories(unwrapResponse(categoryRes));
+    tags.value = unwrapResponse(tagRes) || [];
   } catch {
     errorToast("筛选数据加载失败，请稍后重试");
   }

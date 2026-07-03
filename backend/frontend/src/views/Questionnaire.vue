@@ -28,7 +28,7 @@ import { useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import QuestionnaireForm from "../components/questionnaire/QuestionnaireForm.vue";
-import { questionnaireAPI } from "../utils/api";
+import { questionnaireAPI, unwrapResponse } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
@@ -42,10 +42,6 @@ const options = reactive({
   skill_levels: [],
   preferences: [],
 });
-
-function dataOf(response) {
-  return response?.data?.data ?? {};
-}
 
 async function submit(form) {
   if (submitting.value) return;
@@ -78,7 +74,7 @@ onMounted(async () => {
   loading.value = true;
   try {
     const response = await questionnaireAPI.get();
-    Object.assign(options, dataOf(response));
+    Object.assign(options, unwrapResponse(response) || {});
   } catch (err) {
     error.value = err.response?.data?.msg || "问卷选项加载失败，请稍后重试";
     errorToast(error.value);

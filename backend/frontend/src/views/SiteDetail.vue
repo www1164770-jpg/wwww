@@ -63,7 +63,7 @@
 
             <section class="comments">
               <div class="section-head">
-                <h2>评论区域</h2>
+                <h2>评论区</h2>
                 <p>分享你的使用体验，帮助其他用户判断是否适合。</p>
               </div>
               <form
@@ -184,7 +184,7 @@
                   {{ occupation }}
                 </span>
                 <span v-if="!(site.occupations || []).length"
-                  >暂无适用职业</span
+                  >暂无适用职业信息</span
                 >
               </div>
             </section>
@@ -214,7 +214,7 @@ import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
-import { commentAPI, favoriteAPI, siteAPI } from "../utils/api";
+import { commentAPI, favoriteAPI, siteAPI, unwrapResponse } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
@@ -260,7 +260,7 @@ async function load() {
   error.value = "";
   try {
     const response = await siteAPI.getSite(route.params.id);
-    site.value = response.data?.data ?? response.data ?? null;
+    site.value = unwrapResponse(response) ?? null;
     await loadSimilarSites();
     await loadComments();
   } catch (err) {
@@ -275,7 +275,7 @@ async function loadSimilarSites() {
   if (!site.value?.id) return;
   try {
     const response = await siteAPI.getSimilar(site.value.id);
-    site.value.similar_sites = response.data?.data ?? response.data ?? [];
+    site.value.similar_sites = unwrapResponse(response) ?? [];
   } catch {
     site.value.similar_sites = site.value.similar_sites || [];
   }
@@ -284,7 +284,7 @@ async function loadComments() {
   commentsLoading.value = true;
   try {
     const response = await commentAPI.getComments(route.params.id);
-    comments.value = response.data?.data ?? response.data ?? [];
+    comments.value = unwrapResponse(response) ?? [];
   } catch {
     comments.value = [];
     errorToast("评论加载失败，请稍后重试");

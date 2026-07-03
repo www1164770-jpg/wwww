@@ -130,6 +130,18 @@ def register_v1_routes(app, get_db_connection):
         except (TypeError, ValueError):
             return [item.strip() for item in str(value).split(",") if item.strip()]
 
+    def categories_with_children(rows):
+        items = [dict(row) for row in rows]
+        by_id = {item.get("id"): item for item in items}
+        for item in items:
+            item.setdefault("children", [])
+        for item in items:
+            parent_id = item.get("parent_id")
+            parent = by_id.get(parent_id)
+            if parent_id and parent:
+                parent.setdefault("children", []).append(item)
+        return items
+
     def normalize_site(row, tags=None, occupations=None):
         summary = row.get("summary") or row.get("description") or row.get("desc") or ""
         return {
@@ -356,7 +368,7 @@ def register_v1_routes(app, get_db_connection):
                 rows = cursor.fetchall()
         finally:
             conn.close()
-        return api_success(rows)
+        return api_success(categories_with_children(rows))
 
     @app.route("/api/categories/<int:category_id>", methods=["GET"])
     def v1_category_detail(category_id):
@@ -425,7 +437,14 @@ def register_v1_routes(app, get_db_connection):
                     profile = {"occupation": "", "interests": []}
                 finally:
                     conn.close()
-        return api_success(rank_sites(query_sites(limit=40), profile, request.args.get("limit", 8, type=int)))
+        limit = request.args.get("limit", 8, type=int)
+        source_sites = query_sites(limit=40)
+        if not profile.get("occupation") and not profile.get("interests"):
+            source_sites = query_sites(limit=40, sort="hot") or source_sites
+        ranked = rank_sites(source_sites, profile, limit)
+        if not ranked:
+            ranked = rank_sites(query_sites(limit=40, sort="hot"), {}, limit)
+        return api_success(ranked)
 
     @app.route("/api/sites/<int:site_id>", methods=["GET"])
     @jwt_required(optional=True)
@@ -736,6 +755,10 @@ def register_v1_routes(app, get_db_connection):
         if request.method == "GET":
             return v1_sites()
         data = request.get_json(silent=True) or {}
+        if not str(data.get("name") or "").strip():
+            return api_error("网站名称不能为空")
+        if not str(data.get("url") or "").strip():
+            return api_error("网站 URL 不能为空")
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -765,6 +788,10 @@ def register_v1_routes(app, get_db_connection):
                 conn.close()
             return api_success()
         data = request.get_json(silent=True) or {}
+        if "name" in data and not str(data.get("name") or "").strip():
+            return api_error("网站名称不能为空")
+        if "url" in data and not str(data.get("url") or "").strip():
+            return api_error("网站 URL 不能为空")
         allowed = ["name", "url", "logo_url", "summary", "description", "category_id", "is_free", "need_login", "region", "quality_score", "recommend_level", "status"]
         updates = [f"{key}=%s" for key in allowed if key in data]
         params = [data[key] for key in allowed if key in data]
@@ -794,6 +821,8 @@ def register_v1_routes(app, get_db_connection):
         if request.method == "GET":
             return v1_categories()
         data = request.get_json(silent=True) or {}
+        if not str(data.get("name") or "").strip():
+            return api_error("分类名称不能为空")
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -808,6 +837,8 @@ def register_v1_routes(app, get_db_connection):
     @admin_required
     def v1_admin_category_detail(category_id):
         data = request.get_json(silent=True) or {}
+        if request.method == "PUT" and "name" in data and not str(data.get("name") or "").strip():
+            return api_error("分类名称不能为空")
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -826,6 +857,8 @@ def register_v1_routes(app, get_db_connection):
         if request.method == "GET":
             return v1_tags()
         data = request.get_json(silent=True) or {}
+        if not str(data.get("name") or "").strip():
+            return api_error("标签名称不能为空")
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -840,6 +873,8 @@ def register_v1_routes(app, get_db_connection):
     @admin_required
     def v1_admin_tag_detail(tag_id):
         data = request.get_json(silent=True) or {}
+        if request.method == "PUT" and "name" in data and not str(data.get("name") or "").strip():
+            return api_error("标签名称不能为空")
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -926,6 +961,18 @@ def register_v1_routes(app, get_db_connection):
         finally:
             conn.close()
         return api_success({"status": next_status})
+
+    @app.route("/api/admin/comments/<int:comment_id>", methods=["DELETE"])
+    @admin_required
+    def v1_admin_delete_comment(comment_id):
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("UPDATE comments SET status='deleted' WHERE id=%s", (comment_id,))
+            conn.commit()
+        finally:
+            conn.close()
+        return api_success()
 
     @app.route("/api/admin/users/<int:user_id>/status", methods=["PUT"])
     @admin_required

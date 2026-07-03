@@ -9,8 +9,15 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+export function unwrapResponse(response) {
+  const payload = response?.data;
+  if (payload?.data !== undefined) return payload.data;
+  if (payload?.items !== undefined) return payload.items;
+  return payload;
+}
+
 function readPayload(response) {
-  return response?.data?.data ?? response?.data ?? {};
+  return unwrapResponse(response) ?? {};
 }
 
 function clearAuthAndRedirect() {
@@ -198,6 +205,7 @@ export const adminAPI = {
   getComments: (params = {}) => api.get("/admin/comments", { params }),
   reviewComment: (id, action) =>
     api.post(`/admin/comments/${id}/review`, { action }),
+  deleteComment: (id) => api.delete(`/admin/comments/${id}`),
   getPendingSites: () => api.get("/admin/pending_sites"),
   crawlHN: () => api.post("/admin/crawl_hn"),
   reviewSite: (id, action, reason = "") =>

@@ -46,7 +46,7 @@ import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SearchBar from "../components/common/SearchBar.vue";
-import { categoryAPI } from "../utils/api";
+import { categoryAPI, unwrapResponse } from "../utils/api";
 import { errorToast } from "../utils/toast";
 
 const categories = ref([]);
@@ -66,12 +66,26 @@ const filteredRoots = computed(() => {
   );
 });
 
+function flattenCategories(value) {
+  const source = Array.isArray(value)
+    ? value
+    : value?.items || value?.categories || [];
+  const result = new Map();
+  const visit = (item) => {
+    if (!item || result.has(item.id)) return;
+    result.set(item.id, item);
+    (item.children || []).forEach(visit);
+  };
+  source.forEach(visit);
+  return [...result.values()];
+}
+
 onMounted(async () => {
   loading.value = true;
   error.value = "";
   try {
     const response = await categoryAPI.getCategories();
-    categories.value = response.data?.data || response.data || [];
+    categories.value = flattenCategories(unwrapResponse(response));
   } catch (err) {
     error.value = err.response?.data?.msg || "分类加载失败，请稍后重试";
     errorToast(error.value);

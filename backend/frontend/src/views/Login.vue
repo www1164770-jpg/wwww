@@ -39,7 +39,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { authAPI } from "../utils/api";
+import { authAPI, unwrapResponse } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
@@ -48,10 +48,6 @@ const account = ref("");
 const password = ref("");
 const loading = ref(false);
 const error = ref("");
-
-function dataOf(response) {
-  return response?.data?.data ?? response?.data ?? {};
-}
 
 async function submit() {
   if (loading.value) return;
@@ -69,7 +65,7 @@ async function submit() {
   error.value = "";
   try {
     const response = await authAPI.login(account.value, password.value);
-    const data = dataOf(response);
+    const data = unwrapResponse(response) || {};
     localStorage.setItem("access_token", data.access_token);
     localStorage.setItem("refresh_token", data.refresh_token || "");
     localStorage.setItem("user_info", JSON.stringify(data.user_info || {}));

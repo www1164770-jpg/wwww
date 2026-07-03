@@ -55,14 +55,14 @@ def score_site(site, user_profile=None):
     favorite_score = min(_to_number(site.get("favorite_count")) / 200.0, 1.0)
     rating_score = min(_to_number(site.get("rating_avg")) / 5.0, 1.0)
     popularity_score = click_score * 0.45 + favorite_score * 0.35 + rating_score * 0.2
-    freshness = _freshness_score(site.get("created_at"))
+    freshness_score = _freshness_score(site.get("created_at"))
 
     score = (
         occupation_score * 0.4
         + interest_score * 0.25
         + quality_score * 0.2
         + popularity_score * 0.1
-        + freshness * 0.05
+        + freshness_score * 0.05
     )
 
     reasons = []
@@ -71,8 +71,12 @@ def score_site(site, user_profile=None):
     matched_tags = list(interests & site_tags)
     if matched_tags:
         reasons.append(f"因为你关注 {'、'.join(matched_tags[:2])}")
+    if quality_score >= 0.75:
+        reasons.append("资源质量评分较高")
     if popularity_score >= 0.5:
-        reasons.append("近期用户收藏较多")
+        reasons.append("近期用户收藏和访问较多")
+    if freshness_score >= 0.7:
+        reasons.append("近期更新或新收录资源")
     if not reasons:
         reasons.append("这是该分类下的高质量资源")
 
@@ -93,7 +97,7 @@ def rank_sites(sites, user_profile=None, limit=12):
         item.setdefault("occupations", site.get("occupations") or [])
         item["score"] = score
         item["recommend_score"] = score
-        item["reason"] = reason
+        item["reason"] = item.get("reason") or reason
         scored.append(item)
     scored.sort(key=lambda item: item.get("recommend_score", 0), reverse=True)
     return scored[:limit]
