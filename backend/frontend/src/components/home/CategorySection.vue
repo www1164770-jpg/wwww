@@ -54,11 +54,15 @@
               :aria-label="`访问 ${site.name}`"
               @click="visitSite(site)"
             >
-              <img
-                :src="site.logo_url || fallbackLogo"
-                :alt="`${site.name} Logo`"
-                @error="useFallbackLogo"
-              />
+              <span class="category-site__logo">
+                <img
+                  v-if="siteLogoSrc(site) && !logoFailed(site)"
+                  :src="siteLogoSrc(site)"
+                  :alt="`${site.name} Logo`"
+                  @error="useFallbackLogo(site)"
+                />
+                <span v-else aria-hidden="true">{{ textLogo(site) }}</span>
+              </span>
               <span>
                 <b>{{ site.name }}</b>
                 <small>{{
@@ -67,7 +71,7 @@
               </span>
             </button>
             <RouterLink
-              v-if="site.id"
+              v-if="canShowDetail(site)"
               class="category-site__detail"
               :to="`/site/${site.id}`"
               @click.stop
@@ -99,11 +103,13 @@
 </template>
 
 <script setup>
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import EmptyState from "../common/EmptyState.vue";
+import { getFaviconUrl, getTextLogo } from "../../utils/api";
 
-const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=ai-nav";
 const router = useRouter();
+const failedLogoKeys = ref({});
 
 const props = defineProps({
   categories: { type: Array, default: () => [] },
@@ -117,6 +123,26 @@ function categorySites(category) {
   return props.categorySitesMap?.[category.id] || [];
 }
 
+function siteKey(site) {
+  return site?.id || site?.url || site?.name || "";
+}
+
+function siteLogoSrc(site) {
+  return getFaviconUrl(site);
+}
+
+function textLogo(site) {
+  return getTextLogo(site);
+}
+
+function logoFailed(site) {
+  return Boolean(failedLogoKeys.value[siteKey(site)]);
+}
+
+function canShowDetail(site) {
+  return site?.id && !site.external_only;
+}
+
 function openCategory(category) {
   if (category?.id) {
     router.push(`/category/${category.id}`);
@@ -127,8 +153,11 @@ function visitSite(site) {
   emit("visit-site", site);
 }
 
-function useFallbackLogo(event) {
-  event.target.src = fallbackLogo;
+function useFallbackLogo(site) {
+  const key = siteKey(site);
+  if (key) {
+    failedLogoKeys.value = { ...failedLogoKeys.value, [key]: true };
+  }
 }
 </script>
 
@@ -196,12 +225,13 @@ function useFallbackLogo(event) {
   gap: 18px;
   min-height: 330px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border-radius: 24px;
   background: #ffffff;
   padding: 22px;
   color: var(--color-heading);
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   transition:
+    transform var(--transition),
     box-shadow var(--transition),
     border-color var(--transition);
 }
@@ -209,6 +239,7 @@ function useFallbackLogo(event) {
 .category-card:hover,
 .category-card:focus-visible {
   border-color: rgba(255, 112, 88, 0.34);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-card);
   outline: none;
 }
@@ -256,6 +287,16 @@ function useFallbackLogo(event) {
   border-radius: 16px;
   background: var(--color-soft);
   padding: 10px;
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    border-color var(--transition);
+}
+
+.category-site:hover {
+  border-color: rgba(255, 112, 88, 0.24);
+  background: #fffaf8;
+  transform: translateX(3px);
 }
 
 .category-site__identity {
@@ -280,13 +321,24 @@ function useFallbackLogo(event) {
   outline: none;
 }
 
-.category-site img {
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  border-radius: 11px;
-  object-fit: cover;
+.category-site__logo {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
   background: #ffffff;
+  color: var(--color-primary-dark);
+  font-weight: 900;
+}
+
+.category-site__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .category-site b,

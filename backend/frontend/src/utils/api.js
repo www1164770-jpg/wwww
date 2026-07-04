@@ -26,6 +26,224 @@ export function unwrapList(response) {
   return [];
 }
 
+export function normalizeUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}`;
+}
+
+export function getDomain(url) {
+  try {
+    return new URL(normalizeUrl(url)).hostname;
+  } catch {
+    return "";
+  }
+}
+
+export function getFaviconUrl(site = {}) {
+  if (site.logo_url) return site.logo_url;
+  const domain = getDomain(site.url);
+  if (domain) {
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  }
+  return "";
+}
+
+export const CATEGORY_FALLBACK_SITES = {
+  AI工具: [
+    {
+      name: "ChatGPT",
+      url: "https://chat.openai.com",
+      summary: "AI 对话与创作助手",
+    },
+    {
+      name: "Claude",
+      url: "https://claude.ai",
+      summary: "长文本理解与 AI 助手",
+    },
+    {
+      name: "Gemini",
+      url: "https://gemini.google.com",
+      summary: "Google AI 助手",
+    },
+    {
+      name: "Perplexity",
+      url: "https://www.perplexity.ai",
+      summary: "AI 搜索与问答工具",
+    },
+  ],
+  编程开发: [
+    {
+      name: "GitHub",
+      url: "https://github.com",
+      summary: "代码托管与开源协作平台",
+    },
+    {
+      name: "MDN Web Docs",
+      url: "https://developer.mozilla.org",
+      summary: "Web 开发文档",
+    },
+    {
+      name: "Vue 官方文档",
+      url: "https://vuejs.org",
+      summary: "Vue 前端框架文档",
+    },
+    {
+      name: "LeetCode",
+      url: "https://leetcode.cn",
+      summary: "编程算法练习平台",
+    },
+  ],
+  设计资源: [
+    {
+      name: "Figma",
+      url: "https://www.figma.com",
+      summary: "在线 UI 设计协作工具",
+    },
+    {
+      name: "Canva",
+      url: "https://www.canva.com",
+      summary: "在线设计与模板工具",
+    },
+    { name: "Iconfont", url: "https://www.iconfont.cn", summary: "图标素材库" },
+    {
+      name: "Unsplash",
+      url: "https://unsplash.com",
+      summary: "高质量免费图片素材",
+    },
+  ],
+  效率办公: [
+    {
+      name: "Notion",
+      url: "https://www.notion.so",
+      summary: "知识管理与协作工具",
+    },
+    {
+      name: "飞书",
+      url: "https://www.feishu.cn",
+      summary: "团队协作与办公平台",
+    },
+    {
+      name: "ProcessOn",
+      url: "https://www.processon.com",
+      summary: "流程图与思维导图工具",
+    },
+    { name: "Trello", url: "https://trello.com", summary: "任务看板管理工具" },
+  ],
+  学习成长: [
+    {
+      name: "Bilibili 学习区",
+      url: "https://www.bilibili.com",
+      summary: "视频学习内容平台",
+    },
+    {
+      name: "Coursera",
+      url: "https://www.coursera.org",
+      summary: "在线课程学习平台",
+    },
+    {
+      name: "Khan Academy",
+      url: "https://www.khanacademy.org",
+      summary: "免费教育学习平台",
+    },
+    {
+      name: "中国大学 MOOC",
+      url: "https://www.icourse163.org",
+      summary: "高校在线课程平台",
+    },
+  ],
+  数据分析: [
+    {
+      name: "Kaggle",
+      url: "https://www.kaggle.com",
+      summary: "数据科学竞赛与数据集平台",
+    },
+    {
+      name: "Tableau",
+      url: "https://www.tableau.com",
+      summary: "商业智能可视化工具",
+    },
+    {
+      name: "Power BI",
+      url: "https://powerbi.microsoft.com",
+      summary: "微软数据分析平台",
+    },
+    {
+      name: "Jupyter",
+      url: "https://jupyter.org",
+      summary: "交互式数据分析环境",
+    },
+  ],
+  产品运营: [
+    {
+      name: "Notion",
+      url: "https://www.notion.so",
+      summary: "产品文档与知识管理",
+    },
+    {
+      name: "ProcessOn",
+      url: "https://www.processon.com",
+      summary: "流程图和原型思路整理",
+    },
+    { name: "飞书", url: "https://www.feishu.cn", summary: "团队协作文档平台" },
+    {
+      name: "Canva",
+      url: "https://www.canva.com",
+      summary: "运营视觉设计工具",
+    },
+  ],
+  原型设计: [
+    {
+      name: "Figma",
+      url: "https://www.figma.com",
+      summary: "产品原型与 UI 设计",
+    },
+    { name: "墨刀", url: "https://modao.cc", summary: "在线原型设计协作工具" },
+    {
+      name: "ProcessOn",
+      url: "https://www.processon.com",
+      summary: "流程图与产品结构设计",
+    },
+    {
+      name: "Canva",
+      url: "https://www.canva.com",
+      summary: "设计模板与视觉表达",
+    },
+  ],
+};
+
+export function getCategoryFallbackKey(categoryOrName) {
+  const name = String(categoryOrName?.name || categoryOrName || "");
+  if (CATEGORY_FALLBACK_SITES[name]) return name;
+  if (name.includes("AI") || name.includes("智能")) return "AI工具";
+  if (name.includes("编程") || name.includes("开发")) return "编程开发";
+  if (name.includes("原型")) return "原型设计";
+  if (name.includes("设计") || name.includes("素材")) return "设计资源";
+  if (name.includes("办公") || name.includes("效率")) return "效率办公";
+  if (name.includes("学习") || name.includes("成长") || name.includes("教育")) {
+    return "学习成长";
+  }
+  if (name.includes("数据") || name.includes("分析")) return "数据分析";
+  if (name.includes("产品") || name.includes("运营")) return "产品运营";
+  return "";
+}
+
+export function getCategoryFallbackSites(categoryOrName) {
+  const key = getCategoryFallbackKey(categoryOrName);
+  return (key ? CATEGORY_FALLBACK_SITES[key] || [] : []).map((site) => ({
+    ...site,
+    id: `fallback-${key}-${site.name}`,
+    category_name: key,
+    external_only: true,
+  }));
+}
+
+export function getTextLogo(site = {}) {
+  const name = String(site.name || site.url || "站").trim();
+  return Array.from(name)[0]?.toUpperCase() || "站";
+}
+
 function readPayload(response) {
   return unwrapResponse(response) ?? {};
 }

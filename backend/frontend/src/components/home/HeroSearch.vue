@@ -80,7 +80,8 @@ h1 {
 }
 
 .hero-search__bar {
-  width: min(760px, 100%);
+  width: min(720px, calc(100vw - 32px));
+  justify-self: center;
 }
 
 .hero-stats {

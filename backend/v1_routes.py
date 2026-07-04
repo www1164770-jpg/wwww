@@ -278,6 +278,10 @@ def register_v1_routes(app, get_db_connection):
                 ids.append(int(item))
         return ids
 
+    def clean_arg(value):
+        value = str(value or "").strip()
+        return value or None
+
     def site_text(site):
         parts = [
             site.get("name"),
@@ -481,18 +485,35 @@ def register_v1_routes(app, get_db_connection):
         website_columns = table_columns("websites")
         category_columns = table_columns("categories")
         exclude_ids = exclude_ids or []
+        category_id = clean_arg(category_id)
+        keyword = clean_arg(keyword)
+        tag = clean_arg(tag)
+        is_free = clean_arg(is_free)
+        region = clean_arg(region)
+        sort = clean_arg(sort) or "recommend"
         where = []
         params = []
         joins = "LEFT JOIN categories c ON c.id = w.category_id"
         if "status" in website_columns:
             where.append("COALESCE(w.status, 'approved') IN ('approved', 'active')")
         if category_id:
-            if "parent_id" in category_columns:
-                where.append("(w.category_id=%s OR c.parent_id=%s)")
-                params.extend([category_id, category_id])
-            else:
-                where.append("w.category_id=%s")
-                params.append(category_id)
+            category_value = str(category_id).strip()
+            if category_value.isdigit():
+                category_int = int(category_value)
+                if "parent_id" in category_columns:
+                    where.append("(w.category_id=%s OR c.parent_id=%s)")
+                    params.extend([category_int, category_int])
+                else:
+                    where.append("w.category_id=%s")
+                    params.append(category_int)
+            elif "name" in category_columns:
+                if "parent_id" in category_columns:
+                    joins += " LEFT JOIN categories pc ON pc.id = c.parent_id"
+                    where.append("(c.name=%s OR pc.name=%s)")
+                    params.extend([category_value, category_value])
+                else:
+                    where.append("c.name=%s")
+                    params.append(category_value)
         if keyword:
             joins += " LEFT JOIN site_tags st_search ON st_search.site_id = w.id LEFT JOIN tags t_search ON t_search.id = st_search.tag_id"
             joins += " LEFT JOIN site_occupations so_search ON so_search.site_id = w.id"
@@ -745,21 +766,21 @@ def register_v1_routes(app, get_db_connection):
 
     @app.route("/api/sites", methods=["GET"])
     def v1_sites():
-        page = request.args.get("page", 1, type=int)
-        per_page = request.args.get(
+        page = max(1, request.args.get("page", 1, type=int))
+        per_page = max(1, min(request.args.get(
             "limit",
             request.args.get("per_page", request.args.get("page_size", 20, type=int), type=int),
             type=int,
-        )
+        ), 100))
         items = query_sites(
             limit=per_page,
             offset=max(page - 1, 0) * per_page,
-            category_id=request.args.get("category_id") or request.args.get("category"),
-            keyword=request.args.get("q") or request.args.get("keyword"),
-            tag=request.args.get("tag"),
-            is_free=request.args.get("is_free"),
-            region=request.args.get("region"),
-            sort=request.args.get("sort", "recommend"),
+            category_id=clean_arg(request.args.get("category_id")) or clean_arg(request.args.get("category")),
+            keyword=clean_arg(request.args.get("q")) or clean_arg(request.args.get("keyword")),
+            tag=clean_arg(request.args.get("tag")),
+            is_free=clean_arg(request.args.get("is_free")),
+            region=clean_arg(request.args.get("region")),
+            sort=clean_arg(request.args.get("sort")) or "recommend",
             exclude_ids=parse_id_list(request.args.get("exclude_ids")),
         )
         return api_success({"items": items, "page": page, "per_page": per_page})

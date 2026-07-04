@@ -130,7 +130,14 @@ import ToolMarquee from "../components/home/ToolMarquee.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import SiteCard from "../components/site/SiteCard.vue";
-import { categoryAPI, favoriteAPI, siteAPI, unwrapList } from "../utils/api";
+import {
+  categoryAPI,
+  favoriteAPI,
+  getCategoryFallbackSites,
+  normalizeUrl,
+  siteAPI,
+  unwrapList,
+} from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
@@ -320,6 +327,247 @@ const fallbackPopularSites = [
   },
 ].sort(() => Math.random() - 0.5);
 
+const categoryFallbackSites = {
+  AI工具: [
+    {
+      id: "fallback-ai-chatgpt",
+      name: "ChatGPT",
+      url: "https://chatgpt.com",
+      summary: "OpenAI 的 AI 对话与效率工具。",
+      category_name: "AI工具",
+      external_only: true,
+    },
+    {
+      id: "fallback-ai-claude",
+      name: "Claude",
+      url: "https://claude.ai",
+      summary: "适合长文档处理、编程辅助和知识工作。",
+      category_name: "AI工具",
+      external_only: true,
+    },
+    {
+      id: "fallback-ai-gemini",
+      name: "Gemini",
+      url: "https://gemini.google.com",
+      summary: "Google 的多模态 AI 助手。",
+      category_name: "AI工具",
+      external_only: true,
+    },
+    {
+      id: "fallback-ai-perplexity",
+      name: "Perplexity",
+      url: "https://www.perplexity.ai",
+      summary: "面向资料检索和问答的 AI 搜索工具。",
+      category_name: "AI工具",
+      external_only: true,
+    },
+  ],
+  编程开发: [
+    {
+      id: "fallback-dev-github",
+      name: "GitHub",
+      url: "https://github.com",
+      summary: "代码托管与协作开发平台。",
+      category_name: "编程开发",
+      external_only: true,
+    },
+    {
+      id: "fallback-dev-mdn",
+      name: "MDN Web Docs",
+      url: "https://developer.mozilla.org",
+      summary: "权威 Web 开发文档。",
+      category_name: "编程开发",
+      external_only: true,
+    },
+    {
+      id: "fallback-dev-vue",
+      name: "Vue 官方文档",
+      url: "https://vuejs.org",
+      summary: "Vue.js 官方文档与最佳实践。",
+      category_name: "编程开发",
+      external_only: true,
+    },
+    {
+      id: "fallback-dev-leetcode",
+      name: "LeetCode",
+      url: "https://leetcode.cn",
+      summary: "算法练习和面试准备平台。",
+      category_name: "编程开发",
+      external_only: true,
+    },
+  ],
+  设计资源: [
+    {
+      id: "fallback-design-figma",
+      name: "Figma",
+      url: "https://www.figma.com",
+      summary: "在线协作设计和原型工具。",
+      category_name: "设计资源",
+      external_only: true,
+    },
+    {
+      id: "fallback-design-canva",
+      name: "Canva",
+      url: "https://www.canva.com",
+      summary: "在线设计与内容创作工具。",
+      category_name: "设计资源",
+      external_only: true,
+    },
+    {
+      id: "fallback-design-iconfont",
+      name: "Iconfont",
+      url: "https://www.iconfont.cn",
+      summary: "阿里巴巴矢量图标库。",
+      category_name: "设计资源",
+      external_only: true,
+    },
+    {
+      id: "fallback-design-unsplash",
+      name: "Unsplash",
+      url: "https://unsplash.com",
+      summary: "高质量免费图片素材站。",
+      category_name: "设计资源",
+      external_only: true,
+    },
+  ],
+  效率办公: [
+    {
+      id: "fallback-office-notion",
+      name: "Notion",
+      url: "https://www.notion.so",
+      summary: "笔记、知识库和项目管理工具。",
+      category_name: "效率办公",
+      external_only: true,
+    },
+    {
+      id: "fallback-office-feishu",
+      name: "飞书",
+      url: "https://www.feishu.cn",
+      summary: "团队协作、文档和项目沟通平台。",
+      category_name: "效率办公",
+      external_only: true,
+    },
+    {
+      id: "fallback-office-processon",
+      name: "ProcessOn",
+      url: "https://www.processon.com",
+      summary: "在线流程图和思维导图工具。",
+      category_name: "效率办公",
+      external_only: true,
+    },
+    {
+      id: "fallback-office-trello",
+      name: "Trello",
+      url: "https://trello.com",
+      summary: "轻量看板式项目管理工具。",
+      category_name: "效率办公",
+      external_only: true,
+    },
+  ],
+  学习成长: [
+    {
+      id: "fallback-learn-bilibili",
+      name: "Bilibili 学习区",
+      url: "https://www.bilibili.com",
+      summary: "覆盖课程、技能和知识内容的视频学习区。",
+      category_name: "学习成长",
+      external_only: true,
+    },
+    {
+      id: "fallback-learn-coursera",
+      name: "Coursera",
+      url: "https://www.coursera.org",
+      summary: "国际在线课程与职业证书平台。",
+      category_name: "学习成长",
+      external_only: true,
+    },
+    {
+      id: "fallback-learn-khan",
+      name: "Khan Academy",
+      url: "https://www.khanacademy.org",
+      summary: "免费的基础学科与通识学习平台。",
+      category_name: "学习成长",
+      external_only: true,
+    },
+    {
+      id: "fallback-learn-mooc",
+      name: "中国大学 MOOC",
+      url: "https://www.icourse163.org",
+      summary: "中文高校在线开放课程平台。",
+      category_name: "学习成长",
+      external_only: true,
+    },
+  ],
+  数据分析: [
+    {
+      id: "fallback-data-kaggle",
+      name: "Kaggle",
+      url: "https://www.kaggle.com",
+      summary: "数据科学竞赛、数据集和 Notebook 平台。",
+      category_name: "数据分析",
+      external_only: true,
+    },
+    {
+      id: "fallback-data-tableau",
+      name: "Tableau",
+      url: "https://www.tableau.com",
+      summary: "商业智能与数据可视化平台。",
+      category_name: "数据分析",
+      external_only: true,
+    },
+    {
+      id: "fallback-data-powerbi",
+      name: "Power BI",
+      url: "https://powerbi.microsoft.com",
+      summary: "Microsoft 数据分析与报表平台。",
+      category_name: "数据分析",
+      external_only: true,
+    },
+    {
+      id: "fallback-data-jupyter",
+      name: "Jupyter",
+      url: "https://jupyter.org",
+      summary: "交互式数据分析与代码笔记本工具。",
+      category_name: "数据分析",
+      external_only: true,
+    },
+  ],
+  产品运营: [
+    {
+      id: "fallback-product-feishu",
+      name: "飞书",
+      url: "https://www.feishu.cn",
+      summary: "团队协作、文档和项目沟通平台。",
+      category_name: "产品运营",
+      external_only: true,
+    },
+    {
+      id: "fallback-product-notion",
+      name: "Notion",
+      url: "https://www.notion.so",
+      summary: "笔记、知识库和项目管理工具。",
+      category_name: "产品运营",
+      external_only: true,
+    },
+    {
+      id: "fallback-product-processon",
+      name: "ProcessOn",
+      url: "https://www.processon.com",
+      summary: "在线流程图和思维导图工具。",
+      category_name: "产品运营",
+      external_only: true,
+    },
+    {
+      id: "fallback-product-canva",
+      name: "Canva",
+      url: "https://www.canva.com",
+      summary: "在线设计与内容创作工具。",
+      category_name: "产品运营",
+      external_only: true,
+    },
+  ],
+};
+
 const careerFallbackSites = {
   学生: ["ChatGPT", "Perplexity", "Notion", "ProcessOn"],
   前端开发: ["GitHub", "MDN Web Docs", "Vue 官方文档", "ChatGPT"],
@@ -341,12 +589,6 @@ function getSettledData(result, fallback = []) {
 
 function normalizeList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
-}
-
-function normalizeUrl(url) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
 }
 
 function getSiteKey(site) {
@@ -400,13 +642,39 @@ function fillCareerFallback(sites, career, limit) {
   );
 }
 
+function categoryFallbackKey(category) {
+  const name = String(category?.name || "");
+  if (categoryFallbackSites[name]) return name;
+  if (name.includes("AI") || name.includes("智能")) return "AI工具";
+  if (name.includes("编程") || name.includes("开发")) return "编程开发";
+  if (name.includes("设计") || name.includes("素材")) return "设计资源";
+  if (name.includes("办公") || name.includes("效率")) return "效率办公";
+  if (name.includes("学习") || name.includes("成长") || name.includes("教育")) {
+    return "学习成长";
+  }
+  if (name.includes("数据") || name.includes("分析")) return "数据分析";
+  if (name.includes("产品") || name.includes("运营")) return "产品运营";
+  return "";
+}
+
+function categoryFallback(category) {
+  return getCategoryFallbackSites(category);
+}
+
+function fillCategorySites(category, sites, limit = 4) {
+  return dedupeSites(
+    [...normalizeList(sites), ...categoryFallback(category)],
+    new Set(),
+  ).slice(0, limit);
+}
+
 async function loadCategorySites(hotCategories, excludeIds = []) {
   const nextMap = {};
-  const usedKeys = new Set();
   loadingCategorySites.value = true;
   try {
     await Promise.all(
       hotCategories.map(async (category) => {
+        let sites = [];
         try {
           const response = await siteAPI.getSites({
             category_id: category.id,
@@ -415,13 +683,26 @@ async function loadCategorySites(hotCategories, excludeIds = []) {
             sort: "hot",
             exclude_ids: idsParam(excludeIds),
           });
-          nextMap[category.id] = dedupeSites(
-            unwrapList(response),
-            usedKeys,
-          ).slice(0, 4);
+          sites = unwrapList(response);
         } catch {
-          nextMap[category.id] = [];
+          sites = [];
         }
+
+        if (sites.length < 3) {
+          try {
+            const fallbackResponse = await siteAPI.getRandom({
+              limit: 4,
+              category: category.name,
+              scene: "category-preview",
+              exclude_ids: idsParam([...excludeIds, ...siteIds(sites)]),
+            });
+            sites = dedupeSites([...sites, ...unwrapList(fallbackResponse)]);
+          } catch {
+            // Category previews should stay populated from local fallback data.
+          }
+        }
+
+        nextMap[category.id] = fillCategorySites(category, sites, 4);
       }),
     );
     categorySitesMap.value = nextMap;

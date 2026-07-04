@@ -9,10 +9,14 @@
           @click="openSite"
         >
           <img
+            v-if="logoSrc && !logoFailed"
             :src="logoSrc"
             :alt="`${site.name || '网站'} Logo`"
             @error="useFallbackLogo"
           />
+          <span v-else class="site-card__text-logo" aria-hidden="true">
+            {{ textLogo }}
+          </span>
         </button>
 
         <div>
@@ -67,6 +71,7 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
+import { getFaviconUrl, getTextLogo, normalizeUrl } from "../../utils/api";
 
 const props = defineProps({
   site: { type: Object, required: true },
@@ -75,15 +80,13 @@ const props = defineProps({
 });
 const emit = defineEmits(["favorite", "visit"]);
 
-const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=ai-nav";
 const logoFailed = ref(false);
 const allTags = computed(() => props.site.tags || []);
 const categoryLabel = computed(
   () => props.site.category_name || allTags.value[0] || "网站资源",
 );
-const logoSrc = computed(() =>
-  logoFailed.value ? fallbackLogo : props.site.logo_url || fallbackLogo,
-);
+const logoSrc = computed(() => getFaviconUrl(props.site));
+const textLogo = computed(() => getTextLogo(props.site));
 const visibleTags = computed(() => allTags.value.slice(0, 3));
 const hiddenTagCount = computed(() => Math.max(allTags.value.length - 3, 0));
 const visibleOccupations = computed(() =>
@@ -106,12 +109,6 @@ watch(
 
 function useFallbackLogo() {
   logoFailed.value = true;
-}
-
-function normalizeUrl(url) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
 }
 
 function openSite() {
@@ -173,13 +170,26 @@ function openSite() {
   outline: none;
 }
 
-.site-card__logo-button img {
+.site-card__logo-button img,
+.site-card__text-logo {
   width: 56px;
   height: 56px;
   border: 1px solid var(--color-border-soft);
   border-radius: 18px;
-  object-fit: cover;
   background: var(--color-soft);
+}
+
+.site-card__logo-button img {
+  object-fit: cover;
+}
+
+.site-card__text-logo {
+  display: grid;
+  place-items: center;
+  color: var(--color-primary-dark);
+  background: #fff7f4;
+  font-size: 20px;
+  font-weight: 900;
 }
 
 h3 {

@@ -25,19 +25,24 @@
 
         <section class="results-panel">
           <LoadingState v-if="loading" text="正在加载网站..." />
+          <div v-else-if="sites.length" class="category-site-grid">
+            <SiteCard
+              v-for="site in sites"
+              :key="site.id || site.url || site.name"
+              :site="site"
+              :favorited="Boolean(site.is_favorited)"
+              :favorite-pending="favoritePendingIds.includes(site.id)"
+              @favorite="favorite"
+              @visit="visit"
+            />
+          </div>
           <EmptyState
-            v-else-if="error"
-            title="资源加载失败"
-            :description="error"
-          />
-          <SiteList
             v-else
-            :sites="sites"
-            :favorite-pending-ids="favoritePendingIds"
-            empty-title="暂无符合条件的资源"
-            empty-description="可以尝试调整筛选条件"
-            @favorite="favorite"
-            @visit="visit"
+            :title="error ? '资源加载失败' : '暂无该分类的网站资源'"
+            :description="
+              error ||
+              '可以先在后台为该分类添加网站信息，页面会优先展示匹配的兜底资源。'
+            "
           />
         </section>
       </div>
@@ -46,19 +51,21 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import SiteFilter from "../components/site/SiteFilter.vue";
-import SiteList from "../components/site/SiteList.vue";
+import SiteCard from "../components/site/SiteCard.vue";
 import {
   categoryAPI,
   favoriteAPI,
+  getCategoryFallbackSites,
+  normalizeUrl,
   siteAPI,
   tagAPI,
-  unwrapResponse,
+  unwrapList,
 } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
@@ -71,7 +78,7 @@ const loading = ref(false);
 const error = ref("");
 const favoritePendingIds = ref([]);
 const filters = reactive({
-  category_id: route.params.id,
+  category_id: "",
   tag: "",
   is_free: "",
   region: "",
@@ -87,9 +94,7 @@ const children = computed(() =>
 );
 
 function flattenCategories(value) {
-  const source = Array.isArray(value)
-    ? value
-    : value?.items || value?.categories || [];
+  const source = Array.isArray(value) ? value : value?.items || value || [];
   const result = new Map();
   const visit = (item) => {
     if (!item || result.has(item.id)) return;
@@ -100,22 +105,41 @@ function flattenCategories(value) {
   return [...result.values()];
 }
 
-function listFromResponse(response) {
-  const payload = unwrapResponse(response) ?? [];
-  return payload.items || payload;
+function normalizeList(value) {
+  return Array.isArray(value) ? value.filter(Boolean) : [];
+}
+
+function withFallbackSites(items) {
+  const realSites = normalizeList(items);
+  if (realSites.length) return realSites;
+  return getCategoryFallbackSites(currentCategory.value);
+}
+
+function cleanFilters(source = {}) {
+  const params = {
+    category_id: route.params.id,
+    page: 1,
+    page_size: 12,
+    limit: 12,
+    sort: source.sort || "recommend",
+    tag: source.tag,
+    is_free: source.is_free,
+    region: source.region,
+  };
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== "" && value != null),
+  );
 }
 
 async function loadSites(nextFilters = filters) {
   loading.value = true;
   error.value = "";
   try {
-    const response = await siteAPI.getSites({
-      ...nextFilters,
-      category_id: nextFilters.category_id || route.params.id,
-    });
-    sites.value = listFromResponse(response);
+    const response = await siteAPI.getSites(cleanFilters(nextFilters));
+    sites.value = withFallbackSites(unwrapList(response));
   } catch (err) {
     error.value = err.response?.data?.msg || "网站加载失败，请稍后重试";
+    sites.value = withFallbackSites([]);
     errorToast(error.value);
   } finally {
     loading.value = false;
@@ -148,8 +172,15 @@ async function favorite(site) {
   }
 }
 async function visit(site) {
-  await siteAPI.recordClick(site.id).catch(() => {});
-  window.open(site.url, "_blank", "noopener,noreferrer");
+  const url = normalizeUrl(site?.url);
+  if (site?.id && !site.external_only) {
+    await siteAPI.recordClick(site.id).catch(() => {});
+  }
+  if (url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  } else if (site?.id && !site.external_only) {
+    router.push(`/site/${site.id}`);
+  }
 }
 onMounted(async () => {
   try {
@@ -157,14 +188,22 @@ onMounted(async () => {
       categoryAPI.getCategories(),
       tagAPI.getTags(),
     ]);
-    categories.value = flattenCategories(unwrapResponse(categoryRes));
-    tags.value = unwrapResponse(tagRes) || [];
+    categories.value = flattenCategories(unwrapList(categoryRes));
+    tags.value = unwrapList(tagRes);
   } catch (err) {
     error.value = err.response?.data?.msg || "筛选数据加载失败，请稍后重试";
     errorToast(error.value);
   }
   await loadSites();
 });
+
+watch(
+  () => route.params.id,
+  async () => {
+    filters.category_id = "";
+    await loadSites();
+  },
+);
 </script>
 
 <style scoped>
@@ -241,6 +280,13 @@ h1 {
 }
 
 .results-panel {
+  min-width: 0;
+}
+
+.category-site-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 20px;
   min-width: 0;
 }
 
