@@ -22,6 +22,15 @@
         <RouterLink to="/admin/comments" exact-active-class="active"
           >评论审核</RouterLink
         >
+        <RouterLink to="/admin/questionnaires" exact-active-class="active"
+          >问卷管理</RouterLink
+        >
+        <RouterLink to="/admin/recommend-rules" exact-active-class="active"
+          >推荐规则</RouterLink
+        >
+        <RouterLink to="/admin/settings" exact-active-class="active"
+          >后台设置</RouterLink
+        >
       </aside>
       <section class="admin-content">
         <slot></slot>

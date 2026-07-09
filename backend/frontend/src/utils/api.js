@@ -248,6 +248,76 @@ function readPayload(response) {
   return unwrapResponse(response) ?? {};
 }
 
+function firstDefined(...values) {
+  return values.find((value) => value !== undefined && value !== null);
+}
+
+function parseBoolean(value) {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
+
+export function storeUserSessionFromPayload(payload = {}, fallback = {}) {
+  const root = payload?.data && payload?.status ? payload.data : payload || {};
+  const nested = root?.data || {};
+  const user = firstDefined(
+    nested.user,
+    root.user,
+    nested.user_info,
+    root.user_info,
+    nested.username || nested.email ? nested : undefined,
+    fallback.user,
+  );
+  const token = firstDefined(
+    fallback.token,
+    root.token,
+    nested.token,
+    root.access_token,
+    nested.access_token,
+  );
+  const refreshToken = firstDefined(
+    fallback.refreshToken,
+    root.refresh_token,
+    nested.refresh_token,
+    "",
+  );
+  const userRole = firstDefined(
+    root.user_role,
+    nested.user_role,
+    user?.role,
+    fallback.userRole,
+    "user",
+  );
+  const questionnaireCompleted = parseBoolean(
+    firstDefined(
+      root.questionnaire_completed,
+      nested.questionnaire_completed,
+      root.questionnaireCompleted,
+      nested.questionnaireCompleted,
+      user?.questionnaire_completed,
+      user?.questionnaireCompleted,
+      fallback.questionnaireCompleted,
+    ),
+  );
+
+  if (token) {
+    localStorage.setItem("token", token);
+    localStorage.setItem("access_token", token);
+  }
+  localStorage.setItem("refresh_token", refreshToken || "");
+  if (user) {
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("user_info", JSON.stringify(user));
+  }
+  localStorage.setItem("user_role", userRole);
+  localStorage.setItem(
+    "questionnaire_completed",
+    questionnaireCompleted ? "true" : "false",
+  );
+  localStorage.setItem("is_logged_in", "true");
+
+  return { token, refreshToken, user, userRole, questionnaireCompleted };
+}
+
 function clearAuthAndRedirect() {
   localStorage.removeItem("token");
   localStorage.removeItem("access_token");
@@ -412,6 +482,12 @@ export const adminAPI = {
   reviewComment: (id, action) =>
     api.post(`/admin/comments/${id}/review`, { action }),
   deleteComment: (id) => api.delete(`/admin/comments/${id}`),
+  getQuestionnaires: () => api.get("/admin/questionnaires"),
+  saveQuestionnaireConfig: (data) => api.post("/admin/questionnaires", data),
+  getRecommendRules: () => api.get("/admin/recommend-rules"),
+  saveRecommendRules: (data) => api.post("/admin/recommend-rules", data),
+  getSettings: () => api.get("/admin/settings"),
+  saveSettings: (data) => api.post("/admin/settings", data),
   getPendingSites: () => api.get("/admin/pending_sites"),
   crawlHN: () => api.post("/admin/crawl_hn"),
   reviewSite: (id, action, reason = "") =>

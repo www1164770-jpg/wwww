@@ -12,10 +12,21 @@ def register_v1_routes(app, get_db_connection):
     columns_cache = {}
 
     def api_success(data=None, msg="success", status=200):
-        return jsonify({"code": 0, "msg": msg, "data": data if data is not None else {}}), status
+        return jsonify({
+            "code": status,
+            "legacy_code": 0,
+            "message": msg,
+            "msg": msg,
+            "data": data if data is not None else {},
+        }), status
 
     def api_error(msg, code=400, status=400, data=None):
-        return jsonify({"code": code, "msg": msg, "data": data if data is not None else {}}), status
+        return jsonify({
+            "code": code,
+            "message": msg,
+            "msg": msg,
+            "data": data if data is not None else {},
+        }), status
 
     def current_user_row():
         username = get_jwt_identity()
@@ -146,6 +157,207 @@ def register_v1_routes(app, get_db_connection):
             return parsed if isinstance(parsed, list) else []
         except (TypeError, ValueError):
             return [item.strip() for item in str(value).split(",") if item.strip()]
+
+    def default_questionnaire_config():
+        return {
+            "questions": [
+                {
+                    "key": "occupation",
+                    "label": "职业",
+                    "required": True,
+                    "options": [
+                        "programmer",
+                        "designer",
+                        "product_manager",
+                        "operations",
+                        "marketing",
+                        "ecommerce",
+                        "teacher",
+                        "student",
+                        "creator",
+                        "other",
+                    ],
+                },
+                {
+                    "key": "purposes",
+                    "label": "使用目的",
+                    "required": True,
+                    "multiple": True,
+                    "options": [
+                        "efficiency",
+                        "learning",
+                        "ai_tools",
+                        "project_development",
+                        "design_assets",
+                        "data_analysis",
+                        "content_creation",
+                        "industry_news",
+                    ],
+                },
+                {
+                    "key": "interests",
+                    "label": "兴趣方向",
+                    "required": True,
+                    "multiple": True,
+                    "options": [
+                        "AI tools",
+                        "programming",
+                        "design resources",
+                        "product management",
+                        "growth",
+                        "data analysis",
+                        "office efficiency",
+                        "learning platforms",
+                        "startup resources",
+                        "assets",
+                    ],
+                },
+                {
+                    "key": "skill_level",
+                    "label": "能力水平",
+                    "required": True,
+                    "options": ["beginner", "junior", "intermediate", "senior"],
+                },
+                {
+                    "key": "preferences",
+                    "label": "资源偏好",
+                    "required": True,
+                    "multiple": True,
+                    "options": [
+                        "free first",
+                        "professional first",
+                        "domestic first",
+                        "international first",
+                        "tutorial first",
+                        "efficiency first",
+                    ],
+                },
+            ],
+            "occupation_tag_map": {
+                "programmer": ["programming", "AI tools", "project_development"],
+                "designer": ["design resources", "assets", "AI tools"],
+                "product_manager": ["product management", "startup resources", "data analysis"],
+                "operations": ["growth", "content_creation", "office efficiency"],
+                "teacher": ["learning platforms", "AI tools", "content_creation"],
+                "student": ["learning platforms", "programming", "AI tools"],
+            },
+        }
+
+    def questionnaire_options_from_config(config):
+        questions = config.get("questions") if isinstance(config, dict) else []
+        by_key = {item.get("key"): item for item in questions if isinstance(item, dict)}
+        fallback = default_questionnaire_config()
+        fallback_by_key = {item["key"]: item for item in fallback["questions"]}
+
+        def options(key):
+            return (
+                by_key.get(key, {}).get("options")
+                or fallback_by_key.get(key, {}).get("options")
+                or []
+            )
+
+        return {
+            "occupations": options("occupation"),
+            "purposes": options("purposes"),
+            "interests": options("interests"),
+            "skill_levels": options("skill_level"),
+            "preferences": options("preferences"),
+            "questions": questions or fallback["questions"],
+            "occupation_tag_map": config.get("occupation_tag_map") or fallback["occupation_tag_map"],
+        }
+
+    def default_recommend_rules():
+        return {
+            "occupation_site_weights": {
+                "programmer": ["programming", "code", "docs", "developer"],
+                "designer": ["design", "ui", "assets", "prototype"],
+                "product_manager": ["product", "prototype", "analytics", "collaboration"],
+                "operations": ["growth", "marketing", "content", "office"],
+                "teacher": ["learning", "writing", "knowledge", "course"],
+                "student": ["learning", "docs", "AI", "programming"],
+            },
+            "weights": {
+                "occupation_score": 0.4,
+                "interest_score": 0.25,
+                "quality_score": 0.2,
+                "popularity_score": 0.1,
+                "freshness_score": 0.05,
+                "behavior_score": 0.05,
+            },
+            "blacklist": ["王者荣耀", "和平精英", "抖音", "快手", "百度"],
+            "reason_templates": {
+                "programmer": "适合前端开发、代码学习和项目构建",
+                "designer": "适合 UI 设计、素材查找和创意生成",
+                "teacher": "适合学习、论文写作和知识整理",
+                "default": "根据职业、兴趣和资源质量综合推荐",
+            },
+        }
+
+    def default_admin_settings():
+        return {
+            "site_name": "智汇导航",
+            "audit_mode": "manual",
+            "allow_registration": True,
+            "comment_default_status": "visible",
+            "home_sections": [
+                "categories",
+                "career",
+                "recommend",
+                "hot",
+                "latest",
+                "tools",
+            ],
+        }
+
+    def ensure_app_settings_table(cursor):
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS app_settings (
+              setting_key VARCHAR(120) PRIMARY KEY,
+              setting_value LONGTEXT NOT NULL,
+              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """
+        )
+
+    def load_json_setting(key, default_value):
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                ensure_app_settings_table(cursor)
+                cursor.execute(
+                    "SELECT setting_value FROM app_settings WHERE setting_key=%s",
+                    (key,),
+                )
+                row = cursor.fetchone()
+            conn.commit()
+        except Exception:
+            return default_value
+        finally:
+            conn.close()
+        if not row:
+            return default_value
+        try:
+            return json.loads(row.get("setting_value") or "{}")
+        except (TypeError, ValueError):
+            return default_value
+
+    def save_json_setting(key, value):
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                ensure_app_settings_table(cursor)
+                cursor.execute(
+                    """
+                    INSERT INTO app_settings (setting_key, setting_value)
+                    VALUES (%s,%s)
+                    ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)
+                    """,
+                    (key, json.dumps(value, ensure_ascii=False)),
+                )
+            conn.commit()
+        finally:
+            conn.close()
 
     def categories_with_children(rows):
         items = [dict(row) for row in rows]
@@ -416,15 +628,18 @@ def register_v1_routes(app, get_db_connection):
             seen.update(item["id"] for item in fallback)
         return items[:limit]
 
-    def query_career_sites(occupation, limit=8, ai_only=False, exclude_ids=None):
+    def query_career_sites(occupation, limit=8, ai_only=False, exclude_ids=None, rules=None):
         occupation = str(occupation or "").strip()
         exclude_ids = exclude_ids or []
+        rules = rules or {}
         if not occupation:
             return []
-        keywords = career_ai_keywords.get(occupation, career_ai_keywords["其他"])
+        configured_keywords = (rules.get("occupation_site_weights") or {}).get(occupation)
+        keywords = configured_keywords or career_ai_keywords.get(occupation, career_ai_keywords["其他"])
         preferred_names = career_preferred_names.get(occupation, career_preferred_names["其他"])
         resource_keywords = list(dict.fromkeys(ai_keywords + fallback_keywords + keywords))
-        reason = career_reasons.get(occupation, career_reasons["其他"])
+        reason = (rules.get("reason_templates") or {}).get(occupation) or career_reasons.get(occupation, career_reasons["其他"])
+        blacklist = [str(item).lower() for item in (rules.get("blacklist") or [])]
         candidates = query_resource_sites(
             limit=max(limit * 8, 40),
             category=None,
@@ -447,6 +662,8 @@ def register_v1_routes(app, get_db_connection):
                 continue
             seen.add(site_id)
             text = site_text(site)
+            if any(keyword in text for keyword in blacklist):
+                continue
             exact_occupation = occupation in (site.get("occupations") or [])
             keyword_hits = sum(1 for keyword in keywords if keyword.lower() in text)
             name = str(site.get("name") or "").lower()
@@ -643,13 +860,8 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/questionnaire", methods=["GET"])
     @jwt_required(optional=True)
     def v1_questionnaire_options():
-        return api_success({
-            "occupations": ["programmer", "designer", "product_manager", "operations", "marketing", "ecommerce", "teacher", "student", "creator", "other"],
-            "purposes": ["efficiency", "learning", "ai_tools", "project_development", "design_assets", "data_analysis", "content_creation", "industry_news"],
-            "interests": ["AI tools", "programming", "design resources", "product management", "growth", "data analysis", "office efficiency", "learning platforms", "startup resources", "assets"],
-            "skill_levels": ["beginner", "junior", "intermediate", "senior"],
-            "preferences": ["free first", "professional first", "domestic first", "international first", "tutorial first", "efficiency first"],
-        })
+        config = load_json_setting("questionnaire_config", default_questionnaire_config())
+        return api_success(questionnaire_options_from_config(config))
 
     @app.route("/api/questionnaire/submit", methods=["POST"])
     @jwt_required()
@@ -836,6 +1048,7 @@ def register_v1_routes(app, get_db_connection):
         limit = max(1, min(request.args.get("limit", 8, type=int), 50))
         exclude_ids = parse_id_list(request.args.get("exclude_ids"))
         occupation = request.args.get("occupation")
+        rules = load_json_setting("recommend_rules", default_recommend_rules())
         if occupation:
             return api_success(
                 query_career_sites(
@@ -843,6 +1056,7 @@ def register_v1_routes(app, get_db_connection):
                     limit=limit,
                     exclude_ids=exclude_ids,
                     ai_only=request.args.get("ai_only") in ("1", "true", "True"),
+                    rules=rules,
                 )
             )
         profile = {"occupation": "", "interests": []}
@@ -862,12 +1076,13 @@ def register_v1_routes(app, get_db_connection):
         source_sites = query_sites(limit=40, exclude_ids=exclude_ids)
         if not profile.get("occupation") and not profile.get("interests"):
             source_sites = query_sites(limit=40, sort="hot", exclude_ids=exclude_ids) or source_sites
-        ranked = rank_sites(source_sites, profile, limit)
+        ranked = rank_sites(source_sites, profile, limit, rules)
         if not ranked:
             ranked = rank_sites(
                 query_sites(limit=40, sort="hot", exclude_ids=exclude_ids),
                 {},
                 limit,
+                rules,
             )
         return api_success(ranked)
 
@@ -1342,6 +1557,88 @@ def register_v1_routes(app, get_db_connection):
             }
             user["questionnaire_completed"] = bool(user.get("questionnaire_completed") or user.get("has_survey"))
         return api_success(users)
+
+    @app.route("/api/admin/questionnaires", methods=["GET", "POST"])
+    @admin_required
+    def v1_admin_questionnaires():
+        if request.method == "POST":
+            data = request.get_json(silent=True) or {}
+            questions = data.get("questions")
+            if not isinstance(questions, list) or not questions:
+                return api_error("问卷题目不能为空")
+            for question in questions:
+                if not str(question.get("key") or "").strip():
+                    return api_error("问卷题目标识不能为空")
+                if question.get("required", False) and not question.get("options"):
+                    return api_error("必填题目必须配置选项")
+            config = {
+                "questions": questions,
+                "occupation_tag_map": data.get("occupation_tag_map") or {},
+            }
+            save_json_setting("questionnaire_config", config)
+            return api_success(config)
+
+        config = load_json_setting("questionnaire_config", default_questionnaire_config())
+        stats = {
+            "total_profiles": 0,
+            "completed_users": 0,
+            "occupation_distribution": [],
+        }
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) AS count FROM user_profiles")
+                stats["total_profiles"] = cursor.fetchone().get("count", 0)
+                cursor.execute(
+                    "SELECT COUNT(*) AS count FROM users WHERE COALESCE(questionnaire_completed, has_survey, 0)=1"
+                )
+                stats["completed_users"] = cursor.fetchone().get("count", 0)
+                cursor.execute(
+                    """
+                    SELECT occupation, COUNT(*) AS count
+                    FROM user_profiles
+                    WHERE occupation IS NOT NULL AND occupation != ''
+                    GROUP BY occupation
+                    ORDER BY count DESC
+                    LIMIT 12
+                    """
+                )
+                stats["occupation_distribution"] = cursor.fetchall()
+        except Exception:
+            pass
+        finally:
+            conn.close()
+        return api_success({
+            "config": questionnaire_options_from_config(config),
+            "raw_config": config,
+            "stats": stats,
+        })
+
+    @app.route("/api/admin/recommend-rules", methods=["GET", "POST"])
+    @admin_required
+    def v1_admin_recommend_rules():
+        if request.method == "POST":
+            data = request.get_json(silent=True) or {}
+            rules = {
+                "occupation_site_weights": data.get("occupation_site_weights") or {},
+                "weights": data.get("weights") or default_recommend_rules()["weights"],
+                "blacklist": data.get("blacklist") or default_recommend_rules()["blacklist"],
+                "reason_templates": data.get("reason_templates") or {},
+            }
+            save_json_setting("recommend_rules", rules)
+            return api_success(rules)
+        rules = load_json_setting("recommend_rules", default_recommend_rules())
+        return api_success(rules)
+
+    @app.route("/api/admin/settings", methods=["GET", "POST"])
+    @admin_required
+    def v1_admin_settings():
+        if request.method == "POST":
+            data = request.get_json(silent=True) or {}
+            settings = {**default_admin_settings(), **data}
+            save_json_setting("admin_settings", settings)
+            return api_success(settings)
+        return api_success(load_json_setting("admin_settings", default_admin_settings()))
 
     @app.route("/api/admin/comments", methods=["GET"])
     @admin_required

@@ -13,6 +13,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { storeUserSessionFromPayload, userAPI } from "../utils/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -38,7 +39,7 @@ function clearAuthStorage() {
   localStorage.removeItem("is_logged_in");
 }
 
-onMounted(() => {
+onMounted(async () => {
   const token = route.query.token;
   const questionnaireCompleted = route.query.questionnaire_completed === "1";
   const redirect = normalizeRedirect(route.query.redirect);
@@ -49,13 +50,23 @@ onMounted(() => {
     return;
   }
 
-  localStorage.setItem("token", token);
-  localStorage.setItem("access_token", token);
-  localStorage.setItem(
-    "questionnaire_completed",
-    questionnaireCompleted ? "true" : "false",
+  storeUserSessionFromPayload(
+    { token, questionnaire_completed: questionnaireCompleted },
+    { token, questionnaireCompleted },
   );
-  localStorage.setItem("is_logged_in", "true");
+
+  try {
+    const profileResponse = await userAPI.getProfile();
+    storeUserSessionFromPayload(profileResponse, {
+      token,
+      questionnaireCompleted,
+    });
+  } catch {
+    localStorage.setItem(
+      "questionnaire_completed",
+      questionnaireCompleted ? "true" : "false",
+    );
+  }
 
   router.replace(questionnaireCompleted ? redirect : "/questionnaire");
 });

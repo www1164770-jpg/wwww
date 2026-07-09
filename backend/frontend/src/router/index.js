@@ -101,6 +101,24 @@ const routes = [
         component: () => import("../views/admin/AdminComments.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
+      {
+        path: "/admin/questionnaires",
+        name: "AdminQuestionnaires",
+        component: () => import("../views/admin/AdminQuestionnaires.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "/admin/recommend-rules",
+        name: "AdminRecommendRules",
+        component: () => import("../views/admin/AdminRecommendRules.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "/admin/settings",
+        name: "AdminSettings",
+        component: () => import("../views/admin/AdminSettings.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
     ],
   },
   {
