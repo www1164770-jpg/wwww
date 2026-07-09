@@ -10,6 +10,7 @@ export const api = axios.create({
 });
 
 export function unwrapResponse(response) {
+  if (Array.isArray(response)) return response;
   const payload = response?.data;
   if (payload?.data !== undefined) return payload.data;
   if (payload?.items !== undefined) return payload.items;
@@ -17,6 +18,7 @@ export function unwrapResponse(response) {
 }
 
 export function unwrapList(response) {
+  if (Array.isArray(response)) return response;
   const payload = response?.data;
   const data = payload?.data ?? payload;
   if (Array.isArray(data)) return data;
