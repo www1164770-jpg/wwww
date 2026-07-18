@@ -13,52 +13,75 @@ const gitOutput = (command) =>
 
 const checks = [
   {
-    name: 'home page is split into focused components',
+    name: 'home page renders the current category section component',
     run() {
-      const expectedFiles = [
-        'src/components/home/HeroSearch.vue',
-        'src/components/home/CareerRecommend.vue',
-        'src/components/home/PopularCategories.vue',
-        'src/components/home/ToolCard.vue',
-        'src/components/home/FavoriteStack.vue',
-        'src/components/modals/LoginModal.vue',
-        'src/components/modals/SiteFormModal.vue',
-        'src/components/modals/CategoryModal.vue',
-        'src/components/modals/AppearanceModal.vue'
-      ]
-
-      for (const file of expectedFiles) {
-        if (!exists(file)) throw new Error(`Missing split component: ${file}`)
-      }
-
       const home = read('src/views/Home.vue')
-      for (const name of ['HeroSearch', 'CareerRecommend', 'PopularCategories', 'ToolCard', 'FavoriteStack']) {
-        if (!home.includes(name)) throw new Error(`Home.vue does not use ${name}`)
+      const category = read('src/components/home/CategorySection.vue')
+
+      for (const snippet of [
+        'import CategorySection from "../components/home/CategorySection.vue"',
+        '<section id="categories"',
+        '<CategorySection',
+        ':categories="categories"',
+        ':category-sites-map="categorySitesMap"',
+        '@visit-site="visitSite"'
+      ]) {
+        if (!home.includes(snippet)) throw new Error(`Home.vue is missing current category behavior: ${snippet}`)
       }
+
+      for (const snippet of [
+        'v-for="category in categories"',
+        'class="category-menu"',
+        ':to="`/category/${category.id}`"',
+        'v-else',
+        'EmptyState'
+      ]) {
+        if (!category.includes(snippet)) throw new Error(`CategorySection is missing category navigation behavior: ${snippet}`)
+      }
+
       if (home.includes("currentPage === 'profile'")) {
         throw new Error('Home.vue still contains the embedded profile page branch')
       }
     }
   },
   {
-    name: 'career recommendation is interactive and keyword driven',
+    name: 'career recommendation derives content and requests from career data',
     run() {
       const career = read('src/components/home/CareerRecommend.vue')
       const home = read('src/views/Home.vue')
+      const routes = readRepo('backend/v1_routes.py')
 
       for (const snippet of [
+        'activeCareer',
+        'default: ""',
         'select-career',
         'careerRecommendations',
-        '学生',
-        '程序员',
-        '设计师',
-        '运营'
+        'v-for="career in careerRecommendations"',
+        '{{ career.name }}',
+        'selectCareer(career)'
       ]) {
-        if (!career.includes(snippet)) throw new Error(`CareerRecommend is missing: ${snippet}`)
+        if (!career.includes(snippet)) throw new Error(`CareerRecommend is missing dynamic career behavior: ${snippet}`)
       }
 
-      for (const snippet of ['selectCareer', 'careerKeywords', 'activeCareer', 'searchQuery.value = career']) {
-        if (!home.includes(snippet)) throw new Error(`Home.vue is missing career interaction code: ${snippet}`)
+      for (const snippet of [
+        ':active-career="selectedCareer?.key || \'\'"',
+        '@select-career="handleSelectCareer"',
+        'const selectedCareer = ref(null)',
+        'v-if="selectedCareer"',
+        '{{ selectedCareer.name }}',
+        'siteAPI.getRecommend({',
+        'occupation: career.name',
+        'v-for="site in careerSites"'
+      ]) {
+        if (!home.includes(snippet)) throw new Error(`Home.vue is missing career-driven recommendation behavior: ${snippet}`)
+      }
+
+      for (const snippet of [
+        'SELECT occupation, interests FROM user_profiles',
+        'rank_sites(source_sites, profile, limit, rules)',
+        'if not profile.get("occupation") and not profile.get("interests")'
+      ]) {
+        if (!routes.includes(snippet)) throw new Error(`Recommendation API is missing profile-aware fallback behavior: ${snippet}`)
       }
     }
   },
