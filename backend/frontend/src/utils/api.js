@@ -8,9 +8,16 @@ import {
   normalizeAuthSession,
   saveAuthSession,
 } from "./auth";
+import { resolveApiBaseURL } from "./apiBase";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
+const DEFAULT_API_BASE_URL = import.meta.env.DEV
+  ? "http://127.0.0.1:5000/api"
+  : "/api";
+
+export const API_BASE_URL = resolveApiBaseURL(
+  import.meta.env,
+  DEFAULT_API_BASE_URL,
+);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
