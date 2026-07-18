@@ -1,0 +1,36 @@
+# Version control and local project metadata
+.git
+.github
+.vercel
+.claude
+docs/superpowers
+
+# Secrets and local environment files
+.env
+.env.*
+backend/.env
+backend/frontend/.env
+
+# Python caches, virtual environments, and tests
+.venv
+venv
+backend/venv
+__pycache__
+*.pyc
+.pytest_cache
+tests
+
+# Frontend dependencies and generated output
+node_modules
+backend/frontend/node_modules
+dist
+backend/frontend/dist
+
+# Local services, logs, and generated data
+backend/meili_data
+backend/meili_fresh
+backend/meilisearch.exe
+dump.rdb
+logs
+backend/logs
+*.log
