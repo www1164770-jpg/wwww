@@ -890,6 +890,9 @@ def register_v1_routes(app, get_db_connection):
                     (",".join(interests), json.dumps(interests, ensure_ascii=False), user["id"]),
                 )
             conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             conn.close()
         return api_success({"questionnaire_completed": True})

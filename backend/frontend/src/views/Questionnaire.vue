@@ -134,7 +134,7 @@ async function submit(form) {
   error.value = "";
   try {
     await questionnaireAPI.submit(form);
-    localStorage.setItem("questionnaire_completed", "true");
+    userStore.updateQuestionnaireCompleted(true);
     successToast("问卷保存成功");
     router.replace("/");
   } catch (err) {
