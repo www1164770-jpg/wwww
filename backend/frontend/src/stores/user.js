@@ -1,30 +1,43 @@
 /**
- * 用户全局状态管理 (Pinia Store)
- * =====================================
- * 管理用户登录态、个人信息、Token 等核心状态。
- * 替代原先散落在 Home.vue 和其他组件中的 localStorage 直接读写。
+ * 用户全局状态管理
+ *
+ * Pinia 只负责把统一 auth.js 认证状态映射到组件，localStorage 的读写和
+ * 清理全部由 auth.js 完成，避免各页面维护不同版本的认证字段列表。
  */
 
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
-import { userAPI, authAPI } from "@/utils/api";
+import { computed, ref } from "vue";
+import { userAPI } from "../utils/api";
+import {
+  addAuthStateListener,
+  clearAuthSession,
+  getAccessToken,
+  getRefreshToken,
+  getStoredQuestionnaireCompleted,
+  getStoredUserInfo,
+  getStoredUserRole,
+  saveAuthSession,
+  setQuestionnaireCompleted as persistQuestionnaireCompleted,
+} from "../utils/auth";
+
+const DEFAULT_USER_INFO = Object.freeze({
+  username: "",
+  avatar: "",
+  email: "未绑定邮箱",
+  phone: "",
+  gender: "保密",
+  birthday: "未设置",
+  bio: "这个人很懒，什么都没写~",
+});
 
 export const useUserStore = defineStore("user", () => {
-  // ==================== 状态 ====================
   const isLoggedIn = ref(false);
   const accessToken = ref(null);
   const refreshToken = ref(null);
-  const userInfo = ref({
-    username: "",
-    avatar: "",
-    email: "未绑定邮箱",
-    phone: "",
-    gender: "保密",
-    birthday: "未设置",
-    bio: "这个人很懒，什么都没写~",
-  });
+  const userRole = ref("user");
+  const questionnaireCompleted = ref(false);
+  const userInfo = ref({ ...DEFAULT_USER_INFO });
 
-  // ==================== 计算属性 ====================
   const username = computed(() => userInfo.value.username);
   const avatar = computed(
     () =>
@@ -32,150 +45,121 @@ export const useUserStore = defineStore("user", () => {
       "https://api.dicebear.com/7.x/avataaars/svg?seed=fallback",
   );
 
-  // ==================== 初始化（从 localStorage 恢复） ====================
+  function syncFromStorage() {
+    accessToken.value = getAccessToken();
+    refreshToken.value = getRefreshToken();
+    isLoggedIn.value = Boolean(accessToken.value);
+    userRole.value = getStoredUserRole();
+    questionnaireCompleted.value = getStoredQuestionnaireCompleted();
+    userInfo.value = { ...DEFAULT_USER_INFO, ...getStoredUserInfo() };
+  }
+
   function initFromStorage() {
-    const savedToken = localStorage.getItem("access_token");
-    const savedRefresh = localStorage.getItem("refresh_token");
-    const savedLogin = localStorage.getItem("is_logged_in");
-    const savedUser = localStorage.getItem("user_info");
-
-    if (savedToken && savedLogin === "true") {
-      accessToken.value = savedToken;
-      refreshToken.value = savedRefresh;
-      isLoggedIn.value = true;
-      if (savedUser) {
-        try {
-          userInfo.value = { ...userInfo.value, ...JSON.parse(savedUser) };
-        } catch (e) {
-          console.warn("解析本地用户信息失败");
-        }
-      }
-    }
+    syncFromStorage();
   }
 
-  // ==================== 持久化到 localStorage ====================
   function persistToStorage() {
-    if (accessToken.value)
-      localStorage.setItem("access_token", accessToken.value);
-    if (refreshToken.value)
-      localStorage.setItem("refresh_token", refreshToken.value);
-    localStorage.setItem("is_logged_in", isLoggedIn.value ? "true" : "false");
-    localStorage.setItem("user_info", JSON.stringify(userInfo.value));
-  }
-
-  // ==================== 登录（处理 OAuth 回调参数） ====================
-  function loginFromUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("access_token");
-    const refresh = params.get("refresh_token");
-
-    if (token) {
-      accessToken.value = token;
-      refreshToken.value = refresh || null;
-      isLoggedIn.value = true;
-
-      // 从 URL 参数提取用户信息
-      const username = params.get("username") || "";
-      const email = params.get("email") || "";
-      const avatar = params.get("avatar") || "";
-
-      if (username) {
-        userInfo.value = {
-          ...userInfo.value,
-          username,
-          email: email || userInfo.value.email,
-          avatar: avatar || userInfo.value.avatar,
-        };
-      }
-
-      persistToStorage();
-      // 清理 URL 参数
-      window.history.replaceState({}, document.title, "/");
-      return true;
+    if (!accessToken.value) {
+      clearAuthSession();
+      syncFromStorage();
+      return;
     }
-    return false;
+
+    saveAuthSession({
+      access_token: accessToken.value,
+      refresh_token: refreshToken.value || "",
+      user_info: userInfo.value,
+      user_role: userRole.value,
+      questionnaire_completed: questionnaireCompleted.value,
+    });
+    syncFromStorage();
   }
 
-  // ==================== 手动设置用户信息 ====================
-  function setUserInfo(info) {
+  function setUserInfo(info = {}) {
     userInfo.value = { ...userInfo.value, ...info };
     persistToStorage();
   }
 
-  // ==================== 退出登录 ====================
-  function logout() {
+  function resetState() {
     accessToken.value = null;
     refreshToken.value = null;
     isLoggedIn.value = false;
-    userInfo.value = {
-      username: "",
-      avatar: "",
-      email: "未绑定邮箱",
-      phone: "",
-      gender: "保密",
-      birthday: "未设置",
-      bio: "这个人很懒，什么都没写~",
-    };
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("is_logged_in");
-    localStorage.removeItem("user_info");
+    userRole.value = "user";
+    questionnaireCompleted.value = false;
+    userInfo.value = { ...DEFAULT_USER_INFO };
   }
 
-  // ==================== 标记登录成功（供 Login 页面调用） ====================
-  function setLoginSuccess(token, refresh, info = {}) {
-    accessToken.value = token;
-    if (refresh) refreshToken.value = refresh;
-    isLoggedIn.value = true;
-    if (Object.keys(info).length) {
-      userInfo.value = { ...userInfo.value, ...info };
-    }
-    persistToStorage();
+  function logout() {
+    clearAuthSession();
+    resetState();
   }
 
-  // ==================== 更新 Token ====================
+  function setLoginSuccess(tokenOrSession, refresh, info = {}) {
+    const session =
+      tokenOrSession && typeof tokenOrSession === "object"
+        ? tokenOrSession
+        : {
+            access_token: tokenOrSession,
+            refresh_token: refresh,
+            user_info: info.user_info || info,
+            user_role: info.user_role || info.role,
+            questionnaire_completed:
+              info.questionnaire_completed ?? info.questionnaireCompleted,
+          };
+
+    saveAuthSession(session);
+    syncFromStorage();
+  }
+
   function updateAccessToken(token) {
-    accessToken.value = token;
-    localStorage.setItem("access_token", token);
+    saveAuthSession({ access_token: token });
+    syncFromStorage();
   }
 
-  // ==================== 从服务端同步用户信息 ====================
+  function updateQuestionnaireCompleted(value) {
+    persistQuestionnaireCompleted(value);
+    questionnaireCompleted.value = value === true || value === "true" || value === 1;
+  }
+
   async function syncProfileFromServer() {
     try {
       const res = await userAPI.getSettings(userInfo.value.username);
       if (res.data?.code === 0 && res.data?.data) {
         const data = res.data.data;
-        if (data.username) userInfo.value.username = data.username;
-        if (data.email) userInfo.value.email = data.email;
-        if (data.avatar) userInfo.value.avatar = data.avatar;
-        if (data.phone) userInfo.value.phone = data.phone;
-        if (data.gender) userInfo.value.gender = data.gender;
-        if (data.birthday) userInfo.value.birthday = data.birthday;
-        if (data.bio) userInfo.value.bio = data.bio;
+        userInfo.value = {
+          ...userInfo.value,
+          ...Object.fromEntries(
+            ["username", "email", "avatar", "phone", "gender", "birthday", "bio"]
+              .filter((key) => data[key])
+              .map((key) => [key, data[key]]),
+          ),
+        };
         persistToStorage();
       }
-    } catch (e) {
-      console.warn("同步用户信息失败:", e);
+    } catch (error) {
+      console.warn("同步用户信息失败:", error);
     }
   }
 
+  syncFromStorage();
+  addAuthStateListener(syncFromStorage);
+
   return {
-    // 状态
     isLoggedIn,
     accessToken,
     refreshToken,
+    userRole,
+    questionnaireCompleted,
     userInfo,
-    // 计算属性
     username,
     avatar,
-    // 方法
     initFromStorage,
     persistToStorage,
-    loginFromUrlParams,
     setUserInfo,
     logout,
     setLoginSuccess,
     updateAccessToken,
+    updateQuestionnaireCompleted,
     syncProfileFromServer,
   };
 });

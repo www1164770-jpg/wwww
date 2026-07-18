@@ -37,9 +37,12 @@ import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import QuestionnaireForm from "../components/questionnaire/QuestionnaireForm.vue";
 import { questionnaireAPI, unwrapResponse } from "../utils/api";
+import { getAccessToken, isValidAuthToken } from "../utils/auth";
+import { useUserStore } from "../stores/user";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
+const userStore = useUserStore();
 const error = ref("");
 const loading = ref(false);
 const submitting = ref(false);
@@ -97,7 +100,7 @@ const fallbackOptions = {
 };
 
 function isValidJwt(token) {
-  return token && String(token).split(".").length === 3;
+  return isValidAuthToken(token);
 }
 
 function applyFallbackOptions() {
@@ -110,8 +113,7 @@ function applyFallbackOptions() {
 
 async function submit(form) {
   if (submitting.value) return;
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("access_token");
+  const token = getAccessToken();
   if (!isValidJwt(token)) {
     tokenValid.value = false;
     error.value = "登录状态异常，请重新登录";
@@ -148,20 +150,12 @@ function skip() {
 }
 
 function relogin() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("questionnaire_completed");
-  localStorage.removeItem("user");
-  localStorage.removeItem("user_info");
-  localStorage.removeItem("user_role");
-  localStorage.removeItem("is_logged_in");
+  userStore.logout();
   router.replace("/login");
 }
 
 onMounted(async () => {
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("access_token");
+  const token = getAccessToken();
   tokenValid.value = isValidJwt(token);
   if (!tokenValid.value) {
     error.value = "登录状态异常，请重新登录";

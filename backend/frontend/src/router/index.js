@@ -1,4 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
+import {
+  getAccessToken,
+  getStoredUserRole,
+  isValidAuthToken,
+} from "../utils/auth";
 
 const routes = [
   { path: "/", name: "Home", component: () => import("../views/Home.vue") },
@@ -160,17 +165,11 @@ const router = createRouter({
 });
 
 function isLoggedIn() {
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("access_token");
-  const value = String(token || "");
-  return Boolean(
-    value.length > 20 &&
-    (!value.includes(".") || value.split(".").length === 3),
-  );
+  return isValidAuthToken(getAccessToken());
 }
 
 function isAdmin() {
-  return ["admin", "super_admin"].includes(localStorage.getItem("user_role"));
+  return ["admin", "super_admin"].includes(getStoredUserRole());
 }
 
 router.beforeEach((to) => {

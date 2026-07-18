@@ -19,6 +19,7 @@ import os
 import json
 import logging
 import traceback
+from functools import wraps
 from datetime import datetime, timedelta
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, create_refresh_token, verify_jwt_in_request
@@ -26,6 +27,51 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Category, Website, ClickLog, Comment
 from sqlalchemy import func, text
 import pymysql
+
+
+SENSITIVE_LOG_KEYS = frozenset({
+    'password', 'password_hash', 'old_password', 'new_password',
+    'confirm_password', 'token', 'access_token', 'refresh_token',
+    'authorization', 'jwt', 'code', 'verification_code', 'verify_code',
+    'captcha', 'secret', 'client_secret', 'app_secret', 'api_key',
+    'smtp_password',
+})
+REDACTED_LOG_VALUE = '[REDACTED]'
+
+
+def sanitize_log_data(value):
+    """Recursively redact sensitive fields before structured data is logged."""
+    if isinstance(value, dict):
+        return {
+            key: REDACTED_LOG_VALUE
+            if str(key).lower() in SENSITIVE_LOG_KEYS
+            else sanitize_log_data(item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [sanitize_log_data(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(sanitize_log_data(item) for item in value)
+    return value
+
+
+def admin_role_required(fn):
+    """Require a JWT whose database user has an administrator role."""
+
+    @wraps(fn)
+    @jwt_required()
+    def decorator(*args, **kwargs):
+        username = get_jwt_identity()
+        try:
+            user = User.query.filter_by(username=username).first()
+        except Exception:
+            return jsonify({'code': 503, 'msg': '管理员权限服务暂不可用'}), 503
+
+        if not user or user.role not in ('admin', 'super_admin'):
+            return jsonify({'code': 403, 'msg': '无权访问'}), 403
+        return fn(*args, **kwargs)
+
+    return decorator
 
 # =====================================================================
 # 1. 生产级日志配置
@@ -143,18 +189,27 @@ def register_error_handlers(app):
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
         """兜底处理器：捕获所有未被上述处理器覆盖的异常"""
+        error_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
         # 记录完整堆栈到日志文件
-        app.logger.error(f'未预期的异常: {type(e).__name__}: {str(e)}')
-        app.logger.error(f'请求路径: {request.method} {request.path}')
-        app.logger.error(f'请求参数: {request.args.to_dict() if request.args else "无"}')
+        app.logger.error(
+            f'error_id={error_id} exception_type={type(e).__name__} '
+            f'method={request.method} path={request.path}: {str(e)}'
+        )
+        app.logger.error(
+            f'请求元数据: method={request.method} path={request.path} '
+            f'status=500 remote_addr={request.remote_addr}'
+        )
+        app.logger.error(
+            f'请求参数: {sanitize_log_data(request.args.to_dict(flat=False)) if request.args else "无"}'
+        )
         if request.is_json:
-            app.logger.error(f'请求体: {request.get_json(silent=True)}')
+            app.logger.error(f'请求体: {sanitize_log_data(request.get_json(silent=True))}')
         app.logger.error(f'堆栈跟踪:\n{traceback.format_exc()}')
 
         return jsonify({
             'code': 500,
             'msg': '系统开小差了，请稍后再试',
-            'error_id': datetime.now().strftime('%Y%m%d%H%M%S%f')  # 错误追踪 ID
+            'error_id': error_id  # 错误追踪 ID
         }), 500
 
     app.logger.info('✅ 全局异常处理器注册完成')
@@ -544,7 +599,7 @@ def register_admin_user_routes(app, db):
     """注册管理员用户管理路由"""
 
     @app.route('/api/admin/users', methods=['GET'])
-    @jwt_required()
+    @admin_role_required
     def get_admin_users():
         """获取用户列表（管理员专用，分页）"""
         username = get_jwt_identity()
@@ -584,7 +639,7 @@ def register_admin_user_routes(app, db):
             return jsonify({'code': 500, 'msg': '服务器错误'}), 500
 
     @app.route('/api/admin/comments', methods=['GET'])
-    @jwt_required()
+    @admin_role_required
     def get_admin_comments():
         """获取评论审核列表"""
         page = request.args.get('page', 1, type=int)
@@ -617,7 +672,7 @@ def register_admin_user_routes(app, db):
             return jsonify({'code': 500, 'msg': '服务器错误'}), 500
 
     @app.route('/api/admin/comments/<int:comment_id>/review', methods=['POST'])
-    @jwt_required()
+    @admin_role_required
     def review_admin_comment(comment_id):
         """审核、驳回或删除评论"""
         action = (request.get_json(silent=True) or {}).get('action')
@@ -637,7 +692,7 @@ def register_admin_user_routes(app, db):
             return jsonify({'code': 500, 'msg': '服务器错误'}), 500
 
     @app.route('/api/admin/user/ban', methods=['POST'])
-    @jwt_required()
+    @admin_role_required
     def toggle_user_ban():
         """封禁/解封用户"""
         data = request.get_json(silent=True) or {}
@@ -674,7 +729,7 @@ def register_stats_overview_routes(app, db):
     """注册统计数据接口（供 ECharts 大盘使用）"""
 
     @app.route('/api/admin/stats/overview', methods=['GET'])
-    @jwt_required()
+    @admin_role_required
     def get_stats_overview():
         """
         获取后台数据大盘统计。
@@ -758,7 +813,7 @@ def register_content_audit_routes(app, db):
     """注册内容审核流路由"""
 
     @app.route('/api/admin/content-audit', methods=['GET'])
-    @jwt_required()
+    @admin_role_required
     def get_content_audit_list():
         """获取待审核内容列表"""
         status = request.args.get('status', 'pending')
@@ -792,7 +847,7 @@ def register_content_audit_routes(app, db):
             return jsonify({'code': 500, 'msg': '查询失败'}), 500
 
     @app.route('/api/admin/review-content', methods=['POST'])
-    @jwt_required()
+    @admin_role_required
     def review_content():
         """
         审核内容（通过/拒绝）。

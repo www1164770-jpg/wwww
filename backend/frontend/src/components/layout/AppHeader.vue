@@ -60,30 +60,25 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useUserStore } from "../../stores/user";
 import { useRoute, useRouter } from "vue-router";
+import { getAccessToken, isValidAuthToken } from "../../utils/auth";
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 const menuOpen = ref(false);
 const authTick = ref(0);
 
 const loggedIn = computed(() => {
   authTick.value;
   route.fullPath;
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("access_token");
-  return Boolean(token && String(token).split(".").length === 3);
+  return userStore.isLoggedIn && isValidAuthToken(getAccessToken());
 });
 const user = computed(() => {
   authTick.value;
   route.fullPath;
-  try {
-    return JSON.parse(
-      localStorage.getItem("user_info") || localStorage.getItem("user") || "{}",
-    );
-  } catch {
-    return {};
-  }
+  return userStore.userInfo;
 });
 const initials = computed(() =>
   (user.value.username || "U").slice(0, 1).toUpperCase(),
@@ -110,17 +105,10 @@ function closeMenu() {
 }
 
 function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("questionnaire_completed");
-  localStorage.removeItem("user");
-  localStorage.removeItem("user_info");
-  localStorage.removeItem("user_role");
-  localStorage.removeItem("is_logged_in");
+  userStore.logout();
   closeMenu();
   refreshAuthState();
-  router.push("/login");
+  router.replace("/");
 }
 
 onMounted(() => {

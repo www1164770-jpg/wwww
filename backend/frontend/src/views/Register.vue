@@ -128,8 +128,16 @@ async function submit() {
     setError("请输入密码");
     return;
   }
+  if (form.password.length < 8) {
+    setError("密码至少需要 8 位");
+    return;
+  }
   if (form.password !== confirmPassword.value) {
     setError("两次输入的密码不一致");
+    return;
+  }
+  if (!form.code.trim()) {
+    setError("请输入验证码");
     return;
   }
   if (!accepted.value) {

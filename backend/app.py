@@ -29,6 +29,8 @@ from models import db, User, UserProfile, Category, Tag, Website, SiteTag, SiteO
 from sqlalchemy import func  # SQLAlchemy 聚合函数（如 COUNT、SUM），用于统计查询
 import json  # JSON 序列化/反序列化，用于存储复杂配置字段
 import re  # 正则表达式，用于 URL 格式校验等文本处理
+import hashlib
+import unicodedata
 from urllib.parse import urlparse  # URL 解析工具，用于验证 URL 合法性
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, verify_jwt_in_request  # JWT 认证扩展：Token 管理器、创建/验证 Token 的工具函数
 from flask_bcrypt import Bcrypt  # 密码哈希扩展，使用 bcrypt 算法安全存储用户密码
@@ -70,12 +72,47 @@ import app_extensions
 load_dotenv()  # 将 .env 文件中的键值对注入到系统环境变量，后续通过 os.getenv() 读取
 
 app = Flask(__name__)  # 创建 Flask 应用实例，__name__ 用于确定资源文件的根路径
-app.secret_key = (
-    os.getenv("FLASK_SECRET_KEY")
-    or os.getenv("SECRET_KEY")
-    or os.getenv("JWT_SECRET_KEY")
-    or "dev-secret-key-change-me"
-)
+DEFAULT_DEV_SECRET = "dev-secret-key-change-me"
+
+
+def get_secret_config():
+    """Return application secrets and fail fast for unsafe production settings."""
+    environment_values = [
+        (os.getenv(name) or "").strip().lower()
+        for name in ("APP_ENV", "FLASK_ENV", "ENV", "VERCEL_ENV")
+    ]
+    runtime_env = next((value for value in environment_values if value), "")
+    is_production = "production" in environment_values
+
+    flask_secret = os.getenv("FLASK_SECRET_KEY")
+    jwt_secret = os.getenv("JWT_SECRET_KEY")
+
+    if is_production:
+        if not flask_secret or not jwt_secret:
+            raise RuntimeError(
+                "Production requires explicit FLASK_SECRET_KEY and JWT_SECRET_KEY"
+            )
+        if DEFAULT_DEV_SECRET in (flask_secret, jwt_secret):
+            raise RuntimeError("Production secrets must not use the development default")
+        if flask_secret == jwt_secret:
+            raise RuntimeError("FLASK_SECRET_KEY and JWT_SECRET_KEY must be different in production")
+        return {
+            "flask_secret": flask_secret,
+            "jwt_secret": jwt_secret,
+            "runtime_env": runtime_env,
+        }
+
+    flask_secret = flask_secret or os.getenv("SECRET_KEY") or jwt_secret or DEFAULT_DEV_SECRET
+    jwt_secret = jwt_secret or flask_secret or DEFAULT_DEV_SECRET
+    return {
+        "flask_secret": flask_secret,
+        "jwt_secret": jwt_secret,
+        "runtime_env": runtime_env,
+    }
+
+
+secret_config = get_secret_config()
+app.secret_key = secret_config["flask_secret"]
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 
@@ -91,6 +128,137 @@ def get_limiter_storage_uri():
 def table_columns(cursor, table_name):
     cursor.execute(f"SHOW COLUMNS FROM {table_name}")
     return {row["Field"] for row in cursor.fetchall()}
+
+
+AUTHING_EMAIL_MAX_LENGTH = 120
+AUTHING_AVATAR_MAX_LENGTH = 255
+AUTHING_USERNAME_MAX_LENGTH = 50
+AUTHING_USERNAME_MAX_ATTEMPTS = 50
+AUTHING_SYNC_MAX_ATTEMPTS = 5
+
+
+def normalize_authing_user_email(value):
+    normalized = str(value or "").strip().lower()
+    return normalized or None
+
+
+def usable_verified_authing_email(authing_user):
+    email = normalize_authing_user_email(authing_user.get("email"))
+    if authing_user.get("email_verified") is not True:
+        return None
+    if not email or len(email) > AUTHING_EMAIL_MAX_LENGTH:
+        return None
+    return email
+
+
+def normalize_authing_avatar(value):
+    avatar = str(value or "").strip()
+    if not avatar or len(avatar) > AUTHING_AVATAR_MAX_LENGTH:
+        return None
+    return avatar
+
+
+def authing_sub_digest(authing_sub):
+    return hashlib.sha256(str(authing_sub).encode("utf-8")).hexdigest()
+
+
+def build_authing_placeholder_email(authing_sub):
+    digest = authing_sub_digest(authing_sub)
+    email = f"authing_{digest}@authing.local"
+    return email[:AUTHING_EMAIL_MAX_LENGTH]
+
+
+def sanitize_authing_username(value):
+    cleaned = "".join(
+        character
+        for character in str(value or "")
+        if not unicodedata.category(character).startswith("C")
+    ).strip()
+    return cleaned[:AUTHING_USERNAME_MAX_LENGTH]
+
+
+def build_authing_username_candidate(base, digest, attempt):
+    normalized_base = sanitize_authing_username(base)
+    if attempt == 0:
+        return normalized_base
+
+    suffix = f"_{digest[:8]}" if attempt == 1 else f"_{digest[:8]}_{attempt}"
+    prefix_length = AUTHING_USERNAME_MAX_LENGTH - len(suffix)
+    return f"{normalized_base[:prefix_length]}{suffix}"
+
+
+class AuthingIdentityConflict(RuntimeError):
+    def __init__(self, *local_user_ids):
+        super().__init__("Authing identity conflict")
+        self.local_user_ids = tuple(
+            sorted({user_id for user_id in local_user_ids if user_id is not None})
+        )
+        self.authing_sync_stage = "bind_existing_user"
+
+
+def build_authing_username_base(authing_user, email, digest):
+    candidates = (
+        authing_user.get("name"),
+        authing_user.get("nickname"),
+        authing_user.get("preferred_username"),
+        authing_user.get("username"),
+        email.split("@", 1)[0] if email else None,
+        f"authing_{digest[:16]}",
+    )
+    for value in candidates:
+        candidate = sanitize_authing_username(value)
+        if candidate:
+            return candidate
+    return f"authing_{digest[:16]}"
+
+
+def find_available_authing_username(cursor, base, digest):
+    for attempt in range(AUTHING_USERNAME_MAX_ATTEMPTS):
+        candidate = build_authing_username_candidate(base, digest, attempt)
+        cursor.execute(
+            "SELECT id FROM users WHERE username=%s LIMIT 1",
+            (candidate,),
+        )
+        if not cursor.fetchone():
+            return candidate
+    raise RuntimeError("Unable to allocate Authing username")
+
+
+def mark_authing_sync_exception(exc, stage):
+    if not getattr(exc, "authing_sync_stage", None):
+        exc.authing_sync_stage = stage
+    return exc
+
+
+def log_authing_user_sync_error(exc):
+    error_id = secrets.token_hex(12)
+    stage = getattr(exc, "authing_sync_stage", "unknown")
+    mysql_error_code = (
+        exc.args[0]
+        if getattr(exc, "args", None) and isinstance(exc.args[0], int)
+        else "none"
+    )
+    local_user_ids = ",".join(
+        str(user_id) for user_id in getattr(exc, "local_user_ids", ())
+    ) or "none"
+    event = (
+        "Authing identity conflict"
+        if isinstance(exc, AuthingIdentityConflict)
+        else "Authing user sync error"
+    )
+    app.logger.error(
+        "event=%s error_id=%s exception_type=%s method=%s path=%s "
+        "stage=%s mysql_error_code=%s local_user_ids=%s",
+        event,
+        error_id,
+        type(exc).__name__,
+        request.method,
+        request.path,
+        stage,
+        mysql_error_code,
+        local_user_ids,
+    )
+    return error_id
 
 
 def create_project_token(user):
@@ -113,123 +281,299 @@ def is_valid_jwt_string(token):
     return isinstance(token, str) and len(token.split(".")) == 3
 
 
-def frontend_authing_error(error_code):
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
-    return redirect(f"{frontend_url}/login?authing_error={error_code}")
+def get_frontend_url():
+    return os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+
+def frontend_authing_error(error_code, error_id=None):
+    frontend_url = get_frontend_url()
+    query = {"authing_error": str(error_code)[:80]}
+    if error_id:
+        query["error_id"] = str(error_id)[:80]
+    return redirect(f"{frontend_url}/login?{urlencode(query)}")
 
 
 def normalize_frontend_redirect(path):
-    if not path or not str(path).startswith("/") or str(path).startswith("//"):
+    value = str(path or "")
+    parsed = urlparse(value)
+    if (
+        not value
+        or not value.startswith("/")
+        or value.startswith("//")
+        or "\\" in value
+        or any(ord(character) < 32 for character in value)
+        or parsed.scheme
+        or parsed.netloc
+    ):
         return "/"
-    return str(path)
+    return value
+
+
+AUTHING_EXCHANGE_TTL_SECONDS = 60
+AUTHING_EXCHANGE_PREFIX = "authing_exchange:"
+AUTHING_GETDEL_LUA = """
+local value = redis.call('GET', KEYS[1])
+if value then
+  redis.call('DEL', KEYS[1])
+end
+return value
+"""
+
+
+class AuthingExchangeUnavailable(RuntimeError):
+    """Raised when the one-time Authing exchange store cannot be reached."""
+
+
+def issue_authing_exchange_code(user_id, redirect_path):
+    code = secrets.token_urlsafe(32)
+    payload = json.dumps(
+        {
+            "user_id": user_id,
+            "redirect": normalize_frontend_redirect(redirect_path),
+        },
+        separators=(",", ":"),
+    )
+    redis_client.setex(
+        f"{AUTHING_EXCHANGE_PREFIX}{code}",
+        AUTHING_EXCHANGE_TTL_SECONDS,
+        payload,
+    )
+    return code
+
+
+def _redis_getdel(key):
+    getdel = getattr(redis_client, "getdel", None)
+    if callable(getdel):
+        try:
+            return getdel(key)
+        except redis.exceptions.ResponseError:
+            pass
+
+    eval_script = getattr(redis_client, "eval", None)
+    if not callable(eval_script):
+        raise AuthingExchangeUnavailable("Redis atomic GETDEL is unavailable")
+    return eval_script(AUTHING_GETDEL_LUA, 1, key)
+
+
+def consume_authing_exchange_code(code):
+    if not code:
+        return None
+
+    try:
+        raw_value = _redis_getdel(f"{AUTHING_EXCHANGE_PREFIX}{code}")
+    except AuthingExchangeUnavailable:
+        raise
+    except Exception as exc:
+        raise AuthingExchangeUnavailable("Redis exchange store is unavailable") from exc
+
+    if raw_value is None:
+        return None
+    if isinstance(raw_value, bytes):
+        raw_value = raw_value.decode("utf-8")
+
+    try:
+        exchange_data = json.loads(raw_value)
+    except (TypeError, ValueError):
+        return None
+
+    if not isinstance(exchange_data, dict) or not exchange_data.get("user_id"):
+        return None
+
+    return {
+        "user_id": exchange_data["user_id"],
+        "redirect": normalize_frontend_redirect(exchange_data.get("redirect")),
+    }
+
+
+def auth_session_data(user, access_token, refresh_token):
+    user_info = {
+        "id": user.get("id"),
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "avatar": user.get("avatar") or user.get("avatar_url"),
+    }
+    role = user.get("role") or "user"
+    questionnaire_completed = bool(
+        user.get("questionnaire_completed") or user.get("has_survey")
+    )
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "user_info": user_info,
+        "user_role": role,
+        "questionnaire_completed": questionnaire_completed,
+    }
+
+
+def user_by_id(user_id):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+            user = cursor.fetchone()
+        if user and user.get("deleted_at"):
+            return None
+        return user
+    finally:
+        conn.close()
+
+
+def admin_role_required(fn):
+    """Require a valid JWT and a database-backed administrator role."""
+
+    @wraps(fn)
+    @jwt_required()
+    def decorator(*args, **kwargs):
+        username = get_jwt_identity()
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT role FROM users WHERE username=%s", (username,))
+                user = cursor.fetchone()
+        finally:
+            conn.close()
+
+        if not user or user.get("role") not in ("admin", "super_admin"):
+            return jsonify({"code": 403, "msg": "权限不足，仅管理员可访问"}), 403
+        return fn(*args, **kwargs)
+
+    return decorator
 
 
 def find_or_create_authing_user(authing_user):
-    authing_sub = authing_user.get("sub") or authing_user.get("id")
-    email = authing_user.get("email")
-    username = (
-        authing_user.get("name")
-        or authing_user.get("nickname")
-        or authing_user.get("username")
-        or email
-        or f"authing_{authing_sub}"
-    )
-    avatar = authing_user.get("picture") or authing_user.get("avatar")
-
+    authing_sub = str(authing_user.get("sub") or authing_user.get("id") or "").strip()
     if not authing_sub:
         raise RuntimeError("Authing user missing sub")
+    if len(authing_sub) > 128:
+        raise ValueError("Authing user sub exceeds storage limit")
 
+    digest = authing_sub_digest(authing_sub)
+    email = usable_verified_authing_email(authing_user)
+    effective_email = email or build_authing_placeholder_email(authing_sub)
+    username_base = build_authing_username_base(authing_user, email, digest)
+    avatar = normalize_authing_avatar(
+        authing_user.get("picture") or authing_user.get("avatar")
+    )
     conn = get_db_connection()
+    stage = "lookup_by_sub"
 
     try:
-        with conn.cursor() as cursor:
-            columns = table_columns(cursor, "users")
-            lookup_clauses = []
-            lookup_params = []
-            if "authing_sub" in columns:
-                lookup_clauses.append("authing_sub=%s")
-                lookup_params.append(authing_sub)
-            if email:
-                lookup_clauses.append("email=%s")
-                lookup_params.append(email)
-            if not lookup_clauses:
-                raise RuntimeError("No available user lookup field for Authing")
-
-            cursor.execute(
-                f"""
-                SELECT *
-                FROM users
-                WHERE {" OR ".join(lookup_clauses)}
-                LIMIT 1
-                """,
-                lookup_params,
-            )
-            user = cursor.fetchone()
-
-            if user:
-                updates = []
-                params = []
-                if "authing_sub" in columns:
-                    updates.append("authing_sub=%s")
-                    params.append(authing_sub)
-                if "avatar_url" in columns and avatar:
-                    updates.append("avatar_url=%s")
-                    params.append(avatar)
-                elif "avatar" in columns and avatar:
-                    updates.append("avatar=%s")
-                    params.append(avatar)
-                if "login_provider" in columns:
-                    updates.append("login_provider=%s")
-                    params.append("authing")
-                if updates:
-                    params.append(user["id"])
+        for sync_attempt in range(AUTHING_SYNC_MAX_ATTEMPTS):
+            try:
+                with conn.cursor() as cursor:
+                    stage = "lookup_by_sub"
                     cursor.execute(
-                        f"UPDATE users SET {', '.join(updates)} WHERE id=%s",
-                        params,
+                        "SELECT * FROM users WHERE authing_sub=%s LIMIT 1",
+                        (authing_sub,),
                     )
-                    conn.commit()
+                    sub_user = cursor.fetchone()
 
-                cursor.execute("SELECT * FROM users WHERE id=%s", (user["id"],))
-                return cursor.fetchone()
+                    stage = "lookup_by_email"
+                    cursor.execute(
+                        "SELECT * FROM users WHERE email=%s LIMIT 1",
+                        (effective_email,),
+                    )
+                    email_user = cursor.fetchone()
 
-            insert_data = {
-                "username": username,
-                "email": email or f"{authing_sub}@authing.local",
-                "password_hash": "",
-                "role": "user",
-                "authing_sub": authing_sub,
-                "login_provider": "authing",
-                "questionnaire_completed": 0,
-                "created_at": datetime.now(),
-            }
-            if "status" in columns:
-                insert_data["status"] = "active"
-            if "avatar_url" in columns:
-                insert_data["avatar_url"] = avatar
-            elif "avatar" in columns:
-                insert_data["avatar"] = avatar
+                    if (
+                        sub_user
+                        and email_user
+                        and sub_user["id"] != email_user["id"]
+                    ):
+                        raise AuthingIdentityConflict(
+                            sub_user["id"], email_user["id"]
+                        )
 
-            if "username" in columns:
-                cursor.execute("SELECT id FROM users WHERE username=%s LIMIT 1", (username,))
-                if cursor.fetchone():
-                    insert_data["username"] = f"{username}_{authing_sub[:8]}"
+                    if sub_user:
+                        stage = "bind_existing_user"
+                        updates = ["login_provider=%s"]
+                        params = ["authing"]
+                        if avatar:
+                            updates.append("avatar_url=%s")
+                            params.append(avatar)
+                        params.append(sub_user["id"])
+                        cursor.execute(
+                            f"UPDATE users SET {', '.join(updates)} WHERE id=%s",
+                            params,
+                        )
+                        user_id = sub_user["id"]
+                    elif email_user:
+                        existing_sub = email_user.get("authing_sub")
+                        if existing_sub and existing_sub != authing_sub:
+                            raise AuthingIdentityConflict(email_user["id"])
 
-            insert_data = {
-                key: value
-                for key, value in insert_data.items()
-                if key in columns and value is not None
-            }
-            names = list(insert_data.keys())
-            placeholders = ", ".join(["%s"] * len(names))
-            cursor.execute(
-                f"INSERT INTO users ({', '.join(names)}) VALUES ({placeholders})",
-                [insert_data[name] for name in names],
-            )
-            conn.commit()
+                        stage = "bind_existing_user"
+                        updates = ["authing_sub=%s", "login_provider=%s"]
+                        params = [authing_sub, "authing"]
+                        if avatar:
+                            updates.append("avatar_url=%s")
+                            params.append(avatar)
+                        params.append(email_user["id"])
+                        params.append(authing_sub)
+                        cursor.execute(
+                            f"UPDATE users SET {', '.join(updates)} "
+                            "WHERE id=%s "
+                            "AND (authing_sub IS NULL OR authing_sub=%s)",
+                            params,
+                        )
+                        if cursor.rowcount != 1:
+                            raise AuthingIdentityConflict(email_user["id"])
+                        user_id = email_user["id"]
+                    else:
+                        stage = "create_user"
+                        username = find_available_authing_username(
+                            cursor, username_base, digest
+                        )
+                        disabled_password_hash = generate_password_hash(
+                            f"authing-disabled:{secrets.token_urlsafe(48)}"
+                        )
+                        cursor.execute(
+                            """
+                            INSERT INTO users (
+                                username,
+                                email,
+                                password_hash,
+                                role,
+                                authing_sub,
+                                login_provider,
+                                questionnaire_completed,
+                                created_at,
+                                status,
+                                avatar_url
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            """,
+                            (
+                                username,
+                                effective_email,
+                                disabled_password_hash,
+                                "user",
+                                authing_sub,
+                                "authing",
+                                0,
+                                datetime.now(),
+                                "active",
+                                avatar,
+                            ),
+                        )
+                        user_id = cursor.lastrowid
 
-            cursor.execute("SELECT * FROM users WHERE id=%s", (cursor.lastrowid,))
-            return cursor.fetchone()
+                    stage = "reload_user"
+                    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+                    user = cursor.fetchone()
+                    if not user:
+                        raise RuntimeError("Authing user reload failed")
 
+                conn.commit()
+                return user
+            except pymysql.err.IntegrityError as exc:
+                conn.rollback()
+                error_code = exc.args[0] if exc.args else None
+                if error_code == 1062 and sync_attempt + 1 < AUTHING_SYNC_MAX_ATTEMPTS:
+                    continue
+                raise mark_authing_sync_exception(exc, stage)
+            except Exception as exc:
+                conn.rollback()
+                raise mark_authing_sync_exception(exc, stage)
     finally:
         conn.close()
 
@@ -263,10 +607,10 @@ def authing_callback():
     state = request.args.get("state")
     error = request.args.get("error")
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    frontend_url = get_frontend_url()
 
     if error:
-        return redirect(f"{frontend_url}/login?authing_error={error}")
+        return frontend_authing_error("authing_denied")
 
     if not code:
         return redirect(f"{frontend_url}/login?authing_error=missing_code")
@@ -282,6 +626,8 @@ def authing_callback():
 
     if not expected_nonce or state_payload.get("nonce") != expected_nonce:
         return redirect(f"{frontend_url}/login?authing_error=state_mismatch")
+
+    session.pop("authing_state_nonce", None)
 
     try:
         authing = AuthingService()
@@ -306,23 +652,24 @@ def authing_callback():
         try:
             user = find_or_create_authing_user(authing_user)
         except Exception as exc:
-            print("Authing user sync error:", exc)
-            return frontend_authing_error("user_sync_failed")
-
-        project_token = create_project_token(user)
-        if not is_valid_jwt_string(project_token):
-            return frontend_authing_error("jwt_failed")
-
-        questionnaire_completed = int(user.get("questionnaire_completed", 0) or 0)
+            error_id = log_authing_user_sync_error(exc)
+            error_code = (
+                "authing_identity_conflict"
+                if isinstance(exc, AuthingIdentityConflict)
+                else "user_sync_failed"
+            )
+            return frontend_authing_error(error_code, error_id)
 
         redirect_path = normalize_frontend_redirect(state_payload.get("redirect"))
-        session.pop("authing_state_nonce", None)
+        try:
+            exchange_code = issue_authing_exchange_code(user.get("id"), redirect_path)
+        except Exception as exc:
+            print("Authing exchange code error:", exc)
+            return frontend_authing_error("authing_exchange_unavailable")
 
         query = urlencode(
             {
-                "token": project_token,
-                "questionnaire_completed": questionnaire_completed,
-                "redirect": redirect_path,
+                "code": exchange_code,
             }
         )
 
@@ -331,6 +678,43 @@ def authing_callback():
     except Exception as exc:
         print("Authing callback error:", exc)
         return redirect(f"{frontend_url}/login?authing_error=authing_failed")
+
+
+@app.route("/api/authing/exchange", methods=["POST"])
+def authing_exchange():
+    data = request.get_json(silent=True) or {}
+    code = str(data.get("code") or "").strip()
+    if not code:
+        return jsonify({"code": 400, "msg": "Authing exchange code 无效"}), 400
+
+    try:
+        exchange_data = consume_authing_exchange_code(code)
+    except AuthingExchangeUnavailable:
+        return jsonify({"code": 503, "msg": "认证服务暂不可用，请稍后重试"}), 503
+
+    if not exchange_data:
+        return jsonify({"code": 401, "msg": "Authing exchange code 无效或已过期"}), 401
+
+    try:
+        user = user_by_id(exchange_data["user_id"])
+    except Exception:
+        return jsonify({"code": 503, "msg": "认证服务暂不可用，请稍后重试"}), 503
+
+    if not user:
+        return jsonify({"code": 401, "msg": "Authing 用户不存在或已失效"}), 401
+
+    access_token = create_project_token(user)
+    refresh_token = create_refresh_token(identity=user.get("username"))
+    session_data = auth_session_data(user, access_token, refresh_token)
+    session_data["redirect"] = exchange_data["redirect"]
+    return jsonify(
+        {
+            "code": 0,
+            "msg": "success",
+            "data": session_data,
+            **session_data,
+        }
+    )
 
 #初始化接口防刷限制器
 limiter = Limiter(
@@ -348,6 +732,15 @@ login_failures = {}
 LOGIN_FAILURE_WINDOW_SECONDS = 300
 LOGIN_FAILURE_LIMIT = 5
 LOGIN_LOCK_SECONDS = 60
+AUTH_EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
+def normalize_auth_email(value):
+    return str(value or "").strip().lower()
+
+
+def is_valid_auth_email(value):
+    return bool(AUTH_EMAIL_PATTERN.fullmatch(value))
 
 # 数据库配置（请改成你自己的！）
 DB_CONFIG = {
@@ -469,57 +862,105 @@ def change_password():
 @app.route('/api/auth/send-code', methods=['POST'])
 @limiter.limit("1 per minute", error_message="发送太频繁，请 1 分钟后再试")
 def send_verification_code():
-    email = request.json.get('email')
+    data = request.get_json(silent=True) or {}
+    email = normalize_auth_email(data.get('email'))
     if not email:
-        return jsonify({'code': 400, 'msg': '邮箱不能为空'})
+        return jsonify({'code': 400, 'msg': '邮箱不能为空'}), 400
+    if not is_valid_auth_email(email):
+        return jsonify({'code': 400, 'msg': '请输入正确的邮箱地址'}), 400
 
     # 1. 生成 6 位随机验证码
     code = str(random.randint(100000, 999999))
-    
-    # 2. 存入 Redis，设置 5 分钟 (300秒) 过期
-    redis_client.setex(f"verify_code:{email}", 300, code)
-    
-    # 3. 🚀 调用外部文件的方法，执行发送逻辑
-    is_success, error_message = send_verification_email(email, code)
-    
+
+    try:
+        is_success, error_message = send_verification_email(email, code)
+    except Exception as exc:
+        print(f"Verification email error: {exc}")
+        is_success, error_message = False, "email service unavailable"
+
+    # 邮件成功后再写入 Redis，避免留下用户没有收到的有效验证码。
     if is_success:
+        try:
+            redis_client.setex(f"verify_code:{email}", 300, code)
+        except Exception as exc:
+            print(f"Verification code storage error: {exc}")
+            return jsonify({'code': 503, 'msg': '验证码服务暂不可用，请稍后重试'}), 503
         return jsonify({'code': 0, 'msg': '验证码已发送，请查收邮箱'})
-    else:
-        return jsonify({'code': 500, 'msg': '邮件发送失败，请联系管理员或检查配置'})
+    return jsonify({'code': 502, 'msg': '邮件发送失败，请稍后重试'}), 502
     
 # ================= 2. 用户注册 =================
 @app.route('/api/auth/register', methods=['POST'])
 def register():
-    data = request.json
-    username, email, password, code = data.get('username'), data.get('email'), data.get('password'), data.get('code')
-    
-    # 1. 校验验证码
-    saved_code = redis_client.get(f"verify_code:{email}")
-    if not saved_code or saved_code != code:
-        return jsonify({'code': 400, 'msg': '验证码错误或已过期'})
-        
-    # 2. 密码加密
+    data = request.get_json(silent=True) or {}
+    username = str(data.get('username') or '').strip()
+    email = normalize_auth_email(data.get('email'))
+    password = data.get('password')
+    code = str(data.get('code') or '').strip()
+
+    if not username:
+        return jsonify({'code': 400, 'msg': '用户名不能为空'}), 400
+    if not email:
+        return jsonify({'code': 400, 'msg': '邮箱不能为空'}), 400
+    if not is_valid_auth_email(email):
+        return jsonify({'code': 400, 'msg': '请输入正确的邮箱地址'}), 400
+    if not password:
+        return jsonify({'code': 400, 'msg': '密码不能为空'}), 400
+    if len(password) < 8:
+        return jsonify({'code': 400, 'msg': '密码至少需要 8 位'}), 400
+    if not code:
+        return jsonify({'code': 400, 'msg': '验证码不能为空'}), 400
+
+    try:
+        saved_code = redis_client.get(f"verify_code:{email}")
+    except Exception as exc:
+        print(f"Verification code lookup error: {exc}")
+        return jsonify({'code': 503, 'msg': '验证码服务暂不可用，请稍后重试'}), 503
+
+    if isinstance(saved_code, bytes):
+        saved_code = saved_code.decode('utf-8')
+    if not saved_code or str(saved_code) != code:
+        return jsonify({'code': 400, 'msg': '验证码错误或已过期'}), 400
+
     hashed_pw = generate_password_hash(password)
-    
+    conn = None
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
-            # 唯一性由数据库 UNIQUE 约束保障，这里直接执行插入
-            cursor.execute("INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)", 
-                           (username, email, hashed_pw))
+            cursor.execute("SELECT id FROM users WHERE username=%s LIMIT 1", (username,))
+            if cursor.fetchone():
+                return jsonify({'code': 400, 'msg': '用户名已存在'}), 400
+            cursor.execute("SELECT id FROM users WHERE email=%s LIMIT 1", (email,))
+            if cursor.fetchone():
+                return jsonify({'code': 400, 'msg': '邮箱已注册'}), 400
+            cursor.execute(
+                "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
+                (username, email, hashed_pw),
+            )
         conn.commit()
-        conn.close()
-        # 注册成功后删除验证码
+    except Exception:
+        if conn is not None:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        return jsonify({'code': 400, 'msg': '用户名或邮箱已存在'}), 400
+    finally:
+        if conn is not None:
+            conn.close()
+
+    try:
         redis_client.delete(f"verify_code:{email}")
-        return jsonify({'code': 0, 'msg': '注册成功'})
-    except Exception as e:
-        return jsonify({'code': 400, 'msg': '用户名或邮箱已存在'})
+    except Exception as exc:
+        print(f"Verification code cleanup error: {exc}")
+        return jsonify({'code': 503, 'msg': '注册成功但验证码清理失败，请联系管理员'}), 503
+    return jsonify({'code': 0, 'msg': '注册成功'})
 
 # ================= 3. 用户登录 =================
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json(silent=True) or {}
-    account, password = data.get('account'), data.get('password')
+    account = str(data.get('account') or '').strip()
+    password = data.get('password')
     failure_key = login_rate_key(account)
     retry_after = get_login_retry_after(failure_key)
 
@@ -531,7 +972,7 @@ def login():
             'retry_after': retry_after,
         }), 429
 
-    if not account or not password:
+    if not account or password is None or password == '':
         return jsonify({'code': 400, 'msg': '请输入账号和密码'}), 400
     
     conn = get_db_connection()
@@ -545,29 +986,12 @@ def login():
         clear_login_failures(failure_key)
         access_token = create_access_token(identity=user['username'])
         refresh_token = create_refresh_token(identity=user['username'])
-        user_info = {
-            'id': user.get('id'),
-            'username': user.get('username'),
-            'email': user.get('email'),
-            'avatar': user.get('avatar') or user.get('avatar_url'),
-        }
-        role = user.get('role') or 'user'
-        questionnaire_completed = bool(user.get('questionnaire_completed') or user.get('has_survey'))
+        session_data = auth_session_data(user, access_token, refresh_token)
         return jsonify({
             'code': 0,
             'msg': 'success',
-            'data': {
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'user_info': user_info,
-                'user_role': role,
-                'questionnaire_completed': questionnaire_completed,
-            },
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-            'user_info': user_info,
-            'user_role': role,
-            'questionnaire_completed': questionnaire_completed,
+            'data': session_data,
+            **session_data,
         })
 
     retry_after = record_login_failure(failure_key)
@@ -580,6 +1004,35 @@ def login():
         }), 429
 
     return jsonify({'code': 401, 'msg': '账号或密码错误'}), 401
+
+
+@app.route('/api/auth/me', methods=['GET'])
+@jwt_required()
+def current_auth_user():
+    identity = get_jwt_identity()
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM users WHERE username=%s OR email=%s LIMIT 1",
+                (identity, identity),
+            )
+            user = cursor.fetchone()
+    finally:
+        conn.close()
+
+    if not user or user.get('deleted_at'):
+        return jsonify({'code': 401, 'msg': '当前用户不存在或已失效'}), 401
+
+    session_data = auth_session_data(user, None, None)
+    session_data.pop('access_token', None)
+    session_data.pop('refresh_token', None)
+    return jsonify({
+        'code': 0,
+        'msg': 'success',
+        'data': session_data,
+        **session_data,
+    })
 
 # ================= 4. 注销账户 (逻辑删除 + 7天冷静期) =================
 @app.route('/api/user/delete-account', methods=['POST'])
@@ -685,7 +1138,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对象修改追踪
 
 # ===== JWT Token 配置 =====
 app.config['SECRET_KEY'] = app.secret_key
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', app.config['SECRET_KEY'])  # JWT 签名密钥，生产环境必须使用强随机字符串
+app.config['JWT_SECRET_KEY'] = secret_config['jwt_secret']  # JWT 签名密钥，生产环境必须使用强随机字符串
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)   # Access Token 1小时过期，用于日常接口鉴权
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # Refresh Token 30天过期，用于无感刷新 Access Token
 
@@ -859,6 +1312,7 @@ def protected_profile():
 
 # 3. 编写一键同步接口 (把 MySQL 数据搬到 Meilisearch)
 @app.route('/api/admin/sync-search', methods=['POST'])
+@admin_role_required
 def sync_search_data():
     """
     将 MySQL 中的网站数据全量同步到 Meilisearch 搜索引擎。
@@ -1031,6 +1485,7 @@ def get_industry_news():
         return jsonify([]), 200
 # ================= 爬虫手动测试接口 =================
 @app.route('/api/admin/run-spider', methods=['POST'])
+@admin_role_required
 def trigger_spider_manually():
     """
     手动触发 Hacker News 爬虫接口（管理员专用）。
@@ -1192,6 +1647,7 @@ def get_growth_ranking():
 # ================= 🔒 受保护的管理后台路由示例 =================
 
 @app.route('/api/admin/dashboard', methods=['GET'])
+@admin_role_required
 @jwt_required() # ✨ 这个装饰器要求请求头必须带 Authorization: Bearer <access_token>
 def admin_dashboard():
     week_ago = datetime.utcnow() - timedelta(days=7)
@@ -1320,6 +1776,7 @@ def get_data():
 
 # ================= 1. 自动抓取 Hacker News 热门站点 (SQLAlchemy 版) =================
 @app.route('/api/admin/crawl_hn', methods=['POST'])
+@admin_role_required
 def crawl_hacker_news():
     """
     手动触发 Hacker News 热门站点抓取接口（管理员专用）。
@@ -1375,6 +1832,7 @@ def crawl_hacker_news():
 
 # ================= 2. 获取待审核站点列表 =================
 @app.route('/api/admin/pending_sites', methods=['GET'])
+@admin_role_required
 def get_pending_sites():
     """
     获取待审核站点列表接口（管理员专用）。
@@ -1405,6 +1863,7 @@ def get_pending_sites():
 
 # ================= 3. 审核操作 (通过 或 拒绝) =================
 @app.route('/api/admin/review_site', methods=['POST'])
+@admin_role_required
 def review_site():
     """
     审核待审核站点接口（管理员专用）。
@@ -1849,7 +2308,7 @@ def publish_article():
 
 # --- 2. 管理员审核接口 ---
 @app.route('/api/admin/articles/<int:article_id>/review', methods=['POST'])
-@jwt_required()
+@admin_role_required
 def review_article(article_id):
     # 此处应有管理员权限校验...
     data = request.json
@@ -2432,6 +2891,7 @@ def github_callback():
 
 
 @app.route('/api/admin/audit-site/<int:site_id>', methods=['POST'])
+@admin_role_required
 def audit_site(site_id):
     from models import db, Website
     site = Website.query.get_or_404(site_id)
@@ -2502,6 +2962,7 @@ def get_websites():
 
 # 2. 新增网站 (POST)
 @app.route('/api/websites', methods=['POST'])
+@admin_role_required
 def create_website():
     data = request.json
     name = data.get('name')
@@ -2529,6 +2990,7 @@ def get_website(id):
 
 # 4. 更新网站 (PUT)
 @app.route('/api/websites/<int:id>', methods=['PUT'])
+@admin_role_required
 def update_website(id):
     site = Website.query.get(id)
     if not site:
@@ -2549,6 +3011,7 @@ def update_website(id):
 
 # 5. 删除网站 (DELETE)
 @app.route('/api/websites/<int:id>', methods=['DELETE'])
+@admin_role_required
 def delete_website(id):
     site = Website.query.get(id)
     if not site:

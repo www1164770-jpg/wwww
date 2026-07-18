@@ -12,6 +12,8 @@ class User(db.Model):
     username = db.Column(db.String(50), nullable=False, unique=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    authing_sub = db.Column(db.String(128), nullable=True, unique=True)
+    login_provider = db.Column(db.String(50), default="local")
     avatar = db.Column(db.String(255))
     avatar_url = db.Column(db.String(255))
     role = db.Column(db.String(32), default="user")

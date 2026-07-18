@@ -13,62 +13,65 @@
 <script setup>
 import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { storeUserSessionFromPayload, userAPI } from "../utils/api";
+import { authAPI } from "../utils/api";
+import { isValidAuthToken, normalizeAuthSession } from "../utils/auth";
+import { useUserStore } from "../stores/user";
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 
 function normalizeRedirect(path) {
-  if (!path || !String(path).startsWith("/") || String(path).startsWith("//")) {
+  const value = String(path || "");
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    /[\u0000-\u001f]/.test(value)
+  ) {
     return "/";
   }
-  return String(path);
-}
-
-function isValidToken(token) {
-  const value = String(token || "");
-  if (value.length <= 20) return false;
-  return !value.includes(".") || value.split(".").length === 3;
-}
-
-function clearAuthStorage() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("questionnaire_completed");
-  localStorage.removeItem("is_logged_in");
+  return value;
 }
 
 onMounted(async () => {
-  const token = route.query.token;
-  const questionnaireCompleted = route.query.questionnaire_completed === "1";
-  const redirect = normalizeRedirect(route.query.redirect);
-
-  if (!isValidToken(token)) {
-    clearAuthStorage();
+  const code = String(route.query.code || "");
+  if (!code) {
+    userStore.logout();
     router.replace("/login?authing_error=invalid_token");
     return;
   }
 
-  storeUserSessionFromPayload(
-    { token, questionnaire_completed: questionnaireCompleted },
-    { token, questionnaireCompleted },
-  );
-
   try {
-    const profileResponse = await userAPI.getProfile();
-    storeUserSessionFromPayload(profileResponse, {
-      token,
-      questionnaireCompleted,
-    });
-  } catch {
-    localStorage.setItem(
-      "questionnaire_completed",
-      questionnaireCompleted ? "true" : "false",
-    );
-  }
+    const response = await authAPI.exchange(code);
+    const session = normalizeAuthSession(response);
+    if (
+      !isValidAuthToken(session.access_token) ||
+      !session.user_info ||
+      !session.user_role
+    ) {
+      throw new Error("Authing exchange response is incomplete");
+    }
 
-  router.replace(questionnaireCompleted ? redirect : "/questionnaire");
+    userStore.setLoginSuccess(session);
+    const responseData = response.data?.data || {};
+    const questionnaireCompleted =
+      session.questionnaire_completed === true ||
+      session.questionnaire_completed === 1 ||
+      session.questionnaire_completed === "1" ||
+      session.questionnaire_completed === "true";
+    const safeRedirect = normalizeRedirect(responseData.redirect);
+    const target = questionnaireCompleted ? safeRedirect : "/questionnaire";
+    router.replace(target);
+  } catch (error) {
+    userStore.logout();
+    const errorCode =
+      error.response?.status === 503
+        ? "authing_exchange_unavailable"
+        : "invalid_token";
+    router.replace(`/login?authing_error=${errorCode}`);
+  }
 });
 </script>
 

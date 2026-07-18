@@ -1,4 +1,13 @@
 import axios from "axios";
+import {
+  clearAuthSession,
+  applyAuthRequestHeaders,
+  getAccessToken,
+  getRefreshToken,
+  isValidAuthToken,
+  normalizeAuthSession,
+  saveAuthSession,
+} from "./auth";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
@@ -250,114 +259,96 @@ function readPayload(response) {
   return unwrapResponse(response) ?? {};
 }
 
-function firstDefined(...values) {
-  return values.find((value) => value !== undefined && value !== null);
-}
-
-function parseBoolean(value) {
-  return value === true || value === 1 || value === "1" || value === "true";
-}
-
 export function storeUserSessionFromPayload(payload = {}, fallback = {}) {
-  const root = payload?.data && payload?.status ? payload.data : payload || {};
-  const nested = root?.data || {};
-  const user = firstDefined(
-    nested.user,
-    root.user,
-    nested.user_info,
-    root.user_info,
-    nested.username || nested.email ? nested : undefined,
-    fallback.user,
-  );
-  const token = firstDefined(
-    fallback.token,
-    root.token,
-    nested.token,
-    root.access_token,
-    nested.access_token,
-  );
-  const refreshToken = firstDefined(
-    fallback.refreshToken,
-    root.refresh_token,
-    nested.refresh_token,
-    "",
-  );
-  const userRole = firstDefined(
-    root.user_role,
-    nested.user_role,
-    user?.role,
-    fallback.userRole,
-    "user",
-  );
-  const questionnaireCompleted = parseBoolean(
-    firstDefined(
-      root.questionnaire_completed,
-      nested.questionnaire_completed,
-      root.questionnaireCompleted,
-      nested.questionnaireCompleted,
-      user?.questionnaire_completed,
-      user?.questionnaireCompleted,
-      fallback.questionnaireCompleted,
-    ),
-  );
-
-  if (token) {
-    localStorage.setItem("token", token);
-    localStorage.setItem("access_token", token);
-  }
-  localStorage.setItem("refresh_token", refreshToken || "");
-  if (user) {
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("user_info", JSON.stringify(user));
-  }
-  localStorage.setItem("user_role", userRole);
-  localStorage.setItem(
-    "questionnaire_completed",
-    questionnaireCompleted ? "true" : "false",
-  );
-  localStorage.setItem("is_logged_in", "true");
-
-  return { token, refreshToken, user, userRole, questionnaireCompleted };
+  const session = saveAuthSession(payload, fallback);
+  return {
+    token: session.access_token,
+    refreshToken: session.refresh_token,
+    user: session.user_info,
+    userRole: session.user_role,
+    questionnaireCompleted: session.questionnaire_completed,
+  };
 }
 
-function clearAuthAndRedirect() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-  localStorage.removeItem("user");
-  localStorage.removeItem("user_info");
-  localStorage.removeItem("user_role");
-  localStorage.removeItem("questionnaire_completed");
-  localStorage.removeItem("is_logged_in");
-  if (!["/login", "/authing/callback"].includes(window.location.pathname)) {
-    window.location.href = "/login";
+function isAuthEndpoint(config = {}) {
+  const url = String(config.url || "");
+  return [
+    "/auth/login",
+    "/auth/register",
+    "/auth/send-code",
+    "/auth/send-reset-code",
+    "/auth/verify-reset-code",
+    "/auth/reset-password",
+    "/auth/refresh",
+    "/auth/logout",
+    "/authing/exchange",
+  ].some((path) => url.includes(path));
+}
+
+function redirectToLogin() {
+  if (
+    typeof window === "undefined" ||
+    ["/login", "/authing/callback"].includes(window.location.pathname)
+  ) {
+    return;
   }
-}
 
-function isValidToken(token) {
-  const value = String(token || "");
-  if (value.length <= 20) return false;
-  return !value.includes(".") || value.split(".").length === 3;
-}
-
-api.interceptors.request.use((config) => {
-  const token =
-    localStorage.getItem("token") || localStorage.getItem("access_token");
-  if (isValidToken(token)) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  const target = `/login?redirect=${encodeURIComponent(currentPath || "/")}`;
+  if (typeof window.location.replace === "function") {
+    window.location.replace(target);
   } else {
-    localStorage.removeItem("token");
-    localStorage.removeItem("access_token");
-    if (config.headers) {
-      delete config.headers.Authorization;
-    }
+    window.location.href = target;
   }
-  return config;
-});
+}
+
+let refreshPromise = null;
+let authFailureHandled = false;
+
+function invalidateAuthSession() {
+  if (authFailureHandled) return;
+  authFailureHandled = true;
+  clearAuthSession();
+  redirectToLogin();
+}
+
+function refreshAccessToken() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) {
+    return Promise.reject(new Error("Refresh Token 不存在"));
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = api
+      .post("/auth/refresh", {}, {
+        skipAuth: true,
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      })
+      .then((response) => {
+        const session = normalizeAuthSession(response);
+        if (!isValidAuthToken(session.access_token)) {
+          throw new Error("Refresh 响应缺少有效 Access Token");
+        }
+        authFailureHandled = false;
+        saveAuthSession({ access_token: session.access_token });
+        return session.access_token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  return refreshPromise;
+}
+
+api.interceptors.request.use(applyAuthRequestHeaders);
 
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response) => {
+    if (getAccessToken()) authFailureHandled = false;
+    return response;
+  },
+  async (error) => {
     if (error.response?.status === 429) {
       const retryAfter = error.response.data?.retry_after;
       const message = retryAfter
@@ -372,10 +363,30 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 401) {
-      clearAuthAndRedirect();
+    if (error.response?.status !== 401) {
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    const originalConfig = error.config || {};
+    if (originalConfig.skipAuth || isAuthEndpoint(originalConfig)) {
+      return Promise.reject(error);
+    }
+
+    if (originalConfig._retry) {
+      invalidateAuthSession();
+      return Promise.reject(error);
+    }
+
+    originalConfig._retry = true;
+    try {
+      const newAccessToken = await refreshAccessToken();
+      originalConfig.headers = originalConfig.headers || {};
+      originalConfig.headers.Authorization = `Bearer ${newAccessToken}`;
+      return api(originalConfig);
+    } catch (refreshError) {
+      invalidateAuthSession();
+      return Promise.reject(refreshError);
+    }
   },
 );
 
@@ -384,8 +395,24 @@ export const authAPI = {
   register: (data) => api.post("/auth/register", data),
   login: (account, password) => api.post("/auth/login", { account, password }),
   logout: () => api.post("/auth/logout"),
-  refresh: () => api.post("/auth/refresh"),
-  refreshToken: () => api.post("/auth/refresh"),
+  refresh: () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return Promise.reject(new Error("Refresh Token 不存在"));
+    return api.post("/auth/refresh", {}, {
+      skipAuth: true,
+      headers: { Authorization: `Bearer ${refreshToken}` },
+    });
+  },
+  refreshToken: () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return Promise.reject(new Error("Refresh Token 不存在"));
+    return api.post("/auth/refresh", {}, {
+      skipAuth: true,
+      headers: { Authorization: `Bearer ${refreshToken}` },
+    });
+  },
+  exchange: (code) => api.post("/authing/exchange", { code }, { skipAuth: true }),
+  me: () => api.get("/auth/me"),
   sendResetCode: (email) => api.post("/auth/send-reset-code", { email }),
   verifyResetCode: (email, code) =>
     api.post("/auth/verify-reset-code", { email, code }),

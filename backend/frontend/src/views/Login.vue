@@ -44,11 +44,14 @@
 <script setup>
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { authAPI } from "../utils/api";
+import { API_BASE_URL, authAPI } from "../utils/api";
+import { normalizeAuthSession } from "../utils/auth";
+import { useUserStore } from "../stores/user";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 const account = ref("");
 const password = ref("");
 const loginLoading = ref(false);
@@ -60,63 +63,23 @@ const authingErrorMessages = {
     "Authing 授权码换取 token 失败，请检查 App ID、App Secret 和回调地址",
   userinfo_failed: "获取 Authing 用户信息失败，请检查 Authing 应用配置。",
   user_sync_failed: "同步用户信息失败，请检查 users 表字段",
+  authing_exchange_unavailable: "认证服务暂不可用，请稍后重试。",
   authing_failed: "Authing 登录失败，请稍后重试",
 };
 const error = ref(authingErrorMessages[route.query.authing_error] || "");
 
-function firstDefined(...values) {
-  return values.find((value) => value !== undefined && value !== null);
-}
-
-function parseBoolean(value) {
-  return value === true || value === 1 || value === "1" || value === "true";
-}
-
 function normalizeRedirect(path) {
-  if (!path || !String(path).startsWith("/") || String(path).startsWith("//")) {
+  const value = String(path || "");
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    /[\u0000-\u001f]/.test(value)
+  ) {
     return "/";
   }
-  return String(path);
-}
-
-function normalizeLoginResponse(response) {
-  const root = response?.data || {};
-  const nested = root.data || {};
-  const user = firstDefined(
-    nested.user,
-    root.user,
-    nested.user_info,
-    root.user_info,
-  );
-  const token = firstDefined(
-    root.token,
-    nested.token,
-    root.access_token,
-    nested.access_token,
-  );
-  const refreshToken = firstDefined(
-    root.refresh_token,
-    nested.refresh_token,
-    "",
-  );
-  const userRole = firstDefined(
-    root.user_role,
-    nested.user_role,
-    user?.role,
-    "user",
-  );
-  const questionnaireCompleted = parseBoolean(
-    firstDefined(
-      root.questionnaire_completed,
-      nested.questionnaire_completed,
-      root.questionnaireCompleted,
-      nested.questionnaireCompleted,
-      user?.questionnaire_completed,
-      user?.questionnaireCompleted,
-    ),
-  );
-
-  return { token, refreshToken, user, userRole, questionnaireCompleted };
+  return value;
 }
 
 function clearError() {
@@ -144,27 +107,18 @@ async function submit() {
   error.value = "";
   try {
     const response = await authAPI.login(account.value, password.value);
-    const { token, refreshToken, user, userRole, questionnaireCompleted } =
-      normalizeLoginResponse(response);
+    const session = normalizeAuthSession(response);
+    const questionnaireCompleted = session.questionnaire_completed === true ||
+      session.questionnaire_completed === 1 ||
+      session.questionnaire_completed === "1" ||
+      session.questionnaire_completed === "true";
 
-    if (!token) {
+    if (!session.access_token) {
       showError("登录成功但未返回登录凭证，请检查后端接口");
       return;
     }
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("access_token", token);
-    localStorage.setItem("refresh_token", refreshToken || "");
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("user_info", JSON.stringify(user));
-    }
-    localStorage.setItem("user_role", userRole);
-    localStorage.setItem(
-      "questionnaire_completed",
-      questionnaireCompleted ? "true" : "false",
-    );
-    localStorage.setItem("is_logged_in", "true");
+    userStore.setLoginSuccess(session);
     successToast("登录成功");
     if (!questionnaireCompleted) {
       router.replace("/questionnaire");
@@ -186,8 +140,7 @@ async function submit() {
 
 function loginWithAuthing() {
   const redirect = route.query.redirect || "/";
-  const apiBase =
-    import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000/api";
+  const apiBase = API_BASE_URL;
   const backendBase = apiBase.replace(/\/api\/?$/, "");
 
   window.location.href = `${backendBase}/api/authing/login?redirect=${encodeURIComponent(

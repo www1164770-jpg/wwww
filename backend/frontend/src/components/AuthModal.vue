@@ -360,7 +360,14 @@ const handleEmailLogin = async () => {
   try {
     const res = await authAPI.login(loginForm.email, loginForm.password);
     if (res.data.code === 0) {
-      userStore.setLoginSuccess(res.data.token, res.data.refresh_token);
+      const session = res.data.data || res.data;
+      userStore.setLoginSuccess({
+        access_token: session.access_token || session.token,
+        refresh_token: session.refresh_token,
+        user_info: session.user_info || session.user,
+        user_role: session.user_role,
+        questionnaire_completed: session.questionnaire_completed,
+      });
       emit("toast", "🎉 登录成功！", "success");
       close();
     } else {

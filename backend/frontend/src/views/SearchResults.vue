@@ -59,6 +59,7 @@ import {
   tagAPI,
   unwrapResponse,
 } from "../utils/api";
+import { getAccessToken } from "../utils/auth";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
@@ -118,7 +119,7 @@ async function search(value = keyword.value) {
   }
 }
 async function favorite(site) {
-  if (!localStorage.getItem("access_token")) {
+  if (!getAccessToken()) {
     return router.push({ path: "/login", query: { redirect: route.fullPath } });
   }
   if (favoritePendingIds.value.includes(site.id)) return;

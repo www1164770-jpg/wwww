@@ -215,6 +215,7 @@ import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { commentAPI, favoriteAPI, siteAPI, unwrapResponse } from "../utils/api";
+import { getAccessToken, isValidAuthToken } from "../utils/auth";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
@@ -231,7 +232,7 @@ const deletingCommentId = ref(null);
 const commentForm = reactive({ rating: 5, content: "" });
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=site";
 const logoFailed = ref(false);
-const loggedIn = computed(() => Boolean(localStorage.getItem("access_token")));
+const loggedIn = computed(() => isValidAuthToken(getAccessToken()));
 const logoSrc = computed(() =>
   logoFailed.value ? fallbackLogo : site.value?.logo_url || fallbackLogo,
 );

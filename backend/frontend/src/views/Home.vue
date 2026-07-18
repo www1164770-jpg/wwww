@@ -138,6 +138,7 @@ import {
   siteAPI,
   unwrapList,
 } from "../utils/api";
+import { getAccessToken, isValidAuthToken } from "../utils/auth";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
@@ -160,7 +161,7 @@ const careerLoading = ref(false);
 const careerError = ref("");
 const lastCareerSiteIds = ref([]);
 const favoritePendingIds = ref([]);
-const loggedIn = computed(() => Boolean(localStorage.getItem("access_token")));
+const loggedIn = computed(() => isValidAuthToken(getAccessToken()));
 let revealObserver = null;
 
 const aiKeywords = [
