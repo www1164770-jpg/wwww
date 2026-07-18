@@ -31,7 +31,7 @@ import json  # JSON 序列化/反序列化，用于存储复杂配置字段
 import re  # 正则表达式，用于 URL 格式校验等文本处理
 import hashlib
 import unicodedata
-from urllib.parse import urlparse  # URL 解析工具，用于验证 URL 合法性
+from urllib.parse import quote_plus, urlparse  # URL 解析工具，用于验证 URL 合法性
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, verify_jwt_in_request  # JWT 认证扩展：Token 管理器、创建/验证 Token 的工具函数
 from flask_bcrypt import Bcrypt  # 密码哈希扩展，使用 bcrypt 算法安全存储用户密码
 from authlib.integrations.flask_client import OAuth  # OAuth 2.0 客户端，用于 GitHub 第三方登录
@@ -63,7 +63,7 @@ import secrets
 from urllib.parse import urlencode
 
 # 导入连接池模块
-from db_pool import get_connection as pool_get_connection
+from db_pool import MYSQL_CHARSET, get_connection as pool_get_connection
 
 # 导入扩展模块
 import app_extensions
@@ -749,12 +749,63 @@ DB_CONFIG = {
     'user': os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root'),
     'password': os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', ''),
     'database': os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site'),
+    'charset': MYSQL_CHARSET,
     'cursorclass': pymysql.cursors.DictCursor
 }
 
 def get_db_connection():
     """从连接池获取一个数据库连接（推荐使用此函数替代直连）"""
     return pool_get_connection()
+
+
+def get_runtime_env():
+    env = (
+        os.getenv("APP_ENV")
+        or os.getenv("FLASK_ENV")
+        or os.getenv("VERCEL_ENV")
+        or ""
+    ).lower()
+    return "production" if env == "production" else "development"
+
+
+@app.route("/api/health", methods=["GET"])
+def health_check():
+    return jsonify({
+        "code": 200,
+        "message": "success",
+        "data": {
+            "status": "ok",
+            "service": "zhihui-navigation",
+            "env": get_runtime_env(),
+        },
+    }), 200
+
+
+@app.route("/api/health/db", methods=["GET"])
+def database_health_check():
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        return jsonify({
+            "code": 200,
+            "message": "database connected",
+            "data": {"database": "ok"},
+        }), 200
+    except Exception:
+        return jsonify({
+            "code": 500,
+            "message": "database connection failed",
+            "data": {"database": "error"},
+        }), 500
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def login_rate_key(account):
@@ -1114,8 +1165,19 @@ def calculate_and_cache_growth_rate():
         print(f"计算排行榜严重异常: {e}")
         return []
 
+def get_cors_origins():
+    origins = {"http://localhost:5173", "http://127.0.0.1:5173"}
+    configured_origins = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    configured_origins.append(os.getenv("FRONTEND_URL", ""))
+    for origin in configured_origins:
+        normalized_origin = origin.strip().rstrip("/")
+        if normalized_origin and normalized_origin != "*":
+            origins.add(normalized_origin)
+    return sorted(origins)
+
+
 # 允许跨域请求
-CORS(app)  # 开启全局跨域支持，允许前端（如 localhost:5173）访问后端接口
+CORS(app, origins=get_cors_origins(), supports_credentials=True)  # 本地开发默认允许 Vite，线上同域 /api 通常无需跨域
 
 # ===== 生产级日志配置 =====
 app = app_extensions.setup_logging(app)
@@ -1130,10 +1192,11 @@ db_pass = os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', '')           
 db_host = os.getenv('MYSQL_HOST') or os.getenv('DB_HOST', '127.0.0.1')     # 数据库主机地址
 db_port = os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', '3306')           # 数据库端口（MySQL 默认 3306）
 db_name = os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site')       # 数据库名称
+db_charset = MYSQL_CHARSET       # 数据库字符集
 
 # 配置数据库连接 URL (MySQL)
 # 格式：mysql+pymysql://用户名:密码@主机:端口/数据库名?字符集
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{quote_plus(db_user)}:{quote_plus(db_pass)}@{db_host}:{db_port}/{db_name}?charset={db_charset}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对象修改追踪，节省内存，避免不必要的警告
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,

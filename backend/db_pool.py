@@ -20,6 +20,8 @@ import pymysql
 
 load_dotenv()
 
+MYSQL_CHARSET = 'utf8mb4'
+
 # 连接池配置
 POOL_CONFIG = {
     'creator': pymysql,  # 使用 pymysql 作为数据库驱动
@@ -36,7 +38,7 @@ POOL_CONFIG = {
     'user': os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root'),
     'password': os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', ''),
     'database': os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site'),
-    'charset': 'utf8mb4',
+    'charset': MYSQL_CHARSET,
     'cursorclass': pymysql.cursors.DictCursor,  # 返回字典格式的查询结果
     'autocommit': False,       # 关闭自动提交，由业务代码手动 commit
 }
