@@ -23,14 +23,14 @@ load_dotenv()
 # 连接池配置
 POOL_CONFIG = {
     'creator': pymysql,  # 使用 pymysql 作为数据库驱动
-    'maxconnections': 20,      # 最大连接数（可根据服务器配置调整）
-    'mincached': 2,            # 初始化时预创建的空闲连接数
-    'maxcached': 10,           # 连接池中最大空闲连接数
-    'maxshared': 10,           # 最大共享连接数（通常与 maxcached 一致）
+    'maxconnections': 5,       # 保守限制连接总数，避免本地 MySQL 资源峰值
+    'mincached': 0,            # 保持懒初始化，导入模块时不预建连接
+    'maxcached': 5,            # 空闲连接不超过连接总上限
+    'maxshared': 0,            # PyMySQL 不共享连接，显式关闭共享池
     'blocking': True,          # 连接池满时阻塞等待，False 则直接抛异常
     'maxusage': None,          # 单个连接最多被重复使用的次数（None 表示无限制）
     'setsession': None,        # 连接创建后可执行的初始化 SQL 命令列表
-    'ping': 0,                 # ping MySQL 服务端检测连接活性: 0=不检测, 1=默认, 2=每次, 4=每4次
+    'ping': 1,                 # 取连接时检查服务端，避免复用失效连接
     'host': os.getenv('MYSQL_HOST') or os.getenv('DB_HOST', 'localhost'),
     'port': int(os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', '3306')),
     'user': os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root'),

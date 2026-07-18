@@ -1135,6 +1135,13 @@ db_name = os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site')       
 # 格式：mysql+pymysql://用户名:密码@主机:端口/数据库名?字符集
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对象修改追踪，节省内存，避免不必要的警告
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 280,
+    'pool_size': 5,
+    'max_overflow': 5,
+    'pool_timeout': 30,
+}
 
 # ===== JWT Token 配置 =====
 app.config['SECRET_KEY'] = app.secret_key
@@ -3042,45 +3049,69 @@ app_extensions.register_content_audit_routes(app, db)
 app_extensions.register_survey_routes(app, db)
 app.logger.info('✅ 所有扩展模块注册完成')
 
-if __name__ == '__main__':
+
+def should_initialize_database(debug, run_main=None):
+    """Only initialize in the serving process when Werkzeug reloads."""
+    if not debug:
+        return True
+    if run_main is None:
+        run_main = os.getenv('WERKZEUG_RUN_MAIN')
+    return str(run_main).lower() == 'true'
+
+
+def initialize_database():
+    """Create missing tables once and surface initialization failures."""
     with app.app_context():
         db.create_all()
-        # 启动时自动同步所有分类和网站到数据库
-        try:
-            from init_db import all_categories, all_sites, get_logo_url
-            conn = pool_get_connection()
-            cur = conn.cursor()
 
-            # 同步分类
-            for cat in all_categories:
-                cat_id, profession, name, sort = cat
-                cur.execute(
-                    "INSERT INTO categories (id,name,profession_type,sort_order) VALUES (%s,%s,%s,%s) "
-                    "ON DUPLICATE KEY UPDATE name=%s, profession_type=%s, sort_order=%s",
-                    (cat_id, name, profession, sort, name, profession, sort)
-                )
 
-            # 同步网站（跳过已存在的）
-            new_count = 0
-            for site in all_sites:
-                cur.execute("SELECT id FROM websites WHERE name=%s AND category_id=%s",
-                            (site['name'], site['cat']))
-                if not cur.fetchone():
-                    logo = get_logo_url(site['url'])
+if __name__ == '__main__':
+    debug_mode = True
+    use_reloader = True
+    if should_initialize_database(debug_mode):
+        initialize_database()
+        with app.app_context():
+            # 启动时自动同步所有分类和网站到数据库
+            try:
+                from init_db import all_categories, all_sites, get_logo_url
+                conn = pool_get_connection()
+                cur = conn.cursor()
+
+                # 同步分类
+                for cat in all_categories:
+                    cat_id, profession, name, sort = cat
                     cur.execute(
-                        "INSERT INTO websites (category_id,name,url,logo_url) VALUES (%s,%s,%s,%s)",
-                        (site['cat'], site['name'], site['url'], logo)
+                        "INSERT INTO categories (id,name,profession_type,sort_order) VALUES (%s,%s,%s,%s) "
+                        "ON DUPLICATE KEY UPDATE name=%s, profession_type=%s, sort_order=%s",
+                        (cat_id, name, profession, sort, name, profession, sort)
                     )
-                    new_count += 1
 
-            conn.commit()
-            conn.close()
-            if new_count > 0:
-                print(f"✅ 启动同步：新增 {new_count} 个网站")
-            else:
-                print(f"✅ 数据库已是最新，共 {len(all_sites)} 条网站数据")
-        except Exception as e:
-            print(f"⚠️  启动同步失败（不影响运行）: {e}")
+                # 同步网站（跳过已存在的）
+                new_count = 0
+                for site in all_sites:
+                    cur.execute("SELECT id FROM websites WHERE name=%s AND category_id=%s",
+                                (site['name'], site['cat']))
+                    if not cur.fetchone():
+                        logo = get_logo_url(site['url'])
+                        cur.execute(
+                            "INSERT INTO websites (category_id,name,url,logo_url) VALUES (%s,%s,%s,%s)",
+                            (site['cat'], site['name'], site['url'], logo)
+                        )
+                        new_count += 1
+
+                conn.commit()
+                conn.close()
+                if new_count > 0:
+                    print(f"✅ 启动同步：新增 {new_count} 个网站")
+                else:
+                    print(f"✅ 数据库已是最新，共 {len(all_sites)} 条网站数据")
+            except Exception as e:
+                print(f"⚠️  启动同步失败（不影响运行）: {e}")
 
     print("🚀 智汇导航后端服务已启动！正在监听 http://127.0.0.1:5000 ...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(
+        host='0.0.0.0',
+        port=5000,
+        debug=debug_mode,
+        use_reloader=use_reloader,
+    )
