@@ -27,26 +27,42 @@
       </nav>
 
       <div class="actions">
-        <div v-if="loggedIn" class="user-menu">
+        <div v-if="loggedIn" ref="userMenuRef" class="user-menu">
           <button
             class="avatar"
             type="button"
             aria-label="打开用户菜单"
+            aria-controls="user-dropdown-menu"
             :aria-expanded="menuOpen"
             @click="toggleMenu"
           >
             {{ initials }}
           </button>
-          <div v-if="menuOpen" class="dropdown" role="menu">
-            <RouterLink to="/profile" role="menuitem" @click="closeMenu">
-              个人中心
-            </RouterLink>
-            <RouterLink to="/favorites" role="menuitem" @click="closeMenu">
-              我的收藏
-            </RouterLink>
-            <button type="button" role="menuitem" @click="logout">
-              退出登录
-            </button>
+          <div
+            v-if="menuOpen"
+            id="user-dropdown-menu"
+            class="dropdown"
+            role="menu"
+            aria-label="用户菜单"
+          >
+            <div class="user-summary" role="none">
+              <div class="user-identity">
+                <strong :title="displayName">{{ displayName }}</strong>
+                <span :title="displayEmail">{{ displayEmail }}</span>
+              </div>
+              <small>{{ roleLabel }}</small>
+            </div>
+            <div class="menu-items" role="none">
+              <RouterLink to="/profile" role="menuitem" @click="closeMenu">
+                个人中心
+              </RouterLink>
+              <RouterLink to="/favorites" role="menuitem" @click="closeMenu">
+                我的收藏
+              </RouterLink>
+              <button type="button" role="menuitem" @click="logout">
+                退出登录
+              </button>
+            </div>
           </div>
         </div>
         <template v-else>
@@ -59,7 +75,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useUserStore } from "../../stores/user";
 import { useRoute, useRouter } from "vue-router";
 import { getAccessToken, isValidAuthToken } from "../../utils/auth";
@@ -68,6 +84,7 @@ const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 const menuOpen = ref(false);
+const userMenuRef = ref(null);
 const authTick = ref(0);
 
 const loggedIn = computed(() => {
@@ -82,6 +99,16 @@ const user = computed(() => {
 });
 const initials = computed(() =>
   (user.value.username || "U").slice(0, 1).toUpperCase(),
+);
+const displayName = computed(() => user.value.username || "用户");
+const displayEmail = computed(() => user.value.email || "暂无邮箱");
+const roleLabel = computed(
+  () =>
+    ({
+      admin: "管理员",
+      super_admin: "超级管理员",
+      user: "普通用户",
+    })[user.value.role || userStore.userRole || "user"] || "普通用户",
 );
 
 function scrollToSection(id) {
@@ -104,6 +131,22 @@ function closeMenu() {
   menuOpen.value = false;
 }
 
+function handlePointerDown(event) {
+  if (
+    menuOpen.value &&
+    userMenuRef.value &&
+    !userMenuRef.value.contains(event.target)
+  ) {
+    closeMenu();
+  }
+}
+
+function handleKeydown(event) {
+  if (menuOpen.value && event.key === "Escape") {
+    closeMenu();
+  }
+}
+
 function logout() {
   userStore.logout();
   closeMenu();
@@ -111,14 +154,20 @@ function logout() {
   router.replace("/");
 }
 
+watch(() => route.fullPath, closeMenu);
+
 onMounted(() => {
   window.addEventListener("storage", refreshAuthState);
   window.addEventListener("focus", refreshAuthState);
+  document.addEventListener("pointerdown", handlePointerDown);
+  document.addEventListener("keydown", handleKeydown);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("storage", refreshAuthState);
   window.removeEventListener("focus", refreshAuthState);
+  document.removeEventListener("pointerdown", handlePointerDown);
+  document.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
@@ -253,19 +302,69 @@ a {
 
 .user-menu {
   position: relative;
+  flex: 0 0 auto;
 }
 
 .dropdown {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
+  z-index: 40;
   display: grid;
-  min-width: 148px;
-  overflow: hidden;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: min(520px, calc(100vh - 96px));
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+}
+
+.user-summary {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  border-bottom: 1px solid var(--color-border-soft);
+  padding: 16px;
+}
+
+.user-identity {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.user-identity strong,
+.user-identity span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-identity strong {
+  color: var(--color-heading);
+  font-size: 15px;
+}
+
+.user-identity span {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.user-summary small {
+  justify-self: start;
+  border-radius: var(--radius-pill);
+  background: var(--color-soft-orange);
+  color: var(--color-primary);
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.menu-items {
+  display: grid;
 }
 
 .dropdown a,
@@ -329,6 +428,11 @@ a {
   .primary {
     min-height: 38px;
     padding-inline: 13px;
+  }
+
+  .dropdown {
+    width: min(320px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
   }
 }
 </style>
