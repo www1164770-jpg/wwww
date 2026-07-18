@@ -773,8 +773,18 @@ def register_v1_routes(app, get_db_connection):
         rating_value = "COALESCE(w.rating_avg, 0)" if "rating_avg" in website_columns else "0"
         quality_expr = f"{quality_value} DESC" if "quality_score" in website_columns else click_expr + " DESC"
         recommend_expr = "w.recommend_level DESC, " if "recommend_level" in website_columns else ""
+        hot_order_terms = []
+        if "click_count" in website_columns or "clicks" in website_columns:
+            hot_order_terms.append(f"{click_expr} DESC")
+        if "favorite_count" in website_columns:
+            hot_order_terms.append(f"{favorite_value} DESC")
+        if "rating_avg" in website_columns:
+            hot_order_terms.append(f"{rating_value} DESC")
+        if "quality_score" in website_columns:
+            hot_order_terms.append(f"{quality_value} DESC")
+        hot_order_terms.append("w.id DESC")
         order_map = {
-            "hot": f"{click_expr} DESC, {favorite_value} DESC, {rating_value} DESC, {quality_value} DESC",
+            "hot": ", ".join(hot_order_terms),
             "latest": latest_expr,
             "rating": "w.rating_avg DESC" if "rating_avg" in website_columns else quality_expr,
             "recommend": f"{recommend_expr}{quality_expr}, {click_expr} DESC",
