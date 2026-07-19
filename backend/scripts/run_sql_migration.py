@@ -148,8 +148,9 @@ def run_migration(
     down_sql = down_path.read_text(encoding="utf-8")
     target_tables = parse_target_tables(up_sql)
 
-    with connection_factory() as connection:
-        try:
+    connection = None
+    try:
+        with connection_factory() as connection:
             with connection.cursor() as cursor:
                 _ensure_schema_migrations(cursor)
                 applied = _is_applied(cursor, name)
@@ -173,14 +174,16 @@ def run_migration(
                 cursor.execute("DELETE FROM schema_migrations WHERE name = %s", (name,))
                 connection.commit()
                 return "reverted"
-        except (ValueError, FileNotFoundError):
-            raise
-        except MigrationSafetyError:
+    except (ValueError, FileNotFoundError):
+        raise
+    except MigrationSafetyError:
+        if connection is not None:
             connection.rollback()
-            raise
-        except Exception:
+        raise
+    except Exception:
+        if connection is not None:
             connection.rollback()
-            raise RuntimeError("migration execution failed") from None
+        raise RuntimeError("migration execution failed") from None
 
 
 def main(argv: Sequence[str] | None = None) -> int:

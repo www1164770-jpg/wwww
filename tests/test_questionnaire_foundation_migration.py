@@ -118,6 +118,17 @@ class MigrationRunnerTests(unittest.TestCase):
         self.assertEqual(self.factory_connection.rollbacks, 1)
         self.assertNotIn("database execution failed", str(error.exception))
 
+    def test_connection_factory_failure_is_converted_to_a_safe_error_without_rollback(self):
+        self.write_migration()
+
+        def unavailable_connection():
+            raise RuntimeError("mysql://user:password@host/foundation")
+
+        with self.assertRaisesRegex(RuntimeError, "migration execution failed") as error:
+            run_sql_migration.run_migration("upgrade", NAME, unavailable_connection)
+        self.assertNotIn("password", str(error.exception))
+        self.assertNotIn("mysql://", str(error.exception))
+
     def test_unregistered_existing_target_table_is_rejected_as_partial_state(self):
         self.write_migration()
         self.factory_connection.existing_tables = ("occupations",)
