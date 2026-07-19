@@ -5,7 +5,15 @@ from __future__ import annotations
 import re
 import sys
 from pathlib import Path
-from typing import Callable, Sequence
+from typing import Callable, ContextManager, Protocol, Sequence
+
+
+class Connection(Protocol):
+    def cursor(self) -> ContextManager[object]: ...
+
+    def commit(self) -> None: ...
+
+    def rollback(self) -> None: ...
 
 
 MIGRATION_NAME_RE = re.compile(r"^[0-9]{8}_[a-z0-9_]+$")
@@ -133,10 +141,17 @@ def _execute_sql(cursor, sql: str) -> None:
         cursor.execute(statement)
 
 
+def _rollback_safely(connection: Connection) -> None:
+    try:
+        connection.rollback()
+    except Exception:
+        pass
+
+
 def run_migration(
     direction: str,
     name: str,
-    connection_factory: Callable[[], object],
+    connection_factory: Callable[[], ContextManager[Connection]],
 ) -> str:
     """Apply or revert one migration and return its resulting state."""
     if direction not in {"upgrade", "downgrade"}:
@@ -148,41 +163,46 @@ def run_migration(
     down_sql = down_path.read_text(encoding="utf-8")
     target_tables = parse_target_tables(up_sql)
 
-    connection = None
     try:
-        with connection_factory() as connection:
-            with connection.cursor() as cursor:
-                _ensure_schema_migrations(cursor)
-                applied = _is_applied(cursor, name)
-                if direction == "upgrade":
-                    if applied:
-                        return "already_applied"
-                    if _existing_target_tables(cursor, target_tables):
-                        raise MigrationSafetyError("partial migration state detected")
-                    _execute_sql(cursor, up_sql)
-                    cursor.execute(
-                        "INSERT INTO schema_migrations (name) VALUES (%s)", (name,)
-                    )
-                    connection.commit()
-                    return "applied"
+        connection_context = connection_factory()
+    except Exception:
+        raise RuntimeError("migration execution failed") from None
 
-                if not applied:
-                    return "not_applied"
-                if _external_references(cursor, target_tables):
-                    raise MigrationSafetyError("external foreign key references block downgrade")
-                _execute_sql(cursor, down_sql)
-                cursor.execute("DELETE FROM schema_migrations WHERE name = %s", (name,))
-                connection.commit()
-                return "reverted"
-    except (ValueError, FileNotFoundError):
-        raise
+    try:
+        with connection_context as connection:
+            try:
+                with connection.cursor() as cursor:
+                    _ensure_schema_migrations(cursor)
+                    applied = _is_applied(cursor, name)
+                    if direction == "upgrade":
+                        if applied:
+                            return "already_applied"
+                        if _existing_target_tables(cursor, target_tables):
+                            raise MigrationSafetyError("partial migration state detected")
+                        _execute_sql(cursor, up_sql)
+                        cursor.execute(
+                            "INSERT INTO schema_migrations (name) VALUES (%s)", (name,)
+                        )
+                        connection.commit()
+                        return "applied"
+
+                    if not applied:
+                        return "not_applied"
+                    if _external_references(cursor, target_tables):
+                        raise MigrationSafetyError("external foreign key references block downgrade")
+                    _execute_sql(cursor, down_sql)
+                    cursor.execute("DELETE FROM schema_migrations WHERE name = %s", (name,))
+                    connection.commit()
+                    return "reverted"
+            except MigrationSafetyError:
+                _rollback_safely(connection)
+                raise
+            except Exception:
+                _rollback_safely(connection)
+                raise RuntimeError("migration execution failed") from None
     except MigrationSafetyError:
-        if connection is not None:
-            connection.rollback()
         raise
     except Exception:
-        if connection is not None:
-            connection.rollback()
         raise RuntimeError("migration execution failed") from None
 
 

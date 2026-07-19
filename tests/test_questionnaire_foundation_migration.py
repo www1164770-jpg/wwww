@@ -129,6 +129,30 @@ class MigrationRunnerTests(unittest.TestCase):
         self.assertNotIn("password", str(error.exception))
         self.assertNotIn("mysql://", str(error.exception))
 
+    def test_execution_failure_rolls_back_before_connection_context_exits(self):
+        self.write_migration()
+        connection = FakeConnection(
+            fail_statement="CREATE TABLE occupations", close_on_exit=True
+        )
+        with self.assertRaisesRegex(RuntimeError, "migration execution failed") as error:
+            run_sql_migration.run_migration("upgrade", NAME, lambda: connection)
+        self.assertEqual(connection.rollbacks, 1)
+        self.assertTrue(connection.closed)
+        self.assertEqual(connection.rollback_after_close_attempts, 0)
+        self.assertNotIn("password", str(error.exception))
+
+    def test_safety_rejection_rolls_back_before_connection_context_exits(self):
+        self.write_migration()
+        connection = FakeConnection(
+            existing_tables=("occupations",), close_on_exit=True
+        )
+        with self.assertRaisesRegex(RuntimeError, "partial migration state") as error:
+            run_sql_migration.run_migration("upgrade", NAME, lambda: connection)
+        self.assertEqual(connection.rollbacks, 1)
+        self.assertTrue(connection.closed)
+        self.assertEqual(connection.rollback_after_close_attempts, 0)
+        self.assertNotIn("password", str(error.exception))
+
     def test_unregistered_existing_target_table_is_rejected_as_partial_state(self):
         self.write_migration()
         self.factory_connection.existing_tables = ("occupations",)

@@ -75,11 +75,15 @@ class FakeConnection:
         existing_tables: tuple[str, ...] = (),
         external_references: tuple[str, ...] = (),
         fail_statement: str | None = None,
+        close_on_exit: bool = False,
     ) -> None:
         self.applied = applied if applied is not None else set()
         self.existing_tables = existing_tables
         self.external_references = external_references
         self.fail_statement = fail_statement
+        self.close_on_exit = close_on_exit
+        self.closed = False
+        self.rollback_after_close_attempts = 0
         self.executed: list[tuple[str, Any]] = []
         self.commits = 0
         self.rollbacks = 0
@@ -88,6 +92,8 @@ class FakeConnection:
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        if self.close_on_exit:
+            self.closed = True
         return None
 
     def cursor(self) -> FakeCursor:
@@ -97,6 +103,9 @@ class FakeConnection:
         self.commits += 1
 
     def rollback(self) -> None:
+        if self.closed:
+            self.rollback_after_close_attempts += 1
+            raise RuntimeError("rollback on closed mysql://user:password@host")
         self.rollbacks += 1
 
 
