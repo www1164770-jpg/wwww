@@ -105,8 +105,17 @@ def validate_version_state(
 ) -> None:
     """Validate the explicit current-effective state representation."""
     version_definition_id = version.definition_id
-    if version_definition_id is None and version.definition is not None:
-        version_definition_id = version.definition.id
+    relationship_definition_id = None
+    if version.definition is not None:
+        relationship_definition_id = version.definition.id
+    if (
+        version_definition_id is not None
+        and relationship_definition_id is not None
+        and version_definition_id != relationship_definition_id
+    ):
+        raise ValueError("version definition relationship must match definition_id")
+    if version_definition_id is None:
+        version_definition_id = relationship_definition_id
     definition_id = definition.id
     if (version_definition_id is not None or definition_id is not None) and (
         version_definition_id != definition_id

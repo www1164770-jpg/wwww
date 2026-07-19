@@ -609,6 +609,37 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
             with self.assertRaises(ValueError):
                 validate_version_state(version, other_definition)
 
+    def test_validate_version_state_rejects_internal_definition_id_and_relation_mismatch(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition, QuestionnaireVersion
+        from questionnaire_validation import validate_version_state
+
+        persisted_definition = QuestionnaireDefinition(
+            id=1,
+            definition_code="persisted_definition",
+            name="Persisted definition",
+            scope_type="general",
+            scope_key="general",
+            created_by_user_id=1,
+        )
+        conflicting_relation = QuestionnaireDefinition(
+            id=2,
+            definition_code="conflicting_definition",
+            name="Conflicting definition",
+            scope_type="general",
+            scope_key="other_scope",
+            created_by_user_id=1,
+        )
+        version = QuestionnaireVersion(
+            definition_id=persisted_definition.id,
+            definition=conflicting_relation,
+            version_number=1,
+            status="draft",
+            created_by_user_id=1,
+        )
+
+        with self.assertRaises(ValueError):
+            validate_version_state(version, persisted_definition)
+
     def test_historical_published_version_with_null_effective_key_is_valid(self) -> None:
         from questionnaire_models import QuestionnaireVersion
         from questionnaire_validation import validate_version_state
