@@ -1,86 +1,104 @@
-# 新版问卷后台基础层实施计划（修订版）
+# Questionnaire Foundation Backend Implementation Plan
 
-> **实施约束：** 本计划仅覆盖基础模型、受控迁移和管理员只读接口。实施时按任务顺序执行，每个任务先写失败测试、再作最小实现、运行目标与回归测试并独立提交。
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**目标：** 在现有 Flask 单体中建立新版问卷的六张基础表、版本化定义模型、受控 SQL 迁移与管理员只读查询；保持旧问卷、认证和推荐行为不变。
+**Goal:** 建立新版问卷后台基础数据模型、迁移和管理员只读查询接口，同时保持现有问卷、认证和推荐功能不变。
 
-**架构：** 新问卷模型继续使用 `backend.models.db`，不创建第二套 declarative base。迁移由原生 SQL 和小型运行器管理；服务层显式注入 SQLAlchemy session；新、旧管理员接口共享经过 JWT 验证后按现有身份解析方式查询 `users.role` 的后端鉴权。所有新增 HTTP 接口仅为 GET。
+**架构：** 新问卷模型使用既有全局 `backend.models.db`，不创建第二套 SQLAlchemy Base。原生 MySQL SQL 由受控运行器执行；读取服务显式注入 session；新问卷管理员路由使用独立支持模块复制已核验的 JWT 身份解析与角色查询规则，不改变任何 V1 路由实现。
 
-**技术栈：** Python 3.14、Flask 3.1.3、Flask-SQLAlchemy 3.1.1、SQLAlchemy 2.0.50、PyMySQL 1.2.0、Flask-JWT-Extended 4.7.4、MySQL、`unittest`。
+**技术栈：** Python 3.14、Flask 3.1.3、Flask-SQLAlchemy 3.1.1、SQLAlchemy 2.0.50、PyMySQL 1.2.0、Flask-JWT-Extended 4.7.4、MySQL、SQLite、`unittest`。
 
 ## 全局约束
 
-1. 不改动 `/api/questionnaire`、`/api/questionnaire/submit`、`/api/questionnaire/my`、认证、推荐算法或前台页面。
-2. 不实现发布、停用、回滚、草稿、答卷、匿名化、种子数据或任何问卷写接口。
-3. 新路由由后端重新读取 `users.role`；仅 `admin`、`super_admin` 可读，匿名与 `user` 不可读。
-4. 题目稳定键为 `question_code`，选项稳定键为 `option_value`；快照读取不得依赖显示文字。
-5. 生产结构只能经版本化 SQL 改变；不依赖 `db.create_all()` 改动已有生产表。
-6. 所有外键均为 `ON DELETE RESTRICT`；使用 InnoDB 与 `utf8mb4`。
-7. 日志和响应不得输出密码、令牌、连接串、SQL 参数或数据库堆栈。
+1. 不改动旧问卷、认证、Authing、推荐、前端、配置或现有 V1 API 的状态码和 JSON。
+2. 本阶段只有基础模型、两份 SQL 迁移和管理员 GET 接口；不实施发布、停用、草稿、答卷、匿名化、写接口或种子数据。
+3. 稳定键固定为 `question_code`、`option_value`；快照不依赖题目或选项显示文字。
+4. 生产结构仅由受版本控制 SQL 修改；全部外键为 `ON DELETE RESTRICT`，表使用 InnoDB、`utf8mb4`。
+5. 新路由仅 `admin`、`super_admin` 可读；后端重新查询 `users.role`，不信任前端角色字段。
+6. 不记录或返回密码、令牌、连接串、SQL 参数、数据库堆栈或完整结构细节。
+
+---
 
 ## 调查结论
 
-- `backend/models.py` 导出唯一全局 `db = SQLAlchemy()`；新模型必须从此处导入 `db`。
-- `backend/app.py` 的 `create_project_token` 与本地登录均以 `identity=user['username']` 创建 JWT。
-- `backend/v1_routes.py` 的 `current_user_row` 以 `get_jwt_identity()` 查询 `users`：`WHERE username=%s OR email=%s`；`admin_required` 允许 `admin`、`super_admin`，拒绝时调用 `api_error("forbidden", 403, 403)`。
-- 现有 V1 成功响应已经具有 `code`、`legacy_code`、`message`、`msg`、`data`；现有错误响应缺少 `legacy_code`，实施时将以兼容扩展补齐该字段，既有 `code`、`message`、`msg`、`data` 含义不变。
-- 仓库没有 Alembic 或 Flask-Migrate。现有 `backend/sql/migrations/` 是原生 MySQL SQL 文件目录。
-- 当前测试没有可复用的真实数据库夹具，因此基础层测试需要一份使用同一全局 `models.db` 的 Flask/SQLite 支持文件。
+- `backend/models.py` 提供唯一的 `db = SQLAlchemy()`；`backend/app.py` 以用户名创建 JWT identity。
+- 当前 `v1_routes.py` 的身份查询是 `SELECT * FROM users WHERE username=%s OR email=%s`，两个参数均取 `get_jwt_identity()`；角色仅允许 `admin`、`super_admin`。
+- 现有 V1 成功响应已有 `legacy_code`，错误响应没有；本计划不得因此修改 V1。
+- 仓库没有 Alembic/Flask-Migrate；`backend/sql/migrations/` 是原生 MySQL SQL 目录。
 
-## 确定的文件结构
+## 文件结构与创建顺序
 
-| 文件 | 动作与首次任务 | 单一职责 |
+| 文件 | 首次动作 | 职责 |
 | --- | --- | --- |
-| `backend/scripts/run_sql_migration.py` | Create，Task 1 | 按名称执行升级或回退并维护迁移记录。 |
-| `tests/questionnaire_foundation_test_support.py` | Create，Task 1 | Flask/SQLite fixture、假 MySQL 连接、JWT 请求与 SQL 计数支持。 |
-| `tests/test_questionnaire_foundation_migration.py` | Create，Task 1 | 运行器与 MySQL 集成迁移测试。 |
-| `backend/questionnaire_constants.py` | Create，Task 2 | 枚举、字段长度、筛选白名单。 |
-| `backend/questionnaire_models.py` | Create，Task 2 | 六个 ORM 模型、完整字段、关系和数据库约束。 |
-| `backend/questionnaire_validation.py` | Create，Task 2 | 职业、题目、选项和条件校验；Task 3–5 只 Modify 此已存在文件。 |
-| `tests/test_questionnaire_foundation_models.py` | Create，Task 2 | 实体字段、唯一约束和结构校验。 |
-| `backend/sql/migrations/20260719_questionnaire_foundation.up.sql` | Create，Task 6 | 一次性创建六张表。 |
-| `backend/sql/migrations/20260719_questionnaire_foundation.down.sql` | Create，Task 6 | 一次性按反向依赖安全回退六张表。 |
-| `backend/questionnaire_read_service.py` | Create，Task 7 | session 注入的列表、详情和不可变快照序列化。 |
-| `backend/admin_api_support.py` | Create，Task 8 | V1 响应与管理员后端鉴权的最小共享实现。 |
-| `backend/questionnaire_admin_read_routes.py` | Create，Task 8 | 长期问卷管理员 GET 路由及参数解析。 |
-| `backend/v1_routes.py` | Modify，Task 8 | 导入共享响应/鉴权函数，维持原有路由行为。 |
-| `backend/app.py` | Modify，Task 8 | 导入问卷模型并注册只读路由。 |
-| `tests/test_questionnaire_foundation_read_api.py` | Create，Task 7 | 服务、接口、鉴权、响应与性能测试。 |
-| `tests/test_questionnaire_foundation_regression.py` | Create，Task 10 | 运行时方法限制与旧系统回归保护。 |
+| `backend/scripts/run_sql_migration.py` | Task 1 Create | 迁移运行器及 CLI。 |
+| `tests/questionnaire_foundation_test_support.py` | Task 1 Create；Task 2/8 Modify | 通用 fixture、后续模型辅助、角色假连接。 |
+| `tests/test_questionnaire_foundation_migration.py` | Task 1 Create | 运行器、CLI、MySQL 集成测试。 |
+| `backend/questionnaire_constants.py` | Task 2 Create | 枚举和筛选白名单。 |
+| `backend/questionnaire_models.py` | Task 2 Create | 六个 ORM 模型和关系。 |
+| `backend/questionnaire_validation.py` | Task 2 Create；Task 3–5 Modify | 职业、版本、题目、选项、条件校验。 |
+| `tests/test_questionnaire_foundation_models.py` | Task 2 Create | 模型及校验测试。 |
+| `backend/sql/migrations/20260719_questionnaire_foundation.up.sql` | Task 6 Create | 六表升级。 |
+| `backend/sql/migrations/20260719_questionnaire_foundation.down.sql` | Task 6 Create | 六表反向删除。 |
+| `backend/questionnaire_read_service.py` | Task 7 Create | 注入 session 的读取与快照序列化。 |
+| `tests/test_questionnaire_foundation_read_api.py` | Task 7 Create；Task 8–10 Modify | 服务、API、鉴权和性能测试。 |
+| `backend/questionnaire_admin_support.py` | Task 8 Create | 新问卷响应、参数错误和管理员鉴权。 |
+| `backend/questionnaire_admin_read_routes.py` | Task 8 Create | 新问卷 GET 路由。 |
+| `backend/app.py` | Task 8 Modify | 导入模型、注册新路由。 |
+| `tests/test_questionnaire_foundation_regression.py` | Task 10 Create | 运行时只读与旧功能回归。 |
+
+`backend/v1_routes.py` 不在本计划文件清单中，不得修改。
 
 ## 迁移运行器契约
 
-运行器公开接口固定为：
-
 ```python
-run_migration(
+def run_migration(
     direction: str,
     name: str,
     connection_factory: Callable[[], ContextManager[Connection]],
-) -> str
+) -> str: ...
+
+def main(argv: Sequence[str] | None = None) -> int: ...
 ```
 
-返回值仅为 `applied`、`reverted`、`already_applied`、`not_applied`。
+返回状态仅为 `applied`、`reverted`、`already_applied`、`not_applied`。名称匹配 `^[0-9]{8}_[a-z0-9_]+$`；只从固定目录读 `<name>.up.sql`、`<name>.down.sql`，拒绝绝对路径、分隔符和路径穿越，且不维护写死的迁移白名单。升级先建/查 `schema_migrations`，全部成功才写记录；回退先查记录，全部成功才删记录。失败调用 `rollback()` 后抛出不含敏感细节的异常。
 
-`name` 必须匹配 `^[0-9]{8}_[a-z0-9_]+$`。运行器将名称解析到固定的 `backend/sql/migrations/`，且仅读取 `<name>.up.sql` 与 `<name>.down.sql`；使用 resolve 后确认父目录仍是该固定目录，拒绝绝对路径、分隔符和路径穿越。运行器不得维护一份写死的允许迁移名称集合，格式、固定目录和文件存在性共同决定是否允许。
+MySQL DDL 可能隐式提交，运行器不得承诺多条 DDL 完全事务回滚。未登记迁移的任一目标表存在即报“检测到部分迁移状态”，不写成功记录。
 
-升级时先创建 `schema_migrations(name VARCHAR(128) PRIMARY KEY, applied_at DATETIME NOT NULL)`，再查询记录；已有记录返回 `already_applied`。所有升级语句成功后才插入记录。回退时先查询记录；无记录返回 `not_applied`；全部回退语句成功后才删除记录。执行失败必须调用 `rollback()` 并抛出不带连接信息和 SQL 参数的安全异常。
+`.up.sql` 的首行固定为：
 
-MySQL DDL 可能隐式提交，因此运行器不得宣称多条 DDL 可以完全事务回滚。升级 SQL 首行将携带受解析的目标表声明；当迁移尚未记录、但其中任一目标表已经存在时，运行器拒绝继续并报告“检测到部分迁移状态”，不自动写入成功记录。Task 1 的测试仅验证名称、路径、缺失文件、已应用/未应用、错误回滚和不存在基础层迁移时不执行；Task 6 创建 SQL 后再验证该迁移的目标表检测。
+```sql
+-- migration-target-tables: occupations,questionnaire_definitions,questionnaire_versions,questionnaire_questions,questionnaire_options,questionnaire_conditions
+```
 
-## 当前生效版本的单一来源
+`parse_target_tables(up_sql: str) -> tuple[str, ...]` 仅接受首行此语法；列表非空、顺序稳定、无重复。表名仅字母、数字、下划线；拒绝 schema 前缀、反引号、分号、空白表名、路径字符和 SQL 表达式。`.down.sql` 不重复声明。
 
-`questionnaire_versions` 只保存 `status` 和可空 `current_effective_scope_key`，不保存 `is_current_effective` 列或 ORM 字段。当前版本的该键等于所属定义的 `scope_key`，非当前版本为 `NULL`，数据库对该键建立唯一约束。API 只在序列化时计算：
+回退前运行器用 `.up.sql` 的目标集合查询 `information_schema.KEY_COLUMN_USAGE`，限定 `REFERENCED_TABLE_SCHEMA = DATABASE()`。查询排除 `schema_migrations` 和目标集合本身；只有集合外表对目标表的外键才是外部引用。发现外部引用则安全失败，不执行 `.down.sql`、不删迁移记录、不关闭 `FOREIGN_KEY_CHECKS`。六表之间内部外键不阻止回退。
+
+CLI 仅接受：
+
+```powershell
+python backend/scripts/run_sql_migration.py upgrade 20260719_questionnaire_foundation
+python backend/scripts/run_sql_migration.py downgrade 20260719_questionnaire_foundation
+```
+
+它只接受一个方向与一个迁移名，生产连接只读取现有标准 `MYSQL_`/`DB_` 环境变量，绝不读取 `QUESTIONNAIRE_TEST_DB_*`。成功仅输出迁移名和状态；失败输出安全错误并以非零退出。导入模块不执行迁移，唯一自动入口是：
+
+```python
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+## 当前有效版本规则
+
+持久化字段仅有 `status` 与可空 `current_effective_scope_key`，不存在 `is_current_effective` 列或 ORM 字段。API 只计算：
 
 ```python
 is_current_effective = version.current_effective_scope_key is not None
 ```
 
-本阶段仅建立字段和读取规则，不实现发布动作。
+该键非空时状态必须为 `published`，且等于 `definition.scope_key`；非 `published` 必须为 NULL。已被替代的历史发布版本允许 `status="published"` 且该键为 NULL。发布状态必须有 `published_at`、`published_by_user_id`；非空发布时间也必须有发布人。版本号至少为 1，来源版本不能是自身且必须属于同一定义。
 
-## 只读 API 契约
-
-路由前缀固定为 `/api/admin/questionnaires`：
+## API 契约
 
 ```text
 GET /api/admin/questionnaires/occupations
@@ -91,117 +109,49 @@ GET /api/admin/questionnaires/versions/<version_id>
 GET /api/admin/questionnaires/versions/<version_id>/preview
 ```
 
-每个成功和错误响应都包含 `code`、`legacy_code`、`message`、`msg`、`data`。成功保持 V1 的 `legacy_code: 0`；错误由共享 `api_error` 返回其现有 HTTP/业务 `code` 对应的 `legacy_code`，不另造新的错误码。404 测试必须断言该字段也存在。
+新接口的成功和错误各自返回 `code`、`legacy_code`、`message`、`msg`、`data`。新接口的 400、401、403、404 将对应同值业务码显式传给其支持模块；这不是 V1 的全局响应升级。
 
-## Task 1：迁移运行器及其自身测试
+### Task 1: Add the migration runner, CLI, and model-free support
 
 **Files:** Create `backend/scripts/run_sql_migration.py`、`tests/questionnaire_foundation_test_support.py`、`tests/test_questionnaire_foundation_migration.py`。
 
-**接口和实现规则：**
+**Produces:** 上述 `run_migration`、`parse_target_tables`、`main`；`FakeCursor`、`FakeConnection`、通用 `make_sqlite_app`、`sqlite_session`、`SqlStatementCounter`、`make_jwt_headers`、不依赖问卷模型的基础 TestCase。
+
+- [ ] 写运行器失败测试：非法名称/路径、缺失 SQL、重复升级、未应用回退、rollback、安全错误、部分状态、所有目标声明的合法与非法形式及声明顺序。
+- [ ] 写 CLI 测试：参数不足/过多、非法方向/名称均非零；假连接工厂下成功返回 0；导入模块不执行迁移；输出不含密码、连接串、SQL 参数。
+- [ ] 实现运行器与 CLI，使用假连接测试而非真实数据库；Task 1 不读取或导入 `questionnaire_models`、`QuestionnaireQuestion`、`QuestionnaireOption`、`QuestionnaireCondition`，也不执行不存在的基础层迁移。
+- [ ] `make_sqlite_app()` 只定义通用工厂，使用以下精确配置并在 connect event 执行 `PRAGMA foreign_keys=ON`；此任务不调用 ORM fixture。
 
 ```python
-def run_migration(
-    direction: str,
-    name: str,
-    connection_factory: Callable[[], ContextManager[Connection]],
-) -> str: ...
+from sqlalchemy.pool import StaticPool
 
-def migration_paths(name: str) -> tuple[Path, Path]: ...
-def parse_target_tables(up_sql: str) -> tuple[str, ...]: ...
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "poolclass": StaticPool,
+    "connect_args": {"check_same_thread": False},
+}
 ```
-
-`direction` 只接受 `upgrade`、`downgrade`。运行器先验证名称与路径，再读取两个 SQL 文件；缺失文件以安全异常失败。它用参数化查询读取和写入 `schema_migrations`，SQL 脚本按受控语句分隔器顺序执行。错误路径只记录迁移名、方向和安全错误类别。
-
-- [ ] 写失败测试：无效名称、绝对/穿越名称、缺失文件、重复升级、未应用回退、升级失败时 rollback、回退失败时 rollback、未登记且目标表部分存在时拒绝。
-- [ ] 写 `FakeCursor`、`FakeConnection`：`executed: list[tuple[str, tuple]]`、`commit() -> None`、`rollback() -> None`、`cursor() -> ContextManager[FakeCursor]`，以可观察方式验证记录写入和删除顺序。
-- [ ] 实现运行器；不导入基础层迁移文件，也不在应用导入时执行迁移。
-- [ ] 运行 `python -m unittest tests.test_questionnaire_foundation_migration.MigrationRunnerTests -v`。
-- [ ] 运行 `python -m unittest tests.test_db_startup tests.test_questionnaire_v1_regression -v`。
+- [ ] 运行 `python -m unittest tests.test_questionnaire_foundation_migration -v` 和既有数据库启动/旧问卷回归。
 - [ ] 提交：`feat(questionnaire): add controlled SQL migration runner`。
 
-支持文件还必须提供完整可复用的测试设施：
+### Task 2: Add constants, occupation model, validation, and model helpers
 
-```python
-def make_sqlite_app() -> Flask:
-    """用全局 models.db 建立内存 Flask 应用，不创建第二个 Base。"""
+**Files:** Create `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`；Modify `tests/questionnaire_foundation_test_support.py`。不得创建/修改正式迁移 SQL。
 
-@contextmanager
-def sqlite_session() -> Iterator[Session]:
-    """进入 app context 后 create_all，yield db.session，最后 rollback、remove、drop_all。"""
+定义 `Occupation` 的完整字段：`id`、唯一 `occupation_code`/`name`、`category`、`sort_order`、`enabled`、`new_occupation_policy`、`created_at`、`updated_at`。职业校验验证小写稳定编码、非负排序及 `use_general`/`closed` 策略。
 
-class SqlStatementCounter:
-    def __enter__(self) -> "SqlStatementCounter": ...
-    def __exit__(self, exc_type, exc, traceback) -> None: ...
-    @property
-    def count(self) -> int: ...
-
-def add_question(session: Session, **fields: object) -> QuestionnaireQuestion:
-    """构造、add、flush 并返回题目；调用方传入已声明字段。"""
-
-def question(session: Session, **fields: object) -> QuestionnaireQuestion:
-    """测试简写；委托 add_question 并返回已 flush 的题目。"""
-
-def add_option(session: Session, question: QuestionnaireQuestion, **fields: object) -> QuestionnaireOption:
-    """以 question.id 写入 question_id，add、flush 并返回选项。"""
-
-def option(session: Session, question: QuestionnaireQuestion, **fields: object) -> QuestionnaireOption:
-    """测试简写；委托 add_option 并返回已 flush 的选项。"""
-
-def add_condition(session: Session, **fields: object) -> QuestionnaireCondition:
-    """构造、add、flush 并返回条件。"""
-
-class QuestionnaireDatabaseTestCase(unittest.TestCase):
-    def setUp(self) -> None:
-        """进入 sqlite_session，将其返回值赋给 self.session，并启动 SQL 计数器。"""
-
-    def tearDown(self) -> None:
-        """停止计数器并退出 sqlite_session，完成 rollback、remove、drop_all。"""
-
-class QuestionnaireApiTestCase(QuestionnaireDatabaseTestCase):
-    def get_as(self, username: str, path: str) -> Response:
-        """用 make_jwt_headers 发起 GET 并返回真实 Flask 响应。"""
-
-    @property
-    def sql_statement_count(self) -> int:
-        """返回当前测试持有 SqlStatementCounter 的 count。"""
-```
-
-`make_sqlite_app` 配置 `sqlite:///:memory:`、调用同一个 `models.db.init_app(app)`；SQLAlchemy `Engine` connect event 执行 `PRAGMA foreign_keys=ON`。`SqlStatementCounter` 在 session bind 上注册/移除 SQLAlchemy `before_cursor_execute` 监听器。支持文件还定义 `make_jwt_headers(app: Flask, username: str) -> dict[str, str]`，用 `create_access_token(identity=username)` 生成请求头。
-
-## Task 2：常量、职业模型及职业校验
-
-**Files:** Create `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`；Modify Task 1 支持/迁移测试。不得创建或修改正式迁移 SQL。
-
-定义职业模型及后续模型会使用的用户外键：
-
-```python
-class Occupation(db.Model):
-    __tablename__ = "occupations"
-    id = db.Column(db.Integer, primary_key=True)
-    occupation_code = db.Column(db.String(64), nullable=False, unique=True)
-    name = db.Column(db.String(120), nullable=False, unique=True)
-    category = db.Column(db.String(120), nullable=True)
-    sort_order = db.Column(db.Integer, nullable=False, default=0)
-    enabled = db.Column(db.Boolean, nullable=False, default=True)
-    new_occupation_policy = db.Column(db.String(32), nullable=False, default="use_general")
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-```
-
-`NEW_OCCUPATION_POLICIES` 固定为 `use_general`、`closed`。`validate_occupation(occupation: Occupation) -> None` 验证稳定小写编码、非空名称、非负排序和上述策略。
-
-- [ ] 用关键字参数构造职业，测试 ORM 唯一约束和单对象校验；不使用未声明的位置参数。
-- [ ] 创建常量、完整职业模型和 `questionnaire_validation.py`，使后续任务只 Modify 后者。
-- [ ] 确认模型模块只导入 `models.db`，没有新 declarative base。
-- [ ] 运行职业模型目标测试。
-- [ ] 运行 Task 1 测试与职业模型测试。
+- [ ] 写职业唯一和字段校验失败测试，并用关键字参数构造对象。
+- [ ] 用 `from __future__ import annotations` 修改支持文件；在函数体内按真实路径导入模型后加入 `add_occupation`、`add_definition`、`add_version`、`add_question`、`question`、`add_option`、`option`、`add_condition`。每个接收 session 与已声明字段、`add`/`flush`、返回对应实体。
+- [ ] 令 `make_sqlite_app()` 在实际 ORM fixture 执行时显式导入 `questionnaire_models`，随后在同一 `models.db.metadata` 上 create_all；每测试按 app context、create_all、测试、rollback、remove、drop_all、退出 context 生命周期清理。
+- [ ] 实现职业常量、模型、验证和辅助函数；Task 1 测试仍不调用这些辅助函数。
+- [ ] 运行职业/fixture 测试。
 - [ ] 提交：`feat(questionnaire): add occupation foundation model`。
 
-## Task 3：问卷定义和版本模型
+### Task 3: Add definition, version model, and state validation
 
-**Files:** Modify `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`。不得创建或修改正式迁移 SQL。
+**Files:** Modify `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`。不得创建/修改正式迁移 SQL。
 
-`scope_key` 始终由稳定职业编码构造；模型保存 `occupation_id`，服务通过 `definition.occupation.occupation_code` 构造和验证键。同一 `scope_key` 只允许一个 `QuestionnaireDefinition`，这是正式业务规则而非仅显示约定。
+定义保存 `occupation_id` 的定义，通过关联职业 `occupation_code` 构造 `scope_key`；同一范围仅一个定义。版本包含定义、版本号、状态、可空当前键、来源版本、版本说明、创建人/时间、发布人/时间、更新时间及明确 `foreign_keys` 关系；`current_effective_scope_key` 唯一。
 
 ```python
 class QuestionnaireDefinition(db.Model):
@@ -221,14 +171,10 @@ class QuestionnaireDefinition(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     occupation = db.relationship("Occupation", foreign_keys=[occupation_id])
     created_by = db.relationship("User", foreign_keys=[created_by_user_id])
-    versions = db.relationship("QuestionnaireVersion", foreign_keys="QuestionnaireVersion.definition_id", order_by="QuestionnaireVersion.version_number")
 
 class QuestionnaireVersion(db.Model):
     __tablename__ = "questionnaire_versions"
-    __table_args__ = (
-        db.UniqueConstraint("definition_id", "version_number", name="uq_questionnaire_versions_number"),
-        db.UniqueConstraint("current_effective_scope_key", name="uq_questionnaire_versions_current_scope"),
-    )
+    __table_args__ = (db.UniqueConstraint("definition_id", "version_number", name="uq_questionnaire_versions_number"), db.UniqueConstraint("current_effective_scope_key", name="uq_questionnaire_versions_current_scope"))
     id = db.Column(db.Integer, primary_key=True)
     definition_id = db.Column(db.Integer, db.ForeignKey("questionnaire_definitions.id", ondelete="RESTRICT"), nullable=False)
     version_number = db.Column(db.Integer, nullable=False)
@@ -248,16 +194,25 @@ class QuestionnaireVersion(db.Model):
     questions = db.relationship("QuestionnaireQuestion", foreign_keys="QuestionnaireQuestion.version_id", order_by="QuestionnaireQuestion.sort_order")
 ```
 
-- [ ] 测试范围组合、职业编码构造、范围唯一性、版本号唯一性和可空当前键唯一性。
-- [ ] 实现 `build_scope_key(scope_type: str, occupation_code: str | None, user_type: str | None) -> str` 与 `validate_definition_scope(definition: QuestionnaireDefinition) -> None`。
-- [ ] 保证 `status`、创建/更新、创建人、发布人、发布时间、来源版本、版本说明和每条关系均已显式声明。
-- [ ] 运行定义/版本测试。
-- [ ] 运行全部当前模型测试。
+```python
+def validate_version_state(
+    version: QuestionnaireVersion,
+    definition: QuestionnaireDefinition,
+) -> None: ...
+```
+
+- [ ] 写版本号为 0、非法状态、草稿/停用/归档携带有效键、有效键不匹配范围、发布缺发布人/时间、自引用来源的失败测试；测试历史发布版本空有效键合法。
+- [ ] 实现范围构造、定义范围验证和上述状态验证；来源版本同定义由关联记录结构校验。
+- [ ] 测试定义范围唯一、版本号唯一、有效键唯一与 API 单一计算源。
+- [ ] 运行定义/版本目标测试。
+- [ ] 运行全部模型测试。
 - [ ] 提交：`feat(questionnaire): add definition and version models`。
 
-## Task 4：题目和选项模型及校验
+### Task 4: Add question and option model and validation
 
-**Files:** Modify `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`。不得创建或修改正式迁移 SQL。
+**Files:** Modify `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`。不得创建/修改正式迁移 SQL。
+
+题目含版本、唯一 `question_code`、标题、说明、题型、必填、排序、启用、通用题、选择数量、最大长度、时间字段及 version/options 关系。选项含题目、唯一 `option_value`、显示文字、排序、启用、时间字段及 question 关系。
 
 ```python
 class QuestionnaireQuestion(db.Model):
@@ -295,18 +250,18 @@ class QuestionnaireOption(db.Model):
     question = db.relationship("QuestionnaireQuestion", foreign_keys=[question_id])
 ```
 
-数据库层负责版本内题码唯一和题目内选项值唯一。`validate_question_fields(question: QuestionnaireQuestion) -> None` 只验证单对象字段：多选必须有 `min_selections`、`max_selections`；可选多选可为最小值 0，必填多选最小值至少 1，最大值至少 1 且最小值不大于最大值；单选不得设选择数量或 `max_length`；简答只接受正 `max_length` 且不得有选择数量字段。`validate_question_structure(question, options: Sequence[QuestionnaireOption]) -> None` 读取关联记录，要求选择题至少一个启用选项、多选最大值不大于启用选项数、简答没有选项。
-
-- [ ] 为数据库唯一、对象字段和关联记录结构规则分别写失败测试。
-- [ ] 实现上述两个验证函数；不得把关联记录规则伪装成数据库约束。
-- [ ] 测试标题可变而 `question_code` 稳定、选项显示文字可变而 `option_value` 稳定。
-- [ ] 运行题目/选项目标测试。
+- [ ] 写数据库唯一、字段规则、关联结构规则失败测试。
+- [ ] 实现多选必填最小值、可选可为 0、最大值与启用项数、单选禁止选择数量/最大长度、简答正最大长度且无选项、选择题至少一个启用项。
+- [ ] 验证标题/标签变化不改变稳定键。
+- [ ] 运行题目选项测试。
 - [ ] 运行全部模型测试。
 - [ ] 提交：`feat(questionnaire): add question and option models`。
 
-## Task 5：条件模型、单条条件校验和条件图校验
+### Task 5: Add condition model, relationships, and graph validation
 
-**Files:** Modify `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`。不得创建或修改正式迁移 SQL。
+**Files:** Modify `backend/questionnaire_constants.py`、`backend/questionnaire_models.py`、`backend/questionnaire_validation.py`、`tests/test_questionnaire_foundation_models.py`。不得创建/修改正式迁移 SQL。
+
+`QuestionnaireCondition` 含 version、source/target question、expected option、operator、时间字段，所有外键均显式 RESTRICT。为题目增加：
 
 ```python
 class QuestionnaireCondition(db.Model):
@@ -326,51 +281,41 @@ class QuestionnaireCondition(db.Model):
     expected_option = db.relationship("QuestionnaireOption", foreign_keys=[expected_option_id])
 ```
 
-接口固定为：
+```python
+source_conditions = db.relationship("QuestionnaireCondition", foreign_keys="QuestionnaireCondition.source_question_id")
+target_condition = db.relationship("QuestionnaireCondition", foreign_keys="QuestionnaireCondition.target_question_id", uselist=False)
+```
+
+为选项增加 `condition_references = db.relationship("QuestionnaireCondition", foreign_keys="QuestionnaireCondition.expected_option_id")`。条件自身的 source、target、expected option 关系均显式 `foreign_keys`。
 
 ```python
 def validate_condition(source, target, expected_option, operator) -> None: ...
-def validate_condition_graph(
-    questions: Sequence[QuestionnaireQuestion],
-    conditions: Sequence[QuestionnaireCondition],
-) -> None: ...
+def validate_condition_graph(questions: Sequence[QuestionnaireQuestion], conditions: Sequence[QuestionnaireCondition]) -> None: ...
 ```
 
-单条验证要求 source、target、选项属于同一版本；source 排序小于 target；不得自引用；`equals` 只用于单选，`contains` 只用于多选；期望选项属于 source、启用且在当前版本可用。图验证要求每个 target 最多一条条件且无环。测试真实构造 A → B、B → C、C → A 并断言拒绝。
-
-- [ ] 写类型、版本、排序、期望选项、单 target 与循环的失败测试。
-- [ ] 实现单条与 DFS/颜色标记图验证函数。
-- [ ] 测试 `source_question_code`、`target_question_code` 和期望 `option_value` 的序列化来源均为稳定键。
-- [ ] 运行条件目标测试。
+- [ ] 写同版本、前置排序、自引用、单 target、选项归属/启用、单选 equals、多选 contains、A→B→C→A 的失败测试。
+- [ ] 实现单条与图校验，并添加 `configure_mappers()` 不抛异常的 mapper 测试。
+- [ ] 测试快照从 `target_condition`、`condition.source_question.question_code`、`condition.target_question.question_code`、`condition.expected_option.option_value` 获取稳定字段。
+- [ ] 运行条件/mapper 测试，确保无 `AmbiguousForeignKeysError`。
 - [ ] 运行完整模型测试。
 - [ ] 提交：`feat(questionnaire): add condition validation`。
 
-## Task 6：一次性完成六张表的完整 SQL 升级与回退迁移
+### Task 6: Create the complete six-table SQL migration once
 
-**Files:** Create `backend/sql/migrations/20260719_questionnaire_foundation.up.sql`、`backend/sql/migrations/20260719_questionnaire_foundation.down.sql`；Modify `tests/test_questionnaire_foundation_migration.py`。这是唯一创建正式迁移 SQL 的任务。
+**Files:** Create 两份 `20260719_questionnaire_foundation` up/down SQL；Modify `tests/test_questionnaire_foundation_migration.py`。这是唯一正式 SQL 创建任务。
 
-升级 SQL 首行声明六个目标表。创建顺序严格为 `occupations`、`questionnaire_definitions`、`questionnaire_versions`、`questionnaire_questions`、`questionnaire_options`、`questionnaire_conditions`；回退顺序完全相反。DDL 包含 Task 2–5 中列出的每一个字段、外键、唯一约束、索引、InnoDB 和 `utf8mb4`，并将所有外键定义为 `ON DELETE RESTRICT`。不得使用 `CREATE TABLE IF NOT EXISTS`。
+升级顺序为 occupations、definitions、versions、questions、options、conditions，回退完全相反；up 文件以固定声明首行开头。DDL 完整覆盖 Task 2–5 字段、关系、唯一约束、索引、InnoDB、utf8mb4、RESTRICT，且不使用 `CREATE TABLE IF NOT EXISTS`。down 文件只按反向依赖删除六表，不含引用检查、存储过程、动态 SQL 或禁用外键。
 
-回退 SQL 在删除前通过 information schema 检查是否有后续业务表引用六张核心表；发现引用即安全失败，不关闭外键检查。它只删除这六张新表，不修改旧表。
-
-- [ ] 写 MySQL 集成测试：六表/列、外键、唯一约束、索引、字符集、迁移记录写入、回退记录删除、旧表不变、部分迁移状态拒绝。
-- [ ] 创建完整 up/down SQL；SQL 内没有旧问卷字段变更。
-- [ ] 为集成测试只读取 `QUESTIONNAIRE_TEST_DB_HOST`、`QUESTIONNAIRE_TEST_DB_PORT`、`QUESTIONNAIRE_TEST_DB_USER`、`QUESTIONNAIRE_TEST_DB_PASSWORD`、`QUESTIONNAIRE_TEST_DB_NAME`。
-- [ ] 连上后执行 `SELECT DATABASE()`，确认等于测试名称；拒绝空名、`nav_site` 和等于当前生产数据库名。生产运行器仍读取标准 `MYSQL_`/`DB_` 配置，不受测试保护影响。
-- [ ] 在 PowerShell 设置测试变量并执行：
-
-```powershell
-$env:QUESTIONNAIRE_TEST_DB_NAME="nav_site_questionnaire_test"
-python -m unittest tests.test_questionnaire_foundation_migration.QuestionnaireFoundationMySqlMigrationTests -v
-```
-
+- [ ] 写 MySQL 集成测试：六表/列、外键、唯一、索引、字符集、迁移记录、旧表不变、部分状态拒绝。
+- [ ] 加入回退测试：六表内部引用仍可回退；第七业务表引用时拒绝；拒绝后记录和六表仍在且 down 未执行；信息 schema 查询限定当前库并排除目标集合。
+- [ ] 集成测试只用 `QUESTIONNAIRE_TEST_DB_HOST`、`_PORT`、`_USER`、`_PASSWORD`、`_NAME`，连接后 `SELECT DATABASE()` 必须等于测试名，拒绝空、`nav_site` 和生产库名。
+- [ ] 创建完整 SQL 并运行 MySQL 集成测试；生产 CLI 继续使用标准生产环境变量。
+- [ ] 运行迁移与运行时回归测试。
 - [ ] 提交：`feat(questionnaire): add foundation schema migration`。
 
-## Task 7：只读服务和序列化
+### Task 7: Add injected-session read service and serializers
 
 **Files:** Create `backend/questionnaire_read_service.py`、`tests/test_questionnaire_foundation_read_api.py`。
-
-服务接口固定并全部显式注入 session：
 
 ```python
 def list_occupations(session: Session, filters: dict) -> dict: ...
@@ -380,86 +325,82 @@ def list_versions(session: Session, definition_id: int, filters: dict) -> dict: 
 def get_version_snapshot(session: Session, version_id: int) -> dict | None: ...
 ```
 
-生产路由传入 `db.session`；测试传入 Task 1 的隔离 SQLite session。服务不得调用 `Model.query`。快照使用 selectinload 预加载版本、题目、选项和条件，按版本/题目/选项排序关系稳定输出；`is_current_effective` 只由可空有效范围键计算。
-
-- [ ] 写服务序列化、筛选、排序、稳定编码和不存在返回 `None` 的失败测试。
-- [ ] 实现分页（count 加 items 合法）、白名单筛选与服务端预加载。
-- [ ] 使用 `SqlStatementCounter` 测试版本详情至多 4–5 条查询：版本、题目、选项、条件；增加 20 道题后不增加 20 条查询。
-- [ ] 运行服务目标测试。
-- [ ] 运行模型与服务测试。
+- [ ] 写筛选、分页、排序、稳定键、None 和条件快照失败测试。
+- [ ] 用传入 session 与 `selectinload` 实现服务，使用真实 `target_condition` 和相关 source/option 关系；禁止 `Model.query`。
+- [ ] 使用 SQLAlchemy event 计数：详情最多 4–5 条，20 题不新增 20 条；条件关系不产生逐题查询。
+- [ ] 运行服务测试。
+- [ ] 运行模型与服务回归。
 - [ ] 提交：`feat(questionnaire): add foundation read service`。
 
-## Task 8：职业与问卷定义只读 API
+### Task 8: Add new questionnaire admin support and definition GET APIs
 
-**Files:** Create `backend/admin_api_support.py`、`backend/questionnaire_admin_read_routes.py`；Modify `backend/v1_routes.py`、`backend/app.py`、`tests/test_questionnaire_foundation_read_api.py`。
+**Files:** Create `backend/questionnaire_admin_support.py`、`backend/questionnaire_admin_read_routes.py`；Modify `backend/app.py`、`tests/questionnaire_foundation_test_support.py`、`tests/test_questionnaire_foundation_read_api.py`。
 
-共享模块采用已调查的真实 V1 逻辑：JWT identity 来自 `get_jwt_identity()`，通过 `SELECT * FROM users WHERE username=%s OR email=%s` 查找用户，角色不在 `admin`、`super_admin` 则返回 `api_error("forbidden", 403, 403)`。`v1_routes.py` 将现有 `api_success`、`api_error`、`current_user_row`、`admin_required` 抽到此最小模块并导入，确保旧接口与新接口共用同一鉴权和响应规则。`api_error` 为所有错误加 `legacy_code`，保留既有其余字段和值。
+```python
+def register_questionnaire_admin_read_routes(
+    app: Flask,
+    get_db_connection: Callable[[], ContextManager[Connection]],
+) -> None: ...
 
-创建职业、定义列表和定义详情三个 GET 路由；路由传入 `db.session` 至服务，不实现任何写操作。
+def questionnaire_admin_required(
+    get_db_connection: Callable[[], ContextManager[Connection]],
+): ...
+```
 
-- [ ] 写匿名 401、普通用户 403、管理员/超级管理员 200、参数 400 与 404 响应形状的失败测试。
-- [ ] 实现共享模块、参数解析和三个接口；所有成功/错误结构均有五个约定键。
-- [ ] 修改 `app.py` 以导入模型并注册路由；不移动既有路由。
-- [ ] 运行接口目标测试和既有 V1 管理员接口回归测试。
-- [ ] 运行认证和旧问卷回归。
+新鉴权调用 `get_jwt_identity()`，以参数化 `SELECT * FROM users WHERE username=%s OR email=%s` 查询，两参数都为 identity，读取 `users.role`，仅允许 admin/super_admin。新支持模块独立提供新接口响应、参数错误和鉴权；不导入、修改或替换 V1 辅助函数。
+
+```python
+class FakeRoleConnectionFactory:
+    def __init__(self, roles: dict[str, str]):
+        self.roles = roles
+        self.identities: list[str] = []
+
+    def __call__(self) -> ContextManager[FakeConnection]:
+        """返回支持参数化角色查询的 FakeConnection。"""
+```
+
+- [ ] 为支持文件加入 `FakeRoleConnectionFactory(roles: dict[str, str])`：记录 identities，假游标根据两项 JWT 参数返回 user/admin/super_admin/不存在用户；验证参数化查询及两个参数相同。
+- [ ] 写匿名 401、不存在用户/普通用户 403、管理员成功、伪造 `role=super_admin` 无效、400/404 以及新响应五键测试；SQLite API 测试不得连接 MySQL。
+- [ ] 实现新支持模块与职业列表、定义列表、定义详情 GET；业务查询仍传 `db.session`，鉴权连接职责独立。
+- [ ] `app.py` 导入模型并以现有 `get_db_connection` 注册路由；不改任何旧路由。
+- [ ] 在注册前后调用至少一个现有 V1 错误接口，断言状态和 JSON 完全相同；单独断言新接口错误含 legacy_code。
 - [ ] 提交：`feat(questionnaire): add admin definition read APIs`。
 
-## Task 9：版本列表、详情、预览及查询性能测试
+### Task 9: Add version list, detail, preview, and performance tests
 
 **Files:** Modify `backend/questionnaire_admin_read_routes.py`、`backend/questionnaire_read_service.py`、`tests/test_questionnaire_foundation_read_api.py`。
 
-实现剩余三个长期路径：定义版本列表、版本详情、版本预览。预览只在详情快照外添加 `preview: true`，不读取其他版本补全标题/选项/条件。不存在对象返回带 `legacy_code` 的 404。所有六个路径只注册 GET。
-
-- [ ] 写版本分页、快照顺序、预览、404、角色和完整响应结构失败测试。
-- [ ] 实现三条 GET 路由；不得引入写服务或状态改变。
-- [ ] 用 SQLAlchemy event 计数验证列表允许 count+items，详情最多 4–5 条且 20 题不产生线性查询。
-- [ ] 运行版本和性能目标测试。
-- [ ] 运行所有只读 API 测试。
+- [ ] 写定义版本列表、详情、预览、404、角色、五键响应、查询计数失败测试。
+- [ ] 实现剩余三个 GET 路由；预览仅添加 `preview: true`，不改变任何状态或补读其他版本。
+- [ ] 验证列表允许 count+items，详情最多 4–5 条且条件读取没有 N+1。
+- [ ] 运行版本和性能测试。
+- [ ] 运行全部只读 API 测试。
 - [ ] 提交：`feat(questionnaire): add version read APIs`。
 
-## Task 10：全量回归与第一阶段范围保护
+### Task 10: Run full regression and protect first-phase scope
 
 **Files:** Create `tests/test_questionnaire_foundation_regression.py`；Modify `tests/test_questionnaire_foundation_read_api.py`。
 
-回归测试从真实 Flask `app.url_map` 收集 `/api/admin/questionnaires` 规则，断言其 methods 仅含 GET、HEAD、OPTIONS；对每个端点实际发送 POST、PUT、PATCH、DELETE 并断言 405。不得以搜索装饰器字符串代替运行时行为测试，也不得在新测试中手工调用其他测试类。
-
-- [ ] 写 app.url_map 方法集合和四类非 GET 请求的失败测试。
-- [ ] 覆盖真实旧问卷接口回归、现有推荐测试、现有管理员鉴权测试，并通过正常 unittest 发现机制运行。
-- [ ] 可保留少量架构依赖检查，但它们不能替代行为测试。
-- [ ] 运行 `python -m unittest tests.test_questionnaire_foundation_regression -v`。
-- [ ] 运行 `python -m unittest discover -s tests -p "test_*.py" -v`；未配置测试库时 MySQL 集成类明确 skipped。
+- [ ] 从真实 Flask `app.url_map` 收集上述前缀，断言 methods 仅 GET、HEAD、OPTIONS。
+- [ ] 对每个新端点实际发送 POST、PUT、PATCH、DELETE，断言 405；不以源码字符串检查替代行为测试。
+- [ ] 通过正常 unittest discovery 执行既有旧问卷、推荐、认证、管理员测试，不手工调用其他测试类。
+- [ ] 运行目标回归测试。
+- [ ] 运行 `python -m unittest discover -s tests -p "test_*.py" -v`；无测试库时 MySQL 集成类明确 skipped。
 - [ ] 提交：`test(questionnaire): protect foundation scope`。
 
-## 实施前自检清单
+## 实施前自检
 
-1. 恰有 10 个 Task，顺序为运行器、职业、定义版本、题选项、条件、SQL、服务、职业定义 API、版本 API、回归。
-2. `questionnaire_validation.py` 仅在 Task 2 Create，Task 3–5 Modify。
-3. 两份正式 SQL 只在 Task 6 Create；Task 1 不运行尚不存在的基础层迁移。
-4. 运行器、记录、重复处理、MySQL DDL 限制和部分状态拒绝均已说明。
-5. 没有第二个当前生效布尔字段或双重状态来源。
-6. 模型示例包含完整生命周期字段、人员外键、发布信息、来源版本、关系与 RESTRICT。
-7. 多选、简答、条件图、可注入 session、fixture、JWT、查询计数和 MySQL 专用连接均有确定实现。
-8. 新旧管理员接口复用真实身份查询和角色判定；所有错误含 `legacy_code`。
-9. 仅有 `/api/admin/questionnaires` 长期 GET 路径；没有本阶段外的写功能。
+1. 恰有 10 个 Task；`questionnaire_validation.py` 只在 Task 2 Create，后续仅 Modify；两份 SQL 只在 Task 6 Create。
+2. Task 1 没有导入未创建的问卷模型，模型辅助只在 Task 2 后加入，迁移模块导入不会执行迁移，CLI 可执行。
+3. 目标表声明语法唯一且被解析验证；运行器而非 down SQL 检查外部引用，并排除六表内部引用。
+4. `v1_routes.py` 不在文件清单中，旧 V1 状态与 JSON 不变；新鉴权连接可注入，SQLite API 测试不连 MySQL。
+5. 非 published 不携带有效范围键；published 有发布人和时间；关系没有多外键歧义；SQLite 使用 StaticPool。
+6. 所有新路由只允许 GET、HEAD、OPTIONS；无写接口、发布、草稿、答卷、匿名化、前端、认证、推荐或旧问卷改动。
 
-实施前还应对本计划运行预置的占位语检查，预期没有匹配；检查命令不写入本计划，以免检查命令本身成为匹配项。
-
-## 本次文档提交检查
-
-本次只允许改动本计划文件。提交前运行：
+提交本次文档前运行 `git status --short`、`git diff --stat`、本文件 diff、`git diff --check`；只暂存本文件，检查 cached diff 后提交：
 
 ```bash
-git status --short
-git diff --stat
-git diff -- docs/superpowers/plans/2026-07-19-questionnaire-foundation-backend-plan.md
-git diff --check
-git add docs/superpowers/plans/2026-07-19-questionnaire-foundation-backend-plan.md
-git diff --cached --check
-git diff --cached --stat
-git commit -m "docs(questionnaire): harden foundation implementation plan"
-git status -sb
-git log -5 --oneline
-git show --stat --oneline HEAD
+git commit -m "docs(questionnaire): finalize foundation execution plan"
 ```
 
-不得暂存 `docs/superpowers/plans/2026-07-13-authentication-closure-plan.md`，不得 Push、amend、reset、restore、clean 或修改历史提交。
+不得暂存认证计划，不得 Push、amend、reset、restore、checkout、clean 或改写历史。
