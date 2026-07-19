@@ -8,7 +8,11 @@ from unittest.mock import patch
 
 from sqlalchemy import text
 
-from tests.questionnaire_foundation_test_support import FakeConnection, make_sqlite_app
+from tests.questionnaire_foundation_test_support import (
+    FakeConnection,
+    QuestionnaireFoundationTestCase,
+    make_sqlite_app,
+)
 
 from backend.scripts import run_sql_migration
 
@@ -59,6 +63,18 @@ class MigrationRunnerTests(unittest.TestCase):
 
     def test_target_declaration_accepts_the_exact_six_tables_in_stable_order(self):
         self.assertEqual(run_sql_migration.parse_target_tables(HEADER), TARGETS)
+
+    def test_target_declaration_must_be_the_exact_first_line_and_fixed_table_order(self):
+        invalid = (
+            "\n" + HEADER,
+            "-- a normal comment\n" + HEADER,
+            "-- migration-target-tables: questionnaire_definitions,occupations,questionnaire_versions,questionnaire_questions,questionnaire_options,questionnaire_conditions",
+            "-- migration-target-tables: occupations,questionnaire_definitions,questionnaire_versions,questionnaire_questions,questionnaire_options",
+        )
+        for declaration in invalid:
+            with self.subTest(declaration=declaration):
+                with self.assertRaisesRegex(ValueError, "target table declaration"):
+                    run_sql_migration.parse_target_tables(declaration)
 
     def test_target_declaration_rejects_missing_empty_duplicate_and_unsafe_names(self):
         invalid = (
@@ -148,9 +164,10 @@ class MigrationCliTests(unittest.TestCase):
             connection = FakeConnection()
             with patch.object(run_sql_migration, "MIGRATIONS_DIR", migrations), patch.object(
                 run_sql_migration, "get_production_connection", return_value=connection
-            ) as connection_factory, contextlib.redirect_stdout(io.StringIO()):
+            ) as connection_factory, contextlib.redirect_stdout(output := io.StringIO()):
                 self.assertEqual(run_sql_migration.main(["upgrade", NAME]), 0)
             connection_factory.assert_called_once_with()
+            self.assertEqual(output.getvalue(), f"{NAME} applied\n")
 
     def test_main_returns_nonzero_and_does_not_leak_connection_or_sql_details(self):
         stream = io.StringIO()
@@ -161,6 +178,9 @@ class MigrationCliTests(unittest.TestCase):
 
 
 class ModelFreeSupportTests(unittest.TestCase):
+    def test_foundation_base_test_case_is_a_unittest_test_case(self):
+        self.assertTrue(issubclass(QuestionnaireFoundationTestCase, unittest.TestCase))
+
     def test_sqlite_factory_uses_static_pool_and_enables_foreign_keys(self):
         app = make_sqlite_app()
         self.assertEqual(app.config["SQLALCHEMY_DATABASE_URI"], "sqlite://")

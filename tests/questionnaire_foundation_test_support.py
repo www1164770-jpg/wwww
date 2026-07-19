@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from pathlib import Path
 import sys
 from typing import Any, Iterator
+import unittest
 
 from flask import Flask
 from flask_jwt_extended import create_access_token
@@ -156,5 +157,5 @@ def make_jwt_headers(app: Flask, identity: str) -> dict[str, str]:
         return {"Authorization": f"Bearer {create_access_token(identity=identity)}"}
 
 
-class QuestionnaireFoundationTestCase:
+class QuestionnaireFoundationTestCase(unittest.TestCase):
     """Model-free base class reserved for subsequent foundation tests."""

@@ -9,10 +9,15 @@ from typing import Callable, Sequence
 
 
 MIGRATION_NAME_RE = re.compile(r"^[0-9]{8}_[a-z0-9_]+$")
-TARGET_TABLE_RE = re.compile(r"^[a-z][a-z0-9_]*$")
-TARGET_HEADER_RE = re.compile(
-    r"^\s*--\s*migration-target-tables:\s*(.*?)\s*$", re.MULTILINE
+TARGET_TABLES = (
+    "occupations",
+    "questionnaire_definitions",
+    "questionnaire_versions",
+    "questionnaire_questions",
+    "questionnaire_options",
+    "questionnaire_conditions",
 )
+TARGET_HEADER = "-- migration-target-tables: " + ",".join(TARGET_TABLES)
 MIGRATIONS_DIR = Path(__file__).resolve().parents[1] / "sql" / "migrations"
 
 
@@ -43,19 +48,11 @@ def migration_paths(name: str) -> tuple[Path, Path]:
 
 
 def parse_target_tables(up_sql: str) -> tuple[str, ...]:
-    """Read one safe, ordered target-table declaration from an upgrade file."""
-    match = TARGET_HEADER_RE.search(up_sql)
-    if not match:
-        raise ValueError("target table declaration is missing")
-    raw_tables = match.group(1)
-    if not raw_tables:
-        raise ValueError("target table declaration is empty")
-    tables = tuple(part.strip() for part in raw_tables.split(","))
-    if not all(TARGET_TABLE_RE.fullmatch(table) for table in tables):
-        raise ValueError("target table declaration contains an unsafe table name")
-    if len(set(tables)) != len(tables):
-        raise ValueError("target table declaration contains a duplicate table name")
-    return tables
+    """Require the fixed, first-line declaration for the foundation table set."""
+    first_line = up_sql.splitlines()[0] if up_sql.splitlines() else ""
+    if first_line != TARGET_HEADER:
+        raise ValueError("target table declaration must be the exact first line")
+    return TARGET_TABLES
 
 
 def _row_value(row, key: str):
@@ -198,7 +195,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except Exception:
         print("migration failed", file=sys.stderr)
         return 1
-    print(result)
+    print(f"{name} {result}")
     return 0
 
 
