@@ -9,7 +9,7 @@ from typing import Any, Iterator
 import unittest
 
 from flask import Flask
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import JWTManager, create_access_token
 from sqlalchemy import event
 from sqlalchemy.pool import StaticPool
 
@@ -76,14 +76,17 @@ class FakeConnection:
         external_references: tuple[str, ...] = (),
         fail_statement: str | None = None,
         close_on_exit: bool = False,
+        rollback_error: Exception | None = None,
     ) -> None:
         self.applied = applied if applied is not None else set()
         self.existing_tables = existing_tables
         self.external_references = external_references
         self.fail_statement = fail_statement
         self.close_on_exit = close_on_exit
+        self.rollback_error = rollback_error
         self.closed = False
         self.rollback_after_close_attempts = 0
+        self.rollback_attempts = 0
         self.executed: list[tuple[str, Any]] = []
         self.commits = 0
         self.rollbacks = 0
@@ -103,9 +106,12 @@ class FakeConnection:
         self.commits += 1
 
     def rollback(self) -> None:
+        self.rollback_attempts += 1
         if self.closed:
             self.rollback_after_close_attempts += 1
             raise RuntimeError("rollback on closed mysql://user:password@host")
+        if self.rollback_error is not None:
+            raise self.rollback_error
         self.rollbacks += 1
 
 
@@ -115,12 +121,14 @@ def make_sqlite_app() -> Flask:
 
     app = Flask(__name__)
     app.config["TESTING"] = True
+    app.config["JWT_SECRET_KEY"] = "questionnaire-foundation-test-jwt-secret"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "poolclass": StaticPool,
         "connect_args": {"check_same_thread": False},
     }
     db.init_app(app)
+    JWTManager(app)
     with app.app_context():
         @event.listens_for(db.engine, "connect")
         def enable_sqlite_foreign_keys(connection: Any, _: Any) -> None:

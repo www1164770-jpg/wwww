@@ -11,6 +11,7 @@ from sqlalchemy import text
 from tests.questionnaire_foundation_test_support import (
     FakeConnection,
     QuestionnaireFoundationTestCase,
+    make_jwt_headers,
     make_sqlite_app,
 )
 
@@ -141,6 +142,18 @@ class MigrationRunnerTests(unittest.TestCase):
         self.assertEqual(connection.rollback_after_close_attempts, 0)
         self.assertNotIn("password", str(error.exception))
 
+    def test_rollback_failure_does_not_leak_sensitive_connection_details(self):
+        self.write_migration()
+        connection = FakeConnection(
+            fail_statement="CREATE TABLE occupations",
+            rollback_error=RuntimeError("mysql://user:password@host/rollback"),
+        )
+        with self.assertRaisesRegex(RuntimeError, "migration execution failed") as error:
+            run_sql_migration.run_migration("upgrade", NAME, lambda: connection)
+        self.assertEqual(connection.rollback_attempts, 1)
+        self.assertNotIn("password", str(error.exception))
+        self.assertNotIn("mysql://", str(error.exception))
+
     def test_safety_rejection_rolls_back_before_connection_context_exits(self):
         self.write_migration()
         connection = FakeConnection(
@@ -215,6 +228,10 @@ class MigrationCliTests(unittest.TestCase):
 class ModelFreeSupportTests(unittest.TestCase):
     def test_foundation_base_test_case_is_a_unittest_test_case(self):
         self.assertTrue(issubclass(QuestionnaireFoundationTestCase, unittest.TestCase))
+
+    def test_sqlite_factory_initializes_jwt_for_model_free_headers(self):
+        headers = make_jwt_headers(make_sqlite_app(), "questionnaire-admin")
+        self.assertTrue(headers["Authorization"].startswith("Bearer "))
 
     def test_sqlite_factory_uses_static_pool_and_enables_foreign_keys(self):
         app = make_sqlite_app()
