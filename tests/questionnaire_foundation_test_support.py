@@ -116,7 +116,7 @@ class FakeConnection:
 
 
 def make_sqlite_app() -> Flask:
-    """Create the shared SQLite app without importing questionnaire models yet."""
+    """Create the shared SQLite app used by foundation model tests."""
     from models import db
 
     app = Flask(__name__)
@@ -130,7 +130,9 @@ def make_sqlite_app() -> Flask:
     db.init_app(app)
     JWTManager(app)
     with app.app_context():
-        @event.listens_for(db.engine, "connect")
+        engine = db.engine
+
+        @event.listens_for(engine, "connect")
         def enable_sqlite_foreign_keys(connection: Any, _: Any) -> None:
             connection.execute("PRAGMA foreign_keys=ON")
 
@@ -139,15 +141,30 @@ def make_sqlite_app() -> Flask:
 
 @contextmanager
 def sqlite_session(app: Flask) -> Iterator[Any]:
-    """Reserved model-free session lifecycle; ORM setup is added in Task 2."""
+    """Provide an isolated SQLite ORM session for one foundation test."""
     from models import db
 
     with app.app_context():
+        import questionnaire_models  # noqa: F401  Register the models on db.metadata.
+
+        db.create_all()
         try:
             yield db.session
         finally:
             db.session.rollback()
             db.session.remove()
+            db.drop_all()
+            db.engine.dispose()
+
+
+def add_occupation(session: Any, **fields: Any) -> Any:
+    """Persist one occupation after its Task 2 model is registered."""
+    from questionnaire_models import Occupation
+
+    occupation = Occupation(**fields)
+    session.add(occupation)
+    session.flush()
+    return occupation
 
 
 class SqlStatementCounter:
