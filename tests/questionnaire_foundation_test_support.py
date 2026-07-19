@@ -166,6 +166,26 @@ def add_occupation(session: Any, **fields: Any) -> Any:
     return occupation
 
 
+def add_definition(session: Any, **fields: Any) -> Any:
+    """Persist one definition after its Task 3 model is registered."""
+    from questionnaire_models import QuestionnaireDefinition
+
+    definition = QuestionnaireDefinition(**fields)
+    session.add(definition)
+    session.flush()
+    return definition
+
+
+def add_version(session: Any, **fields: Any) -> Any:
+    """Persist one version after its Task 3 model is registered."""
+    from questionnaire_models import QuestionnaireVersion
+
+    version = QuestionnaireVersion(**fields)
+    session.add(version)
+    session.flush()
+    return version
+
+
 class SqlStatementCounter:
     """Count SQLAlchemy statements while active."""
 

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import unittest
 from unittest.mock import patch
 
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import configure_mappers
 
 from tests.questionnaire_foundation_test_support import (
     QuestionnaireFoundationTestCase,
@@ -171,6 +173,443 @@ class OccupationFoundationTests(QuestionnaireFoundationTestCase):
         )
 
         self.assertIsNone(validate_occupation(occupation))
+
+
+class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
+    def setUp(self) -> None:
+        self.app = make_sqlite_app()
+
+    def _add_user(self, session, username: str):
+        from models import User
+
+        user = User(
+            username=username,
+            email=f"{username}@example.test",
+            password_hash="not-a-password",
+        )
+        session.add(user)
+        session.flush()
+        return user
+
+    def _add_occupation(self, session, code: str = "designer"):
+        return add_occupation(
+            session,
+            occupation_code=code,
+            name=code.title(),
+            category="creative",
+            sort_order=0,
+            enabled=True,
+            new_occupation_policy="use_general",
+        )
+
+    def _definition_fields(self, creator, **overrides):
+        fields = {
+            "definition_code": "designer_profile",
+            "name": "Designer profile",
+            "description": None,
+            "scope_type": "general",
+            "scope_key": "general",
+            "occupation_id": None,
+            "user_type": None,
+            "enabled": True,
+            "created_by_user_id": creator.id,
+        }
+        fields.update(overrides)
+        return fields
+
+    def _version_fields(self, definition, creator, **overrides):
+        fields = {
+            "definition_id": definition.id,
+            "version_number": 1,
+            "status": "draft",
+            "current_effective_scope_key": None,
+            "source_version_id": None,
+            "version_description": None,
+            "created_by_user_id": creator.id,
+            "published_by_user_id": None,
+            "published_at": None,
+        }
+        fields.update(overrides)
+        return fields
+
+    def test_definition_and_version_models_are_registered_with_expected_relationships(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition, QuestionnaireVersion
+
+        configure_mappers()
+        self.assertIn("questionnaire_definitions", QuestionnaireDefinition.metadata.tables)
+        self.assertIn("questionnaire_versions", QuestionnaireVersion.metadata.tables)
+        self.assertIs(
+            QuestionnaireVersion.definition.property.mapper.class_,
+            QuestionnaireDefinition,
+        )
+        self.assertIs(
+            QuestionnaireDefinition.versions.property.mapper.class_,
+            QuestionnaireVersion,
+        )
+        self.assertIs(
+            QuestionnaireVersion.source_version.property.mapper.class_,
+            QuestionnaireVersion,
+        )
+        self.assertFalse(hasattr(QuestionnaireVersion, "questions"))
+        self.assertFalse(hasattr(QuestionnaireVersion, "is_current_effective"))
+
+    def test_definition_scope_keys_use_stable_occupation_codes_for_all_scope_types(self) -> None:
+        from questionnaire_validation import build_scope_key
+
+        self.assertEqual(build_scope_key("general", None, None), "general")
+        self.assertEqual(
+            build_scope_key("occupation", "designer", None), "occupation:designer"
+        )
+        self.assertEqual(
+            build_scope_key("user_type", None, "student"), "user_type:student"
+        )
+        self.assertEqual(
+            build_scope_key("occupation_user_type", "designer", "student"),
+            "occupation:designer:user_type:student",
+        )
+
+    def test_definition_scope_validation_rejects_invalid_type_and_field_combinations(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition
+        from questionnaire_validation import validate_definition_scope
+
+        cases = (
+            {"scope_type": "unknown", "scope_key": "unknown"},
+            {"scope_type": "general", "scope_key": "general", "occupation_id": 1},
+            {"scope_type": "general", "scope_key": "general", "user_type": "student"},
+            {"scope_type": "occupation", "scope_key": "occupation:designer"},
+            {"scope_type": "user_type", "scope_key": "user_type:student"},
+            {
+                "scope_type": "occupation_user_type",
+                "scope_key": "occupation:designer:user_type:student",
+                "occupation_id": 1,
+            },
+        )
+        for fields in cases:
+            definition = QuestionnaireDefinition(**fields)
+            with self.subTest(fields=fields):
+                with self.assertRaises(ValueError):
+                    validate_definition_scope(definition)
+
+    def test_definition_scope_validation_accepts_all_four_scope_combinations(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition
+        from questionnaire_validation import validate_definition_scope
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "all-scopes-creator")
+            occupation = self._add_occupation(session, "designer")
+            definitions = (
+                QuestionnaireDefinition(**self._definition_fields(creator)),
+                QuestionnaireDefinition(
+                    **self._definition_fields(
+                        creator,
+                        definition_code="designer_scope",
+                        scope_type="occupation",
+                        scope_key="occupation:designer",
+                        occupation_id=occupation.id,
+                    )
+                ),
+                QuestionnaireDefinition(
+                    **self._definition_fields(
+                        creator,
+                        definition_code="student_scope",
+                        scope_type="user_type",
+                        scope_key="user_type:student",
+                        user_type="student",
+                    )
+                ),
+                QuestionnaireDefinition(
+                    **self._definition_fields(
+                        creator,
+                        definition_code="designer_student_scope",
+                        scope_type="occupation_user_type",
+                        scope_key="occupation:designer:user_type:student",
+                        occupation_id=occupation.id,
+                        user_type="student",
+                    )
+                ),
+            )
+            definitions[1].occupation = occupation
+            definitions[3].occupation = occupation
+            for definition in definitions:
+                with self.subTest(scope_type=definition.scope_type):
+                    self.assertIsNone(validate_definition_scope(definition))
+
+    def test_definition_code_and_scope_key_are_unique(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "definition-creator")
+            first = QuestionnaireDefinition(**self._definition_fields(creator))
+            session.add(first)
+            session.flush()
+            session.add(
+                QuestionnaireDefinition(
+                    **self._definition_fields(
+                        creator,
+                        definition_code="different_code",
+                    )
+                )
+            )
+            with self.assertRaises(IntegrityError):
+                session.flush()
+            session.rollback()
+
+    def test_definition_code_is_unique_independently_of_scope_key(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "definition-code-creator")
+            session.add(QuestionnaireDefinition(**self._definition_fields(creator)))
+            session.flush()
+            session.add(
+                QuestionnaireDefinition(
+                    **self._definition_fields(creator, scope_key="another_scope")
+                )
+            )
+            with self.assertRaises(IntegrityError):
+                session.flush()
+
+    def test_version_database_constraints_allow_multiple_historical_null_keys(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-creator")
+            definition = self._make_definition(session, creator)
+            first = QuestionnaireVersion(**self._version_fields(definition, creator))
+            second = QuestionnaireVersion(
+                **self._version_fields(definition, creator, version_number=2)
+            )
+            session.add_all((first, second))
+            session.flush()
+
+            session.add(
+                QuestionnaireVersion(
+                    **self._version_fields(definition, creator, version_number=2)
+                )
+            )
+            with self.assertRaises(IntegrityError):
+                session.flush()
+            session.rollback()
+
+    def _make_definition(self, session, creator, **overrides):
+        from questionnaire_models import QuestionnaireDefinition
+
+        definition = QuestionnaireDefinition(**self._definition_fields(creator, **overrides))
+        session.add(definition)
+        session.flush()
+        return definition
+
+    def test_current_effective_scope_key_is_unique(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "effective-key-creator")
+            general = self._make_definition(session, creator)
+            other = self._make_definition(
+                session,
+                creator,
+                definition_code="other_general",
+                scope_key="other",
+            )
+            session.add(
+                QuestionnaireVersion(
+                    **self._version_fields(
+                        general,
+                        creator,
+                        status="published",
+                        current_effective_scope_key="general",
+                        published_by_user_id=creator.id,
+                        published_at=datetime.now(UTC),
+                    )
+                )
+            )
+            session.flush()
+            session.add(
+                QuestionnaireVersion(
+                    **self._version_fields(
+                        other,
+                        creator,
+                        status="published",
+                        current_effective_scope_key="general",
+                        published_by_user_id=creator.id,
+                        published_at=datetime.now(UTC),
+                    )
+                )
+            )
+            with self.assertRaises(IntegrityError):
+                session.flush()
+
+    def test_validate_definition_scope_accepts_occupation_scope_from_stable_code(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition
+        from questionnaire_validation import validate_definition_scope
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "scope-creator")
+            occupation = self._add_occupation(session, "designer")
+            definition = QuestionnaireDefinition(
+                **self._definition_fields(
+                    creator,
+                    scope_type="occupation",
+                    scope_key="occupation:designer",
+                    occupation_id=occupation.id,
+                )
+            )
+            definition.occupation = occupation
+            self.assertIsNone(validate_definition_scope(definition))
+
+    def test_validate_version_state_rejects_invalid_state_combinations(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_state
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "state-creator")
+            definition = self._make_definition(session, creator)
+            cases = (
+                {"version_number": 0},
+                {"status": "unknown"},
+                {"status": "draft", "current_effective_scope_key": "general"},
+                {"status": "disabled", "current_effective_scope_key": "general"},
+                {"status": "archived", "current_effective_scope_key": "general"},
+                {
+                    "status": "published",
+                    "current_effective_scope_key": "wrong",
+                    "published_by_user_id": creator.id,
+                    "published_at": datetime.now(UTC),
+                },
+                {
+                    "status": "published",
+                    "current_effective_scope_key": "general",
+                    "published_at": datetime.now(UTC),
+                },
+                {
+                    "status": "published",
+                    "current_effective_scope_key": "general",
+                    "published_by_user_id": creator.id,
+                },
+                {"published_at": datetime.now(UTC)},
+            )
+            for overrides in cases:
+                version = QuestionnaireVersion(
+                    **self._version_fields(definition, creator, **overrides)
+                )
+                with self.subTest(overrides=overrides):
+                    with self.assertRaises(ValueError):
+                        validate_version_state(version, definition)
+
+    def test_historical_published_version_with_null_effective_key_is_valid(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_state
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "historical-creator")
+            definition = self._make_definition(session, creator)
+            historical = QuestionnaireVersion(
+                **self._version_fields(
+                    definition,
+                    creator,
+                    status="published",
+                    published_by_user_id=creator.id,
+                    published_at=datetime.now(UTC),
+                )
+            )
+            self.assertIsNone(validate_version_state(historical, definition))
+
+    def test_validate_version_source_rejects_self_and_other_definition(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_source
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "source-creator")
+            first_definition = self._make_definition(session, creator)
+            other_definition = self._make_definition(
+                session,
+                creator,
+                definition_code="second_definition",
+                scope_key="second",
+            )
+            version = QuestionnaireVersion(
+                **self._version_fields(first_definition, creator)
+            )
+            session.add(version)
+            session.flush()
+            other_version = QuestionnaireVersion(
+                **self._version_fields(other_definition, creator)
+            )
+            session.add(other_version)
+            session.flush()
+            with self.assertRaises(ValueError):
+                validate_version_source(version, version)
+            with self.assertRaises(ValueError):
+                validate_version_source(version, other_version)
+
+    def test_validate_version_source_rejects_distinct_transient_definitions(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition, QuestionnaireVersion
+        from questionnaire_validation import validate_version_source
+
+        left = QuestionnaireDefinition(
+            definition_code="left",
+            name="Left",
+            scope_type="general",
+            scope_key="left",
+            created_by_user_id=1,
+        )
+        right = QuestionnaireDefinition(
+            definition_code="right",
+            name="Right",
+            scope_type="general",
+            scope_key="right",
+            created_by_user_id=1,
+        )
+        version = QuestionnaireVersion(
+            definition=left,
+            version_number=2,
+            status="draft",
+            created_by_user_id=1,
+        )
+        source = QuestionnaireVersion(
+            definition=right,
+            version_number=1,
+            status="draft",
+            created_by_user_id=1,
+        )
+
+        with self.assertRaises(ValueError):
+            validate_version_source(version, source)
+
+    def test_validate_version_source_accepts_equivalent_persisted_definition_ids(self) -> None:
+        from questionnaire_models import QuestionnaireDefinition, QuestionnaireVersion
+        from questionnaire_validation import validate_version_source
+
+        left = QuestionnaireDefinition(
+            id=7,
+            definition_code="left",
+            name="Left",
+            scope_type="general",
+            scope_key="general",
+            created_by_user_id=1,
+        )
+        equivalent = QuestionnaireDefinition(
+            id=7,
+            definition_code="equivalent",
+            name="Equivalent",
+            scope_type="general",
+            scope_key="general",
+            created_by_user_id=1,
+        )
+        version = QuestionnaireVersion(
+            definition=left,
+            version_number=2,
+            status="draft",
+            created_by_user_id=1,
+        )
+        source = QuestionnaireVersion(
+            definition=equivalent,
+            version_number=1,
+            status="draft",
+            created_by_user_id=1,
+        )
+
+        self.assertIsNone(validate_version_source(version, source))
 
 
 if __name__ == "__main__":
