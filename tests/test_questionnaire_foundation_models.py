@@ -268,6 +268,19 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
             "occupation:designer:user_type:student",
         )
 
+    def test_build_scope_key_rejects_invalid_occupation_codes(self) -> None:
+        from questionnaire_validation import build_scope_key
+
+        invalid_codes = (None, "", "designer:admin", "designer profile", 1)
+        for occupation_code in invalid_codes:
+            with self.subTest(occupation_code=occupation_code):
+                with self.assertRaises(ValueError):
+                    build_scope_key("occupation", occupation_code, None)
+                with self.assertRaises(ValueError):
+                    build_scope_key(
+                        "occupation_user_type", occupation_code, "student"
+                    )
+
     def test_definition_scope_validation_rejects_invalid_type_and_field_combinations(self) -> None:
         from questionnaire_models import QuestionnaireDefinition
         from questionnaire_validation import validate_definition_scope
@@ -289,6 +302,86 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
             with self.subTest(fields=fields):
                 with self.assertRaises(ValueError):
                     validate_definition_scope(definition)
+
+    def test_definition_scope_rejects_transient_occupation_relation_for_non_occupation_scope(self) -> None:
+        from questionnaire_models import Occupation, QuestionnaireDefinition
+        from questionnaire_validation import validate_definition_scope
+
+        occupation = Occupation(
+            occupation_code="designer",
+            name="Designer",
+            category="creative",
+            sort_order=0,
+            enabled=True,
+            new_occupation_policy="use_general",
+        )
+        for scope_type, scope_key, user_type in (
+            ("general", "general", None),
+            ("user_type", "user_type:student", "student"),
+        ):
+            definition = QuestionnaireDefinition(
+                definition_code=f"{scope_type}_transient_relation",
+                name="Invalid relation",
+                scope_type=scope_type,
+                scope_key=scope_key,
+                user_type=user_type,
+                created_by_user_id=1,
+                occupation=occupation,
+            )
+            with self.subTest(scope_type=scope_type):
+                with self.assertRaises(ValueError):
+                    validate_definition_scope(definition)
+
+    def test_definition_scope_rejects_occupation_relation_and_id_mismatch(self) -> None:
+        from questionnaire_models import Occupation, QuestionnaireDefinition
+        from questionnaire_validation import validate_definition_scope
+
+        occupation = Occupation(
+            id=2,
+            occupation_code="designer",
+            name="Designer",
+            category="creative",
+            sort_order=0,
+            enabled=True,
+            new_occupation_policy="use_general",
+        )
+        definition = QuestionnaireDefinition(
+            definition_code="mismatched_occupation",
+            name="Mismatched occupation",
+            scope_type="occupation",
+            scope_key="occupation:designer",
+            occupation_id=1,
+            created_by_user_id=1,
+            occupation=occupation,
+        )
+
+        with self.assertRaises(ValueError):
+            validate_definition_scope(definition)
+
+    def test_definition_scope_rejects_known_occupation_id_with_transient_relation(self) -> None:
+        from questionnaire_models import Occupation, QuestionnaireDefinition
+        from questionnaire_validation import validate_definition_scope
+
+        occupation = Occupation(
+            occupation_code="designer",
+            name="Designer",
+            category="creative",
+            sort_order=0,
+            enabled=True,
+            new_occupation_policy="use_general",
+        )
+        definition = QuestionnaireDefinition(
+            definition_code="known_id_transient_relation",
+            name="Known id transient relation",
+            scope_type="occupation",
+            scope_key="occupation:designer",
+            occupation_id=1,
+            created_by_user_id=1,
+            occupation=occupation,
+        )
+
+        with self.assertRaises(ValueError):
+            validate_definition_scope(definition)
 
     def test_definition_scope_validation_accepts_all_four_scope_combinations(self) -> None:
         from questionnaire_models import QuestionnaireDefinition
@@ -495,6 +588,26 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
                 with self.subTest(overrides=overrides):
                     with self.assertRaises(ValueError):
                         validate_version_state(version, definition)
+
+    def test_validate_version_state_rejects_a_definition_from_another_version_scope(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_state
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "state-definition-creator")
+            version_definition = self._make_definition(session, creator)
+            other_definition = self._make_definition(
+                session,
+                creator,
+                definition_code="other_state_definition",
+                scope_key="other_state_scope",
+            )
+            version = QuestionnaireVersion(
+                **self._version_fields(version_definition, creator)
+            )
+
+            with self.assertRaises(ValueError):
+                validate_version_state(version, other_definition)
 
     def test_historical_published_version_with_null_effective_key_is_valid(self) -> None:
         from questionnaire_models import QuestionnaireVersion

@@ -50,14 +50,22 @@ def build_scope_key(
             raise ValueError("general scope cannot include occupation or user type")
         return "general"
     if scope_type == "occupation":
-        if not occupation_code or user_type is not None:
+        if (
+            not isinstance(occupation_code, str)
+            or not _OCCUPATION_CODE_RE.fullmatch(occupation_code)
+            or user_type is not None
+        ):
             raise ValueError("occupation scope requires only occupation_code")
         return f"occupation:{occupation_code}"
     if scope_type == "user_type":
         if occupation_code is not None or user_type not in USER_TYPES:
             raise ValueError("user_type scope requires a supported user type")
         return f"user_type:{user_type}"
-    if not occupation_code or user_type not in USER_TYPES:
+    if (
+        not isinstance(occupation_code, str)
+        or not _OCCUPATION_CODE_RE.fullmatch(occupation_code)
+        or user_type not in USER_TYPES
+    ):
         raise ValueError("occupation_user_type scope requires both stable values")
     return f"occupation:{occupation_code}:user_type:{user_type}"
 
@@ -65,11 +73,21 @@ def build_scope_key(
 def validate_definition_scope(definition: "QuestionnaireDefinition") -> None:
     """Ensure the stored definition scope matches its supported dimensions."""
     occupation_code: str | None = None
+    occupation = definition.occupation
     if definition.scope_type in {"occupation", "occupation_user_type"}:
-        if definition.occupation_id is None or definition.occupation is None:
+        if occupation is None:
             raise ValueError("occupation scope requires an occupation")
-        occupation_code = definition.occupation.occupation_code
-    elif definition.occupation_id is not None:
+        occupation_record_id = occupation.id
+        if (
+            definition.occupation_id is not None
+            and (
+                occupation_record_id is None
+                or definition.occupation_id != occupation_record_id
+            )
+        ):
+            raise ValueError("occupation relationship must match occupation_id")
+        occupation_code = occupation.occupation_code
+    elif definition.occupation_id is not None or occupation is not None:
         raise ValueError("this scope cannot include an occupation")
 
     expected_scope_key = build_scope_key(
@@ -86,6 +104,20 @@ def validate_version_state(
     definition: "QuestionnaireDefinition",
 ) -> None:
     """Validate the explicit current-effective state representation."""
+    version_definition_id = version.definition_id
+    if version_definition_id is None and version.definition is not None:
+        version_definition_id = version.definition.id
+    definition_id = definition.id
+    if (version_definition_id is not None or definition_id is not None) and (
+        version_definition_id != definition_id
+    ):
+        raise ValueError("version must be validated against its own definition")
+    if (
+        version_definition_id is None
+        and definition_id is None
+        and version.definition is not definition
+    ):
+        raise ValueError("version must be validated against its own definition")
     if not isinstance(version.version_number, int) or version.version_number < 1:
         raise ValueError("version_number must be at least one")
     if version.status not in QUESTIONNAIRE_VERSION_STATUSES:
