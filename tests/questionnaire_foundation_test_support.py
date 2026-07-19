@@ -118,6 +118,7 @@ class FakeConnection:
 def make_sqlite_app() -> Flask:
     """Create the shared SQLite app used by foundation model tests."""
     from models import db
+    import questionnaire_models  # noqa: F401  Register models on the shared metadata.
 
     app = Flask(__name__)
     app.config["TESTING"] = True
@@ -145,8 +146,6 @@ def sqlite_session(app: Flask) -> Iterator[Any]:
     from models import db
 
     with app.app_context():
-        import questionnaire_models  # noqa: F401  Register the models on db.metadata.
-
         db.create_all()
         try:
             yield db.session

@@ -20,6 +20,13 @@ class OccupationFoundationTests(QuestionnaireFoundationTestCase):
     def setUp(self) -> None:
         self.app = make_sqlite_app()
 
+    def test_make_sqlite_app_registers_questionnaire_models_before_a_session_is_requested(self) -> None:
+        from models import db
+
+        make_sqlite_app()
+
+        self.assertIn("occupations", db.metadata.tables)
+
     def test_occupation_uses_the_existing_global_models_db(self) -> None:
         from models import db
         from questionnaire_models import Occupation
