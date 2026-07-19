@@ -84,54 +84,73 @@ def setup_logging(app):
     """
     import logging.handlers
 
-    # 创建日志目录
-    log_dir = os.path.join(os.path.dirname(__file__), 'logs')
-    os.makedirs(log_dir, exist_ok=True)
-
     # 设置日志格式
     formatter = logging.Formatter(
         '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # 文件处理器（按天轮转，保留 30 天）
-    file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=os.path.join(log_dir, 'app.log'),
-        when='midnight',
-        interval=1,
-        backupCount=30,
-        encoding='utf-8'
-    )
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-
-    # 错误日志单独记录
-    error_handler = logging.handlers.TimedRotatingFileHandler(
-        filename=os.path.join(log_dir, 'error.log'),
-        when='midnight',
-        interval=1,
-        backupCount=30,
-        encoding='utf-8'
-    )
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(formatter)
-
     # 控制台处理器
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
 
+    log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    file_handlers = []
+
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+
+        file_handler = logging.handlers.TimedRotatingFileHandler(
+            filename=os.path.join(log_dir, 'app.log'),
+            when='midnight',
+            interval=1,
+            backupCount=30,
+            encoding='utf-8'
+        )
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(formatter)
+        file_handlers.append(file_handler)
+
+        error_handler = logging.handlers.TimedRotatingFileHandler(
+            filename=os.path.join(log_dir, 'error.log'),
+            when='midnight',
+            interval=1,
+            backupCount=30,
+            encoding='utf-8'
+        )
+        error_handler.setLevel(logging.ERROR)
+        error_handler.setFormatter(formatter)
+        file_handlers.append(error_handler)
+    except OSError as exc:
+        for handler in file_handlers:
+            handler.close()
+        file_handlers = []
+        console_handler.handle(logging.LogRecord(
+            name='logging',
+            level=logging.WARNING,
+            pathname='',
+            lineno=0,
+            msg=(
+                'File logging unavailable; using console logging '
+                f'({type(exc).__name__}).'
+            ),
+            args=(),
+            exc_info=None,
+        ))
+
     # 清除默认处理器并添加自定义处理器
     app.logger.handlers.clear()
-    app.logger.addHandler(file_handler)
-    app.logger.addHandler(error_handler)
+    for handler in file_handlers:
+        app.logger.addHandler(handler)
     app.logger.addHandler(console_handler)
     app.logger.setLevel(logging.DEBUG)
 
     # 同时配置 Werkzeug 的日志
     werkzeug_logger = logging.getLogger('werkzeug')
     werkzeug_logger.handlers.clear()
-    werkzeug_logger.addHandler(file_handler)
+    for handler in file_handlers:
+        werkzeug_logger.addHandler(handler)
     werkzeug_logger.addHandler(console_handler)
 
     app.logger.info('✅ 日志系统初始化完成')
