@@ -119,7 +119,7 @@ def _existing_target_tables(cursor, target_tables: tuple[str, ...]) -> tuple[str
         "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" + placeholders + ")",
         target_tables,
     )
-    return tuple(row["TABLE_NAME"] if isinstance(row, dict) else row[1] for row in cursor.fetchall())
+    return tuple(_row_value(row, "TABLE_NAME") for row in cursor.fetchall())
 
 
 def _external_references(cursor, target_tables: tuple[str, ...]) -> tuple[str, ...]:
@@ -133,7 +133,7 @@ def _external_references(cursor, target_tables: tuple[str, ...]) -> tuple[str, .
         "AND NOT (TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" + excluded_placeholders + "))",
         (*target_tables, *excluded_tables),
     )
-    return tuple(_row_value(row, "TABLE_NAME") for row in cursor.fetchall())
+    return tuple(row["TABLE_NAME"] if isinstance(row, dict) else row[1] for row in cursor.fetchall())
 
 
 def _execute_sql(cursor, sql: str) -> None:

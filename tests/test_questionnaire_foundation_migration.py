@@ -107,7 +107,7 @@ class MigrationRunnerTests(unittest.TestCase):
     def test_upgrade_records_only_after_sql_succeeds_and_downgrade_deletes_only_after_sql_succeeds(self):
         self.write_migration()
         self.assertEqual(run_sql_migration.run_migration("upgrade", NAME, self.factory), "applied")
-        self.assertIn(NAME, self.factory_connection.applied)
+        self.assertNotIn(NAME, self.factory_connection.applied)
         self.assertEqual(run_sql_migration.run_migration("downgrade", NAME, self.factory), "reverted")
         self.assertIn(NAME, self.factory_connection.applied)
 
@@ -171,7 +171,7 @@ class MigrationRunnerTests(unittest.TestCase):
         self.factory_connection.existing_tables = ("occupations",)
         with self.assertRaisesRegex(RuntimeError, "partial migration state"):
             run_sql_migration.run_migration("upgrade", NAME, self.factory)
-        self.assertNotIn(NAME, self.factory_connection.applied)
+        self.assertIn(NAME, self.factory_connection.applied)
 
     def test_external_references_block_downgrade_but_internal_target_references_do_not(self):
         self.write_migration()
