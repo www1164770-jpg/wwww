@@ -1527,7 +1527,71 @@ class QuestionnaireConditionModelTests(QuestionOptionModelTests):
         with self.assertRaises(ValueError):
             validate_condition(source, target, option, "equals")
 
-    def test_validate_condition_graph_accepts_a_coherent_transient_option_relationship(self) -> None:
+    def test_validate_condition_rejects_transient_relationships_with_nonempty_foreign_keys(self) -> None:
+        from questionnaire_models import (
+            QuestionnaireOption,
+            QuestionnaireQuestion,
+            QuestionnaireVersion,
+        )
+        from questionnaire_validation import validate_condition
+
+        transient_version = QuestionnaireVersion(version_number=1, status="draft")
+        source = QuestionnaireQuestion(
+            id=1,
+            version_id=1,
+            version=transient_version,
+            question_code="source",
+            title="Source",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        target = QuestionnaireQuestion(
+            id=2,
+            version_id=1,
+            question_code="target",
+            title="Target",
+            question_type="short_text",
+            sort_order=2,
+            max_length=1,
+        )
+        valid_option = QuestionnaireOption(
+            id=1,
+            question_id=source.id,
+            question=source,
+            option_value="yes",
+            label="Yes",
+            sort_order=1,
+            enabled=True,
+        )
+        transient_question = QuestionnaireQuestion(
+            question_code="transient_source",
+            title="Transient source",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        transient_option = QuestionnaireOption(
+            id=2,
+            question_id=source.id,
+            question=transient_question,
+            option_value="transient",
+            label="Transient",
+            sort_order=1,
+            enabled=True,
+        )
+
+        with self.assertRaisesRegex(ValueError, "source question version"):
+            validate_condition(source, target, valid_option, "equals")
+
+        source.version = None
+        target.version = transient_version
+        with self.assertRaisesRegex(ValueError, "target question version"):
+            validate_condition(source, target, valid_option, "equals")
+
+        target.version = None
+        with self.assertRaisesRegex(ValueError, "condition option question"):
+            validate_condition(source, target, transient_option, "equals")
+
+    def test_validate_condition_graph_accepts_a_coherent_transient_relationship_graph(self) -> None:
         from questionnaire_models import (
             QuestionnaireCondition,
             QuestionnaireOption,
@@ -1553,7 +1617,6 @@ class QuestionnaireConditionModelTests(QuestionOptionModelTests):
             max_length=1,
         )
         option = QuestionnaireOption(
-            question_id=1,
             question=source,
             option_value="yes",
             label="Yes",
@@ -1569,6 +1632,63 @@ class QuestionnaireConditionModelTests(QuestionOptionModelTests):
         )
 
         self.assertIsNone(validate_condition_graph((source, target), (condition,)))
+
+    def test_validate_condition_graph_rejects_an_expected_option_key_conflict(self) -> None:
+        from questionnaire_models import (
+            QuestionnaireCondition,
+            QuestionnaireOption,
+            QuestionnaireQuestion,
+        )
+        from questionnaire_validation import validate_condition_graph
+
+        source = QuestionnaireQuestion(
+            id=1,
+            version_id=1,
+            question_code="source",
+            title="Source",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        target = QuestionnaireQuestion(
+            id=2,
+            version_id=1,
+            question_code="target",
+            title="Target",
+            question_type="short_text",
+            sort_order=2,
+            max_length=1,
+        )
+        option = QuestionnaireOption(
+            id=1,
+            question_id=source.id,
+            question=source,
+            option_value="yes",
+            label="Yes",
+            sort_order=1,
+            enabled=True,
+        )
+        conflicting_option = QuestionnaireOption(
+            id=2,
+            question_id=source.id,
+            question=source,
+            option_value="no",
+            label="No",
+            sort_order=2,
+            enabled=True,
+        )
+        condition = QuestionnaireCondition(
+            version_id=1,
+            source_question_id=source.id,
+            source_question=source,
+            target_question_id=target.id,
+            target_question=target,
+            expected_option_id=conflicting_option.id,
+            expected_option=option,
+            operator="equals",
+        )
+
+        with self.assertRaisesRegex(ValueError, "condition expected option"):
+            validate_condition_graph((source, target), (condition,))
 
     def test_validate_condition_rejects_backward_or_self_references(self) -> None:
         from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion

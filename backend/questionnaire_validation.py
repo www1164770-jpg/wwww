@@ -345,8 +345,6 @@ def _validate_relationship_key(
     id_attribute: str,
     relationship_attribute: str,
     relationship_name: str,
-    *,
-    allow_transient_related: bool = False,
 ) -> None:
     foreign_key_id = getattr(record, id_attribute)
     related = getattr(record, relationship_attribute)
@@ -354,7 +352,7 @@ def _validate_relationship_key(
         foreign_key_id is not None
         and related is not None
         and (
-            (related.id is None and not allow_transient_related)
+            related.id is None
             or (related.id is not None and foreign_key_id != related.id)
         )
     ):
@@ -373,21 +371,18 @@ def validate_condition(
         "version_id",
         "version",
         "source question version",
-        allow_transient_related=True,
     )
     _validate_relationship_key(
         target,
         "version_id",
         "version",
         "target question version",
-        allow_transient_related=True,
     )
     _validate_relationship_key(
         expected_option,
         "question_id",
         "question",
         "condition option question",
-        allow_transient_related=True,
     )
     source_version_id = _related_id(source, "version_id", "version")
     target_version_id = _related_id(target, "version_id", "version")
