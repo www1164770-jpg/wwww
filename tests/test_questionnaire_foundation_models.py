@@ -14,6 +14,7 @@ from tests.questionnaire_foundation_test_support import (
     QuestionnaireFoundationTestCase,
     add_occupation,
     make_sqlite_app,
+    dispose_sqlite_app,
     sqlite_session,
 )
 
@@ -22,10 +23,11 @@ class OccupationFoundationTests(QuestionnaireFoundationTestCase):
     def setUp(self) -> None:
         self.app = make_sqlite_app()
 
+    def tearDown(self) -> None:
+        dispose_sqlite_app(self.app)
+
     def test_make_sqlite_app_registers_questionnaire_models_before_a_session_is_requested(self) -> None:
         from models import db
-
-        make_sqlite_app()
 
         self.assertIn("occupations", db.metadata.tables)
 
@@ -194,6 +196,9 @@ class OccupationFoundationTests(QuestionnaireFoundationTestCase):
 class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
     def setUp(self) -> None:
         self.app = make_sqlite_app()
+
+    def tearDown(self) -> None:
+        dispose_sqlite_app(self.app)
 
     def _add_user(self, session, username: str):
         from models import User

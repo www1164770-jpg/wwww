@@ -8,7 +8,7 @@ import sys
 from typing import Any, Iterator
 import unittest
 
-from flask import Flask
+from flask import Flask, current_app, has_app_context
 from flask_jwt_extended import JWTManager, create_access_token
 from sqlalchemy import event
 from sqlalchemy.pool import StaticPool
@@ -143,6 +143,32 @@ def make_sqlite_app() -> Flask:
     return app
 
 
+def dispose_sqlite_app(app: Flask, *, drop_schema: bool = False) -> None:
+    """Release a foundation test app's session, optional schema, and engine."""
+    from models import db
+
+    @contextmanager
+    def cleanup() -> Iterator[None]:
+        try:
+            db.session.rollback()
+        finally:
+            db.session.remove()
+            try:
+                if drop_schema:
+                    db.drop_all()
+            finally:
+                db.engine.dispose()
+
+        yield
+
+    if has_app_context() and current_app._get_current_object() is app:
+        with cleanup():
+            return
+    with app.app_context():
+        with cleanup():
+            return
+
+
 @contextmanager
 def sqlite_session(app: Flask) -> Iterator[Any]:
     """Provide an isolated SQLite ORM session for one foundation test."""
@@ -153,10 +179,7 @@ def sqlite_session(app: Flask) -> Iterator[Any]:
         try:
             yield db.session
         finally:
-            db.session.rollback()
-            db.session.remove()
-            db.drop_all()
-            db.engine.dispose()
+            dispose_sqlite_app(app, drop_schema=True)
 
 
 def add_occupation(session: Any, **fields: Any) -> Any:

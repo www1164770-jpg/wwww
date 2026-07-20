@@ -3,6 +3,8 @@ import io
 import sys
 import tempfile
 import unittest
+import gc
+import warnings
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +15,7 @@ from tests.questionnaire_foundation_test_support import (
     QuestionnaireFoundationTestCase,
     make_jwt_headers,
     make_sqlite_app,
+    dispose_sqlite_app,
 )
 
 from backend.scripts import run_sql_migration
@@ -236,12 +239,27 @@ class MigrationCliTests(unittest.TestCase):
 
 
 class ModelFreeSupportTests(unittest.TestCase):
+    def test_dispose_sqlite_app_closes_open_sqlite_connections(self):
+        from models import db
+        app = make_sqlite_app()
+        with app.app_context():
+            db.session.execute(text("PRAGMA foreign_keys")).scalar_one()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", ResourceWarning)
+            dispose_sqlite_app(app)
+            del app
+            gc.collect()
+        self.assertFalse(any("unclosed database" in str(item.message) for item in caught))
     def test_foundation_base_test_case_is_a_unittest_test_case(self):
         self.assertTrue(issubclass(QuestionnaireFoundationTestCase, unittest.TestCase))
 
     def test_sqlite_factory_initializes_jwt_for_model_free_headers(self):
-        headers = make_jwt_headers(make_sqlite_app(), "questionnaire-admin")
-        self.assertTrue(headers["Authorization"].startswith("Bearer "))
+        app = make_sqlite_app()
+        try:
+            headers = make_jwt_headers(app, "questionnaire-admin")
+            self.assertTrue(headers["Authorization"].startswith("Bearer "))
+        finally:
+            dispose_sqlite_app(app)
 
     def test_sqlite_factory_uses_static_pool_and_enables_foreign_keys(self):
         app = make_sqlite_app()
@@ -251,8 +269,7 @@ class ModelFreeSupportTests(unittest.TestCase):
                 from models import db
                 self.assertEqual(db.session.execute(text("PRAGMA foreign_keys")).scalar_one(), 1)
         finally:
-            with app.app_context():
-                db.session.rollback(); db.session.remove(); db.engine.dispose()
+            dispose_sqlite_app(app)
 
 
 if __name__ == "__main__":
