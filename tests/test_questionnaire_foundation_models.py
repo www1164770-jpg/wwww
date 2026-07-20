@@ -1003,7 +1003,7 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
                     validate_option(QuestionnaireOption(**fields))
 
     def test_required_multiple_choice_requires_a_positive_minimum_and_optional_allows_zero(self) -> None:
-        from questionnaire_models import QuestionnaireQuestion
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
         from questionnaire_validation import validate_question
 
         version = self._add_transient_version()
@@ -1019,6 +1019,20 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
             )
             with self.subTest(required=required, minimum=minimum):
                 if valid:
+                    question.options.extend((
+                        QuestionnaireOption(
+                            option_value="first",
+                            label="First",
+                            sort_order=1,
+                            enabled=True,
+                        ),
+                        QuestionnaireOption(
+                            option_value="second",
+                            label="Second",
+                            sort_order=2,
+                            enabled=True,
+                        ),
+                    ))
                     self.assertIsNone(validate_question(question))
                 else:
                     with self.assertRaises(ValueError):
@@ -1106,6 +1120,65 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
         enabled_option = QuestionnaireOption(option_value="enabled", label="Enabled", sort_order=2, enabled=True)
         self.assertIsNone(validate_question(question, (enabled_option,)))
 
+    def test_validate_question_defaults_to_its_relationship_options(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_question
+
+        version = self._add_transient_version()
+        choice = QuestionnaireQuestion(
+            **self._question_fields(
+                version,
+                question_type="single_choice",
+                min_selections=None,
+                max_selections=None,
+            )
+        )
+        with self.assertRaises(ValueError):
+            validate_question(choice)
+        choice.options.append(
+            QuestionnaireOption(
+                option_value="enabled",
+                label="Enabled",
+                sort_order=1,
+                enabled=True,
+            )
+        )
+        self.assertIsNone(validate_question(choice))
+
+        short_text = QuestionnaireQuestion(
+            **self._question_fields(
+                version,
+                question_type="short_text",
+                min_selections=None,
+                max_selections=None,
+                max_length=200,
+            )
+        )
+        short_text.options.append(
+            QuestionnaireOption(
+                option_value="invalid",
+                label="Invalid",
+                sort_order=1,
+                enabled=True,
+            )
+        )
+        with self.assertRaises(ValueError):
+            validate_question(short_text)
+
+        multiple = QuestionnaireQuestion(
+            **self._question_fields(version, max_selections=2)
+        )
+        multiple.options.append(
+            QuestionnaireOption(
+                option_value="only_option",
+                label="Only option",
+                sort_order=1,
+                enabled=True,
+            )
+        )
+        with self.assertRaises(ValueError):
+            validate_question(multiple)
+
     def test_display_text_changes_do_not_change_stable_question_or_option_keys(self) -> None:
         from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
         from questionnaire_validation import validate_option, validate_question
@@ -1117,6 +1190,15 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
         option.label = "Visual design tools"
         self.assertEqual(question.question_code, "favorite_tools")
         self.assertEqual(option.option_value, "design")
+        question.options.extend((
+            option,
+            QuestionnaireOption(
+                option_value="develop",
+                label="Development tools",
+                sort_order=2,
+                enabled=True,
+            ),
+        ))
         self.assertIsNone(validate_question(question))
         self.assertIsNone(validate_option(option))
 

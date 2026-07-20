@@ -270,8 +270,9 @@ def validate_question(
         if not isinstance(question.max_length, int) or isinstance(question.max_length, bool) or question.max_length <= 0:
             raise ValueError("short_text requires a positive max_length")
 
-    if options is not None:
-        validate_question_options(question, options)
+    if options is None:
+        options = question.options
+    validate_question_options(question, options)
 
 
 def _validate_multiple_choice_limits(question: "QuestionnaireQuestion") -> None:
