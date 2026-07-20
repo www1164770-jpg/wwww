@@ -298,6 +298,28 @@ class MySqlTestConfigurationTests(unittest.TestCase):
     def test_missing_test_database_configuration_skips_integration_work(self):
         self.assertIsNone(_mysql_test_config({}))
 
+    def test_mysql_setup_removes_interrupted_cleanup_objects_in_safe_order(self):
+        instance = object.__new__(MySqlFoundationMigrationIntegrationTests)
+        events = []
+        with patch.object(
+            MySqlFoundationMigrationIntegrationTests,
+            "_execute",
+            side_effect=events.append,
+        ), patch.object(
+            MySqlFoundationMigrationIntegrationTests,
+            "_remove_test_schema",
+            side_effect=lambda: events.append("_remove_test_schema"),
+        ):
+            instance.setUp()
+        self.assertEqual(
+            events,
+            [
+                "DROP TABLE IF EXISTS questionnaire_migration_external_reference",
+                "_remove_test_schema",
+                "DROP TABLE IF EXISTS questionnaire_migration_legacy_guard",
+            ],
+        )
+
     def test_only_explicit_questionnaire_test_database_names_are_accepted(self):
         base = {
             "QUESTIONNAIRE_TEST_DB_HOST": "127.0.0.1",
@@ -402,8 +424,8 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
         run_sql_migration.run_migration("downgrade", NAME, self.connection_factory)
 
     def setUp(self):
-        self._remove_test_schema()
         self._execute("DROP TABLE IF EXISTS questionnaire_migration_external_reference")
+        self._remove_test_schema()
         self._execute("DROP TABLE IF EXISTS questionnaire_migration_legacy_guard")
 
     def tearDown(self):
