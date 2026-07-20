@@ -153,7 +153,13 @@ def validate_version_source(
 ) -> None:
     """Ensure a copied version references another version of its definition."""
     if source_version is None:
+        if version.source_version_id is not None:
+            raise ValueError("source_version_id requires a source version")
         return
+    if version.source_version_id is not None and source_version.id != version.source_version_id:
+        raise ValueError("source relationship must match source_version_id")
+    if version.source_version_id is not None and version.id == version.source_version_id:
+        raise ValueError("a version cannot source itself")
     if source_version is version or (
         version.id is not None and source_version.id == version.id
     ):

@@ -13,9 +13,9 @@ class Occupation(db.Model):
     __tablename__ = "occupations"
 
     id = db.Column(db.Integer, primary_key=True)
-    occupation_code = db.Column(db.String(96), nullable=False, unique=True)
-    name = db.Column(db.String(160), nullable=False, unique=True)
-    category = db.Column(db.String(96), nullable=False)
+    occupation_code = db.Column(db.String(64), nullable=False, unique=True)
+    name = db.Column(db.String(120), nullable=False, unique=True)
+    category = db.Column(db.String(120), nullable=True)
     sort_order = db.Column(db.Integer, nullable=False, default=0)
     enabled = db.Column(db.Boolean, nullable=False, default=True)
     new_occupation_policy = db.Column(
@@ -76,6 +76,7 @@ class QuestionnaireDefinition(db.Model):
         "QuestionnaireVersion",
         foreign_keys="QuestionnaireVersion.definition_id",
         back_populates="definition",
+        order_by="QuestionnaireVersion.version_number",
     )
 
 

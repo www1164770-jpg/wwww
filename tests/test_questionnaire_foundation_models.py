@@ -36,6 +36,22 @@ class OccupationFoundationTests(QuestionnaireFoundationTestCase):
         self.assertIs(Occupation.metadata, db.metadata)
         self.assertFalse(hasattr(__import__("questionnaire_models"), "Base"))
 
+    def test_foundation_constants_and_occupation_columns_match_contract(self) -> None:
+        from questionnaire_constants import (
+            NEW_OCCUPATION_POLICIES, QUESTIONNAIRE_SCOPE_TYPES,
+            QUESTIONNAIRE_VERSION_STATUSES, USER_TYPES,
+        )
+        from questionnaire_models import Occupation
+
+        self.assertEqual(NEW_OCCUPATION_POLICIES, frozenset({"use_general", "closed"}))
+        self.assertEqual(QUESTIONNAIRE_SCOPE_TYPES, frozenset({"general", "occupation", "user_type", "occupation_user_type"}))
+        self.assertEqual(USER_TYPES, frozenset({"student", "employed", "organization"}))
+        self.assertEqual(QUESTIONNAIRE_VERSION_STATUSES, frozenset({"draft", "published", "disabled", "archived"}))
+        self.assertEqual(Occupation.__table__.c.occupation_code.type.length, 64)
+        self.assertEqual(Occupation.__table__.c.name.type.length, 120)
+        self.assertEqual(Occupation.__table__.c.category.type.length, 120)
+        self.assertTrue(Occupation.__table__.c.category.nullable)
+
     def test_occupation_supports_keyword_construction_and_shared_sqlite_lifecycle(self) -> None:
         from questionnaire_models import Occupation
 
@@ -252,6 +268,10 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
         )
         self.assertFalse(hasattr(QuestionnaireVersion, "questions"))
         self.assertFalse(hasattr(QuestionnaireVersion, "is_current_effective"))
+        self.assertEqual(
+            tuple(QuestionnaireDefinition.versions.property.order_by),
+            (QuestionnaireVersion.version_number,),
+        )
 
     def test_definition_scope_keys_use_stable_occupation_codes_for_all_scope_types(self) -> None:
         from questionnaire_validation import build_scope_key
@@ -685,6 +705,28 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
                 validate_version_source(version, version)
             with self.assertRaises(ValueError):
                 validate_version_source(version, other_version)
+
+    def test_source_id_without_source_record_is_rejected(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_source
+        version = QuestionnaireVersion(id=7, definition_id=1, source_version_id=6, version_number=2, status="draft", created_by_user_id=1)
+        with self.assertRaises(ValueError):
+            validate_version_source(version, None)
+
+    def test_source_id_cannot_reference_the_same_version(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_source
+        version = QuestionnaireVersion(id=7, definition_id=1, source_version_id=7, version_number=2, status="draft", created_by_user_id=1)
+        with self.assertRaises(ValueError):
+            validate_version_source(version, None)
+
+    def test_source_relationship_must_match_source_version_id(self) -> None:
+        from questionnaire_models import QuestionnaireVersion
+        from questionnaire_validation import validate_version_source
+        version = QuestionnaireVersion(definition_id=1, source_version_id=2, version_number=3, status="draft", created_by_user_id=1)
+        source = QuestionnaireVersion(id=3, definition_id=1, version_number=2, status="draft", created_by_user_id=1)
+        with self.assertRaises(ValueError):
+            validate_version_source(version, source)
 
     def test_validate_version_source_rejects_distinct_transient_definitions(self) -> None:
         from questionnaire_models import QuestionnaireDefinition, QuestionnaireVersion
