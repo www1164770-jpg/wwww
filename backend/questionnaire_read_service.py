@@ -135,7 +135,12 @@ def _serialize_question(question: QuestionnaireQuestion) -> dict:
         "min_selections": question.min_selections,
         "max_selections": question.max_selections,
         "max_length": question.max_length,
-        "option_values": [_serialize_option(option) for option in question.options],
+        "option_values": [
+            _serialize_option(option)
+            for option in sorted(
+                question.options, key=lambda option: (option.sort_order, option.option_value)
+            )
+        ],
         "condition": (
             _serialize_condition(question.target_condition)
             if question.target_condition is not None
@@ -283,7 +288,13 @@ def get_version_snapshot(session: Session, version_id: int) -> dict | None:
                 if definition.occupation is not None
                 else None
             ),
-            "questions": [_serialize_question(question) for question in version.questions],
+            "questions": [
+                _serialize_question(question)
+                for question in sorted(
+                    version.questions,
+                    key=lambda question: (question.sort_order, question.question_code),
+                )
+            ],
         }
     )
     return snapshot

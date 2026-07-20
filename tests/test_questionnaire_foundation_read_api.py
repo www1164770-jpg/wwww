@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from types import SimpleNamespace
 import unittest
 
 from tests.questionnaire_foundation_test_support import (
@@ -296,6 +297,147 @@ class QuestionnaireReadServiceTests(QuestionnaireFoundationTestCase):
                 "operator": "equals",
             },
         )
+
+    def test_get_version_snapshot_breaks_tied_sort_orders_by_stable_codes(self) -> None:
+        from questionnaire_read_service import get_version_snapshot
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "tied-sort-creator")
+            definition = self._add_definition(session, creator)
+            version = self._add_version(session, definition, creator)
+            second = add_question(
+                session,
+                version_id=version.id,
+                question_code="zebra",
+                title="Zebra question",
+                description=None,
+                question_type="single_choice",
+                required=False,
+                sort_order=1,
+                enabled=True,
+                is_general=False,
+                min_selections=None,
+                max_selections=None,
+                max_length=None,
+            )
+            add_option(
+                session,
+                question_id=second.id,
+                option_value="zebra",
+                label="Zebra option",
+                sort_order=1,
+                enabled=True,
+            )
+            add_option(
+                session,
+                question_id=second.id,
+                option_value="alpha",
+                label="Alpha option",
+                sort_order=1,
+                enabled=True,
+            )
+            add_question(
+                session,
+                version_id=version.id,
+                question_code="alpha",
+                title="Alpha question",
+                description=None,
+                question_type="short_text",
+                required=False,
+                sort_order=1,
+                enabled=True,
+                is_general=False,
+                min_selections=None,
+                max_selections=None,
+                max_length=None,
+            )
+
+            snapshot = get_version_snapshot(session, version.id)
+
+        self.assertEqual(
+            [question["question_code"] for question in snapshot["questions"]],
+            ["alpha", "zebra"],
+        )
+        self.assertEqual(
+            [option["option_value"] for option in snapshot["questions"][1]["option_values"]],
+            ["alpha", "zebra"],
+        )
+
+    def test_snapshot_serialization_sorts_tied_relationship_collections_by_code(self) -> None:
+        from questionnaire_read_service import get_version_snapshot
+
+        def question(question_code: str, options: list[object]) -> object:
+            return SimpleNamespace(
+                id=1,
+                question_code=question_code,
+                title=question_code,
+                description=None,
+                question_type="single_choice",
+                required=False,
+                sort_order=1,
+                enabled=True,
+                is_general=False,
+                min_selections=None,
+                max_selections=None,
+                max_length=None,
+                options=options,
+                target_condition=None,
+            )
+
+        def option(option_value: str) -> object:
+            return SimpleNamespace(
+                id=1,
+                option_value=option_value,
+                label=option_value,
+                sort_order=1,
+                enabled=True,
+            )
+
+        version = SimpleNamespace(
+            id=1,
+            definition_id=1,
+            version_number=1,
+            status="draft",
+            current_effective_scope_key=None,
+            source_version_id=None,
+            version_description=None,
+            created_by_user_id=1,
+            published_by_user_id=None,
+            published_at=None,
+            definition=SimpleNamespace(
+                definition_code="general_profile",
+                name="General profile",
+                scope_key="general",
+                occupation=None,
+            ),
+            questions=[
+                question("zebra", [option("zebra"), option("alpha")]),
+                question("alpha", []),
+            ],
+        )
+
+        snapshot = get_version_snapshot(SimpleNamespace(scalar=lambda _: version), 1)
+
+        self.assertEqual(
+            [item["question_code"] for item in snapshot["questions"]],
+            ["alpha", "zebra"],
+        )
+        self.assertEqual(
+            [item["option_value"] for item in snapshot["questions"][1]["option_values"]],
+            ["alpha", "zebra"],
+        )
+
+    def test_malformed_condition_snapshot_raises_value_error(self) -> None:
+        from questionnaire_read_service import _serialize_condition
+
+        malformed = SimpleNamespace(
+            source_question=None,
+            target_question=SimpleNamespace(question_code="target"),
+            expected_option=SimpleNamespace(option_value="yes"),
+        )
+
+        with self.assertRaisesRegex(ValueError, "missing relationships"):
+            _serialize_condition(malformed)
 
     def test_get_version_snapshot_returns_none_for_a_missing_version(self) -> None:
         from questionnaire_read_service import get_version_snapshot
