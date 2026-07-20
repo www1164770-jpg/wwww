@@ -1215,5 +1215,290 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
         )
 
 
+class QuestionnaireConditionModelTests(QuestionOptionModelTests):
+    """Task 5 condition relationships and validation rules."""
+
+    def _condition_question_fields(self, version, **overrides):
+        fields = {
+            "version_id": version.id,
+            "question_code": "source_question",
+            "title": "Source question",
+            "description": None,
+            "question_type": "single_choice",
+            "required": False,
+            "sort_order": 1,
+            "enabled": True,
+            "is_general": True,
+            "min_selections": None,
+            "max_selections": None,
+            "max_length": None,
+        }
+        fields.update(overrides)
+        return fields
+
+    def _add_condition_records(self, session):
+        from tests.questionnaire_foundation_test_support import add_option, add_question
+
+        version = self._add_version(session)
+        source = add_question(session, **self._condition_question_fields(version))
+        target = add_question(
+            session,
+            **self._condition_question_fields(
+                version,
+                question_code="target_question",
+                title="Target question",
+                question_type="short_text",
+                sort_order=2,
+                max_length=200,
+            ),
+        )
+        expected_option = add_option(
+            session,
+            **self._option_fields(source, option_value="approved", label="Approved"),
+        )
+        return version, source, target, expected_option
+
+    def test_condition_contract_uses_stable_operator_values_and_restrict_foreign_keys(self) -> None:
+        from questionnaire_constants import CONDITION_OPERATORS
+        from questionnaire_models import QuestionnaireCondition
+
+        self.assertEqual(CONDITION_OPERATORS, frozenset({"equals", "contains"}))
+        self.assertEqual(QuestionnaireCondition.__table__.c.operator.type.length, 16)
+        self.assertEqual(
+            {foreign_key.ondelete for column in (
+                QuestionnaireCondition.__table__.c.version_id,
+                QuestionnaireCondition.__table__.c.source_question_id,
+                QuestionnaireCondition.__table__.c.target_question_id,
+                QuestionnaireCondition.__table__.c.expected_option_id,
+            ) for foreign_key in column.foreign_keys},
+            {"RESTRICT"},
+        )
+
+    def test_condition_relationships_are_explicit_bidirectional_and_mappers_configure(self) -> None:
+        from questionnaire_models import (
+            QuestionnaireCondition,
+            QuestionnaireOption,
+            QuestionnaireQuestion,
+            QuestionnaireVersion,
+        )
+
+        configure_mappers()
+        self.assertIs(QuestionnaireCondition.version.property.mapper.class_, QuestionnaireVersion)
+        self.assertIs(QuestionnaireVersion.conditions.property.mapper.class_, QuestionnaireCondition)
+        self.assertIs(QuestionnaireCondition.source_question.property.mapper.class_, QuestionnaireQuestion)
+        self.assertIs(QuestionnaireQuestion.source_conditions.property.mapper.class_, QuestionnaireCondition)
+        self.assertIs(QuestionnaireCondition.target_question.property.mapper.class_, QuestionnaireQuestion)
+        self.assertIs(QuestionnaireQuestion.target_condition.property.mapper.class_, QuestionnaireCondition)
+        self.assertIs(QuestionnaireCondition.expected_option.property.mapper.class_, QuestionnaireOption)
+        self.assertIs(QuestionnaireOption.condition_references.property.mapper.class_, QuestionnaireCondition)
+        self.assertEqual(QuestionnaireQuestion.target_condition.property.uselist, False)
+        self.assertEqual(QuestionnaireCondition.source_question.property.back_populates, "source_conditions")
+        self.assertEqual(QuestionnaireCondition.target_question.property.back_populates, "target_condition")
+        self.assertEqual(QuestionnaireCondition.expected_option.property.back_populates, "condition_references")
+
+    def test_add_condition_persists_and_exposes_bidirectional_relationships(self) -> None:
+        from tests.questionnaire_foundation_test_support import add_condition
+
+        with sqlite_session(self.app) as session:
+            version, source, target, expected_option = self._add_condition_records(session)
+            condition = add_condition(
+                session,
+                version_id=version.id,
+                source_question_id=source.id,
+                target_question_id=target.id,
+                expected_option_id=expected_option.id,
+                operator="equals",
+            )
+
+            self.assertEqual(version.conditions, [condition])
+            self.assertEqual(source.source_conditions, [condition])
+            self.assertIs(target.target_condition, condition)
+            self.assertEqual(expected_option.condition_references, [condition])
+
+    def test_target_question_has_only_one_condition(self) -> None:
+        from questionnaire_models import QuestionnaireCondition
+
+        with sqlite_session(self.app) as session:
+            version, source, target, expected_option = self._add_condition_records(session)
+            session.add(
+                QuestionnaireCondition(
+                    version_id=version.id,
+                    source_question_id=source.id,
+                    target_question_id=target.id,
+                    expected_option_id=expected_option.id,
+                    operator="equals",
+                )
+            )
+            session.flush()
+            session.add(
+                QuestionnaireCondition(
+                    version_id=version.id,
+                    source_question_id=source.id,
+                    target_question_id=target.id,
+                    expected_option_id=expected_option.id,
+                    operator="equals",
+                )
+            )
+            with self.assertRaises(IntegrityError):
+                session.flush()
+
+    def test_validate_condition_rejects_cross_version_source_or_target(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion
+        from questionnaire_validation import validate_condition
+
+        source = QuestionnaireQuestion(id=1, version_id=1, question_code="source", title="Source", question_type="single_choice", sort_order=1)
+        target = QuestionnaireQuestion(id=2, version_id=2, question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1)
+        from questionnaire_models import QuestionnaireOption
+        option = QuestionnaireOption(id=1, question_id=source.id, option_value="yes", label="Yes", sort_order=1, enabled=True, question=source)
+
+        with self.assertRaises(ValueError):
+            validate_condition(source, target, option, "equals")
+
+    def test_validate_condition_rejects_distinct_transient_versions(self) -> None:
+        from questionnaire_models import (
+            QuestionnaireOption,
+            QuestionnaireQuestion,
+            QuestionnaireVersion,
+        )
+        from questionnaire_validation import validate_condition
+
+        left_version = QuestionnaireVersion(version_number=1, status="draft")
+        right_version = QuestionnaireVersion(version_number=1, status="draft")
+        source = QuestionnaireQuestion(version=left_version, question_code="source", title="Source", question_type="single_choice", sort_order=1)
+        target = QuestionnaireQuestion(version=right_version, question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1)
+        option = QuestionnaireOption(option_value="yes", label="Yes", sort_order=1, enabled=True, question=source)
+
+        with self.assertRaises(ValueError):
+            validate_condition(source, target, option, "equals")
+
+    def test_validate_condition_rejects_backward_or_self_references(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_condition
+
+        source = QuestionnaireQuestion(id=1, version_id=1, question_code="source", title="Source", question_type="single_choice", sort_order=2)
+        option = QuestionnaireOption(id=1, question_id=source.id, option_value="yes", label="Yes", sort_order=1, enabled=True, question=source)
+        backward = QuestionnaireQuestion(id=2, version_id=1, question_code="backward", title="Backward", question_type="short_text", sort_order=1, max_length=1)
+        with self.assertRaises(ValueError):
+            validate_condition(source, backward, option, "equals")
+        with self.assertRaises(ValueError):
+            validate_condition(source, source, option, "equals")
+
+    def test_validate_condition_rejects_option_from_another_question_or_disabled_option(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_condition
+
+        source = QuestionnaireQuestion(id=1, version_id=1, question_code="source", title="Source", question_type="single_choice", sort_order=1)
+        target = QuestionnaireQuestion(id=2, version_id=1, question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1)
+        other = QuestionnaireQuestion(id=3, version_id=1, question_code="other", title="Other", question_type="single_choice", sort_order=1)
+        foreign_option = QuestionnaireOption(id=1, question_id=other.id, option_value="yes", label="Yes", sort_order=1, enabled=True, question=other)
+        disabled_option = QuestionnaireOption(id=2, question_id=source.id, option_value="no", label="No", sort_order=2, enabled=False, question=source)
+        for option in (foreign_option, disabled_option):
+            with self.subTest(option=option.option_value):
+                with self.assertRaises(ValueError):
+                    validate_condition(source, target, option, "equals")
+
+    def test_validate_condition_accepts_only_matching_choice_operator_types(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_condition
+
+        target = QuestionnaireQuestion(id=3, version_id=1, question_code="target", title="Target", question_type="short_text", sort_order=3, max_length=1)
+        single = QuestionnaireQuestion(id=1, version_id=1, question_code="single", title="Single", question_type="single_choice", sort_order=1)
+        multiple = QuestionnaireQuestion(id=2, version_id=1, question_code="multiple", title="Multiple", question_type="multiple_choice", sort_order=2)
+        single_option = QuestionnaireOption(id=1, question_id=single.id, option_value="one", label="One", sort_order=1, enabled=True, question=single)
+        multiple_option = QuestionnaireOption(id=2, question_id=multiple.id, option_value="many", label="Many", sort_order=1, enabled=True, question=multiple)
+        self.assertIsNone(validate_condition(single, target, single_option, "equals"))
+        self.assertIsNone(validate_condition(multiple, target, multiple_option, "contains"))
+        for source, option, operator in (
+            (single, single_option, "contains"),
+            (multiple, multiple_option, "equals"),
+            (single, single_option, "unknown"),
+        ):
+            with self.subTest(operator=operator):
+                with self.assertRaises(ValueError):
+                    validate_condition(source, target, option, operator)
+
+    def test_validate_condition_graph_rejects_cross_version_conditions_and_cycles(self) -> None:
+        from questionnaire_models import QuestionnaireCondition, QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_condition_graph
+
+        questions = [
+            QuestionnaireQuestion(id=index, version_id=1, question_code=f"q{index}", title=f"Question {index}", question_type="single_choice", sort_order=index)
+            for index in range(1, 4)
+        ]
+        options = [
+            QuestionnaireOption(id=index, question_id=question.id, option_value=f"option_{index}", label=f"Option {index}", sort_order=1, enabled=True, question=question)
+            for index, question in enumerate(questions, start=1)
+        ]
+        cycle = [
+            QuestionnaireCondition(version_id=1, source_question_id=questions[0].id, target_question_id=questions[1].id, expected_option_id=options[0].id, operator="equals", source_question=questions[0], target_question=questions[1], expected_option=options[0]),
+            QuestionnaireCondition(version_id=1, source_question_id=questions[1].id, target_question_id=questions[2].id, expected_option_id=options[1].id, operator="equals", source_question=questions[1], target_question=questions[2], expected_option=options[1]),
+            QuestionnaireCondition(version_id=1, source_question_id=questions[2].id, target_question_id=questions[0].id, expected_option_id=options[2].id, operator="equals", source_question=questions[2], target_question=questions[0], expected_option=options[2]),
+        ]
+        with self.assertRaisesRegex(ValueError, "cycle"):
+            validate_condition_graph(questions, cycle)
+
+        cross_version = QuestionnaireCondition(
+            version_id=2,
+            source_question_id=questions[0].id,
+            target_question_id=questions[1].id,
+            expected_option_id=options[0].id,
+            operator="equals",
+            source_question=questions[0],
+            target_question=questions[1],
+            expected_option=options[0],
+        )
+        with self.assertRaises(ValueError):
+            validate_condition_graph(questions, (cross_version,))
+
+    def test_validate_condition_graph_rejects_duplicate_transient_targets(self) -> None:
+        from questionnaire_models import QuestionnaireCondition, QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_condition_graph
+
+        first_source = QuestionnaireQuestion(id=1, version_id=1, question_code="first", title="First", question_type="single_choice", sort_order=1)
+        second_source = QuestionnaireQuestion(id=2, version_id=1, question_code="second", title="Second", question_type="single_choice", sort_order=2)
+        target = QuestionnaireQuestion(id=3, version_id=1, question_code="target", title="Target", question_type="short_text", sort_order=3, max_length=1)
+        first_option = QuestionnaireOption(id=1, question_id=first_source.id, option_value="one", label="One", sort_order=1, enabled=True, question=first_source)
+        second_option = QuestionnaireOption(id=2, question_id=second_source.id, option_value="two", label="Two", sort_order=1, enabled=True, question=second_source)
+        conditions = (
+            QuestionnaireCondition(version_id=1, source_question=first_source, target_question=target, expected_option=first_option, operator="equals"),
+            QuestionnaireCondition(version_id=1, source_question=second_source, target_question=target, expected_option=second_option, operator="equals"),
+        )
+
+        with self.assertRaisesRegex(ValueError, "target"):
+            validate_condition_graph((first_source, second_source, target), conditions)
+
+    def test_validate_condition_graph_rejects_distinct_transient_condition_version(self) -> None:
+        from questionnaire_models import (
+            QuestionnaireCondition,
+            QuestionnaireOption,
+            QuestionnaireQuestion,
+            QuestionnaireVersion,
+        )
+        from questionnaire_validation import validate_condition_graph
+
+        question_version = QuestionnaireVersion(version_number=1, status="draft")
+        condition_version = QuestionnaireVersion(version_number=1, status="draft")
+        source = QuestionnaireQuestion(version=question_version, question_code="source", title="Source", question_type="single_choice", sort_order=1)
+        target = QuestionnaireQuestion(version=question_version, question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1)
+        option = QuestionnaireOption(option_value="yes", label="Yes", sort_order=1, enabled=True, question=source)
+        condition = QuestionnaireCondition(version=condition_version, source_question=source, target_question=target, expected_option=option, operator="equals")
+
+        with self.assertRaisesRegex(ValueError, "version"):
+            validate_condition_graph((source, target), (condition,))
+
+    def test_condition_stable_snapshot_fields_survive_display_text_changes(self) -> None:
+        from questionnaire_models import QuestionnaireCondition, QuestionnaireOption, QuestionnaireQuestion
+
+        source = QuestionnaireQuestion(id=1, version_id=1, question_code="source", title="Source", question_type="single_choice", sort_order=1)
+        target = QuestionnaireQuestion(id=2, version_id=1, question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1)
+        option = QuestionnaireOption(id=1, question_id=source.id, option_value="yes", label="Yes", sort_order=1, enabled=True, question=source)
+        condition = QuestionnaireCondition(source_question=source, target_question=target, expected_option=option, operator="equals")
+        source.title, target.title, option.label = "Changed source", "Changed target", "Changed yes"
+        self.assertEqual(
+            (condition.source_question.question_code, condition.target_question.question_code, condition.expected_option.option_value),
+            ("source", "target", "yes"),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

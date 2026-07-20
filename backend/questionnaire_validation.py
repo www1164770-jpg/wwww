@@ -6,6 +6,7 @@ import re
 from typing import TYPE_CHECKING, Sequence
 
 from questionnaire_constants import (
+    CONDITION_OPERATORS,
     NEW_OCCUPATION_POLICIES,
     QUESTIONNAIRE_SCOPE_TYPES,
     QUESTIONNAIRE_VERSION_STATUSES,
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
     from questionnaire_models import (
         Occupation,
         QuestionnaireDefinition,
+        QuestionnaireCondition,
         QuestionnaireOption,
         QuestionnaireQuestion,
         QuestionnaireVersion,
@@ -310,3 +312,132 @@ def validate_question_options(
         enabled_count = sum(option.enabled for option in option_list)
         if question.max_selections > enabled_count:
             raise ValueError("multiple_choice maximum exceeds enabled options")
+
+
+def _related_id(record: object, id_attribute: str, relationship_attribute: str) -> object:
+    record_id = getattr(record, id_attribute)
+    if record_id is not None:
+        return record_id
+    related = getattr(record, relationship_attribute)
+    return None if related is None else related.id
+
+
+def _same_record(left: object, right: object) -> bool:
+    left_id = getattr(left, "id")
+    right_id = getattr(right, "id")
+    if left_id is not None and right_id is not None:
+        return left_id == right_id
+    return left is right
+
+
+def _version_key(record: object) -> object:
+    version_id = getattr(record, "version_id")
+    if version_id is not None:
+        return ("id", version_id)
+    version = getattr(record, "version")
+    if version is None:
+        return None
+    if version.id is not None:
+        return ("id", version.id)
+    return ("transient", id(version))
+
+
+def validate_condition(
+    source: "QuestionnaireQuestion",
+    target: "QuestionnaireQuestion",
+    expected_option: "QuestionnaireOption",
+    operator: str,
+) -> None:
+    """Validate one condition against its source, target, and stable option."""
+    source_version_id = _related_id(source, "version_id", "version")
+    target_version_id = _related_id(target, "version_id", "version")
+    if source_version_id is None and target_version_id is None:
+        same_version = source.version is not None and source.version is target.version
+    else:
+        same_version = source_version_id == target_version_id
+    if not same_version:
+        raise ValueError("condition questions must belong to the same version")
+    if _same_record(source, target):
+        raise ValueError("condition cannot target its source question")
+    if not isinstance(source.sort_order, int) or not isinstance(target.sort_order, int) or source.sort_order >= target.sort_order:
+        raise ValueError("condition source must precede its target")
+    option_question = expected_option.question
+    if option_question is not None:
+        option_belongs_to_source = _same_record(option_question, source)
+    else:
+        option_belongs_to_source = (
+            expected_option.question_id is not None
+            and source.id is not None
+            and expected_option.question_id == source.id
+        )
+    if not option_belongs_to_source:
+        raise ValueError("condition option must belong to its source question")
+    if expected_option.enabled is not True:
+        raise ValueError("condition option must be enabled")
+    if operator not in CONDITION_OPERATORS:
+        raise ValueError("invalid condition operator")
+    if operator == "equals" and source.question_type != "single_choice":
+        raise ValueError("equals conditions require a single_choice source")
+    if operator == "contains" and source.question_type != "multiple_choice":
+        raise ValueError("contains conditions require a multiple_choice source")
+
+
+def validate_condition_graph(
+    questions: Sequence["QuestionnaireQuestion"],
+    conditions: Sequence["QuestionnaireCondition"],
+) -> None:
+    """Reject conditions outside the supplied version or forming a dependency cycle."""
+    question_list = tuple(questions)
+    condition_list = tuple(conditions)
+    question_keys = {_question_key(question) for question in question_list}
+    version_keys = {_version_key(question) for question in question_list}
+    if len(version_keys) > 1:
+        raise ValueError("condition graph questions must belong to one version")
+    version_key = next(iter(version_keys), None)
+    edges: dict[object, list[object]] = {key: [] for key in question_keys}
+    target_keys: set[object] = set()
+    for condition in condition_list:
+        source = condition.source_question
+        target = condition.target_question
+        if source is None or target is None:
+            raise ValueError("condition graph requires source and target questions")
+        source_key = _question_key(source)
+        target_key = _question_key(target)
+        if source_key not in question_keys or target_key not in question_keys:
+            raise ValueError("condition graph questions must be supplied")
+        if _version_key(condition) != version_key:
+            raise ValueError("condition must belong to the graph version")
+        if target_key in target_keys:
+            raise ValueError("condition graph allows only one condition per target")
+        target_keys.add(target_key)
+        edges[source_key].append(target_key)
+
+    visiting: set[object] = set()
+    visited: set[object] = set()
+
+    def visit(question_key: object) -> None:
+        if question_key in visiting:
+            raise ValueError("condition graph cannot contain a cycle")
+        if question_key in visited:
+            return
+        visiting.add(question_key)
+        for target_key in edges[question_key]:
+            visit(target_key)
+        visiting.remove(question_key)
+        visited.add(question_key)
+
+    for question_key in question_keys:
+        visit(question_key)
+    for condition in condition_list:
+        if condition.expected_option is None:
+            raise ValueError("condition graph requires an expected option")
+        validate_condition(
+            condition.source_question,
+            condition.target_question,
+            condition.expected_option,
+            condition.operator,
+        )
+
+
+def _question_key(question: "QuestionnaireQuestion") -> object:
+    return question.id if question.id is not None else id(question)

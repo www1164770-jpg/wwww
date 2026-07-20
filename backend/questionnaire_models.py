@@ -148,6 +148,12 @@ class QuestionnaireVersion(db.Model):
         back_populates="version",
         order_by="QuestionnaireQuestion.sort_order",
     )
+    conditions = db.relationship(
+        "QuestionnaireCondition",
+        foreign_keys="QuestionnaireCondition.version_id",
+        back_populates="version",
+        order_by="QuestionnaireCondition.id",
+    )
 
 
 class QuestionnaireQuestion(db.Model):
@@ -198,6 +204,18 @@ class QuestionnaireQuestion(db.Model):
         back_populates="question",
         order_by="QuestionnaireOption.sort_order",
     )
+    source_conditions = db.relationship(
+        "QuestionnaireCondition",
+        foreign_keys="QuestionnaireCondition.source_question_id",
+        back_populates="source_question",
+        order_by="QuestionnaireCondition.id",
+    )
+    target_condition = db.relationship(
+        "QuestionnaireCondition",
+        foreign_keys="QuestionnaireCondition.target_question_id",
+        back_populates="target_question",
+        uselist=False,
+    )
 
 
 class QuestionnaireOption(db.Model):
@@ -234,4 +252,74 @@ class QuestionnaireOption(db.Model):
         "QuestionnaireQuestion",
         foreign_keys=[question_id],
         back_populates="options",
+    )
+    condition_references = db.relationship(
+        "QuestionnaireCondition",
+        foreign_keys="QuestionnaireCondition.expected_option_id",
+        back_populates="expected_option",
+        order_by="QuestionnaireCondition.id",
+    )
+
+
+class QuestionnaireCondition(db.Model):
+    """A rule that makes one later question depend on an earlier answer."""
+
+    __tablename__ = "questionnaire_conditions"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "target_question_id", name="uq_questionnaire_conditions_target"
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    version_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questionnaire_versions.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    source_question_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questionnaire_questions.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    target_question_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questionnaire_questions.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    expected_option_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questionnaire_options.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    operator = db.Column(db.String(16), nullable=False)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+
+    version = db.relationship(
+        "QuestionnaireVersion",
+        foreign_keys=[version_id],
+        back_populates="conditions",
+    )
+    source_question = db.relationship(
+        "QuestionnaireQuestion",
+        foreign_keys=[source_question_id],
+        back_populates="source_conditions",
+    )
+    target_question = db.relationship(
+        "QuestionnaireQuestion",
+        foreign_keys=[target_question_id],
+        back_populates="target_condition",
+    )
+    expected_option = db.relationship(
+        "QuestionnaireOption",
+        foreign_keys=[expected_option_id],
+        back_populates="condition_references",
     )

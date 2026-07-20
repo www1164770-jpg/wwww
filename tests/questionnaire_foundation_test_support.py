@@ -242,6 +242,16 @@ def add_option(session: Any, **fields: Any) -> Any:
     return record
 
 
+def add_condition(session: Any, **fields: Any) -> Any:
+    """Persist one Task 5 condition and return its flushed ORM record."""
+    from questionnaire_models import QuestionnaireCondition
+
+    record = QuestionnaireCondition(**fields)
+    session.add(record)
+    session.flush()
+    return record
+
+
 class SqlStatementCounter:
     """Count SQLAlchemy statements while active."""
 

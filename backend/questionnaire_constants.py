@@ -14,3 +14,5 @@ USER_TYPES = frozenset({"student", "employed", "organization"})
 QUESTIONNAIRE_VERSION_STATUSES = frozenset({"draft", "published", "disabled", "archived"})
 
 QUESTION_TYPES = frozenset({"single_choice", "multiple_choice", "short_text"})
+
+CONDITION_OPERATORS = frozenset({"equals", "contains"})
