@@ -353,8 +353,7 @@ def _validate_relationship_key(
     if (
         foreign_key_id is not None
         and related is not None
-        and related.id is not None
-        and foreign_key_id != related.id
+        and (related.id is None or foreign_key_id != related.id)
     ):
         raise ValueError(f"{relationship_name} relationship must match its foreign key")
 
