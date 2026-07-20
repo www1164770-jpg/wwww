@@ -1,0 +1,68 @@
+"""Read-only administrator routes for the questionnaire foundation."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+
+from flask import Flask
+
+from models import db
+from questionnaire_admin_support import (
+    QuestionnaireParameterError,
+    optional_boolean,
+    optional_text,
+    pagination_filters,
+    questionnaire_admin_required,
+    questionnaire_error,
+    questionnaire_response,
+)
+from questionnaire_read_service import (
+    get_definition,
+    list_definitions,
+    list_occupations,
+)
+
+
+def _filters(*names: str) -> dict[str, Any]:
+    filters: dict[str, Any] = pagination_filters()
+    for name in names:
+        value = optional_boolean(name) if name == "enabled" else optional_text(name)
+        if value is not None:
+            filters[name] = value
+    return filters
+
+
+def register_questionnaire_admin_read_routes(
+    app: Flask,
+    get_db_connection: Callable[[], Any],
+) -> None:
+    """Register only the Task 8 occupation and definition GET endpoints."""
+
+    required = questionnaire_admin_required(get_db_connection)
+
+    @app.get("/api/admin/questionnaires/occupations")
+    @required
+    def questionnaire_admin_occupations():
+        try:
+            filters = _filters("enabled", "category", "occupation_code")
+            return questionnaire_response(list_occupations(db.session, filters))
+        except QuestionnaireParameterError as exc:
+            return questionnaire_error(str(exc), code=400)
+
+    @app.get("/api/admin/questionnaires/definitions")
+    @required
+    def questionnaire_admin_definitions():
+        try:
+            filters = _filters("enabled", "scope_type", "user_type", "occupation_code")
+            return questionnaire_response(list_definitions(db.session, filters))
+        except QuestionnaireParameterError as exc:
+            return questionnaire_error(str(exc), code=400)
+
+    @app.get("/api/admin/questionnaires/definitions/<int:definition_id>")
+    @required
+    def questionnaire_admin_definition_detail(definition_id: int):
+        definition = get_definition(db.session, definition_id)
+        if definition is None:
+            return questionnaire_error("definition not found", code=404)
+        return questionnaire_response(definition)

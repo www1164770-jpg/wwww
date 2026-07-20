@@ -118,6 +118,72 @@ class FakeConnection:
         self.rollbacks += 1
 
 
+class FakeRoleCursor:
+    """Cursor fake for the parameterized questionnaire role lookup."""
+
+    def __init__(self, connection: "FakeRoleConnection") -> None:
+        self.connection = connection
+        self._one: dict[str, str] | None = None
+
+    def __enter__(self) -> "FakeRoleCursor":
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        return None
+
+    def execute(self, statement: str, parameters: Any = None) -> None:
+        self.connection.executed.append((statement, parameters))
+        if (
+            "SELECT * FROM users WHERE username=%s OR email=%s" not in statement
+            or not isinstance(parameters, tuple)
+            or len(parameters) != 2
+            or parameters[0] != parameters[1]
+        ):
+            raise AssertionError("role query must use the two identical JWT parameters")
+        identity = parameters[0]
+        self.connection.factory.identities.append(identity)
+        role = self.connection.factory.roles.get(identity)
+        self._one = {"role": role} if role is not None else None
+
+    def fetchone(self) -> dict[str, str] | None:
+        return self._one
+
+
+class FakeRoleConnection:
+    """Context-manager connection used only for questionnaire role lookups."""
+
+    def __init__(self, factory: "FakeRoleConnectionFactory") -> None:
+        self.factory = factory
+        self.executed: list[tuple[str, Any]] = []
+        self.closed = False
+
+    def __enter__(self) -> "FakeRoleConnection":
+        return self
+
+    def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+        self.close()
+
+    def cursor(self) -> FakeRoleCursor:
+        return FakeRoleCursor(self)
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class FakeRoleConnectionFactory:
+    """Supply database-backed roles without connecting SQLite API tests to MySQL."""
+
+    def __init__(self, roles: dict[str, str]) -> None:
+        self.roles = roles
+        self.identities: list[str] = []
+        self.connections: list[FakeRoleConnection] = []
+
+    def __call__(self) -> FakeRoleConnection:
+        connection = FakeRoleConnection(self)
+        self.connections.append(connection)
+        return connection
+
+
 def make_sqlite_app() -> Flask:
     """Create the shared SQLite app used by foundation model tests."""
     from models import db

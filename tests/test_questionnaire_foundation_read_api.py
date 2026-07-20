@@ -7,6 +7,7 @@ from types import SimpleNamespace
 import unittest
 
 from tests.questionnaire_foundation_test_support import (
+    FakeRoleConnectionFactory,
     QuestionnaireFoundationTestCase,
     SqlStatementCounter,
     add_condition,
@@ -485,6 +486,188 @@ class QuestionnaireReadServiceTests(QuestionnaireFoundationTestCase):
 
         self.assertEqual(len(snapshot["questions"]), 20)
         self.assertLessEqual(counter.count, 5)
+
+
+class QuestionnaireAdminReadApiTests(QuestionnaireFoundationTestCase):
+    def setUp(self) -> None:
+        self.app = make_sqlite_app()
+        self.roles = FakeRoleConnectionFactory(
+            {
+                "admin": "admin",
+                "super": "super_admin",
+                "member": "user",
+                "forged": "user",
+            }
+        )
+        from questionnaire_admin_read_routes import register_questionnaire_admin_read_routes
+
+        register_questionnaire_admin_read_routes(self.app, self.roles)
+        self.client = self.app.test_client()
+
+    def tearDown(self) -> None:
+        dispose_sqlite_app(self.app)
+
+    def _headers(self, identity: str) -> dict[str, str]:
+        from tests.questionnaire_foundation_test_support import make_jwt_headers
+
+        return make_jwt_headers(self.app, identity)
+
+    def _add_user(self, session, username: str):
+        from models import User
+
+        user = User(
+            username=username,
+            email=f"{username}@example.test",
+            password_hash="not-a-password",
+        )
+        session.add(user)
+        session.flush()
+        return user
+
+    def _add_definition(self, session, creator, **overrides):
+        fields = {
+            "definition_code": "general_profile",
+            "name": "General profile",
+            "description": "A general questionnaire",
+            "scope_type": "general",
+            "scope_key": "general",
+            "occupation_id": None,
+            "user_type": None,
+            "enabled": True,
+            "created_by_user_id": creator.id,
+        }
+        fields.update(overrides)
+        return add_definition(session, **fields)
+
+    def test_new_endpoints_require_a_jwt_and_return_five_key_errors(self) -> None:
+        response = self.client.get("/api/admin/questionnaires/occupations")
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(set(response.get_json()), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(response.get_json()["code"], 401)
+
+    def test_role_lookup_rejects_missing_and_non_admin_users(self) -> None:
+        for identity in ("missing", "member"):
+            response = self.client.get(
+                "/api/admin/questionnaires/occupations", headers=self._headers(identity)
+            )
+            self.assertEqual(response.status_code, 403)
+            self.assertEqual(response.get_json()["code"], 403)
+
+        self.assertEqual(self.roles.identities, ["missing", "member"])
+
+    def test_database_role_lookup_ignores_a_forged_jwt_role_claim(self) -> None:
+        from flask_jwt_extended import create_access_token
+
+        with self.app.app_context():
+            token = create_access_token(
+                identity="forged", additional_claims={"role": "super_admin"}
+            )
+        response = self.client.get(
+            "/api/admin/questionnaires/occupations",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.roles.identities, ["forged"])
+
+    def test_admin_can_list_occupations_and_response_has_five_keys(self) -> None:
+        with sqlite_session(self.app) as session:
+            add_occupation(
+                session,
+                occupation_code="designer",
+                name="Designer",
+                category="creative",
+                sort_order=1,
+                enabled=True,
+                new_occupation_policy="use_general",
+            )
+            add_occupation(
+                session,
+                occupation_code="hidden",
+                name="Hidden",
+                category="creative",
+                sort_order=2,
+                enabled=False,
+                new_occupation_policy="closed",
+            )
+
+            response = self.client.get(
+                "/api/admin/questionnaires/occupations?enabled=true&page=1&page_size=1",
+                headers=self._headers("super"),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(set(payload), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(payload["data"]["total"], 1)
+        self.assertEqual(payload["data"]["items"][0]["occupation_code"], "designer")
+
+    def test_admin_can_list_and_get_definitions(self) -> None:
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "api-definition-creator")
+            definition = self._add_definition(session, creator)
+
+            list_response = self.client.get(
+                "/api/admin/questionnaires/definitions?enabled=true",
+                headers=self._headers("admin"),
+            )
+            detail_response = self.client.get(
+                f"/api/admin/questionnaires/definitions/{definition.id}",
+                headers=self._headers("admin"),
+            )
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(
+            list_response.get_json()["data"]["items"][0]["definition_code"],
+            "general_profile",
+        )
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.get_json()["data"]["id"], definition.id)
+
+    def test_invalid_parameters_and_missing_definition_use_new_error_shape(self) -> None:
+        with sqlite_session(self.app):
+            bad_response = self.client.get(
+                "/api/admin/questionnaires/occupations?enabled=maybe",
+                headers=self._headers("admin"),
+            )
+            missing_response = self.client.get(
+                "/api/admin/questionnaires/definitions/999",
+                headers=self._headers("admin"),
+            )
+
+        self.assertEqual(bad_response.status_code, 400)
+        self.assertEqual(missing_response.status_code, 404)
+        self.assertEqual(
+            set(bad_response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
+        )
+        self.assertEqual(
+            set(missing_response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
+        )
+
+    def test_registering_new_routes_keeps_the_existing_v1_error_unchanged(self) -> None:
+        from flask import Flask
+        from flask_jwt_extended import JWTManager
+        from questionnaire_admin_read_routes import register_questionnaire_admin_read_routes
+        from v1_routes import register_v1_routes
+
+        def build_app(register_questionnaire_routes: bool) -> Flask:
+            app = Flask(__name__)
+            app.config.update(TESTING=True, JWT_SECRET_KEY="v1-regression-secret")
+            JWTManager(app)
+            register_v1_routes(app, lambda: None)
+            if register_questionnaire_routes:
+                register_questionnaire_admin_read_routes(
+                    app, FakeRoleConnectionFactory({"admin": "admin"})
+                )
+            return app
+
+        before = build_app(False).test_client().get("/api/admin/dashboard")
+        after = build_app(True).test_client().get("/api/admin/dashboard")
+
+        self.assertEqual(after.status_code, before.status_code)
+        self.assertEqual(after.get_json(), before.get_json())
+        self.assertNotIn("legacy_code", before.get_json())
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调�
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
 import time  # 时间工具，用于时间戳记录和延迟控制
 from models import db, User, UserProfile, Category, Tag, Website, SiteTag, SiteOccupation, Favorite, Comment, UserBehavior, RecommendationLog, ClickLog  # 导入 SQLAlchemy 数据库实例及所有数据模型
+import questionnaire_models  # noqa: F401  Register foundation models on the shared metadata.
 from sqlalchemy import func  # SQLAlchemy 聚合函数（如 COUNT、SUM），用于统计查询
 import json  # JSON 序列化/反序列化，用于存储复杂配置字段
 import re  # 正则表达式，用于 URL 格式校验等文本处理
@@ -57,6 +58,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from recommend_service import rank_sites
 from v1_routes import register_v1_routes
+from questionnaire_admin_read_routes import register_questionnaire_admin_read_routes
 from authing_service import AuthingService
 import base64
 import secrets
@@ -3096,6 +3098,7 @@ def delete_website(id):
 # =====================================================================
 try:
     register_v1_routes(app, get_db_connection)
+    register_questionnaire_admin_read_routes(app, get_db_connection)
     print("V1 routes registered successfully")
 except Exception as e:
     print(f"Failed to register v1 routes: {e}")
