@@ -150,19 +150,31 @@ EXPECTED_UNIQUE_CONSTRAINTS = {
     ("questionnaire_options", "uq_questionnaire_options_value"),
     ("questionnaire_conditions", "uq_questionnaire_conditions_target"),
 }
-EXPECTED_EXPLICIT_INDEXES = {
-    ("occupations", "idx_occupations_enabled_sort_order"),
-    ("questionnaire_definitions", "idx_questionnaire_definitions_occupation_id"),
-    ("questionnaire_definitions", "idx_questionnaire_definitions_created_by_user_id"),
-    ("questionnaire_versions", "idx_questionnaire_versions_source_version_id"),
-    ("questionnaire_versions", "idx_questionnaire_versions_created_by_user_id"),
-    ("questionnaire_versions", "idx_questionnaire_versions_published_by_user_id"),
-    ("questionnaire_questions", "idx_questionnaire_questions_version_sort_order"),
-    ("questionnaire_options", "idx_questionnaire_options_question_sort_order"),
-    ("questionnaire_conditions", "idx_questionnaire_conditions_version_id"),
-    ("questionnaire_conditions", "idx_questionnaire_conditions_source_question_id"),
-    ("questionnaire_conditions", "idx_questionnaire_conditions_expected_option_id"),
+EXPECTED_INDEX_METADATA = {
+    ("occupations", "uq_occupations_occupation_code", 0, ("occupation_code",)),
+    ("occupations", "uq_occupations_name", 0, ("name",)),
+    ("occupations", "idx_occupations_enabled_sort_order", 1, ("enabled", "sort_order")),
+    ("questionnaire_definitions", "uq_questionnaire_definitions_definition_code", 0, ("definition_code",)),
+    ("questionnaire_definitions", "uq_questionnaire_definitions_scope_key", 0, ("scope_key",)),
+    ("questionnaire_definitions", "idx_questionnaire_definitions_occupation_id", 1, ("occupation_id",)),
+    ("questionnaire_definitions", "idx_questionnaire_definitions_created_by_user_id", 1, ("created_by_user_id",)),
+    ("questionnaire_versions", "uq_questionnaire_versions_number", 0, ("definition_id", "version_number")),
+    ("questionnaire_versions", "uq_questionnaire_versions_current_scope", 0, ("current_effective_scope_key",)),
+    ("questionnaire_versions", "idx_questionnaire_versions_source_version_id", 1, ("source_version_id",)),
+    ("questionnaire_versions", "idx_questionnaire_versions_created_by_user_id", 1, ("created_by_user_id",)),
+    ("questionnaire_versions", "idx_questionnaire_versions_published_by_user_id", 1, ("published_by_user_id",)),
+    ("questionnaire_questions", "uq_questionnaire_questions_code", 0, ("version_id", "question_code")),
+    ("questionnaire_questions", "idx_questionnaire_questions_version_sort_order", 1, ("version_id", "sort_order")),
+    ("questionnaire_options", "uq_questionnaire_options_value", 0, ("question_id", "option_value")),
+    ("questionnaire_options", "idx_questionnaire_options_question_sort_order", 1, ("question_id", "sort_order")),
+    ("questionnaire_conditions", "uq_questionnaire_conditions_target", 0, ("target_question_id",)),
+    ("questionnaire_conditions", "idx_questionnaire_conditions_version_id", 1, ("version_id",)),
+    ("questionnaire_conditions", "idx_questionnaire_conditions_source_question_id", 1, ("source_question_id",)),
+    ("questionnaire_conditions", "idx_questionnaire_conditions_expected_option_id", 1, ("expected_option_id",)),
 }
+TEST_DATABASE_NAME_RE = re.compile(
+    r"^questionnaire(?:_(?:foundation|migration|ci|integration|metadata|local|e2e|[0-9]+))*_test(?:_[0-9]+)?$"
+)
 
 
 def _mysql_test_config(environ: dict[str, str]) -> dict[str, object] | None:
@@ -178,8 +190,8 @@ def _mysql_test_config(environ: dict[str, str]) -> dict[str, object] | None:
     if not all(values.values()):
         return None
     database = values["database"].lower()
-    if database in {"nav_site", "production", "prod", "nav_site_production"}:
-        raise ValueError("QUESTIONNAIRE_TEST_DB_NAME must name a non-production test database")
+    if not TEST_DATABASE_NAME_RE.fullmatch(database):
+        raise ValueError("QUESTIONNAIRE_TEST_DB_NAME must use an explicit test-only database name")
     try:
         port = int(values["port"])
     except ValueError as error:
@@ -286,20 +298,32 @@ class MySqlTestConfigurationTests(unittest.TestCase):
     def test_missing_test_database_configuration_skips_integration_work(self):
         self.assertIsNone(_mysql_test_config({}))
 
-    def test_production_like_database_names_are_rejected(self):
+    def test_only_explicit_questionnaire_test_database_names_are_accepted(self):
         base = {
             "QUESTIONNAIRE_TEST_DB_HOST": "127.0.0.1",
             "QUESTIONNAIRE_TEST_DB_PORT": "3306",
             "QUESTIONNAIRE_TEST_DB_USER": "questionnaire_test",
             "QUESTIONNAIRE_TEST_DB_PASSWORD": "not-a-real-password",
         }
-        for database in ("", "nav_site", "production", "prod", "nav_site_production"):
+        for database in (
+            "questionnaire_test",
+            "questionnaire_foundation_test",
+            "questionnaire_migration_test_20260719",
+        ):
+            with self.subTest(database=database):
+                configured = {**base, "QUESTIONNAIRE_TEST_DB_NAME": database}
+                self.assertEqual(_mysql_test_config(configured)["database"], database)
+
+        for database in (
+            "", "nav_site", "nav_site_prod", "production", "production_backup",
+            "questionnaire_foundation", "questionnaire_prod_test", "test_questionnaire",
+        ):
             with self.subTest(database=database):
                 configured = {**base, "QUESTIONNAIRE_TEST_DB_NAME": database}
                 if not database:
                     self.assertIsNone(_mysql_test_config(configured))
                 else:
-                    with self.assertRaisesRegex(ValueError, "non-production test database"):
+                    with self.assertRaisesRegex(ValueError, "test-only database name"):
                         _mysql_test_config(configured)
 
 
@@ -423,7 +447,7 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
                 columns_by_table[table].add(column)
             self.assertEqual(columns_by_table, {table: set(columns) for table, columns in EXPECTED_COLUMNS.items()})
             cursor.execute(
-                "SELECT k.TABLE_NAME, k.CONSTRAINT_NAME, k.COLUMN_NAME, "
+                "SELECT k.TABLE_NAME, k.CONSTRAINT_NAME, k.ORDINAL_POSITION, k.COLUMN_NAME, "
                 "k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME, r.DELETE_RULE "
                 "FROM information_schema.KEY_COLUMN_USAGE AS k "
                 "INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS r "
@@ -436,7 +460,13 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
                 "AND k.REFERENCED_TABLE_NAME IS NOT NULL",
                 TARGETS,
             )
-            self.assertEqual(set(cursor.fetchall()), EXPECTED_FOREIGN_KEYS)
+            foreign_keys = set()
+            for table, constraint, position, column, referenced_table, referenced_column, delete_rule in cursor.fetchall():
+                self.assertEqual(position, 1)
+                foreign_keys.add(
+                    (table, constraint, column, referenced_table, referenced_column, delete_rule)
+                )
+            self.assertEqual(foreign_keys, EXPECTED_FOREIGN_KEYS)
             cursor.execute(
                 "SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS "
                 "WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'UNIQUE' "
@@ -446,13 +476,22 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
             unique_constraints = {(row[0], row[1]) for row in cursor.fetchall()}
             self.assertEqual(unique_constraints, EXPECTED_UNIQUE_CONSTRAINTS)
             cursor.execute(
-                "SELECT TABLE_NAME, INDEX_NAME FROM information_schema.STATISTICS "
+                "SELECT TABLE_NAME, INDEX_NAME, NON_UNIQUE, SEQ_IN_INDEX, COLUMN_NAME "
+                "FROM information_schema.STATISTICS "
                 "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
-                ",".join(["%s"] * len(TARGETS)) + ") AND INDEX_NAME LIKE 'idx_%'",
+                ",".join(["%s"] * len(TARGETS)) + ") "
+                "AND (INDEX_NAME LIKE 'uq_%' OR INDEX_NAME LIKE 'idx_%') "
+                "ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX",
                 TARGETS,
             )
-            indexes = {(row[0], row[1]) for row in cursor.fetchall()}
-            self.assertEqual(indexes, EXPECTED_EXPLICIT_INDEXES)
+            index_columns: dict[tuple[str, str, int], list[tuple[int, str]]] = {}
+            for table, index, non_unique, position, column in cursor.fetchall():
+                index_columns.setdefault((table, index, non_unique), []).append((position, column))
+            indexes = {
+                (table, index, non_unique, tuple(column for _, column in sorted(columns)))
+                for (table, index, non_unique), columns in index_columns.items()
+            }
+            self.assertEqual(indexes, EXPECTED_INDEX_METADATA)
             cursor.execute("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s", ("questionnaire_migration_legacy_guard",))
             self.assertIsNotNone(cursor.fetchone())
         self._execute(
