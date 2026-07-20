@@ -1,10 +1,13 @@
 import contextlib
 import io
+import os
+import re
 import sys
 import tempfile
 import unittest
 import gc
 import warnings
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
@@ -31,6 +34,419 @@ TARGETS = (
 )
 HEADER = "-- migration-target-tables: " + ",".join(TARGETS)
 NAME = "20260719_questionnaire_foundation"
+
+MIGRATION_DIR = Path(__file__).resolve().parents[1] / "backend" / "sql" / "migrations"
+EXPECTED_COLUMNS = {
+    "occupations": (
+        "id", "occupation_code", "name", "category", "sort_order", "enabled",
+        "new_occupation_policy", "created_at", "updated_at",
+    ),
+    "questionnaire_definitions": (
+        "id", "definition_code", "name", "description", "scope_type", "scope_key",
+        "occupation_id", "user_type", "enabled", "created_by_user_id", "created_at",
+        "updated_at",
+    ),
+    "questionnaire_versions": (
+        "id", "definition_id", "version_number", "status", "current_effective_scope_key",
+        "source_version_id", "version_description", "created_by_user_id",
+        "published_by_user_id", "published_at", "created_at", "updated_at",
+    ),
+    "questionnaire_questions": (
+        "id", "version_id", "question_code", "title", "description", "question_type",
+        "required", "sort_order", "enabled", "is_general", "min_selections",
+        "max_selections", "max_length", "created_at", "updated_at",
+    ),
+    "questionnaire_options": (
+        "id", "question_id", "option_value", "label", "sort_order", "enabled",
+        "created_at", "updated_at",
+    ),
+    "questionnaire_conditions": (
+        "id", "version_id", "source_question_id", "target_question_id",
+        "expected_option_id", "operator", "created_at", "updated_at",
+    ),
+}
+EXPECTED_COLUMN_DEFINITIONS = {
+    "occupations": (
+        "id int not null auto_increment", "occupation_code varchar(64) not null",
+        "name varchar(120) not null", "category varchar(120) null",
+        "sort_order int not null default 0", "enabled tinyint(1) not null default 1",
+        "new_occupation_policy varchar(32) not null default 'use_general'",
+        "created_at datetime not null default current_timestamp",
+        "updated_at datetime not null default current_timestamp on update current_timestamp",
+    ),
+    "questionnaire_definitions": (
+        "id int not null auto_increment", "definition_code varchar(96) not null",
+        "name varchar(160) not null", "description text null", "scope_type varchar(32) not null",
+        "scope_key varchar(192) not null", "occupation_id int null", "user_type varchar(32) null",
+        "enabled tinyint(1) not null default 1", "created_by_user_id int not null",
+        "created_at datetime not null default current_timestamp",
+        "updated_at datetime not null default current_timestamp on update current_timestamp",
+    ),
+    "questionnaire_versions": (
+        "id int not null auto_increment", "definition_id int not null", "version_number int not null",
+        "status varchar(32) not null default 'draft'", "current_effective_scope_key varchar(192) null",
+        "source_version_id int null", "version_description text null", "created_by_user_id int not null",
+        "published_by_user_id int null", "published_at datetime null",
+        "created_at datetime not null default current_timestamp",
+        "updated_at datetime not null default current_timestamp on update current_timestamp",
+    ),
+    "questionnaire_questions": (
+        "id int not null auto_increment", "version_id int not null", "question_code varchar(96) not null",
+        "title varchar(300) not null", "description text null", "question_type varchar(32) not null",
+        "required tinyint(1) not null default 0", "sort_order int not null",
+        "enabled tinyint(1) not null default 1", "is_general tinyint(1) not null default 0",
+        "min_selections int null", "max_selections int null", "max_length int null",
+        "created_at datetime not null default current_timestamp",
+        "updated_at datetime not null default current_timestamp on update current_timestamp",
+    ),
+    "questionnaire_options": (
+        "id int not null auto_increment", "question_id int not null", "option_value varchar(96) not null",
+        "label varchar(300) not null", "sort_order int not null", "enabled tinyint(1) not null default 1",
+        "created_at datetime not null default current_timestamp",
+        "updated_at datetime not null default current_timestamp on update current_timestamp",
+    ),
+    "questionnaire_conditions": (
+        "id int not null auto_increment", "version_id int not null", "source_question_id int not null",
+        "target_question_id int not null", "expected_option_id int not null", "operator varchar(16) not null",
+        "created_at datetime not null default current_timestamp",
+        "updated_at datetime not null default current_timestamp on update current_timestamp",
+    ),
+}
+EXPECTED_CONSTRAINT_NAMES = (
+    "uq_occupations_occupation_code", "uq_occupations_name",
+    "uq_questionnaire_definitions_definition_code", "uq_questionnaire_definitions_scope_key",
+    "fk_questionnaire_definitions_occupation", "fk_questionnaire_definitions_created_by_user",
+    "uq_questionnaire_versions_number", "uq_questionnaire_versions_current_scope",
+    "fk_questionnaire_versions_definition", "fk_questionnaire_versions_source_version",
+    "fk_questionnaire_versions_created_by_user", "fk_questionnaire_versions_published_by_user",
+    "uq_questionnaire_questions_code", "fk_questionnaire_questions_version",
+    "uq_questionnaire_options_value", "fk_questionnaire_options_question",
+    "uq_questionnaire_conditions_target", "fk_questionnaire_conditions_version",
+    "fk_questionnaire_conditions_source_question", "fk_questionnaire_conditions_target_question",
+    "fk_questionnaire_conditions_expected_option",
+)
+
+
+def _mysql_test_config(environ: dict[str, str]) -> dict[str, object] | None:
+    """Return only a deliberately named test database configuration."""
+    names = {
+        "host": "QUESTIONNAIRE_TEST_DB_HOST",
+        "port": "QUESTIONNAIRE_TEST_DB_PORT",
+        "user": "QUESTIONNAIRE_TEST_DB_USER",
+        "password": "QUESTIONNAIRE_TEST_DB_PASSWORD",
+        "database": "QUESTIONNAIRE_TEST_DB_NAME",
+    }
+    values = {key: environ.get(name, "").strip() for key, name in names.items()}
+    if not all(values.values()):
+        return None
+    database = values["database"].lower()
+    if database in {"nav_site", "production", "prod", "nav_site_production"}:
+        raise ValueError("QUESTIONNAIRE_TEST_DB_NAME must name a non-production test database")
+    try:
+        port = int(values["port"])
+    except ValueError as error:
+        raise ValueError("QUESTIONNAIRE_TEST_DB_PORT must be an integer") from error
+    return {**values, "port": port}
+
+
+def _configured_mysql_test_database() -> dict[str, object] | None:
+    try:
+        return _mysql_test_config(dict(os.environ))
+    except ValueError:
+        return None
+
+
+class FoundationMigrationSqlTests(unittest.TestCase):
+    def setUp(self):
+        self.up_path = MIGRATION_DIR / f"{NAME}.up.sql"
+        self.down_path = MIGRATION_DIR / f"{NAME}.down.sql"
+
+    def test_sql_files_describe_the_complete_foundation_schema(self):
+        up_sql = self.up_path.read_text(encoding="utf-8")
+        down_sql = self.down_path.read_text(encoding="utf-8")
+        self.assertTrue(up_sql.startswith(HEADER + "\n"))
+        self.assertNotIn("migration-target-tables", down_sql)
+
+        create_order = tuple(
+            re.findall(r"CREATE\s+TABLE\s+`?([a-z_]+)`?", up_sql, flags=re.IGNORECASE)
+        )
+        self.assertEqual(create_order, TARGETS)
+        drop_order = tuple(
+            re.findall(r"DROP\s+TABLE\s+`?([a-z_]+)`?", down_sql, flags=re.IGNORECASE)
+        )
+        self.assertEqual(drop_order, tuple(reversed(TARGETS)))
+
+        normalized = " ".join(up_sql.split()).lower()
+        for table, columns in EXPECTED_COLUMNS.items():
+            with self.subTest(table=table):
+                section_match = re.search(
+                    rf"create table {table} \((.*?)\) engine=innodb default charset=utf8mb4;",
+                    normalized,
+                )
+                self.assertIsNotNone(section_match)
+                section = section_match.group(1) if section_match else ""
+                for column in columns:
+                    self.assertRegex(section, rf"`?{column}`?\s+")
+                for definition in EXPECTED_COLUMN_DEFINITIONS[table]:
+                    self.assertIn(definition, section)
+        for token in (
+            "engine=innodb", "default charset=utf8mb4", "on delete restrict",
+            "uq_questionnaire_definitions_scope_key",
+            "uq_questionnaire_versions_number",
+            "uq_questionnaire_versions_current_scope",
+            "uq_questionnaire_questions_code",
+            "uq_questionnaire_options_value",
+            "uq_questionnaire_conditions_target",
+            "default 'use_general'", "default 'draft'", "default 0", "default 1",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, normalized)
+        self.assertEqual(
+            tuple(re.findall(r"constraint\s+([a-z_]+)", normalized)),
+            EXPECTED_CONSTRAINT_NAMES,
+        )
+        self.assertEqual(len(re.findall(r"foreign key\s*\(", normalized)), 12)
+        self.assertNotIn("create table if not exists", normalized)
+        self.assertNotIn("foreign_key_checks", normalized)
+        self.assertNotIn("insert into", normalized)
+        self.assertNotIn("users", down_sql.lower())
+        for forbidden in (
+            "foreign_key_checks", "procedure", "prepare ", "execute ", "set @",
+            "create table if not exists", "drop table if exists", "insert into",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, normalized)
+                self.assertNotIn(forbidden, down_sql.lower())
+
+    def test_real_sql_pair_runs_through_the_controlled_runner_fake(self):
+        connection = FakeConnection()
+        self.assertEqual(
+            run_sql_migration.run_migration("upgrade", NAME, lambda: connection),
+            "applied",
+        )
+        executed_up = tuple(
+            sql
+            for sql, _ in connection.executed
+            if "CREATE TABLE" in sql and "schema_migrations" not in sql
+        )
+        self.assertEqual(
+            tuple(re.findall(r"CREATE\s+TABLE\s+`?([a-z_]+)`?", "\n".join(executed_up), re.I)),
+            TARGETS,
+        )
+        self.assertEqual(
+            run_sql_migration.run_migration("downgrade", NAME, lambda: connection),
+            "reverted",
+        )
+        executed_down = tuple(sql for sql, _ in connection.executed if "DROP TABLE" in sql)
+        self.assertEqual(
+            tuple(re.findall(r"DROP\s+TABLE\s+`?([a-z_]+)`?", "\n".join(executed_down), re.I)),
+            tuple(reversed(TARGETS)),
+        )
+
+
+class MySqlTestConfigurationTests(unittest.TestCase):
+    def test_missing_test_database_configuration_skips_integration_work(self):
+        self.assertIsNone(_mysql_test_config({}))
+
+    def test_production_like_database_names_are_rejected(self):
+        base = {
+            "QUESTIONNAIRE_TEST_DB_HOST": "127.0.0.1",
+            "QUESTIONNAIRE_TEST_DB_PORT": "3306",
+            "QUESTIONNAIRE_TEST_DB_USER": "questionnaire_test",
+            "QUESTIONNAIRE_TEST_DB_PASSWORD": "not-a-real-password",
+        }
+        for database in ("", "nav_site", "production", "prod", "nav_site_production"):
+            with self.subTest(database=database):
+                configured = {**base, "QUESTIONNAIRE_TEST_DB_NAME": database}
+                if not database:
+                    self.assertIsNone(_mysql_test_config(configured))
+                else:
+                    with self.assertRaisesRegex(ValueError, "non-production test database"):
+                        _mysql_test_config(configured)
+
+
+@unittest.skipUnless(
+    _configured_mysql_test_database(),
+    "QUESTIONNAIRE_TEST_DB_HOST/PORT/USER/PASSWORD/NAME are not safely configured",
+)
+class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
+    """Runs only against a deliberately configured test-only MySQL database."""
+
+    @classmethod
+    def setUpClass(cls):
+        import pymysql
+
+        cls.config = _configured_mysql_test_database()
+        assert cls.config is not None
+        cls.pymysql = pymysql
+        cls.connection = pymysql.connect(
+            host=cls.config["host"],
+            port=cls.config["port"],
+            user=cls.config["user"],
+            password=cls.config["password"],
+            database=cls.config["database"],
+            charset="utf8mb4",
+            autocommit=False,
+        )
+        with cls.connection.cursor() as cursor:
+            cursor.execute("SELECT DATABASE()")
+            connected_database = cursor.fetchone()[0]
+        if connected_database != cls.config["database"]:
+            cls.connection.close()
+            raise RuntimeError("refusing to run migration tests against an unexpected database")
+
+    @classmethod
+    def tearDownClass(cls):
+        if hasattr(cls, "connection"):
+            cls.connection.close()
+
+    @contextmanager
+    def connection_factory(self):
+        try:
+            yield self.connection
+        finally:
+            pass
+
+    def _execute(self, statement: str) -> None:
+        with self.connection.cursor() as cursor:
+            cursor.execute(statement)
+        self.connection.commit()
+
+    def _table_names(self) -> set[str]:
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT TABLE_NAME FROM information_schema.TABLES "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            return {row[0] for row in cursor.fetchall()}
+
+    def _migration_is_recorded(self) -> bool:
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT 1 FROM information_schema.TABLES "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s",
+                ("schema_migrations",),
+            )
+            if cursor.fetchone() is None:
+                return False
+            cursor.execute("SELECT 1 FROM schema_migrations WHERE name = %s", (NAME,))
+            return cursor.fetchone() is not None
+
+    def _remove_test_schema(self) -> None:
+        if not self._migration_is_recorded():
+            return
+        run_sql_migration.run_migration("downgrade", NAME, self.connection_factory)
+
+    def setUp(self):
+        self._remove_test_schema()
+        self._execute("DROP TABLE IF EXISTS questionnaire_migration_external_reference")
+        self._execute("DROP TABLE IF EXISTS questionnaire_migration_legacy_guard")
+
+    def tearDown(self):
+        self._execute("DROP TABLE IF EXISTS questionnaire_migration_external_reference")
+        self._remove_test_schema()
+        self._execute("DROP TABLE IF EXISTS questionnaire_migration_legacy_guard")
+
+    def test_upgrade_schema_and_safe_downgrade_behaviour(self):
+        self._execute(
+            "CREATE TABLE questionnaire_migration_legacy_guard "
+            "(id INT NOT NULL PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+        self.assertEqual(
+            run_sql_migration.run_migration("upgrade", NAME, self.connection_factory),
+            "applied",
+        )
+        self.assertEqual(self._table_names(), set(TARGETS))
+        self.assertTrue(self._migration_is_recorded())
+        with self.connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT TABLE_NAME, TABLE_COLLATION FROM information_schema.TABLES "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            table_rows = cursor.fetchall()
+            self.assertEqual(
+                {row[0] for row in table_rows},
+                set(TARGETS),
+            )
+            self.assertTrue(all(row[1].lower().startswith("utf8mb4") for row in table_rows))
+            cursor.execute(
+                "SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            columns_by_table = {table: set() for table in TARGETS}
+            for table, column in cursor.fetchall():
+                columns_by_table[table].add(column)
+            self.assertEqual(columns_by_table, {table: set(columns) for table, columns in EXPECTED_COLUMNS.items()})
+            cursor.execute(
+                "SELECT TABLE_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME "
+                "FROM information_schema.KEY_COLUMN_USAGE "
+                "WHERE REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            foreign_keys = {(row[0], row[1], row[2]) for row in cursor.fetchall()}
+            self.assertTrue(any(name == "fk_questionnaire_versions_source_version" for _, name, _ in foreign_keys))
+            self.assertTrue(any(name == "fk_questionnaire_conditions_expected_option" for _, name, _ in foreign_keys))
+            cursor.execute(
+                "SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS "
+                "WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'UNIQUE' "
+                "AND TABLE_NAME IN (" + ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            unique_constraints = {(row[0], row[1]) for row in cursor.fetchall()}
+            self.assertIn(("questionnaire_versions", "uq_questionnaire_versions_current_scope"), unique_constraints)
+            self.assertIn(("questionnaire_conditions", "uq_questionnaire_conditions_target"), unique_constraints)
+            cursor.execute(
+                "SELECT TABLE_NAME, INDEX_NAME FROM information_schema.STATISTICS "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            indexes = {(row[0], row[1]) for row in cursor.fetchall()}
+            self.assertIn(("questionnaire_questions", "idx_questionnaire_questions_version_sort_order"), indexes)
+            self.assertIn(("questionnaire_options", "idx_questionnaire_options_question_sort_order"), indexes)
+            cursor.execute("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s", ("questionnaire_migration_legacy_guard",))
+            self.assertIsNotNone(cursor.fetchone())
+            cursor.execute(
+                "SELECT DISTINCT TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE "
+                "WHERE REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ")",
+                TARGETS,
+            )
+            self.assertTrue(set(row[0] for row in cursor.fetchall()) & set(TARGETS))
+
+        self._execute(
+            "CREATE TABLE questionnaire_migration_external_reference ("
+            "id INT NOT NULL PRIMARY KEY, question_id INT NOT NULL, "
+            "CONSTRAINT fk_questionnaire_migration_external_question "
+            "FOREIGN KEY (question_id) REFERENCES questionnaire_questions(id) ON DELETE RESTRICT"
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+        with self.assertRaisesRegex(RuntimeError, "external foreign key references"):
+            run_sql_migration.run_migration("downgrade", NAME, self.connection_factory)
+        self.assertEqual(self._table_names(), set(TARGETS))
+        self.assertTrue(self._migration_is_recorded())
+        self._execute("DROP TABLE questionnaire_migration_external_reference")
+        self.assertEqual(
+            run_sql_migration.run_migration("downgrade", NAME, self.connection_factory),
+            "reverted",
+        )
+        self.assertEqual(self._table_names(), set())
+        self.assertFalse(self._migration_is_recorded())
+        self._execute(
+            "CREATE TABLE occupations (id INT NOT NULL PRIMARY KEY) "
+            "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+        with self.assertRaisesRegex(RuntimeError, "partial migration state"):
+            run_sql_migration.run_migration("upgrade", NAME, self.connection_factory)
+        self.assertFalse(self._migration_is_recorded())
+        self._execute("DROP TABLE occupations")
 
 
 class MigrationRunnerTests(unittest.TestCase):
