@@ -342,6 +342,23 @@ def _version_key(record: object) -> object:
     return ("transient", id(version))
 
 
+def _validate_relationship_key(
+    record: object,
+    id_attribute: str,
+    relationship_attribute: str,
+    relationship_name: str,
+) -> None:
+    foreign_key_id = getattr(record, id_attribute)
+    related = getattr(record, relationship_attribute)
+    if (
+        foreign_key_id is not None
+        and related is not None
+        and related.id is not None
+        and foreign_key_id != related.id
+    ):
+        raise ValueError(f"{relationship_name} relationship must match its foreign key")
+
+
 def validate_condition(
     source: "QuestionnaireQuestion",
     target: "QuestionnaireQuestion",
@@ -349,6 +366,15 @@ def validate_condition(
     operator: str,
 ) -> None:
     """Validate one condition against its source, target, and stable option."""
+    _validate_relationship_key(
+        source, "version_id", "version", "source question version"
+    )
+    _validate_relationship_key(
+        target, "version_id", "version", "target question version"
+    )
+    _validate_relationship_key(
+        expected_option, "question_id", "question", "condition option question"
+    )
     source_version_id = _related_id(source, "version_id", "version")
     target_version_id = _related_id(target, "version_id", "version")
     if source_version_id is None and target_version_id is None:
@@ -359,7 +385,11 @@ def validate_condition(
         raise ValueError("condition questions must belong to the same version")
     if _same_record(source, target):
         raise ValueError("condition cannot target its source question")
-    if not isinstance(source.sort_order, int) or not isinstance(target.sort_order, int) or source.sort_order >= target.sort_order:
+    if (
+        not _is_non_negative_int(source.sort_order)
+        or not _is_non_negative_int(target.sort_order)
+        or source.sort_order >= target.sort_order
+    ):
         raise ValueError("condition source must precede its target")
     option_question = expected_option.question
     if option_question is not None:
@@ -397,6 +427,27 @@ def validate_condition_graph(
     edges: dict[object, list[object]] = {key: [] for key in question_keys}
     target_keys: set[object] = set()
     for condition in condition_list:
+        _validate_relationship_key(
+            condition, "version_id", "version", "condition version"
+        )
+        _validate_relationship_key(
+            condition,
+            "source_question_id",
+            "source_question",
+            "condition source question",
+        )
+        _validate_relationship_key(
+            condition,
+            "target_question_id",
+            "target_question",
+            "condition target question",
+        )
+        _validate_relationship_key(
+            condition,
+            "expected_option_id",
+            "expected_option",
+            "condition expected option",
+        )
         source = condition.source_question
         target = condition.target_question
         if source is None or target is None:
