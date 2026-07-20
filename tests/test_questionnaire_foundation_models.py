@@ -1527,26 +1527,48 @@ class QuestionnaireConditionModelTests(QuestionOptionModelTests):
         with self.assertRaises(ValueError):
             validate_condition(source, target, option, "equals")
 
-    def test_validate_condition_rejects_transient_relationships_with_nonempty_foreign_keys(self) -> None:
+    def test_validate_condition_graph_accepts_a_coherent_transient_option_relationship(self) -> None:
         from questionnaire_models import (
+            QuestionnaireCondition,
             QuestionnaireOption,
             QuestionnaireQuestion,
             QuestionnaireVersion,
         )
-        from questionnaire_validation import validate_condition
+        from questionnaire_validation import validate_condition_graph
 
-        source = QuestionnaireQuestion(id=1, version_id=1, question_code="source", title="Source", question_type="single_choice", sort_order=1)
-        target = QuestionnaireQuestion(id=2, version_id=1, question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1)
-        option = QuestionnaireOption(id=1, question_id=source.id, option_value="yes", label="Yes", sort_order=1, enabled=True, question=source)
-        cases = (
-            (QuestionnaireQuestion(id=source.id, version_id=1, version=QuestionnaireVersion(version_number=1, status="draft"), question_code="source", title="Source", question_type="single_choice", sort_order=1), target, option),
-            (source, QuestionnaireQuestion(id=target.id, version_id=1, version=QuestionnaireVersion(version_number=1, status="draft"), question_code="target", title="Target", question_type="short_text", sort_order=2, max_length=1), option),
-            (source, target, QuestionnaireOption(id=option.id, question_id=source.id, question=QuestionnaireQuestion(question_code="transient", title="Transient", question_type="single_choice", sort_order=1), option_value="yes", label="Yes", sort_order=1, enabled=True)),
+        version = QuestionnaireVersion(version_number=1, status="draft")
+        source = QuestionnaireQuestion(
+            version=version,
+            question_code="source",
+            title="Source",
+            question_type="single_choice",
+            sort_order=1,
         )
-        for invalid_source, invalid_target, invalid_option in cases:
-            with self.subTest(source=invalid_source.question_code, target=invalid_target.question_code, option=invalid_option.option_value):
-                with self.assertRaises(ValueError):
-                    validate_condition(invalid_source, invalid_target, invalid_option, "equals")
+        target = QuestionnaireQuestion(
+            version=version,
+            question_code="target",
+            title="Target",
+            question_type="short_text",
+            sort_order=2,
+            max_length=1,
+        )
+        option = QuestionnaireOption(
+            question_id=1,
+            question=source,
+            option_value="yes",
+            label="Yes",
+            sort_order=1,
+            enabled=True,
+        )
+        condition = QuestionnaireCondition(
+            version=version,
+            source_question=source,
+            target_question=target,
+            expected_option=option,
+            operator="equals",
+        )
+
+        self.assertIsNone(validate_condition_graph((source, target), (condition,)))
 
     def test_validate_condition_rejects_backward_or_self_references(self) -> None:
         from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion

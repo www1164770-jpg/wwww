@@ -345,13 +345,18 @@ def _validate_relationship_key(
     id_attribute: str,
     relationship_attribute: str,
     relationship_name: str,
+    *,
+    allow_transient_related: bool = False,
 ) -> None:
     foreign_key_id = getattr(record, id_attribute)
     related = getattr(record, relationship_attribute)
     if (
         foreign_key_id is not None
         and related is not None
-        and (related.id is None or foreign_key_id != related.id)
+        and (
+            (related.id is None and not allow_transient_related)
+            or (related.id is not None and foreign_key_id != related.id)
+        )
     ):
         raise ValueError(f"{relationship_name} relationship must match its foreign key")
 
@@ -364,13 +369,25 @@ def validate_condition(
 ) -> None:
     """Validate one condition against its source, target, and stable option."""
     _validate_relationship_key(
-        source, "version_id", "version", "source question version"
+        source,
+        "version_id",
+        "version",
+        "source question version",
+        allow_transient_related=True,
     )
     _validate_relationship_key(
-        target, "version_id", "version", "target question version"
+        target,
+        "version_id",
+        "version",
+        "target question version",
+        allow_transient_related=True,
     )
     _validate_relationship_key(
-        expected_option, "question_id", "question", "condition option question"
+        expected_option,
+        "question_id",
+        "question",
+        "condition option question",
+        allow_transient_related=True,
     )
     source_version_id = _related_id(source, "version_id", "version")
     target_version_id = _related_id(target, "version_id", "version")
