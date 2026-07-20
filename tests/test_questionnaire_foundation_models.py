@@ -983,6 +983,63 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
                 with self.assertRaises(ValueError):
                     validate_question(QuestionnaireQuestion(**fields))
 
+    def test_validate_question_rejects_a_transient_version_with_a_nonempty_foreign_key(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion, QuestionnaireVersion
+        from questionnaire_validation import validate_question
+
+        fields = self._question_fields(
+            QuestionnaireVersion(id=1, version_number=1, status="draft"),
+            question_type="short_text",
+            min_selections=None,
+            max_selections=None,
+            max_length=1,
+        )
+        fields["version"] = QuestionnaireVersion(version_number=1, status="draft")
+        question = QuestionnaireQuestion(**fields)
+
+        with self.assertRaises(ValueError):
+            validate_question(question)
+
+    def test_validate_question_accepts_coherent_version_relationship_keys(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion, QuestionnaireVersion
+        from questionnaire_validation import validate_question
+
+        persisted_version = QuestionnaireVersion(id=1, version_number=1, status="draft")
+        same_id_version = QuestionnaireVersion(id=1, version_number=1, status="draft")
+        transient_version = QuestionnaireVersion(version_number=1, status="draft")
+        matching_relationship = self._question_fields(
+            persisted_version,
+            question_type="short_text",
+            min_selections=None,
+            max_selections=None,
+            max_length=1,
+        )
+        matching_relationship["version"] = same_id_version
+        relationship_without_foreign_key = self._question_fields(
+            persisted_version,
+            version_id=None,
+            question_type="short_text",
+            min_selections=None,
+            max_selections=None,
+            max_length=1,
+        )
+        relationship_without_foreign_key["version"] = transient_version
+        cases = (
+            self._question_fields(
+                persisted_version,
+                question_type="short_text",
+                min_selections=None,
+                max_selections=None,
+                max_length=1,
+            ),
+            matching_relationship,
+            relationship_without_foreign_key,
+        )
+
+        for fields in cases:
+            with self.subTest(fields=fields):
+                self.assertIsNone(validate_question(QuestionnaireQuestion(**fields)))
+
     def test_validate_option_rejects_invalid_stable_fields_and_question_relationship_mismatch(self) -> None:
         from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
         from questionnaire_validation import validate_option
@@ -1001,6 +1058,70 @@ class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
             with self.subTest(fields=fields):
                 with self.assertRaises(ValueError):
                     validate_option(QuestionnaireOption(**fields))
+
+    def test_validate_option_rejects_a_transient_question_with_a_nonempty_foreign_key(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_option
+
+        option = QuestionnaireOption(
+            question_id=1,
+            question=QuestionnaireQuestion(
+                question_code="tools",
+                title="Tools",
+                question_type="single_choice",
+                sort_order=1,
+            ),
+            option_value="design",
+            label="Design tools",
+            sort_order=1,
+            enabled=True,
+        )
+
+        with self.assertRaises(ValueError):
+            validate_option(option)
+
+    def test_validate_option_accepts_coherent_question_relationship_keys(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_option
+
+        persisted_question = QuestionnaireQuestion(
+            id=1,
+            version_id=1,
+            question_code="tools",
+            title="Tools",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        same_id_question = QuestionnaireQuestion(
+            id=1,
+            version_id=1,
+            question_code="tools_copy",
+            title="Tools copy",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        transient_question = QuestionnaireQuestion(
+            question_code="transient",
+            title="Transient",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        matching_relationship = self._option_fields(persisted_question)
+        matching_relationship["question"] = same_id_question
+        relationship_without_foreign_key = self._option_fields(
+            persisted_question,
+            question_id=None,
+        )
+        relationship_without_foreign_key["question"] = transient_question
+        cases = (
+            self._option_fields(persisted_question),
+            matching_relationship,
+            relationship_without_foreign_key,
+        )
+
+        for fields in cases:
+            with self.subTest(fields=fields):
+                self.assertIsNone(validate_option(QuestionnaireOption(**fields)))
 
     def test_required_multiple_choice_requires_a_positive_minimum_and_optional_allows_zero(self) -> None:
         from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
@@ -1505,6 +1626,33 @@ class QuestionnaireConditionModelTests(QuestionOptionModelTests):
         )
         with self.assertRaises(ValueError):
             validate_condition_graph(questions, (cross_version,))
+
+    def test_validate_condition_graph_rejects_a_disconnected_question_with_a_transient_version_relationship(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion, QuestionnaireVersion
+        from questionnaire_validation import validate_condition_graph
+
+        version = QuestionnaireVersion(id=1, version_number=1, status="draft")
+        source = QuestionnaireQuestion(
+            id=1,
+            version_id=version.id,
+            question_code="source",
+            title="Source",
+            question_type="single_choice",
+            sort_order=1,
+        )
+        disconnected = QuestionnaireQuestion(
+            id=2,
+            version_id=version.id,
+            version=QuestionnaireVersion(version_number=1, status="draft"),
+            question_code="disconnected",
+            title="Disconnected",
+            question_type="short_text",
+            sort_order=2,
+            max_length=1,
+        )
+
+        with self.assertRaises(ValueError):
+            validate_condition_graph((source, disconnected), ())
 
     def test_validate_condition_graph_rejects_duplicate_transient_targets(self) -> None:
         from questionnaire_models import QuestionnaireCondition, QuestionnaireOption, QuestionnaireQuestion

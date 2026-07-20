@@ -214,6 +214,9 @@ def validate_option(
         raise ValueError("option enabled must be a boolean")
 
     related_question = option.question
+    _validate_relationship_key(
+        option, "question_id", "question", "option question"
+    )
     if question is not None and related_question is not None and related_question is not question:
         raise ValueError("option must be validated against its own question")
     expected_question = question if question is not None else related_question
@@ -245,14 +248,9 @@ def validate_question(
         if not isinstance(value, bool):
             raise ValueError(f"question {field_name} must be a boolean")
 
-    related_version = question.version
-    if (
-        related_version is not None
-        and question.version_id is not None
-        and related_version.id is not None
-        and question.version_id != related_version.id
-    ):
-        raise ValueError("question version relationship must match version_id")
+    _validate_relationship_key(
+        question, "version_id", "version", "question version"
+    )
 
     if question.question_type == "multiple_choice":
         _validate_multiple_choice_limits(question)
@@ -418,6 +416,10 @@ def validate_condition_graph(
     """Reject conditions outside the supplied version or forming a dependency cycle."""
     question_list = tuple(questions)
     condition_list = tuple(conditions)
+    for question in question_list:
+        _validate_relationship_key(
+            question, "version_id", "version", "question version"
+        )
     question_keys = {_question_key(question) for question in question_list}
     version_keys = {_version_key(question) for question in question_list}
     if len(version_keys) > 1:
