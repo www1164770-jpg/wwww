@@ -45,11 +45,14 @@ class FakeCursor:
         elif "INFORMATION_SCHEMA.KEY_COLUMN_USAGE" in normalized:
             target_count = (len(parameters) - 1) // 2
             excluded_tables = set(parameters[target_count:])
-            self._all = [
-                (table,)
-                for table in self.connection.external_references
-                if table not in excluded_tables
-            ]
+            self._all = []
+            for reference in self.connection.external_references:
+                schema, table = (
+                    reference if isinstance(reference, tuple) else ("current_database", reference)
+                )
+                if schema == "current_database" and table in excluded_tables:
+                    continue
+                self._all.append((schema, table))
         else:
             self._one = None
             self._all = []
@@ -73,7 +76,7 @@ class FakeConnection:
         *,
         applied: set[str] | None = None,
         existing_tables: tuple[str, ...] = (),
-        external_references: tuple[str, ...] = (),
+        external_references: tuple[str | tuple[str, str], ...] = (),
         fail_statement: str | None = None,
         close_on_exit: bool = False,
         rollback_error: Exception | None = None,

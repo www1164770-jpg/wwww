@@ -119,7 +119,7 @@ def _existing_target_tables(cursor, target_tables: tuple[str, ...]) -> tuple[str
         "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" + placeholders + ")",
         target_tables,
     )
-    return tuple(_row_value(row, "TABLE_NAME") for row in cursor.fetchall())
+    return tuple(row["TABLE_NAME"] if isinstance(row, dict) else row[1] for row in cursor.fetchall())
 
 
 def _external_references(cursor, target_tables: tuple[str, ...]) -> tuple[str, ...]:
@@ -127,10 +127,10 @@ def _external_references(cursor, target_tables: tuple[str, ...]) -> tuple[str, .
     excluded_tables = ("schema_migrations", *target_tables)
     excluded_placeholders = ", ".join("%s" for _ in excluded_tables)
     cursor.execute(
-        "SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+        "SELECT DISTINCT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
         "WHERE REFERENCED_TABLE_SCHEMA = DATABASE() "
         "AND REFERENCED_TABLE_NAME IN (" + referenced_placeholders + ") "
-        "AND TABLE_NAME NOT IN (" + excluded_placeholders + ")",
+        "AND NOT (TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" + excluded_placeholders + "))",
         (*target_tables, *excluded_tables),
     )
     return tuple(_row_value(row, "TABLE_NAME") for row in cursor.fetchall())

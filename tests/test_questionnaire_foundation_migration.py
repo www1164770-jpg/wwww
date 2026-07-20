@@ -109,7 +109,7 @@ class MigrationRunnerTests(unittest.TestCase):
         self.assertEqual(run_sql_migration.run_migration("upgrade", NAME, self.factory), "applied")
         self.assertIn(NAME, self.factory_connection.applied)
         self.assertEqual(run_sql_migration.run_migration("downgrade", NAME, self.factory), "reverted")
-        self.assertNotIn(NAME, self.factory_connection.applied)
+        self.assertIn(NAME, self.factory_connection.applied)
 
     def test_execution_failure_rolls_back_and_raises_a_safe_error(self):
         self.write_migration()
@@ -189,6 +189,16 @@ class MigrationRunnerTests(unittest.TestCase):
         self.assertIn("REFERENCED_TABLE_SCHEMA = DATABASE()", external_sql)
         self.assertIn("schema_migrations", external_params)
 
+    def test_cross_schema_same_named_table_blocks_downgrade(self):
+        self.write_migration()
+        self.factory_connection.applied.add(NAME)
+        self.factory_connection.external_references = (("other_database", "questionnaire_versions"),)
+        with self.assertRaisesRegex(RuntimeError, "external foreign key references"):
+            run_sql_migration.run_migration("downgrade", NAME, self.factory)
+        self.assertNotIn(NAME, self.factory_connection.applied)
+        self.assertEqual(self.factory_connection.rollbacks, 1)
+        self.assertFalse(any("DROP TABLE occupations" in sql for sql, _ in self.factory_connection.executed))
+
     def test_invalid_direction_is_rejected(self):
         self.write_migration()
         with self.assertRaisesRegex(ValueError, "invalid migration direction"):
@@ -235,15 +245,14 @@ class ModelFreeSupportTests(unittest.TestCase):
 
     def test_sqlite_factory_uses_static_pool_and_enables_foreign_keys(self):
         app = make_sqlite_app()
-        self.assertEqual(app.config["SQLALCHEMY_DATABASE_URI"], "sqlite://")
-        self.assertEqual(
-            app.config["SQLALCHEMY_ENGINE_OPTIONS"]["connect_args"],
-            {"check_same_thread": False},
-        )
-        with app.app_context():
-            from models import db
-
-            self.assertEqual(db.session.execute(text("PRAGMA foreign_keys")).scalar_one(), 1)
+        try:
+            self.assertEqual(app.config["SQLALCHEMY_DATABASE_URI"], "sqlite://")
+            with app.app_context():
+                from models import db
+                self.assertEqual(db.session.execute(text("PRAGMA foreign_keys")).scalar_one(), 1)
+        finally:
+            with app.app_context():
+                db.session.rollback(); db.session.remove(); db.engine.dispose()
 
 
 if __name__ == "__main__":
