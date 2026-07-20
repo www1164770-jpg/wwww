@@ -212,6 +212,36 @@ def add_version(session: Any, **fields: Any) -> Any:
     return version
 
 
+def question(**fields: Any) -> Any:
+    """Construct a Task 4 question without persisting it."""
+    from questionnaire_models import QuestionnaireQuestion
+
+    return QuestionnaireQuestion(**fields)
+
+
+def add_question(session: Any, **fields: Any) -> Any:
+    """Persist one question and return its flushed ORM record."""
+    record = question(**fields)
+    session.add(record)
+    session.flush()
+    return record
+
+
+def option(**fields: Any) -> Any:
+    """Construct a Task 4 option without persisting it."""
+    from questionnaire_models import QuestionnaireOption
+
+    return QuestionnaireOption(**fields)
+
+
+def add_option(session: Any, **fields: Any) -> Any:
+    """Persist one option and return its flushed ORM record."""
+    record = option(**fields)
+    session.add(record)
+    session.flush()
+    return record
+
+
 class SqlStatementCounter:
     """Count SQLAlchemy statements while active."""
 

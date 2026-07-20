@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from questionnaire_constants import (
     NEW_OCCUPATION_POLICIES,
     QUESTIONNAIRE_SCOPE_TYPES,
     QUESTIONNAIRE_VERSION_STATUSES,
+    QUESTION_TYPES,
     USER_TYPES,
 )
 
@@ -16,11 +17,27 @@ if TYPE_CHECKING:
     from questionnaire_models import (
         Occupation,
         QuestionnaireDefinition,
+        QuestionnaireOption,
+        QuestionnaireQuestion,
         QuestionnaireVersion,
     )
 
 
 _OCCUPATION_CODE_RE = re.compile(r"^[a-z0-9_]+$")
+
+
+def _is_non_negative_int(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _validate_stable_code(value: object, field_name: str) -> None:
+    if not isinstance(value, str) or not _OCCUPATION_CODE_RE.fullmatch(value):
+        raise ValueError(f"{field_name} must be lowercase and stable")
+
+
+def _validate_non_empty_text(value: object, field_name: str) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must not be empty")
 
 
 def validate_occupation(occupation: "Occupation") -> None:
@@ -180,3 +197,115 @@ def validate_version_source(
         and source_version.definition is not version.definition
     ):
         raise ValueError("source version must use the same definition")
+
+
+def validate_option(
+    option: "QuestionnaireOption",
+    question: "QuestionnaireQuestion | None" = None,
+) -> None:
+    """Validate option fields and, when known, its owning question relation."""
+    _validate_stable_code(option.option_value, "option_value")
+    _validate_non_empty_text(option.label, "option label")
+    if not _is_non_negative_int(option.sort_order):
+        raise ValueError("option sort_order must be non-negative")
+    if not isinstance(option.enabled, bool):
+        raise ValueError("option enabled must be a boolean")
+
+    related_question = option.question
+    if question is not None and related_question is not None and related_question is not question:
+        raise ValueError("option must be validated against its own question")
+    expected_question = question if question is not None else related_question
+    if (
+        expected_question is not None
+        and option.question_id is not None
+        and expected_question.id is not None
+        and option.question_id != expected_question.id
+    ):
+        raise ValueError("option question relationship must match question_id")
+
+
+def validate_question(
+    question: "QuestionnaireQuestion",
+    options: Sequence["QuestionnaireOption"] | None = None,
+) -> None:
+    """Validate a question's stable fields and, when supplied, option constraints."""
+    _validate_stable_code(question.question_code, "question_code")
+    _validate_non_empty_text(question.title, "question title")
+    if question.question_type not in QUESTION_TYPES:
+        raise ValueError("invalid question_type")
+    if not _is_non_negative_int(question.sort_order):
+        raise ValueError("question sort_order must be non-negative")
+    for value, field_name in (
+        (question.required, "required"),
+        (question.enabled, "enabled"),
+        (question.is_general, "is_general"),
+    ):
+        if not isinstance(value, bool):
+            raise ValueError(f"question {field_name} must be a boolean")
+
+    related_version = question.version
+    if (
+        related_version is not None
+        and question.version_id is not None
+        and related_version.id is not None
+        and question.version_id != related_version.id
+    ):
+        raise ValueError("question version relationship must match version_id")
+
+    if question.question_type == "multiple_choice":
+        _validate_multiple_choice_limits(question)
+    elif question.question_type == "single_choice":
+        if any(
+            value is not None
+            for value in (
+                question.min_selections,
+                question.max_selections,
+                question.max_length,
+            )
+        ):
+            raise ValueError("single_choice cannot define selection limits or max_length")
+    else:
+        if question.min_selections is not None or question.max_selections is not None:
+            raise ValueError("short_text cannot define selection limits")
+        if not isinstance(question.max_length, int) or isinstance(question.max_length, bool) or question.max_length <= 0:
+            raise ValueError("short_text requires a positive max_length")
+
+    if options is not None:
+        validate_question_options(question, options)
+
+
+def _validate_multiple_choice_limits(question: "QuestionnaireQuestion") -> None:
+    minimum = question.min_selections
+    maximum = question.max_selections
+    if minimum is not None and not _is_non_negative_int(minimum):
+        raise ValueError("multiple_choice min_selections must be non-negative")
+    if maximum is not None and (
+        not isinstance(maximum, int) or isinstance(maximum, bool) or maximum <= 0
+    ):
+        raise ValueError("multiple_choice max_selections must be positive")
+    if question.required and (minimum is None or minimum < 1):
+        raise ValueError("required multiple_choice requires a positive minimum")
+    if minimum is not None and maximum is not None and maximum < minimum:
+        raise ValueError("multiple_choice maximum cannot be less than minimum")
+    if question.max_length is not None:
+        raise ValueError("multiple_choice cannot define max_length")
+
+
+def validate_question_options(
+    question: "QuestionnaireQuestion",
+    options: Sequence["QuestionnaireOption"],
+) -> None:
+    """Validate the supplied options as the complete option set for a question."""
+    option_list = tuple(options)
+    for option in option_list:
+        validate_option(option, question)
+    if question.question_type == "short_text":
+        if option_list:
+            raise ValueError("short_text cannot have options")
+        return
+    if not any(option.enabled for option in option_list):
+        raise ValueError("choice questions require an enabled option")
+    if question.question_type == "multiple_choice" and question.max_selections is not None:
+        enabled_count = sum(option.enabled for option in option_list)
+        if question.max_selections > enabled_count:
+            raise ValueError("multiple_choice maximum exceeds enabled options")

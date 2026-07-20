@@ -271,7 +271,7 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
             QuestionnaireVersion.source_version.property.mapper.class_,
             QuestionnaireVersion,
         )
-        self.assertFalse(hasattr(QuestionnaireVersion, "questions"))
+        self.assertTrue(hasattr(QuestionnaireVersion, "questions"))
         self.assertFalse(hasattr(QuestionnaireVersion, "is_current_effective"))
         self.assertEqual(
             tuple(QuestionnaireDefinition.versions.property.order_by),
@@ -801,6 +801,336 @@ class QuestionnaireDefinitionAndVersionTests(QuestionnaireFoundationTestCase):
         )
 
         self.assertIsNone(validate_version_source(version, source))
+
+
+class QuestionOptionModelTests(QuestionnaireFoundationTestCase):
+    def setUp(self) -> None:
+        self.app = make_sqlite_app()
+
+    def tearDown(self) -> None:
+        dispose_sqlite_app(self.app)
+
+    def _add_user(self, session, username: str):
+        from models import User
+
+        user = User(
+            username=username,
+            email=f"{username}@example.test",
+            password_hash="not-a-password",
+        )
+        session.add(user)
+        session.flush()
+        return user
+
+    def _add_version(self, session):
+        from questionnaire_models import QuestionnaireDefinition, QuestionnaireVersion
+
+        creator = self._add_user(session, "question-option-creator")
+        definition = QuestionnaireDefinition(
+            definition_code="question_option_definition",
+            name="Question option definition",
+            scope_type="general",
+            scope_key="general",
+            created_by_user_id=creator.id,
+        )
+        session.add(definition)
+        session.flush()
+        version = QuestionnaireVersion(
+            definition_id=definition.id,
+            version_number=1,
+            status="draft",
+            created_by_user_id=creator.id,
+        )
+        session.add(version)
+        session.flush()
+        return version
+
+    def _question_fields(self, version, **overrides):
+        fields = {
+            "version_id": version.id,
+            "question_code": "favorite_tools",
+            "title": "Which tools do you use?",
+            "description": None,
+            "question_type": "multiple_choice",
+            "required": True,
+            "sort_order": 1,
+            "enabled": True,
+            "is_general": True,
+            "min_selections": 1,
+            "max_selections": 2,
+            "max_length": None,
+        }
+        fields.update(overrides)
+        return fields
+
+    def _option_fields(self, question, **overrides):
+        fields = {
+            "question_id": question.id,
+            "option_value": "design",
+            "label": "Design tools",
+            "sort_order": 1,
+            "enabled": True,
+        }
+        fields.update(overrides)
+        return fields
+
+    def test_question_and_option_contract_constants_columns_and_restrict_foreign_keys(self) -> None:
+        from questionnaire_constants import QUESTION_TYPES
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+
+        self.assertEqual(
+            QUESTION_TYPES,
+            frozenset({"single_choice", "multiple_choice", "short_text"}),
+        )
+        self.assertEqual(QuestionnaireQuestion.__table__.c.question_code.type.length, 96)
+        self.assertEqual(QuestionnaireQuestion.__table__.c.title.type.length, 300)
+        self.assertEqual(QuestionnaireQuestion.__table__.c.question_type.type.length, 32)
+        self.assertEqual(QuestionnaireOption.__table__.c.option_value.type.length, 96)
+        self.assertEqual(QuestionnaireOption.__table__.c.label.type.length, 300)
+        self.assertEqual(
+            next(iter(QuestionnaireQuestion.__table__.c.version_id.foreign_keys)).ondelete,
+            "RESTRICT",
+        )
+        self.assertEqual(
+            next(iter(QuestionnaireOption.__table__.c.question_id.foreign_keys)).ondelete,
+            "RESTRICT",
+        )
+
+    def test_question_and_option_relationships_are_explicit_bidirectional_and_sorted(self) -> None:
+        from questionnaire_models import (
+            QuestionnaireOption,
+            QuestionnaireQuestion,
+            QuestionnaireVersion,
+        )
+
+        configure_mappers()
+        self.assertIs(QuestionnaireQuestion.version.property.mapper.class_, QuestionnaireVersion)
+        self.assertIs(QuestionnaireVersion.questions.property.mapper.class_, QuestionnaireQuestion)
+        self.assertIs(QuestionnaireOption.question.property.mapper.class_, QuestionnaireQuestion)
+        self.assertIs(QuestionnaireQuestion.options.property.mapper.class_, QuestionnaireOption)
+        self.assertEqual(QuestionnaireQuestion.version.property.back_populates, "questions")
+        self.assertEqual(QuestionnaireVersion.questions.property.back_populates, "version")
+        self.assertEqual(QuestionnaireOption.question.property.back_populates, "options")
+        self.assertEqual(QuestionnaireQuestion.options.property.back_populates, "question")
+        self.assertEqual(
+            tuple(QuestionnaireVersion.questions.property.order_by),
+            (QuestionnaireQuestion.sort_order,),
+        )
+        self.assertEqual(
+            tuple(QuestionnaireQuestion.options.property.order_by),
+            (QuestionnaireOption.sort_order,),
+        )
+
+    def test_question_code_is_unique_per_version_and_option_value_is_unique_per_question(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+
+        with sqlite_session(self.app) as session:
+            version = self._add_version(session)
+            first = QuestionnaireQuestion(**self._question_fields(version))
+            session.add(first)
+            session.flush()
+            session.add(QuestionnaireQuestion(**self._question_fields(version, title="Different")))
+            with self.assertRaises(IntegrityError):
+                session.flush()
+            session.rollback()
+
+            version = self._add_version(session)
+            question = QuestionnaireQuestion(**self._question_fields(version))
+            session.add(question)
+            session.flush()
+            session.add_all((
+                QuestionnaireOption(**self._option_fields(question)),
+                QuestionnaireOption(**self._option_fields(question, label="Different label")),
+            ))
+            with self.assertRaises(IntegrityError):
+                session.flush()
+
+    def test_question_and_option_helpers_persist_rows_and_relationships_in_sort_order(self) -> None:
+        from tests.questionnaire_foundation_test_support import add_option, add_question
+
+        with sqlite_session(self.app) as session:
+            version = self._add_version(session)
+            question = add_question(session, **self._question_fields(version))
+            second = add_option(
+                session,
+                **self._option_fields(question, option_value="develop", sort_order=2),
+            )
+            first = add_option(
+                session,
+                **self._option_fields(question, option_value="design", sort_order=1),
+            )
+            self.assertEqual(question.version, version)
+            self.assertEqual(question.options, [first, second])
+            self.assertIs(second.question, question)
+
+    def test_validate_question_rejects_invalid_stable_fields_and_version_relationship_mismatch(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion, QuestionnaireVersion
+        from questionnaire_validation import validate_question
+
+        version = QuestionnaireVersion(id=1, definition_id=1, version_number=1, status="draft", created_by_user_id=1)
+        other_version = QuestionnaireVersion(id=2, definition_id=1, version_number=2, status="draft", created_by_user_id=1)
+        mismatched_version = self._question_fields(version, version_id=other_version.id)
+        mismatched_version["version"] = version
+        cases = (
+            self._question_fields(version, question_code="Favorite tools"),
+            self._question_fields(version, title="   "),
+            self._question_fields(version, question_type="unknown"),
+            self._question_fields(version, sort_order=-1),
+            mismatched_version,
+        )
+        for fields in cases:
+            with self.subTest(fields=fields):
+                with self.assertRaises(ValueError):
+                    validate_question(QuestionnaireQuestion(**fields))
+
+    def test_validate_option_rejects_invalid_stable_fields_and_question_relationship_mismatch(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_option
+
+        question = QuestionnaireQuestion(id=1, version_id=1, question_code="tools", title="Tools", question_type="single_choice", sort_order=1)
+        other_question = QuestionnaireQuestion(id=2, version_id=1, question_code="other", title="Other", question_type="single_choice", sort_order=2)
+        mismatched_question = self._option_fields(question, question_id=other_question.id)
+        mismatched_question["question"] = question
+        cases = (
+            self._option_fields(question, option_value="Design tools"),
+            self._option_fields(question, label="  "),
+            self._option_fields(question, sort_order=-1),
+            mismatched_question,
+        )
+        for fields in cases:
+            with self.subTest(fields=fields):
+                with self.assertRaises(ValueError):
+                    validate_option(QuestionnaireOption(**fields))
+
+    def test_required_multiple_choice_requires_a_positive_minimum_and_optional_allows_zero(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion
+        from questionnaire_validation import validate_question
+
+        version = self._add_transient_version()
+        for required, minimum, valid in (
+            (True, None, False),
+            (True, 0, False),
+            (True, 1, True),
+            (False, 0, True),
+            (False, None, True),
+        ):
+            question = QuestionnaireQuestion(
+                **self._question_fields(version, required=required, min_selections=minimum)
+            )
+            with self.subTest(required=required, minimum=minimum):
+                if valid:
+                    self.assertIsNone(validate_question(question))
+                else:
+                    with self.assertRaises(ValueError):
+                        validate_question(question)
+
+    def test_multiple_choice_maximum_must_fit_enabled_options_and_not_be_less_than_minimum(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_question
+
+        version = self._add_transient_version()
+        question = QuestionnaireQuestion(**self._question_fields(version, min_selections=2, max_selections=3))
+        options = [
+            QuestionnaireOption(option_value="one", label="One", sort_order=1, enabled=True),
+            QuestionnaireOption(option_value="two", label="Two", sort_order=2, enabled=True),
+            QuestionnaireOption(option_value="three", label="Three", sort_order=3, enabled=False),
+        ]
+        with self.assertRaises(ValueError):
+            validate_question(question, options)
+        question.max_selections = 1
+        with self.assertRaises(ValueError):
+            validate_question(question, options)
+        question.max_selections = 2
+        self.assertIsNone(validate_question(question, options))
+
+    def test_single_choice_forbids_selection_limits_and_max_length(self) -> None:
+        from questionnaire_models import QuestionnaireQuestion
+        from questionnaire_validation import validate_question
+
+        version = self._add_transient_version()
+        for fields in (
+            self._question_fields(version, question_type="single_choice", min_selections=1, max_selections=None),
+            self._question_fields(version, question_type="single_choice", min_selections=None, max_selections=1),
+            self._question_fields(version, question_type="single_choice", min_selections=None, max_selections=None, max_length=100),
+        ):
+            with self.subTest(fields=fields):
+                with self.assertRaises(ValueError):
+                    validate_question(QuestionnaireQuestion(**fields))
+
+    def test_short_text_requires_positive_max_length_and_no_options(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_question
+
+        version = self._add_transient_version()
+        for max_length in (None, 0, -1):
+            with self.subTest(max_length=max_length):
+                with self.assertRaises(ValueError):
+                    validate_question(
+                        QuestionnaireQuestion(
+                            **self._question_fields(
+                                version,
+                                question_type="short_text",
+                                min_selections=None,
+                                max_selections=None,
+                                max_length=max_length,
+                            )
+                        )
+                    )
+        question = QuestionnaireQuestion(
+            **self._question_fields(
+                version,
+                question_type="short_text",
+                min_selections=None,
+                max_selections=None,
+                max_length=200,
+            )
+        )
+        with self.assertRaises(ValueError):
+            validate_question(
+                question,
+                [QuestionnaireOption(option_value="invalid", label="Invalid", sort_order=1, enabled=True)],
+            )
+        self.assertIsNone(validate_question(question, ()))
+
+    def test_choice_questions_require_an_enabled_option(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_question
+
+        version = self._add_transient_version()
+        question = QuestionnaireQuestion(**self._question_fields(version, question_type="single_choice", min_selections=None, max_selections=None))
+        disabled_option = QuestionnaireOption(option_value="disabled", label="Disabled", sort_order=1, enabled=False)
+        with self.assertRaises(ValueError):
+            validate_question(question, ())
+        with self.assertRaises(ValueError):
+            validate_question(question, (disabled_option,))
+        enabled_option = QuestionnaireOption(option_value="enabled", label="Enabled", sort_order=2, enabled=True)
+        self.assertIsNone(validate_question(question, (enabled_option,)))
+
+    def test_display_text_changes_do_not_change_stable_question_or_option_keys(self) -> None:
+        from questionnaire_models import QuestionnaireOption, QuestionnaireQuestion
+        from questionnaire_validation import validate_option, validate_question
+
+        version = self._add_transient_version()
+        question = QuestionnaireQuestion(**self._question_fields(version))
+        option = QuestionnaireOption(option_value="design", label="Design", sort_order=1, enabled=True)
+        question.title = "Which creative tools do you use most?"
+        option.label = "Visual design tools"
+        self.assertEqual(question.question_code, "favorite_tools")
+        self.assertEqual(option.option_value, "design")
+        self.assertIsNone(validate_question(question))
+        self.assertIsNone(validate_option(option))
+
+    @staticmethod
+    def _add_transient_version():
+        from questionnaire_models import QuestionnaireVersion
+
+        return QuestionnaireVersion(
+            id=1,
+            definition_id=1,
+            version_number=1,
+            status="draft",
+            created_by_user_id=1,
+        )
 
 
 if __name__ == "__main__":

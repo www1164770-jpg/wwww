@@ -142,3 +142,96 @@ class QuestionnaireVersion(db.Model):
     )
     created_by = db.relationship("User", foreign_keys=[created_by_user_id])
     published_by = db.relationship("User", foreign_keys=[published_by_user_id])
+    questions = db.relationship(
+        "QuestionnaireQuestion",
+        foreign_keys="QuestionnaireQuestion.version_id",
+        back_populates="version",
+        order_by="QuestionnaireQuestion.sort_order",
+    )
+
+
+class QuestionnaireQuestion(db.Model):
+    """One versioned question addressed by its stable question code."""
+
+    __tablename__ = "questionnaire_questions"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "version_id", "question_code", name="uq_questionnaire_questions_code"
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    version_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questionnaire_versions.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    question_code = db.Column(db.String(96), nullable=False)
+    title = db.Column(db.String(300), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    question_type = db.Column(db.String(32), nullable=False)
+    required = db.Column(db.Boolean, nullable=False, default=False)
+    sort_order = db.Column(db.Integer, nullable=False)
+    enabled = db.Column(db.Boolean, nullable=False, default=True)
+    is_general = db.Column(db.Boolean, nullable=False, default=False)
+    min_selections = db.Column(db.Integer, nullable=True)
+    max_selections = db.Column(db.Integer, nullable=True)
+    max_length = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+
+    version = db.relationship(
+        "QuestionnaireVersion",
+        foreign_keys=[version_id],
+        back_populates="questions",
+    )
+    options = db.relationship(
+        "QuestionnaireOption",
+        foreign_keys="QuestionnaireOption.question_id",
+        back_populates="question",
+        order_by="QuestionnaireOption.sort_order",
+    )
+
+
+class QuestionnaireOption(db.Model):
+    """A stable option value displayed through its editable label."""
+
+    __tablename__ = "questionnaire_options"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "question_id", "option_value", name="uq_questionnaire_options_value"
+        ),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(
+        db.Integer,
+        db.ForeignKey("questionnaire_questions.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    option_value = db.Column(db.String(96), nullable=False)
+    label = db.Column(db.String(300), nullable=False)
+    sort_order = db.Column(db.Integer, nullable=False)
+    enabled = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(UTC)
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+    )
+
+    question = db.relationship(
+        "QuestionnaireQuestion",
+        foreign_keys=[question_id],
+        back_populates="options",
+    )
