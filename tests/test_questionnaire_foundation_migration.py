@@ -125,6 +125,44 @@ EXPECTED_CONSTRAINT_NAMES = (
     "fk_questionnaire_conditions_source_question", "fk_questionnaire_conditions_target_question",
     "fk_questionnaire_conditions_expected_option",
 )
+EXPECTED_FOREIGN_KEYS = {
+    ("questionnaire_definitions", "fk_questionnaire_definitions_occupation", "occupation_id", "occupations", "id", "RESTRICT"),
+    ("questionnaire_definitions", "fk_questionnaire_definitions_created_by_user", "created_by_user_id", "users", "id", "RESTRICT"),
+    ("questionnaire_versions", "fk_questionnaire_versions_definition", "definition_id", "questionnaire_definitions", "id", "RESTRICT"),
+    ("questionnaire_versions", "fk_questionnaire_versions_source_version", "source_version_id", "questionnaire_versions", "id", "RESTRICT"),
+    ("questionnaire_versions", "fk_questionnaire_versions_created_by_user", "created_by_user_id", "users", "id", "RESTRICT"),
+    ("questionnaire_versions", "fk_questionnaire_versions_published_by_user", "published_by_user_id", "users", "id", "RESTRICT"),
+    ("questionnaire_questions", "fk_questionnaire_questions_version", "version_id", "questionnaire_versions", "id", "RESTRICT"),
+    ("questionnaire_options", "fk_questionnaire_options_question", "question_id", "questionnaire_questions", "id", "RESTRICT"),
+    ("questionnaire_conditions", "fk_questionnaire_conditions_version", "version_id", "questionnaire_versions", "id", "RESTRICT"),
+    ("questionnaire_conditions", "fk_questionnaire_conditions_source_question", "source_question_id", "questionnaire_questions", "id", "RESTRICT"),
+    ("questionnaire_conditions", "fk_questionnaire_conditions_target_question", "target_question_id", "questionnaire_questions", "id", "RESTRICT"),
+    ("questionnaire_conditions", "fk_questionnaire_conditions_expected_option", "expected_option_id", "questionnaire_options", "id", "RESTRICT"),
+}
+EXPECTED_UNIQUE_CONSTRAINTS = {
+    ("occupations", "uq_occupations_occupation_code"),
+    ("occupations", "uq_occupations_name"),
+    ("questionnaire_definitions", "uq_questionnaire_definitions_definition_code"),
+    ("questionnaire_definitions", "uq_questionnaire_definitions_scope_key"),
+    ("questionnaire_versions", "uq_questionnaire_versions_number"),
+    ("questionnaire_versions", "uq_questionnaire_versions_current_scope"),
+    ("questionnaire_questions", "uq_questionnaire_questions_code"),
+    ("questionnaire_options", "uq_questionnaire_options_value"),
+    ("questionnaire_conditions", "uq_questionnaire_conditions_target"),
+}
+EXPECTED_EXPLICIT_INDEXES = {
+    ("occupations", "idx_occupations_enabled_sort_order"),
+    ("questionnaire_definitions", "idx_questionnaire_definitions_occupation_id"),
+    ("questionnaire_definitions", "idx_questionnaire_definitions_created_by_user_id"),
+    ("questionnaire_versions", "idx_questionnaire_versions_source_version_id"),
+    ("questionnaire_versions", "idx_questionnaire_versions_created_by_user_id"),
+    ("questionnaire_versions", "idx_questionnaire_versions_published_by_user_id"),
+    ("questionnaire_questions", "idx_questionnaire_questions_version_sort_order"),
+    ("questionnaire_options", "idx_questionnaire_options_question_sort_order"),
+    ("questionnaire_conditions", "idx_questionnaire_conditions_version_id"),
+    ("questionnaire_conditions", "idx_questionnaire_conditions_source_question_id"),
+    ("questionnaire_conditions", "idx_questionnaire_conditions_expected_option_id"),
+}
 
 
 def _mysql_test_config(environ: dict[str, str]) -> dict[str, object] | None:
@@ -362,7 +400,7 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
         self.assertTrue(self._migration_is_recorded())
         with self.connection.cursor() as cursor:
             cursor.execute(
-                "SELECT TABLE_NAME, TABLE_COLLATION FROM information_schema.TABLES "
+                "SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES "
                 "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
                 ",".join(["%s"] * len(TARGETS)) + ")",
                 TARGETS,
@@ -372,7 +410,8 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
                 {row[0] for row in table_rows},
                 set(TARGETS),
             )
-            self.assertTrue(all(row[1].lower().startswith("utf8mb4") for row in table_rows))
+            self.assertTrue(all(row[1].upper() == "INNODB" for row in table_rows))
+            self.assertTrue(all(row[2].lower().startswith("utf8mb4_") for row in table_rows))
             cursor.execute(
                 "SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS "
                 "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
@@ -384,15 +423,20 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
                 columns_by_table[table].add(column)
             self.assertEqual(columns_by_table, {table: set(columns) for table, columns in EXPECTED_COLUMNS.items()})
             cursor.execute(
-                "SELECT TABLE_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME "
-                "FROM information_schema.KEY_COLUMN_USAGE "
-                "WHERE REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IN (" +
-                ",".join(["%s"] * len(TARGETS)) + ")",
+                "SELECT k.TABLE_NAME, k.CONSTRAINT_NAME, k.COLUMN_NAME, "
+                "k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME, r.DELETE_RULE "
+                "FROM information_schema.KEY_COLUMN_USAGE AS k "
+                "INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS r "
+                "ON r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA "
+                "AND r.TABLE_NAME = k.TABLE_NAME "
+                "AND r.CONSTRAINT_NAME = k.CONSTRAINT_NAME "
+                "WHERE k.CONSTRAINT_SCHEMA = DATABASE() "
+                "AND k.TABLE_NAME IN (" +
+                ",".join(["%s"] * len(TARGETS)) + ") "
+                "AND k.REFERENCED_TABLE_NAME IS NOT NULL",
                 TARGETS,
             )
-            foreign_keys = {(row[0], row[1], row[2]) for row in cursor.fetchall()}
-            self.assertTrue(any(name == "fk_questionnaire_versions_source_version" for _, name, _ in foreign_keys))
-            self.assertTrue(any(name == "fk_questionnaire_conditions_expected_option" for _, name, _ in foreign_keys))
+            self.assertEqual(set(cursor.fetchall()), EXPECTED_FOREIGN_KEYS)
             cursor.execute(
                 "SELECT TABLE_NAME, CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS "
                 "WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'UNIQUE' "
@@ -400,27 +444,17 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
                 TARGETS,
             )
             unique_constraints = {(row[0], row[1]) for row in cursor.fetchall()}
-            self.assertIn(("questionnaire_versions", "uq_questionnaire_versions_current_scope"), unique_constraints)
-            self.assertIn(("questionnaire_conditions", "uq_questionnaire_conditions_target"), unique_constraints)
+            self.assertEqual(unique_constraints, EXPECTED_UNIQUE_CONSTRAINTS)
             cursor.execute(
                 "SELECT TABLE_NAME, INDEX_NAME FROM information_schema.STATISTICS "
                 "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
-                ",".join(["%s"] * len(TARGETS)) + ")",
+                ",".join(["%s"] * len(TARGETS)) + ") AND INDEX_NAME LIKE 'idx_%'",
                 TARGETS,
             )
             indexes = {(row[0], row[1]) for row in cursor.fetchall()}
-            self.assertIn(("questionnaire_questions", "idx_questionnaire_questions_version_sort_order"), indexes)
-            self.assertIn(("questionnaire_options", "idx_questionnaire_options_question_sort_order"), indexes)
+            self.assertEqual(indexes, EXPECTED_EXPLICIT_INDEXES)
             cursor.execute("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s", ("questionnaire_migration_legacy_guard",))
             self.assertIsNotNone(cursor.fetchone())
-            cursor.execute(
-                "SELECT DISTINCT TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE "
-                "WHERE REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IN (" +
-                ",".join(["%s"] * len(TARGETS)) + ")",
-                TARGETS,
-            )
-            self.assertTrue(set(row[0] for row in cursor.fetchall()) & set(TARGETS))
-
         self._execute(
             "CREATE TABLE questionnaire_migration_external_reference ("
             "id INT NOT NULL PRIMARY KEY, question_id INT NOT NULL, "
