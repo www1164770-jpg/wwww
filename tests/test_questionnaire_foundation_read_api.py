@@ -645,6 +645,48 @@ class QuestionnaireAdminReadApiTests(QuestionnaireFoundationTestCase):
             set(missing_response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
         )
 
+    def _assert_questionnaire_routing_error(self, response, status: int) -> None:
+        self.assertEqual(response.status_code, status)
+        self.assertTrue(response.is_json)
+        self.assertEqual(
+            response.get_json(),
+            {
+                "code": status,
+                "legacy_code": status,
+                "message": "not found" if status == 404 else "method not allowed",
+                "msg": "not found" if status == 404 else "method not allowed",
+                "data": {},
+            },
+        )
+
+    def test_questionnaire_converter_and_unknown_routes_return_json_404_without_auth_queries(self) -> None:
+        for path in (
+            "/api/admin/questionnaires/definitions/not-an-integer",
+            "/api/admin/questionnaires/unknown",
+        ):
+            self._assert_questionnaire_routing_error(self.client.get(path), 404)
+
+        self.assertEqual(self.roles.identities, [])
+
+    def test_questionnaire_read_routes_reject_post_with_json_405_and_allow_get_without_auth_queries(self) -> None:
+        for path in (
+            "/api/admin/questionnaires/occupations",
+            "/api/admin/questionnaires/definitions",
+            "/api/admin/questionnaires/definitions/1",
+        ):
+            response = self.client.post(path)
+            self._assert_questionnaire_routing_error(response, 405)
+            self.assertIn("GET", response.headers["Allow"])
+
+        self.assertEqual(self.roles.identities, [])
+
+    def test_questionnaire_routing_error_handling_respects_exact_prefix_boundaries(self) -> None:
+        response = self.client.get("/api/admin/questionnaires-not-a-route")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(response.is_json)
+        self.assertEqual(self.roles.identities, [])
+
     def test_registering_new_routes_keeps_the_existing_v1_error_unchanged(self) -> None:
         from flask import Flask
         from flask_jwt_extended import JWTManager

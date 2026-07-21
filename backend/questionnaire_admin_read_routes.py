@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from flask import Flask
+from flask import Flask, request
+from werkzeug.exceptions import MethodNotAllowed, NotFound
 
 from models import db
 from questionnaire_admin_support import (
@@ -24,6 +25,15 @@ from questionnaire_read_service import (
 )
 
 
+QUESTIONNAIRE_ADMIN_READ_PREFIX = "/api/admin/questionnaires"
+
+
+def _is_questionnaire_admin_read_path(path: str) -> bool:
+    return path == QUESTIONNAIRE_ADMIN_READ_PREFIX or path.startswith(
+        f"{QUESTIONNAIRE_ADMIN_READ_PREFIX}/"
+    )
+
+
 def _filters(*names: str) -> dict[str, Any]:
     filters: dict[str, Any] = pagination_filters()
     for name in names:
@@ -40,6 +50,21 @@ def register_questionnaire_admin_read_routes(
     """Register only the Task 8 occupation and definition GET endpoints."""
 
     required = questionnaire_admin_required(get_db_connection)
+
+    @app.before_request
+    def questionnaire_admin_read_routing_error():
+        routing_exception = request.routing_exception
+        if not _is_questionnaire_admin_read_path(request.path):
+            return None
+        if isinstance(routing_exception, NotFound):
+            return questionnaire_error("not found", code=404)
+        if isinstance(routing_exception, MethodNotAllowed):
+            response, status = questionnaire_error("method not allowed", code=405)
+            for header, value in routing_exception.get_headers():
+                if header.lower() == "allow":
+                    response.headers[header] = value
+            return response, status
+        return None
 
     @app.get("/api/admin/questionnaires/occupations")
     @required
