@@ -39,7 +39,7 @@ def _is_questionnaire_admin_read_path(path: str) -> bool:
 def _filters(*names: str) -> dict[str, Any]:
     filters: dict[str, Any] = pagination_filters()
     for name in names:
-        value = optional_boolean(name) if name == "enabled" else optional_text(name)
+        value = optional_boolean(name) if name in ("enabled", "current_effective") else optional_text(name)
         if value is not None:
             filters[name] = value
     return filters

@@ -762,6 +762,59 @@ class VersionReadApiTests(QuestionnaireAdminReadApiTests):
         self.assertEqual(payload["data"]["total"], 1)
         self.assertEqual(payload["data"]["items"][0]["version_number"], 2)
 
+    def test_admin_can_filter_definition_versions_to_non_current_effective(self) -> None:
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-list-false-api-creator")
+            definition = self._add_definition(session, creator)
+            self._add_version(
+                session,
+                definition,
+                creator,
+                version_number=2,
+                status="published",
+                current_effective_scope_key="general",
+                published_by_user_id=creator.id,
+                published_at=datetime.now(UTC),
+            )
+            self._add_version(
+                session,
+                definition,
+                creator,
+                version_number=1,
+                status="published",
+                published_by_user_id=creator.id,
+                published_at=datetime.now(UTC),
+            )
+
+            response = self.client.get(
+                f"/api/admin/questionnaires/definitions/{definition.id}/versions"
+                "?status=published&current_effective=false",
+                headers=self._headers("admin"),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(set(payload), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(payload["data"]["total"], 1)
+        self.assertEqual(payload["data"]["items"][0]["version_number"], 1)
+        self.assertFalse(payload["data"]["items"][0]["is_current_effective"])
+
+    def test_admin_rejects_invalid_current_effective_with_five_key_error(self) -> None:
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-list-invalid-api-creator")
+            definition = self._add_definition(session, creator)
+
+            response = self.client.get(
+                f"/api/admin/questionnaires/definitions/{definition.id}/versions"
+                "?current_effective=maybe",
+                headers=self._headers("admin"),
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            set(response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
+        )
+
     def test_admin_can_get_a_version_snapshot_and_preview_only_adds_true(self) -> None:
         with sqlite_session(self.app) as session:
             creator = self._add_user(session, "version-detail-api-creator")
