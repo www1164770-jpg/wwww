@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from tests.questionnaire_foundation_test_support import (
     FakeRoleConnectionFactory,
@@ -820,16 +821,21 @@ class VersionReadApiTests(QuestionnaireAdminReadApiTests):
             creator = self._add_user(session, "version-list-invalid-status-api-creator")
             definition = self._add_definition(session, creator)
 
-            response = self.client.get(
-                f"/api/admin/questionnaires/definitions/{definition.id}/versions"
-                "?status=invalid",
-                headers=self._headers("admin"),
-            )
+            with patch("questionnaire_admin_read_routes.list_versions") as list_versions:
+                response = self.client.get(
+                    f"/api/admin/questionnaires/definitions/{definition.id}/versions"
+                    "?status=not-a-valid-status",
+                    headers=self._headers("admin"),
+                )
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(
-            set(response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
-        )
+        self.assertTrue(response.is_json)
+        payload = response.get_json()
+        self.assertEqual(set(payload), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(payload["code"], 400)
+        self.assertEqual(payload["legacy_code"], 400)
+        self.assertEqual(payload["data"], {})
+        list_versions.assert_not_called()
 
     def test_admin_can_get_a_version_snapshot_and_preview_only_adds_true(self) -> None:
         with sqlite_session(self.app) as session:
