@@ -17,7 +17,7 @@
         <RouterLink to="/#career" @click="scrollToSection('career')"
           >职业推荐</RouterLink
         >
-        <RouterLink to="/#hot" @click="scrollToSection('hot')"
+        <RouterLink to="/#tools" @click="scrollToSection('tools')"
           >热门网站</RouterLink
         >
         <RouterLink to="/#latest" @click="scrollToSection('latest')"
