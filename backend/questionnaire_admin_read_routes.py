@@ -9,6 +9,7 @@ from flask import Flask, request
 from werkzeug.exceptions import MethodNotAllowed, NotFound
 
 from models import db
+from questionnaire_constants import QUESTIONNAIRE_VERSION_STATUSES
 from questionnaire_admin_support import (
     QuestionnaireParameterError,
     optional_boolean,
@@ -99,6 +100,11 @@ def register_questionnaire_admin_read_routes(
     def questionnaire_admin_definition_versions(definition_id: int):
         try:
             filters = _filters("status", "current_effective")
+            if (
+                "status" in filters
+                and filters["status"] not in QUESTIONNAIRE_VERSION_STATUSES
+            ):
+                raise QuestionnaireParameterError("status is invalid")
         except QuestionnaireParameterError as exc:
             return questionnaire_error(str(exc), code=400)
         if get_definition(db.session, definition_id) is None:

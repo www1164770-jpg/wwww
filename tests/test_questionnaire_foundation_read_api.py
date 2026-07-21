@@ -815,6 +815,22 @@ class VersionReadApiTests(QuestionnaireAdminReadApiTests):
             set(response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
         )
 
+    def test_admin_rejects_invalid_version_status_with_five_key_error(self) -> None:
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-list-invalid-status-api-creator")
+            definition = self._add_definition(session, creator)
+
+            response = self.client.get(
+                f"/api/admin/questionnaires/definitions/{definition.id}/versions"
+                "?status=invalid",
+                headers=self._headers("admin"),
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            set(response.get_json()), {"code", "legacy_code", "message", "msg", "data"}
+        )
+
     def test_admin_can_get_a_version_snapshot_and_preview_only_adds_true(self) -> None:
         with sqlite_session(self.app) as session:
             creator = self._add_user(session, "version-detail-api-creator")
