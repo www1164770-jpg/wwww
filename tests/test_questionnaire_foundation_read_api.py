@@ -662,6 +662,9 @@ class QuestionnaireAdminReadApiTests(QuestionnaireFoundationTestCase):
     def test_questionnaire_converter_and_unknown_routes_return_json_404_without_auth_queries(self) -> None:
         for path in (
             "/api/admin/questionnaires/definitions/not-an-integer",
+            "/api/admin/questionnaires/definitions/not-an-integer/versions",
+            "/api/admin/questionnaires/versions/not-an-integer",
+            "/api/admin/questionnaires/versions/not-an-integer/preview",
             "/api/admin/questionnaires/unknown",
         ):
             self._assert_questionnaire_routing_error(self.client.get(path), 404)
@@ -673,6 +676,9 @@ class QuestionnaireAdminReadApiTests(QuestionnaireFoundationTestCase):
             "/api/admin/questionnaires/occupations",
             "/api/admin/questionnaires/definitions",
             "/api/admin/questionnaires/definitions/1",
+            "/api/admin/questionnaires/definitions/1/versions",
+            "/api/admin/questionnaires/versions/1",
+            "/api/admin/questionnaires/versions/1/preview",
         ):
             response = self.client.post(path)
             self._assert_questionnaire_routing_error(response, 405)
@@ -710,6 +716,162 @@ class QuestionnaireAdminReadApiTests(QuestionnaireFoundationTestCase):
         self.assertEqual(after.status_code, before.status_code)
         self.assertEqual(after.get_json(), before.get_json())
         self.assertNotIn("legacy_code", before.get_json())
+
+
+class VersionReadApiTests(QuestionnaireAdminReadApiTests):
+    def _add_version(self, session, definition, creator, **overrides):
+        fields = {
+            "definition_id": definition.id,
+            "version_number": 1,
+            "status": "draft",
+            "current_effective_scope_key": None,
+            "source_version_id": None,
+            "version_description": "Initial version",
+            "created_by_user_id": creator.id,
+            "published_by_user_id": None,
+            "published_at": None,
+        }
+        fields.update(overrides)
+        return add_version(session, **fields)
+
+    def test_admin_can_list_definition_versions_with_filters_and_five_key_response(self) -> None:
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-list-api-creator")
+            definition = self._add_definition(session, creator)
+            self._add_version(
+                session,
+                definition,
+                creator,
+                version_number=2,
+                status="published",
+                current_effective_scope_key="general",
+                published_by_user_id=creator.id,
+                published_at=datetime.now(UTC),
+            )
+            self._add_version(session, definition, creator, version_number=1)
+
+            response = self.client.get(
+                f"/api/admin/questionnaires/definitions/{definition.id}/versions"
+                "?status=published&current_effective=true&page=1&page_size=1",
+                headers=self._headers("admin"),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(set(payload), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(payload["data"]["total"], 1)
+        self.assertEqual(payload["data"]["items"][0]["version_number"], 2)
+
+    def test_admin_can_get_a_version_snapshot_and_preview_only_adds_true(self) -> None:
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-detail-api-creator")
+            definition = self._add_definition(session, creator)
+            version = self._add_version(session, definition, creator)
+            question = add_question(
+                session,
+                version_id=version.id,
+                question_code="interest",
+                title="What interests you?",
+                description=None,
+                question_type="single_choice",
+                required=True,
+                sort_order=1,
+                enabled=True,
+                is_general=True,
+                min_selections=None,
+                max_selections=None,
+                max_length=None,
+            )
+            add_option(
+                session,
+                question_id=question.id,
+                option_value="art",
+                label="Art",
+                sort_order=1,
+                enabled=True,
+            )
+
+            detail_response = self.client.get(
+                f"/api/admin/questionnaires/versions/{version.id}",
+                headers=self._headers("super"),
+            )
+            preview_response = self.client.get(
+                f"/api/admin/questionnaires/versions/{version.id}/preview",
+                headers=self._headers("super"),
+            )
+
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(preview_response.status_code, 200)
+        detail = detail_response.get_json()
+        preview = preview_response.get_json()
+        self.assertEqual(set(detail), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(set(preview), {"code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(preview["data"], {**detail["data"], "preview": True})
+
+    def test_version_routes_reject_missing_records_and_non_admin_users_with_five_key_errors(self) -> None:
+        with sqlite_session(self.app):
+            for path in (
+                "/api/admin/questionnaires/definitions/999/versions",
+                "/api/admin/questionnaires/versions/999",
+                "/api/admin/questionnaires/versions/999/preview",
+            ):
+                missing = self.client.get(path, headers=self._headers("admin"))
+                self.assertEqual(missing.status_code, 404)
+                self.assertEqual(
+                    set(missing.get_json()),
+                    {"code", "legacy_code", "message", "msg", "data"},
+                )
+
+                forbidden = self.client.get(path, headers=self._headers("member"))
+                self.assertEqual(forbidden.status_code, 403)
+                self.assertEqual(
+                    set(forbidden.get_json()),
+                    {"code", "legacy_code", "message", "msg", "data"},
+                )
+
+    def test_version_snapshot_api_uses_at_most_five_queries_for_twenty_questions(self) -> None:
+        from models import db
+
+        with sqlite_session(self.app) as session:
+            creator = self._add_user(session, "version-api-query-budget-creator")
+            definition = self._add_definition(session, creator)
+            version = self._add_version(session, definition, creator)
+            for index in range(20):
+                question = add_question(
+                    session,
+                    version_id=version.id,
+                    question_code=f"question_{index:02d}",
+                    title=f"Question {index}",
+                    description=None,
+                    question_type="single_choice",
+                    required=False,
+                    sort_order=index,
+                    enabled=True,
+                    is_general=False,
+                    min_selections=None,
+                    max_selections=None,
+                    max_length=None,
+                )
+                add_option(
+                    session,
+                    question_id=question.id,
+                    option_value="yes",
+                    label="Yes",
+                    sort_order=0,
+                    enabled=True,
+                )
+            version_id = version.id
+            session.expire_all()
+
+            with SqlStatementCounter(db.engine) as counter:
+                response = self.client.get(
+                    f"/api/admin/questionnaires/versions/{version_id}",
+                    headers=self._headers("admin"),
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.get_json()["data"]["questions"]), 20)
+        self.assertLessEqual(counter.count, 5)
 
 
 if __name__ == "__main__":

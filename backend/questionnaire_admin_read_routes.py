@@ -20,8 +20,10 @@ from questionnaire_admin_support import (
 )
 from questionnaire_read_service import (
     get_definition,
+    get_version_snapshot,
     list_definitions,
     list_occupations,
+    list_versions,
 )
 
 
@@ -91,3 +93,32 @@ def register_questionnaire_admin_read_routes(
         if definition is None:
             return questionnaire_error("definition not found", code=404)
         return questionnaire_response(definition)
+
+    @app.get("/api/admin/questionnaires/definitions/<int:definition_id>/versions")
+    @required
+    def questionnaire_admin_definition_versions(definition_id: int):
+        try:
+            filters = _filters("status", "current_effective")
+        except QuestionnaireParameterError as exc:
+            return questionnaire_error(str(exc), code=400)
+        if get_definition(db.session, definition_id) is None:
+            return questionnaire_error("definition not found", code=404)
+        return questionnaire_response(list_versions(db.session, definition_id, filters))
+
+    @app.get("/api/admin/questionnaires/versions/<int:version_id>")
+    @required
+    def questionnaire_admin_version_detail(version_id: int):
+        snapshot = get_version_snapshot(db.session, version_id)
+        if snapshot is None:
+            return questionnaire_error("version not found", code=404)
+        return questionnaire_response(snapshot)
+
+    @app.get("/api/admin/questionnaires/versions/<int:version_id>/preview")
+    @required
+    def questionnaire_admin_version_preview(version_id: int):
+        snapshot = get_version_snapshot(db.session, version_id)
+        if snapshot is None:
+            return questionnaire_error("version not found", code=404)
+        preview = dict(snapshot)
+        preview["preview"] = True
+        return questionnaire_response(preview)
