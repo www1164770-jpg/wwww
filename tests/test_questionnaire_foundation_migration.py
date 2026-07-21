@@ -502,9 +502,9 @@ class MySqlFoundationMigrationIntegrationTests(unittest.TestCase):
                 "FROM information_schema.STATISTICS "
                 "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (" +
                 ",".join(["%s"] * len(TARGETS)) + ") "
-                "AND (INDEX_NAME LIKE 'uq_%' OR INDEX_NAME LIKE 'idx_%') "
+                "AND (INDEX_NAME LIKE %s OR INDEX_NAME LIKE %s) "
                 "ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX",
-                TARGETS,
+                (*TARGETS, "uq_%", "idx_%"),
             )
             index_columns: dict[tuple[str, str, int], list[tuple[int, str]]] = {}
             for table, index, non_unique, position, column in cursor.fetchall():
