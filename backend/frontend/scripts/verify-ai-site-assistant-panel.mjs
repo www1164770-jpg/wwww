@@ -68,7 +68,13 @@ const checks = [
       /aria-live="polite"/.test(assistant) &&
       /role="alert"/.test(assistant),
   ],
-  ["AppHeader remains untouched", !header.includes("AiSiteAssistant") && !header.includes("/ai/site-recommend")],
+  [
+    "AppHeader reuses the shared store without mounting a panel or calling the AI API",
+    header.includes("useAiAssistantStore") &&
+      header.includes("openAssistant") &&
+      !header.includes("<AiSiteAssistant") &&
+      !header.includes("/ai/site-recommend"),
+  ],
   ["existing AI login prompt remains", home.includes('class="ai-login-prompt"')],
   ["ToolMarquee target remains available", home.includes("ToolMarquee") && !home.includes('id="hot"')],
 ];

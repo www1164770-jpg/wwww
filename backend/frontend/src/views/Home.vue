@@ -64,19 +64,28 @@
               />
             </div>
 
-            <div v-if="!loggedIn" class="ai-login-prompt">
+            <div
+              class="ai-login-prompt"
+              :class="{ 'ai-login-prompt--authenticated': loggedIn }"
+            >
               <div class="ai-login-prompt__content">
-                <p class="ai-login-prompt__title">没有找到合适的网站？</p>
+                <p class="ai-login-prompt__title">
+                  {{ loggedIn ? "还没有找到合适的网站？" : "没有找到合适的网站？" }}
+                </p>
                 <p class="ai-login-prompt__description">
-                  登录后描述你的具体需求，AI 将为你推荐更适合的网站。
+                  {{
+                    loggedIn
+                      ? "告诉 AI 你想完成什么，让它从平台已收录的网站中帮你筛选。"
+                      : "登录后描述你的具体需求，AI 将为你推荐更适合的网站。"
+                  }}
                 </p>
               </div>
               <button
                 type="button"
                 class="ai-login-prompt__button"
-                @click="goToAiAssistantLogin"
+                @click="handleAiAssistantEntry"
               >
-                登录并使用 AI 助手
+                {{ loggedIn ? "询问 AI 助手" : "登录并使用 AI 助手" }}
               </button>
             </div>
           </div>
@@ -123,6 +132,7 @@ import {
   onMounted,
   onUpdated,
   ref,
+  watch,
 } from "vue";
 import { useRouter } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
@@ -138,6 +148,8 @@ import ToolMarquee from "../components/home/ToolMarquee.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import SiteCard from "../components/site/SiteCard.vue";
+import { useAiAssistantStore } from "../stores/aiAssistant";
+import { useUserStore } from "../stores/user";
 import {
   categoryAPI,
   favoriteAPI,
@@ -150,6 +162,8 @@ import { getAccessToken, isValidAuthToken } from "../utils/auth";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
+const userStore = useUserStore();
+const aiAssistantStore = useAiAssistantStore();
 const keyword = ref("");
 const categories = ref([]);
 const categorySitesMap = ref({});
@@ -168,8 +182,16 @@ const careerLoading = ref(false);
 const careerError = ref("");
 const lastCareerSiteIds = ref([]);
 const favoritePendingIds = ref([]);
-const loggedIn = computed(() => isValidAuthToken(getAccessToken()));
+const loggedIn = computed(
+  () => userStore.isLoggedIn && isValidAuthToken(getAccessToken()),
+);
 let revealObserver = null;
+
+watch(loggedIn, (isLoggedIn) => {
+  if (!isLoggedIn) {
+    aiAssistantStore.closeAssistant();
+  }
+});
 
 const aiKeywords = [
   "AI",
@@ -848,6 +870,15 @@ function goSearch(value) {
 
 function goToAiAssistantLogin() {
   router.push({ path: "/login", query: { redirect: "/" } });
+}
+
+function handleAiAssistantEntry() {
+  if (loggedIn.value) {
+    aiAssistantStore.openAssistant();
+    return;
+  }
+
+  goToAiAssistantLogin();
 }
 
 async function visitSite(site) {

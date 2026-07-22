@@ -15,24 +15,30 @@ const careerEnd = promptStart >= 0 ? home.indexOf("</section>", promptStart) : -
 const reasonBindings = home.match(/:show-reason="true"/g) || [];
 
 const checks = [
-  ["Home renders an AI login prompt", promptStart >= 0],
+  ["Home renders an AI assistant prompt", promptStart >= 0],
   [
     "prompt stays inside the career recommendation section after its card grid",
     careerStart >= 0 && gridStart > careerStart && promptStart > gridStart && careerEnd > promptStart,
   ],
-  ["prompt is limited to signed-out users", home.includes('<div v-if="!loggedIn" class="ai-login-prompt">')],
-  ["prompt button keeps the required label", home.includes("登录并使用 AI 助手")],
   [
-    "prompt uses the existing login route with a home redirect",
-    /function goToAiAssistantLogin\(\)\s*\{\s*router\.push\(\{\s*path:\s*[\"']\/login[\"'],\s*query:\s*\{\s*redirect:\s*[\"']\/[\"'],?\s*\},?\s*\}\);?\s*\}/s.test(home),
+    "prompt switches copy and action for signed-in users",
+    home.includes("ai-login-prompt--authenticated") &&
+      home.includes("登录并使用 AI 助手") &&
+      home.includes("询问 AI 助手") &&
+      home.includes('@click="handleAiAssistantEntry"'),
   ],
   [
-    "Home does not add a direct localStorage token read",
-    !/localStorage\.(?:access_token|token)|localStorage\.getItem\(\s*[\"'](?:access_token|token)[\"']/.test(home),
+    "signed-out prompt keeps the existing login route with a home redirect",
+    /function goToAiAssistantLogin\(\)\s*\{\s*router\.push\(\{\s*path:\s*["']\/login["'],\s*query:\s*\{\s*redirect:\s*["']\/["'],?\s*\},?\s*\}\);?\s*\}/s.test(home),
   ],
   [
-    "Home does not add an AI endpoint or assistant panel",
-    !home.includes("/api/ai") && !home.includes("site-recommend") && !home.includes("AiSiteAssistantPanel"),
+    "Home uses the shared assistant store for signed-in prompts",
+    home.includes("useAiAssistantStore") &&
+      /function handleAiAssistantEntry\(\)\s*\{[\s\S]*?if \(loggedIn\.value\) \{[\s\S]*?aiAssistantStore\.openAssistant\(\)/.test(home),
+  ],
+  [
+    "Home does not add a direct localStorage token read or AI request",
+    !/localStorage\.(?:access_token|token)|localStorage\.getItem\(\s*["'](?:access_token|token)["']|\/api\/ai|site-recommend/.test(home),
   ],
   ["ToolMarquee remains the unchanged name-only marquee", marquee.includes('id="tools"') && !marquee.includes("<SiteCard")],
   [

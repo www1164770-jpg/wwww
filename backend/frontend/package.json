@@ -13,6 +13,7 @@
     "test:ai-login-prompt": "node scripts/verify-ai-login-prompt.mjs",
     "test:ai-header-login-entry": "node scripts/verify-ai-header-login-entry.mjs",
     "test:ai-site-assistant-panel": "node scripts/verify-ai-site-assistant-panel.mjs",
+    "test:ai-unified-entry": "node scripts/verify-ai-unified-entry.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

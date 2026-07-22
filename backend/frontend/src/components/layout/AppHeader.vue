@@ -24,10 +24,12 @@
           >最新收录</RouterLink
         >
         <button
-          v-if="!loggedIn"
           type="button"
           class="nav-ai-login-entry"
-          @click="goToAiAssistantLogin"
+          :aria-label="
+            loggedIn ? '打开 AI 网站推荐助手' : '登录并使用 AI 网站推荐助手'
+          "
+          @click="handleAiAssistantEntry"
         >
           AI 助手
         </button>
@@ -84,6 +86,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useAiAssistantStore } from "../../stores/aiAssistant";
 import { useUserStore } from "../../stores/user";
 import { useRoute, useRouter } from "vue-router";
 import { getAccessToken, isValidAuthToken } from "../../utils/auth";
@@ -91,6 +94,7 @@ import { getAccessToken, isValidAuthToken } from "../../utils/auth";
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const aiAssistantStore = useAiAssistantStore();
 const menuOpen = ref(false);
 const userMenuRef = ref(null);
 const authTick = ref(0);
@@ -129,6 +133,15 @@ function scrollToSection(id) {
 
 function goToAiAssistantLogin() {
   router.push({ path: "/login", query: { redirect: "/" } });
+}
+
+function handleAiAssistantEntry() {
+  if (loggedIn.value) {
+    aiAssistantStore.openAssistant();
+    return;
+  }
+
+  goToAiAssistantLogin();
 }
 
 function refreshAuthState() {
