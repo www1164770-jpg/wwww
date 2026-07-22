@@ -473,6 +473,10 @@ export const siteAPI = {
   getSimilar: (id) => api.get(`/sites/${id}/similar`),
 };
 
+export const aiAPI = {
+  recommendSites: (payload) => api.post("/ai/site-recommend", payload),
+};
+
 export const favoriteAPI = {
   getFavorites: () => api.get("/favorites"),
   addFavorite: (siteId, note = "") =>

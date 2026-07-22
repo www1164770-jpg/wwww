@@ -110,6 +110,7 @@
       </template>
     </main>
 
+    <AiSiteAssistant v-if="loggedIn" @visit="visitSite" />
     <AppFooter />
   </div>
 </template>
@@ -126,6 +127,7 @@ import {
 import { useRouter } from "vue-router";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
+import AiSiteAssistant from "../components/ai/AiSiteAssistant.vue";
 import CareerRecommend from "../components/home/CareerRecommend.vue";
 import CategorySection from "../components/home/CategorySection.vue";
 import FavoriteStack from "../components/home/FavoriteStack.vue";
