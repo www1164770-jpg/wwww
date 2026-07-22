@@ -34,9 +34,10 @@
         </div>
       </div>
 
-      <small class="reason">
-        推荐理由：{{ site.reason || "根据你的职业和兴趣推荐" }}
-      </small>
+      <div v-if="showReason" class="site-card__reason">
+        <span class="site-card__reason-label">推荐理由</span>
+        <span class="site-card__reason-text">{{ recommendationReason }}</span>
+      </div>
 
       <div class="meta">
         <span>{{ categoryLabel }}</span>
@@ -75,6 +76,7 @@ import { getFaviconUrl, getTextLogo, normalizeUrl } from "../../utils/api";
 
 const props = defineProps({
   site: { type: Object, required: true },
+  showReason: { type: Boolean, default: false },
   favorited: { type: Boolean, default: false },
   favoritePending: { type: Boolean, default: false },
 });
@@ -87,6 +89,16 @@ const categoryLabel = computed(
 );
 const logoSrc = computed(() => getFaviconUrl(props.site));
 const textLogo = computed(() => getTextLogo(props.site));
+const recommendationReason = computed(
+  () =>
+    props.site.reason ||
+    props.site.recommend_reason ||
+    props.site.recommendation_reason ||
+    props.site.match_reason ||
+    props.site.summary ||
+    props.site.description ||
+    "该网站的功能与你当前选择的职业需求较为匹配。",
+);
 const visibleTags = computed(() => allTags.value.slice(0, 3));
 const hiddenTagCount = computed(() => Math.max(allTags.value.length - 3, 0));
 const visibleOccupations = computed(() =>
@@ -229,15 +241,29 @@ p {
   -webkit-line-clamp: 2;
 }
 
-.reason {
-  display: block;
+.site-card__reason {
+  display: grid;
+  gap: 4px;
   border: 1px solid rgba(255, 112, 88, 0.16);
-  border-radius: 16px;
+  border-radius: 10px;
   background: var(--color-soft-orange);
-  color: var(--color-primary-dark);
   padding: 10px 12px;
-  font-weight: 750;
+}
+
+.site-card__reason-label {
+  color: var(--color-primary-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.site-card__reason-text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 13px;
   line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .meta {

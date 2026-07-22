@@ -55,6 +55,7 @@
               v-for="site in careerSites"
               :key="site.id || site.url || site.name"
               :site="site"
+              :show-reason="true"
               :favorited="Boolean(site.is_favorited)"
               :favorite-pending="favoritePendingIds.includes(site.id)"
               @favorite="toggleFavorite"

@@ -9,6 +9,7 @@
     "test:auth-state": "node scripts/verify-auth-state.mjs",
     "test:api-base-url": "node scripts/verify-api-base-url.mjs",
     "test:home-ai-recommend": "node scripts/verify-home-ai-recommend.mjs",
+    "test:career-recommend-reason": "node scripts/verify-career-recommend-reason.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
