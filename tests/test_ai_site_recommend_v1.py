@@ -71,7 +71,9 @@ class FakeCursor:
         elif "SELECT occupation, interests FROM user_profiles" in normalized:
             self.rows = [self.database.profile]
         elif "FROM websites w" in normalized:
-            self.rows = [dict(item) for item in self.database.candidates]
+            limit = int(_params[-2])
+            self.database.site_query_limits.append(limit)
+            self.rows = [dict(item) for item in self.database.candidates[:limit]]
         elif "FROM site_tags" in normalized or "FROM site_occupations" in normalized:
             self.rows = []
 
@@ -97,6 +99,7 @@ class FakeDatabase:
     def __init__(self, candidates=None, profile=None):
         self.candidates = candidates or []
         self.profile = profile or {"occupation": "", "interests": "[]"}
+        self.site_query_limits = []
 
     def connect(self):
         return FakeConnection(self)
@@ -220,6 +223,28 @@ class AiSiteRecommendRouteTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json()["data"]["items"], [])
+
+    def test_route_includes_relevant_sites_beyond_the_first_160_candidates(self):
+        self.database.candidates = [
+            site(index, f"通用工具 {index}", f"https://general-{index}.example")
+            for index in range(1, 161)
+        ] + [
+            site(161, "DeepL 翻译", "https://www.deepl.com/translator"),
+            site(162, "百度翻译", "https://fanyi.baidu.com/"),
+        ]
+
+        response = self.client.post(
+            "/api/ai/site-recommend",
+            json={"query": "翻译"},
+            headers=self.headers(),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            {item["id"] for item in response.get_json()["data"]["items"]},
+            {161, 162},
+        )
+        self.assertEqual(self.database.site_query_limits[-1], 1000)
 
 
 if __name__ == "__main__":

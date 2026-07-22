@@ -9,6 +9,9 @@ from ai_site_recommend_service import normalize_text, recommend_sites_for_query
 from recommend_service import rank_sites
 
 
+AI_SITE_CANDIDATE_LIMIT = 1000
+
+
 def register_v1_routes(app, get_db_connection):
     columns_cache = {}
 
@@ -1151,7 +1154,7 @@ def register_v1_routes(app, get_db_connection):
         try:
             matches = recommend_sites_for_query(
                 query,
-                query_sites(limit=160),
+                query_sites(limit=AI_SITE_CANDIDATE_LIMIT),
                 occupation=profile["occupation"],
                 interests=profile["interests"],
                 limit=limit,
