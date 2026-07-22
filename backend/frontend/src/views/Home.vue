@@ -73,18 +73,6 @@
           />
         </section>
 
-        <section id="hot" class="home-anchor-section reveal-on-scroll">
-          <HotSitesSection
-            :sites="hotSites"
-            :favorite-pending-ids="favoritePendingIds"
-            :refreshing="hotRefreshing"
-            :error="hotError"
-            @favorite="toggleFavorite"
-            @visit="visitSite"
-            @refresh="refreshHotSites"
-          />
-        </section>
-
         <section id="latest" class="home-anchor-section reveal-on-scroll">
           <LatestSitesSection
             :sites="latestSites"
@@ -123,7 +111,6 @@ import CareerRecommend from "../components/home/CareerRecommend.vue";
 import CategorySection from "../components/home/CategorySection.vue";
 import FavoriteStack from "../components/home/FavoriteStack.vue";
 import HeroSearch from "../components/home/HeroSearch.vue";
-import HotSitesSection from "../components/home/HotSitesSection.vue";
 import LatestSitesSection from "../components/home/LatestSitesSection.vue";
 import RecommendSection from "../components/home/RecommendSection.vue";
 import ToolMarquee from "../components/home/ToolMarquee.vue";
@@ -153,7 +140,6 @@ const favoriteStackSites = ref([]);
 const latestSites = ref([]);
 const loading = ref(false);
 const error = ref("");
-const hotRefreshing = ref(false);
 const hotError = ref("");
 const selectedCareer = ref(null);
 const careerSites = ref([]);
@@ -928,31 +914,6 @@ async function requestHotSites({
       targetRef.value = [];
     }
     throw new Error(hotError.value);
-  }
-}
-
-async function refreshHotSites() {
-  if (hotRefreshing.value) return;
-  hotRefreshing.value = true;
-  try {
-    const preservedSections = [
-      ...marqueeSites.value,
-      ...favoriteStackSites.value,
-      ...recommended.value,
-      ...latestSites.value,
-      ...careerSites.value,
-    ];
-    const sites = await requestHotSites({
-      excludeCurrent: true,
-      preserveOnError: true,
-      excludeIds: siteIds(preservedSections),
-    });
-    const usedKeys = new Set(preservedSections.map(getSiteKey));
-    hotSites.value = fillWithFallback(sites, 8, usedKeys);
-  } catch {
-    errorToast(hotError.value || "AI 资源更新失败，请稍后重试");
-  } finally {
-    hotRefreshing.value = false;
   }
 }
 
