@@ -15,18 +15,50 @@ _LIST_SEPARATOR_PATTERN = re.compile(r"[,，;；]")
 _NUMBER_PATTERN = re.compile(r"-?\d+(?:\.\d+)?")
 
 _STOP_WORDS = {
-    "一个", "一些", "用于", "可以", "需要", "帮我", "帮忙", "推荐", "网站", "工具", "平台",
+    "我想", "我需要", "想找", "需要", "一个", "一些", "帮助", "帮我", "帮忙", "快速", "整理",
+    "工作", "内容", "进行", "能够", "可以", "网站", "工具", "平台", "推荐", "资料", "制作", "生成",
     "the", "and", "for", "with", "that", "this", "from", "need", "want",
 }
 
-_TERM_GROUPS = (
-    ("编程", "代码", "开发", "programming", "coding", "development"),
-    ("调试", "debug", "debugging"),
-    ("设计", "design", "designer"),
-    ("数据分析", "数据", "分析", "data", "analytics", "analysis"),
-    ("写作", "文案", "writing", "copywriting"),
-    ("办公", "协作", "office", "collaboration"),
-)
+WEAK_TERMS = {"文档", "开发", "制作", "生成", "工作", "内容", "资料"}
+EXPANDED_TERM_WEIGHT = 0.45
+
+INTENT_TERM_GROUPS = {
+    "programming_debug": {
+        "explicit": (
+            "python", "代码", "编程", "程序", "调试", "报错", "错误", "排错", "debug", "bug",
+            "web", "框架文档", "开发文档", "框架", "api", "framework", "docs",
+        ),
+        "expanded": ("开发", "coding", "code", "编程", "调试", "debug", "programming", "debugging"),
+    },
+    "academic_writing": {
+        "explicit": ("参考文献", "论文", "学术", "文献", "研究", "写作", "润色", "文章"),
+        "expanded": ("学术研究", "论文写作", "文献检索", "writing"),
+    },
+    "image_design": {
+        "explicit": ("生成图", "图片", "图像", "海报", "素材", "设计", "绘图", "视觉"),
+        "expanded": ("原型设计", "素材资源", "design", "image"),
+    },
+    "translation": {
+        "explicit": ("英译中", "中译英", "翻译", "英文", "中文", "语言", "translate", "translation"),
+        "expanded": ("deepl", "中英文"),
+    },
+    "office_presentation": {
+        "explicit": ("powerpoint", "演示文稿", "幻灯片", "ppt", "演示", "办公", "表格", "文档"),
+        "expanded": ("文档办公", "presentation", "slides"),
+    },
+    "data_analysis": {
+        "explicit": ("数据分析", "数据", "分析", "data", "analytics", "analysis"),
+        "expanded": (),
+    },
+}
+
+INTENT_CATEGORY_HINTS = {
+    "programming_debug": {"开发社区", "编程开发"},
+    "academic_writing": {"ai学术研究"},
+    "image_design": {"素材资源", "原型设计"},
+    "office_presentation": {"文档办公"},
+}
 
 
 def _safe_string(value):
@@ -85,21 +117,53 @@ def normalize_string_list(value):
     return result
 
 
-def _terms_for_query(query):
-    terms = set()
-    for word in re.findall(r"[a-z0-9][a-z0-9+#._-]*", query):
-        if len(word) >= 2 and word not in _STOP_WORDS:
-            terms.add(word)
-    for group in re.findall(r"[\u4e00-\u9fff]{2,}", query):
-        if group not in _STOP_WORDS:
-            terms.add(group)
-        if len(group) <= 8:
-            terms.update(group[index:index + 2] for index in range(len(group) - 1))
+def _query_term_matches(query):
+    terms = {
+        term
+        for group in INTENT_TERM_GROUPS.values()
+        for term in group["explicit"]
+    }
+    terms.update(
+        word
+        for word in re.findall(r"[a-z0-9][a-z0-9+#._-]*", query)
+        if len(word) >= 2 and word not in _STOP_WORDS
+    )
+    matches = []
+    for term in terms:
+        start = query.find(term)
+        if start >= 0:
+            matches.append((start, -len(term), term))
+    return sorted(matches)
 
-    for group in _TERM_GROUPS:
-        if any(alias in query for alias in group):
-            terms.update(group)
-    return sorted(term for term in terms if len(term) >= 2)
+
+def extract_query_terms(query):
+    """Extract stable, controlled explicit and expanded terms from a query."""
+    normalized_query = normalize_text(query)
+    explicit = []
+    occupied_ranges = []
+    for start, negative_length, term in _query_term_matches(normalized_query):
+        end = start - negative_length
+        if any(start < occupied_end and end > occupied_start for occupied_start, occupied_end in occupied_ranges):
+            continue
+        occupied_ranges.append((start, end))
+        explicit.append(term)
+
+    intents = [
+        intent
+        for intent, group in INTENT_TERM_GROUPS.items()
+        if set(explicit) & set(group["explicit"])
+    ]
+    expanded = []
+    for intent in intents:
+        for term in INTENT_TERM_GROUPS[intent]["expanded"]:
+            if term not in explicit and term not in expanded:
+                expanded.append(term)
+    return {"explicit": explicit, "expanded": expanded, "intents": intents}
+
+
+def _terms_for_query(query):
+    term_data = extract_query_terms(query)
+    return term_data["explicit"] + term_data["expanded"]
 
 
 def _contains(value, term):
@@ -164,7 +228,15 @@ def _build_reason(evidence, occupation, interests):
     return f"网站标签与当前兴趣“{interest}”相符。"
 
 
-def _score_candidate(candidate, query, terms, occupation, interests):
+def _weak_term_matches_field(term, field, category, intents):
+    if term == "文档":
+        return field == "name" or (field == "category" and category == "文档办公")
+    if term == "开发":
+        return field == "category" and "programming_debug" in intents
+    return False
+
+
+def _score_candidate(candidate, query, term_data, occupation, interests):
     name = normalize_text(candidate.get("name"))
     summary = normalize_text(candidate.get("summary"))
     description = normalize_text(candidate.get("description"))
@@ -174,29 +246,46 @@ def _score_candidate(candidate, query, terms, occupation, interests):
 
     scores = {"name": 0, "tags": 0, "occupations": 0, "category": 0, "summary": 0, "description": 0}
     evidence = []
-    if query and _contains(name, query):
+    explicit_terms = term_data["explicit"]
+    expanded_terms = term_data["expanded"]
+    intents = term_data["intents"]
+    if query and explicit_terms == [query] and query not in WEAK_TERMS and _contains(name, query):
         scores["name"] += 12
         evidence.append(("name", query, ""))
 
-    for term in terms:
+    weighted_terms = [(term, 1) for term in explicit_terms]
+    weighted_terms.extend((term, EXPANDED_TERM_WEIGHT) for term in expanded_terms)
+    for term, multiplier in weighted_terms:
         if _contains(name, term):
-            scores["name"] += 8
-            evidence.append(("name", term, ""))
+            if term not in WEAK_TERMS or _weak_term_matches_field(term, "name", category, intents):
+                scores["name"] += (12 if multiplier == 1 else 8 * multiplier)
+                evidence.append(("name", term, ""))
         if _contains(tags, term):
-            scores["tags"] += 7
-            evidence.append(("tags", term, ""))
+            if term not in WEAK_TERMS or _weak_term_matches_field(term, "tags", category, intents):
+                scores["tags"] += 7 * multiplier
+                evidence.append(("tags", term, ""))
         if _contains(occupations, term):
-            scores["occupations"] += 7
-            evidence.append(("occupations", term, ""))
+            if term not in WEAK_TERMS or _weak_term_matches_field(term, "occupations", category, intents):
+                scores["occupations"] += 7 * multiplier
+                evidence.append(("occupations", term, ""))
         if _contains(category, term):
-            scores["category"] += 6
-            evidence.append(("category", term, _clean_display_text(candidate.get("category_name"))))
+            if term not in WEAK_TERMS or _weak_term_matches_field(term, "category", category, intents):
+                scores["category"] += 6 * multiplier
+                evidence.append(("category", term, _clean_display_text(candidate.get("category_name"))))
         if _contains(summary, term):
-            scores["summary"] += 4
-            evidence.append(("summary", term, ""))
+            if term not in WEAK_TERMS or _weak_term_matches_field(term, "summary", category, intents):
+                scores["summary"] += 4 * multiplier
+                evidence.append(("summary", term, ""))
         if _contains(description, term):
-            scores["description"] += 2
-            evidence.append(("description", term, ""))
+            if term not in WEAK_TERMS or _weak_term_matches_field(term, "description", category, intents):
+                scores["description"] += 2 * multiplier
+                evidence.append(("description", term, ""))
+
+    for intent in intents:
+        if category in INTENT_CATEGORY_HINTS.get(intent, set()):
+            scores["category"] += 3
+            label = _clean_display_text(candidate.get("category_name"))
+            evidence.append(("category", label, label))
 
     field_score = sum(scores.values())
     if field_score <= 0:
@@ -242,8 +331,8 @@ def recommend_sites_for_query(query, candidates, occupation="", interests=None, 
     normalized_query = normalize_text(query)
     if len(normalized_query) < 2:
         return []
-    terms = _terms_for_query(normalized_query)
-    if not terms:
+    term_data = extract_query_terms(normalized_query)
+    if not term_data["explicit"] and not term_data["expanded"]:
         return []
     try:
         limit = int(limit)
@@ -269,7 +358,7 @@ def recommend_sites_for_query(query, candidates, occupation="", interests=None, 
         if site_id not in (None, ""):
             seen_ids.add(site_id)
         seen_urls.add(normalized_url)
-        scored = _score_candidate(candidate, normalized_query, terms, occupation, interests or [])
+        scored = _score_candidate(candidate, normalized_query, term_data, occupation, interests or [])
         if scored:
             scored["index"] = index
             matched.append(scored)

@@ -18,6 +18,7 @@ from ai_site_recommend_service import (
     normalize_text,
     recommend_sites_for_query,
 )
+import ai_site_recommend_service as ai_site_recommend_service
 from v1_routes import register_v1_routes
 
 
@@ -165,6 +166,137 @@ class LocalMatcherTests(unittest.TestCase):
         source = inspect.getsource(service)
         for forbidden in ("requests", "OpenAI", "DeepSeek", "ai_server", "os.getenv"):
             self.assertNotIn(forbidden, source)
+
+    def test_extract_query_terms_recognizes_controlled_intents_without_sentence_fragments(self):
+        cases = [
+            (
+                "我需要阅读英文资料并翻译成中文",
+                {"英文", "翻译", "中文"},
+                "translation",
+                {"我需要", "资料"},
+            ),
+            (
+                "制作 PPT 并整理工作文档",
+                {"ppt", "文档"},
+                "office_presentation",
+                {"制作", "整理", "工作"},
+            ),
+            (
+                "快速制作海报和图片素材",
+                {"海报", "图片", "素材"},
+                "image_design",
+                {"快速", "制作"},
+            ),
+            (
+                "帮助润色论文",
+                {"润色", "论文"},
+                "academic_writing",
+                {"帮助"},
+            ),
+            (
+                "Python 代码错误",
+                {"python", "代码", "错误"},
+                "programming_debug",
+                set(),
+            ),
+        ]
+
+        for query, expected_explicit, expected_intent, excluded in cases:
+            with self.subTest(query=query):
+                terms = ai_site_recommend_service.extract_query_terms(query)
+                self.assertTrue(expected_explicit.issubset(set(terms["explicit"])))
+                self.assertIn(expected_intent, terms["intents"])
+                self.assertFalse(set(terms["explicit"]) & excluded)
+                self.assertNotIn(normalize_text(query), terms["explicit"])
+        self.assertIn("debug", ai_site_recommend_service.extract_query_terms("Python 代码错误")["expanded"])
+
+    def test_long_academic_request_uses_real_category_evidence_not_content_noise(self):
+        results = recommend_sites_for_query(
+            "我需要一个帮助润色论文和整理写作内容的网站",
+            [
+                site(1, "OpenReview", "https://openreview.example", category_name="AI学术研究"),
+                site(2, "内容管理平台", "https://content.example", category_name="通用工具"),
+            ],
+        )
+
+        self.assertEqual([item["site"]["id"] for item in results], [1])
+        self.assertIn("AI学术研究", results[0]["reason"])
+        self.assertNotIn("润色", results[0]["reason"])
+
+    def test_long_translation_and_image_requests_prefer_real_intent_matches(self):
+        translation_results = recommend_sites_for_query(
+            "我需要阅读英文资料并翻译成中文",
+            [
+                site(1, "DeepL翻译", "https://deepl.example"),
+                site(2, "百度翻译", "https://baidu-translate.example"),
+                site(3, "英文学习", "https://english.example"),
+            ],
+        )
+        self.assertIn(translation_results[0]["site"]["id"], {1, 2})
+        self.assertLess(
+            min(index for index, item in enumerate(translation_results) if item["site"]["id"] in {1, 2}),
+            next(index for index, item in enumerate(translation_results) if item["site"]["id"] == 3),
+        )
+        self.assertTrue(translation_results[0]["reason"])
+
+        image_results = recommend_sites_for_query(
+            "我想快速制作海报和生成图片素材",
+            [
+                site(4, "Pexels", "https://pexels.example", category_name="素材资源"),
+                site(5, "Storyset", "https://storyset.example", category_name="素材资源"),
+                site(6, "AI生成平台", "https://generate.example"),
+            ],
+        )
+        self.assertEqual({item["site"]["id"] for item in image_results}, {4, 5})
+
+    def test_document_short_query_keeps_office_results_and_unknown_queries_stay_empty(self):
+        document_results = recommend_sites_for_query(
+            "文档",
+            [
+                site(1, "腾讯文档", "https://docs.tencent.example", category_name="文档办公"),
+                site(2, "Elysia", "https://elysia.example", category_name="框架文档"),
+            ],
+        )
+        self.assertEqual([item["site"]["id"] for item in document_results], [1])
+        self.assertEqual(
+            recommend_sites_for_query(
+                "量子烹饪机器人",
+                [site(3, "热门工具", "https://popular.example", quality_score=100, click_count=999999)],
+            ),
+            [],
+        )
+
+    def test_office_presentation_request_excludes_framework_documents_but_development_documents_remain(self):
+        candidates = [
+            site(1, "腾讯文档", "https://docs.tencent.example", category_name="实用工具"),
+            site(2, "石墨文档", "https://shimo.example", category_name="实用工具"),
+            site(6, "Outline", "https://outline.example", category_name="文档办公"),
+            site(3, "Elysia", "https://elysia.example", category_name="框架文档"),
+            site(4, "Koa.js", "https://koa.example", category_name="框架文档"),
+            site(5, "Ionic", "https://ionic.example", category_name="框架文档"),
+        ]
+
+        office_results = recommend_sites_for_query("我想制作 PPT 并整理工作文档", candidates)
+        self.assertEqual({item["site"]["id"] for item in office_results[:2]}, {1, 2})
+        self.assertFalse({3, 4, 5} & {item["site"]["id"] for item in office_results[:3]})
+
+        development_results = recommend_sites_for_query("我需要查看 Web 开发框架文档", candidates)
+        self.assertTrue({3, 4, 5} & {item["site"]["id"] for item in development_results})
+
+    def test_explicit_programming_terms_outrank_expanded_coding_and_weak_terms_do_not_match(self):
+        results = recommend_sites_for_query(
+            "Python 代码错误",
+            [
+                site(1, "Python", "https://python.example"),
+                site(2, "Vibe coding", "https://vibe.example", quality_score=100, rating_avg=5),
+            ],
+        )
+        self.assertEqual([item["site"]["id"] for item in results], [1, 2])
+
+        weak_candidates = [site(3, "工作管理", "https://work.example", description="内容制作生成")]
+        for query in ("工作", "制作", "内容", "生成"):
+            with self.subTest(query=query):
+                self.assertEqual(recommend_sites_for_query(query, weak_candidates), [])
 
 
 class AiSiteRecommendRouteTests(unittest.TestCase):
