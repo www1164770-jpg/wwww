@@ -123,8 +123,11 @@ def get_limiter_storage_uri():
     try:
         redis.StrictRedis.from_url(REDIS_URL, decode_responses=True).ping()
         return REDIS_URL
-    except Exception as e:
-        print(f"Redis unavailable for rate limiter, using memory storage: {e}")
+    except redis.exceptions.RedisError as exc:
+        app.logger.warning(
+            "Redis unavailable for rate limiter; using memory storage (error_type=%s)",
+            type(exc).__name__,
+        )
         return "memory://"
 
 def table_columns(cursor, table_name):
