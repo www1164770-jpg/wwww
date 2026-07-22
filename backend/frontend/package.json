@@ -11,6 +11,7 @@
     "test:home-ai-recommend": "node scripts/verify-home-ai-recommend.mjs",
     "test:career-recommend-reason": "node scripts/verify-career-recommend-reason.mjs",
     "test:ai-login-prompt": "node scripts/verify-ai-login-prompt.mjs",
+    "test:ai-header-login-entry": "node scripts/verify-ai-header-login-entry.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -23,6 +23,14 @@
         <RouterLink to="/#latest" @click="scrollToSection('latest')"
           >最新收录</RouterLink
         >
+        <button
+          v-if="!loggedIn"
+          type="button"
+          class="nav-ai-login-entry"
+          @click="goToAiAssistantLogin"
+        >
+          AI 助手
+        </button>
         <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
       </nav>
 
@@ -117,6 +125,10 @@ function scrollToSection(id) {
   if (!target) return;
   const top = target.getBoundingClientRect().top + window.scrollY - 88;
   window.scrollTo({ top, behavior: "smooth" });
+}
+
+function goToAiAssistantLogin() {
+  router.push({ path: "/login", query: { redirect: "/" } });
 }
 
 function refreshAuthState() {
@@ -245,16 +257,29 @@ a {
     transform var(--transition);
 }
 
-.nav-links a {
+.nav-links a,
+.nav-ai-login-entry {
   min-height: 40px;
   border-radius: var(--radius-pill);
   padding: 10px 15px;
   white-space: nowrap;
 }
 
+.nav-ai-login-entry {
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .nav-links a:hover,
 .nav-links a:focus-visible,
-.nav-links a.router-link-active {
+.nav-links a.router-link-active,
+.nav-ai-login-entry:hover,
+.nav-ai-login-entry:focus-visible {
   color: var(--color-primary);
   background: var(--color-soft-orange);
   outline: none;
