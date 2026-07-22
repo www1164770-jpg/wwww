@@ -50,17 +50,35 @@
             description="可以先在后台添加该职业相关的网站资源"
           />
 
-          <div v-else class="site-grid">
-            <SiteCard
-              v-for="site in careerSites"
-              :key="site.id || site.url || site.name"
-              :site="site"
-              :show-reason="true"
-              :favorited="Boolean(site.is_favorited)"
-              :favorite-pending="favoritePendingIds.includes(site.id)"
-              @favorite="toggleFavorite"
-              @visit="visitSite"
-            />
+          <div v-else>
+            <div class="site-grid">
+              <SiteCard
+                v-for="site in careerSites"
+                :key="site.id || site.url || site.name"
+                :site="site"
+                :show-reason="true"
+                :favorited="Boolean(site.is_favorited)"
+                :favorite-pending="favoritePendingIds.includes(site.id)"
+                @favorite="toggleFavorite"
+                @visit="visitSite"
+              />
+            </div>
+
+            <div v-if="!loggedIn" class="ai-login-prompt">
+              <div class="ai-login-prompt__content">
+                <p class="ai-login-prompt__title">没有找到合适的网站？</p>
+                <p class="ai-login-prompt__description">
+                  登录后描述你的具体需求，AI 将为你推荐更适合的网站。
+                </p>
+              </div>
+              <button
+                type="button"
+                class="ai-login-prompt__button"
+                @click="goToAiAssistantLogin"
+              >
+                登录并使用 AI 助手
+              </button>
+            </div>
           </div>
         </section>
 
@@ -826,6 +844,10 @@ function goSearch(value) {
   router.push({ path: "/search", query: { q: nextValue } });
 }
 
+function goToAiAssistantLogin() {
+  router.push({ path: "/login", query: { redirect: "/" } });
+}
+
 async function visitSite(site) {
   const url = normalizeUrl(site?.url);
   if (url) {
@@ -1184,6 +1206,55 @@ onBeforeUnmount(() => {
   gap: 20px;
 }
 
+.ai-login-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(var(--container), calc(100% - 40px));
+  gap: 24px;
+  margin: 28px auto 0;
+  border: 1px solid rgba(255, 112, 88, 0.18);
+  border-radius: 16px;
+  background: var(--color-soft-orange);
+  padding: 20px 24px;
+}
+
+.ai-login-prompt__content {
+  min-width: 0;
+}
+
+.ai-login-prompt__title {
+  margin: 0 0 6px;
+  color: var(--color-heading);
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.ai-login-prompt__description {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.ai-login-prompt__button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #fff;
+  padding: 0 16px;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.ai-login-prompt__button:hover {
+  border-color: var(--color-primary-dark);
+  background: var(--color-primary-dark);
+}
+
 @media (max-width: 768px) {
   .home-state {
     width: min(100% - 28px, var(--container));
@@ -1199,12 +1270,24 @@ onBeforeUnmount(() => {
 
 @media (max-width: 640px) {
   .career-sites-section .section-heading,
-  .site-grid {
+  .site-grid,
+  .ai-login-prompt {
     width: min(100% - 28px, var(--container));
   }
 
   .site-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ai-login-prompt {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px;
+  }
+
+  .ai-login-prompt__button {
+    width: 100%;
   }
 }
 </style>
