@@ -1,21 +1,10 @@
 <template>
   <section class="home-section category-section">
-    <aside class="category-copy reveal-on-scroll">
+    <header class="category-heading reveal-on-scroll">
       <p>热门分类</p>
-      <h2>按场景浏览 AI 工具</h2>
-      <span>
-        从学习、创作、开发到效率办公，把常用资源整理成更容易扫描的分类入口。
-      </span>
-      <div class="category-menu">
-        <RouterLink
-          v-for="category in categories"
-          :key="category.id"
-          :to="`/category/${category.id}`"
-        >
-          {{ category.name }}
-        </RouterLink>
-      </div>
-    </aside>
+      <h2>按需求快速找到合适的网站</h2>
+      <span>从学习、设计、开发到效率办公，快速浏览平台精选资源。</span>
+    </header>
 
     <div v-if="categories.length" class="category-grid">
       <article
@@ -164,58 +153,37 @@ function useFallbackLogo(site) {
 <style scoped>
 .category-section {
   display: grid;
-  grid-template-columns: minmax(220px, 310px) 1fr;
-  gap: 42px;
-  padding: 110px 0 52px;
+  gap: 28px;
+  padding: 0;
 }
 
-.category-copy {
-  align-self: start;
+.category-heading {
+  display: grid;
+  gap: 10px;
 }
 
-.category-copy p {
+.category-heading p {
   margin: 0 0 8px;
   color: var(--color-primary);
   font-weight: 850;
 }
 
-.category-copy h2 {
+.category-heading h2 {
   margin: 0;
   color: var(--color-heading);
   font-size: clamp(32px, 4vw, 46px);
   line-height: 1.12;
 }
 
-.category-copy > span {
+.category-heading > span {
   display: block;
-  margin-top: 16px;
   color: var(--color-text);
   line-height: 1.75;
 }
 
-.category-menu {
-  display: grid;
-  gap: 10px;
-  margin-top: 30px;
-}
-
-.category-menu a {
-  border-radius: var(--radius-pill);
-  padding: 12px 17px;
-  color: var(--color-text);
-  text-decoration: none;
-  font-weight: 750;
-}
-
-.category-menu a:hover,
-.category-menu a:first-child {
-  color: var(--color-primary);
-  background: var(--color-soft-orange);
-}
-
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -223,7 +191,7 @@ function useFallbackLogo(site) {
   display: grid;
   align-content: start;
   gap: 18px;
-  min-height: 330px;
+  min-height: auto;
   border: 1px solid var(--color-border);
   border-radius: 24px;
   background: #ffffff;
@@ -386,24 +354,15 @@ function useFallbackLogo(site) {
   line-height: 1.5;
 }
 
-@media (max-width: 980px) {
-  .category-section {
-    grid-template-columns: 1fr;
-  }
-
-  .category-menu {
-    display: flex;
-    flex-wrap: wrap;
+@media (max-width: 1180px) {
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 720px) {
-  .category-section {
-    padding-top: 72px;
-  }
-
   .category-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .category-site {

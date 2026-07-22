@@ -14,6 +14,7 @@
     "test:ai-header-login-entry": "node scripts/verify-ai-header-login-entry.mjs",
     "test:ai-site-assistant-panel": "node scripts/verify-ai-site-assistant-panel.mjs",
     "test:ai-unified-entry": "node scripts/verify-ai-unified-entry.mjs",
+    "test:home-layout-restructure": "node scripts/verify-home-layout-restructure.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

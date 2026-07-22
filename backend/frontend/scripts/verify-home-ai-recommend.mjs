@@ -31,8 +31,9 @@ const checks = [
 
       for (const snippet of [
         'v-for="category in categories"',
-        'class="category-menu"',
-        ':to="`/category/${category.id}`"',
+        'class="category-heading',
+        'openCategory(category)',
+        'router.push(`/category/${category.id}`)',
         'v-else',
         'EmptyState'
       ]) {

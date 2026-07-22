@@ -12,15 +12,6 @@
       </div>
 
       <template v-else>
-        <section id="categories" class="home-anchor-section reveal-on-scroll">
-          <CategorySection
-            :categories="categories"
-            :category-sites-map="categorySitesMap"
-            :loading-category-sites="loadingCategorySites"
-            @visit-site="visitSite"
-          />
-        </section>
-
         <section id="career" class="home-anchor-section reveal-on-scroll">
           <CareerRecommend
             :active-career="selectedCareer?.key || ''"
@@ -91,19 +82,19 @@
           </div>
         </section>
 
-        <section id="recommend" class="home-anchor-section reveal-on-scroll">
-          <RecommendSection
-            :sites="recommended"
-            :logged-in="loggedIn"
-            :favorite-pending-ids="favoritePendingIds"
-            @favorite="toggleFavorite"
-            @visit="visitSite"
+        <section id="categories" class="home-anchor-section reveal-on-scroll">
+          <CategorySection
+            :categories="categories"
+            :category-sites-map="categorySitesMap"
+            :loading-category-sites="loadingCategorySites"
+            @visit-site="visitSite"
           />
         </section>
 
-        <section id="latest" class="home-anchor-section reveal-on-scroll">
-          <LatestSitesSection
-            :sites="latestSites"
+        <section id="recommend-tools" class="home-anchor-section reveal-on-scroll">
+          <RecommendSection
+            :sites="recommended"
+            :logged-in="loggedIn"
             :favorite-pending-ids="favoritePendingIds"
             @favorite="toggleFavorite"
             @visit="visitSite"
@@ -142,7 +133,6 @@ import CareerRecommend from "../components/home/CareerRecommend.vue";
 import CategorySection from "../components/home/CategorySection.vue";
 import FavoriteStack from "../components/home/FavoriteStack.vue";
 import HeroSearch from "../components/home/HeroSearch.vue";
-import LatestSitesSection from "../components/home/LatestSitesSection.vue";
 import RecommendSection from "../components/home/RecommendSection.vue";
 import ToolMarquee from "../components/home/ToolMarquee.vue";
 import AppFooter from "../components/layout/AppFooter.vue";

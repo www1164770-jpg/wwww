@@ -8,20 +8,19 @@
 
       <nav class="nav-links" aria-label="主导航">
         <RouterLink to="/">首页</RouterLink>
-        <RouterLink to="/#categories" @click="scrollToSection('categories')"
-          >分类导航</RouterLink
-        >
         <RouterLink to="/#tools" @click="scrollToSection('tools')"
-          >AI 工具</RouterLink
+          >热门网站</RouterLink
         >
         <RouterLink to="/#career" @click="scrollToSection('career')"
           >职业推荐</RouterLink
         >
-        <RouterLink to="/#tools" @click="scrollToSection('tools')"
-          >热门网站</RouterLink
+        <RouterLink to="/#categories" @click="scrollToSection('categories')"
+          >热门分类</RouterLink
         >
-        <RouterLink to="/#latest" @click="scrollToSection('latest')"
-          >最新收录</RouterLink
+        <RouterLink
+          to="/#recommend-tools"
+          @click="scrollToSection('recommend-tools')"
+          >常用工具</RouterLink
         >
         <button
           type="button"

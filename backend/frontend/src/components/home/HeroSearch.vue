@@ -36,11 +36,11 @@ defineEmits(["update:modelValue", "search", "show-all", "show-favorites"]);
 <style scoped>
 .hero-search {
   display: grid;
-  min-height: clamp(540px, 64vh, 660px);
+  min-height: clamp(380px, 46vh, 480px);
   place-items: center;
   align-content: center;
   gap: 28px;
-  padding: 96px 20px 82px;
+  padding: 82px 20px 48px;
   background:
     radial-gradient(
       circle at 14% 18%,
@@ -93,8 +93,8 @@ h1 {
 
 @media (max-width: 640px) {
   .hero-search {
-    min-height: 560px;
-    padding-top: 66px;
+    min-height: auto;
+    padding: 72px 16px 36px;
   }
 }
 </style>
