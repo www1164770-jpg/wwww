@@ -5,6 +5,7 @@ from functools import wraps
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from ai_site_recommend_service import normalize_text, recommend_sites_for_query
 from recommend_service import rank_sites
 
 
@@ -23,6 +24,7 @@ def register_v1_routes(app, get_db_connection):
     def api_error(msg, code=400, status=400, data=None):
         return jsonify({
             "code": code,
+            "legacy_code": 0,
             "message": msg,
             "msg": msg,
             "data": data if data is not None else {},
@@ -1098,6 +1100,85 @@ def register_v1_routes(app, get_db_connection):
                 rules,
             )
         return api_success(ranked)
+
+    @app.route("/api/ai/site-recommend", methods=["POST"])
+    @jwt_required()
+    def v1_ai_site_recommend():
+        user = current_user_row()
+        if not user:
+            return api_error("当前用户不存在或已失效", 401, 401)
+
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict) or "query" not in payload:
+            return api_error("请输入需求描述")
+        raw_query = payload.get("query")
+        if not isinstance(raw_query, str):
+            return api_error("需求描述必须是文本")
+        if len(raw_query.strip()) > 500:
+            return api_error("需求描述不能超过 500 个字符")
+        query = normalize_text(raw_query)
+        if not query:
+            return api_error("请输入需求描述")
+        if len(query) < 2:
+            return api_error("请更具体地描述你的需求")
+
+        try:
+            limit = max(1, min(int(payload.get("limit", 5)), 5))
+        except (TypeError, ValueError):
+            limit = 5
+
+        profile = {"occupation": "", "interests": []}
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT occupation, interests FROM user_profiles WHERE user_id=%s", (user["id"],))
+                profile_row = cursor.fetchone() or {}
+            raw_interests = profile_row.get("interests")
+            try:
+                parsed_interests = json.loads(raw_interests or "[]")
+                interests = parsed_interests if isinstance(parsed_interests, list) else []
+            except (TypeError, ValueError):
+                interests = []
+            profile = {
+                "occupation": profile_row.get("occupation") or "",
+                "interests": interests,
+            }
+        except Exception:
+            profile = {"occupation": "", "interests": []}
+        finally:
+            conn.close()
+
+        try:
+            matches = recommend_sites_for_query(
+                query,
+                query_sites(limit=160),
+                occupation=profile["occupation"],
+                interests=profile["interests"],
+                limit=limit,
+            )
+        except Exception as exc:
+            app.logger.error("ai site recommendation failed: %s", type(exc).__name__)
+            return api_error("推荐服务暂时不可用", 500, 500)
+
+        items = []
+        for match in matches:
+            site = match["site"]
+            items.append({
+                "id": site.get("id"),
+                "name": site.get("name") or "",
+                "url": site.get("url") or "",
+                "logo_url": site.get("logo_url") or "",
+                "summary": site.get("summary") or "",
+                "description": site.get("description") or "",
+                "category_name": site.get("category_name") or "",
+                "tags": site.get("tags") or [],
+                "reason": match["reason"],
+                "match_score": match["score"],
+            })
+        return api_success(
+            {"query": query, "items": items},
+            msg="未找到匹配网站" if not items else "success",
+        )
 
     @app.route("/api/sites/<int:site_id>", methods=["GET"])
     @jwt_required(optional=True)
