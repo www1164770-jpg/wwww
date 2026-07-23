@@ -254,7 +254,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: calc(100% + 10px);
   left: 0;
-  z-index: 300;
+  z-index: 1000;
   width: 230px;
   max-height: 260px;
   overflow-y: auto;

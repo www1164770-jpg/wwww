@@ -69,8 +69,13 @@ const engineMenuOpen = ref(false);
     linear-gradient(180deg, #ffffff 0%, #fffdfc 54%, #ffffff 100%);
 }
 
+.hero-search.reveal-on-scroll {
+  opacity: 1;
+  transform: none;
+}
+
 .hero-search.engine-menu-open {
-  z-index: 2;
+  z-index: 50;
 }
 
 .hero-copy {
@@ -106,11 +111,6 @@ h1 {
   display: grid;
   width: 100%;
   place-items: center;
-  transition: padding-bottom 0.22s ease;
-}
-
-.hero-search__search-area.engine-menu-open {
-  padding-bottom: 274px;
 }
 
 .hero-stats {
