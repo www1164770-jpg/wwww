@@ -23,26 +23,38 @@
           />
         </aside>
 
-        <section class="results-panel">
-          <LoadingState v-if="loading" text="正在加载网站..." />
-          <div v-else-if="sites.length" class="category-site-grid">
-            <SiteCard
-              v-for="site in sites"
-              :key="site.id || site.url || site.name"
-              :site="site"
-              :favorited="Boolean(site.is_favorited)"
-              :favorite-pending="favoritePendingIds.includes(site.id)"
-              @favorite="favorite"
-              @visit="visit"
+        <section ref="resultsPanel" class="results-panel">
+          <LoadingState
+            v-if="loading"
+            text="正在加载该分类下的网站资源..."
+          />
+          <div v-else-if="error" class="category-results-state">
+            <EmptyState
+              title="分类网站加载失败，请稍后重试"
+              :description="error"
             />
+            <button type="button" class="retry-button" @click="loadSites">
+              重新加载
+            </button>
+          </div>
+          <div v-else-if="sites.length">
+            <p class="result-count">共找到 {{ sites.length }} 个网站</p>
+            <div class="category-site-grid">
+              <SiteCard
+                v-for="site in sites"
+                :key="site.id || site.url || site.name"
+                :site="site"
+                :favorited="Boolean(site.is_favorited)"
+                :favorite-pending="favoritePendingIds.includes(site.id)"
+                @favorite="favorite"
+                @visit="visit"
+              />
+            </div>
           </div>
           <EmptyState
             v-else
-            :title="error ? '资源加载失败' : '暂无该分类的网站资源'"
-            :description="
-              error ||
-              '可以先在后台为该分类添加网站信息，页面会优先展示匹配的兜底资源。'
-            "
+            title="当前分类下暂无匹配网站"
+            description="请尝试切换筛选条件，或返回首页查看更多分类。"
           />
         </section>
       </div>
@@ -51,7 +63,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -61,7 +81,6 @@ import SiteCard from "../components/site/SiteCard.vue";
 import {
   categoryAPI,
   favoriteAPI,
-  getCategoryFallbackSites,
   normalizeUrl,
   siteAPI,
   tagAPI,
@@ -78,6 +97,7 @@ const sites = ref([]);
 const loading = ref(false);
 const error = ref("");
 const favoritePendingIds = ref([]);
+const resultsPanel = ref(null);
 const filters = reactive({
   category_id: "",
   tag: "",
@@ -110,15 +130,9 @@ function normalizeList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
 }
 
-function withFallbackSites(items) {
-  const realSites = normalizeList(items);
-  if (realSites.length) return realSites;
-  return getCategoryFallbackSites(currentCategory.value);
-}
-
 function cleanFilters(source = {}) {
   const params = {
-    category_id: route.params.id,
+    category_id: source.category_id || route.params.id,
     page: 1,
     page_size: 12,
     limit: 12,
@@ -137,14 +151,49 @@ async function loadSites(nextFilters = filters) {
   error.value = "";
   try {
     const response = await siteAPI.getSites(cleanFilters(nextFilters));
-    sites.value = withFallbackSites(unwrapList(response));
+    sites.value = normalizeList(unwrapList(response));
   } catch (err) {
     error.value = err.response?.data?.msg || "网站加载失败，请稍后重试";
-    sites.value = withFallbackSites([]);
+    sites.value = [];
     errorToast(error.value);
   } finally {
     loading.value = false;
   }
+}
+
+let siteCardsObserver;
+
+function observeSiteCards() {
+  const elements = Array.from(
+    resultsPanel.value?.querySelectorAll(".reveal-on-scroll") || [],
+  );
+  const reduceMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    elements.forEach((element) => element.classList.add("is-visible"));
+    return;
+  }
+
+  if (!siteCardsObserver) {
+    siteCardsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle("is-visible", entry.isIntersecting);
+        });
+      },
+      { threshold: 0.16, rootMargin: "0px 0px -40px 0px" },
+    );
+  }
+
+  elements.forEach((element, index) => {
+    element.style.setProperty(
+      "--reveal-delay",
+      `${Math.min(index * 35, 220)}ms`,
+    );
+    siteCardsObserver.observe(element);
+  });
 }
 async function favorite(site) {
   if (!getAccessToken()) {
@@ -205,6 +254,19 @@ watch(
     await loadSites();
   },
 );
+
+watch(
+  sites,
+  async () => {
+    await nextTick();
+    observeSiteCards();
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  siteCardsObserver?.disconnect();
+});
 </script>
 
 <style scoped>
@@ -282,6 +344,36 @@ h1 {
 
 .results-panel {
   min-width: 0;
+}
+
+.result-count {
+  margin: 0 0 16px;
+  color: var(--color-muted);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.category-results-state {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
+.retry-button {
+  min-height: 42px;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 0 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.retry-button:hover,
+.retry-button:focus-visible {
+  background: var(--color-primary-dark);
+  outline: none;
 }
 
 .category-site-grid {

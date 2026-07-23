@@ -15,6 +15,7 @@
     "test:ai-site-assistant-panel": "node scripts/verify-ai-site-assistant-panel.mjs",
     "test:ai-unified-entry": "node scripts/verify-ai-unified-entry.mjs",
     "test:home-layout-restructure": "node scripts/verify-home-layout-restructure.mjs",
+    "test:category-sites-page": "node scripts/verify-category-sites-page.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
