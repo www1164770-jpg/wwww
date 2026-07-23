@@ -51,15 +51,38 @@ class UserBackground(db.Model):
 
     id = db.Column(mysql.BIGINT(unsigned=True), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    storage_path = db.Column(db.String(255), nullable=False, unique=True)
+    storage_path = db.Column(db.String(255), nullable=False)
     original_name = db.Column(db.String(255), nullable=False)
-    mime_type = db.Column(db.String(32), nullable=False, default="image/webp")
+    mime_type = db.Column(
+        db.String(32), nullable=False, default="image/webp", server_default=db.text("'image/webp'")
+    )
     file_size = db.Column(mysql.INTEGER(unsigned=True), nullable=False)
     width = db.Column(mysql.SMALLINT(unsigned=True), nullable=False)
     height = db.Column(mysql.SMALLINT(unsigned=True), nullable=False)
-    status = db.Column(db.Enum("active", "deleted"), nullable=False, default="active")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    status = db.Column(
+        db.Enum("active", "deleted"), nullable=False, default="active", server_default=db.text("'active'")
+    )
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False, server_default=db.text("CURRENT_TIMESTAMP")
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        server_onupdate=db.text("CURRENT_TIMESTAMP"),
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint("storage_path", name="uq_user_backgrounds_storage_path"),
+        db.Index("idx_user_backgrounds_user_status_created", "user_id", "status", "created_at"),
+        db.CheckConstraint(
+            "file_size > 0 AND file_size <= 10485760", name="chk_user_backgrounds_size"
+        ),
+        db.CheckConstraint("width > 0 AND height > 0", name="chk_user_backgrounds_dimensions"),
+        {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"},
+    )
 
 
 class UserBackgroundSetting(db.Model):
@@ -76,16 +99,38 @@ class UserBackgroundSetting(db.Model):
         db.ForeignKey("user_backgrounds.id", ondelete="SET NULL"),
         nullable=True,
     )
-    overlay_opacity = db.Column(db.Numeric(3, 2), nullable=False, default=0.36)
-    blur_px = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=0)
-    position_x = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=50)
-    position_y = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=50)
-    size_mode = db.Column(db.Enum("cover", "contain", "auto"), nullable=False, default="cover")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    overlay_opacity = db.Column(
+        db.Numeric(3, 2), nullable=False, default=0.36, server_default=db.text("0.36")
+    )
+    blur_px = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=0, server_default=db.text("0"))
+    position_x = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=50, server_default=db.text("50"))
+    position_y = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=50, server_default=db.text("50"))
+    size_mode = db.Column(
+        db.Enum("cover", "contain", "auto"), nullable=False, default="cover", server_default=db.text("'cover'")
+    )
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False, server_default=db.text("CURRENT_TIMESTAMP")
+    )
+    updated_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        server_onupdate=db.text("CURRENT_TIMESTAMP"),
+    )
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "page_type", name="uq_user_background_settings_page"),
+        db.Index("idx_user_background_settings_background", "background_id"),
+        db.CheckConstraint(
+            "overlay_opacity >= 0.00 AND overlay_opacity <= 0.70",
+            name="chk_user_background_settings_overlay",
+        ),
+        db.CheckConstraint("blur_px <= 20", name="chk_user_background_settings_blur"),
+        db.CheckConstraint("position_x <= 100", name="chk_user_background_settings_x"),
+        db.CheckConstraint("position_y <= 100", name="chk_user_background_settings_y"),
+        {"mysql_engine": "InnoDB", "mysql_charset": "utf8mb4", "mysql_collate": "utf8mb4_unicode_ci"},
     )
 
 
