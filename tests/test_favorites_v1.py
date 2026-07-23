@@ -22,9 +22,19 @@ class FakeFavoritesDatabase:
             {"id": 123456, "username": "legacy-id", "email": "legacy@example.com", "deleted_at": None},
             {"id": 8, "username": "removed", "email": "removed@example.com", "deleted_at": "2026-01-01"},
         ]
-        self.sites = {76: {"id": 76, "favorite_count": 0}}
+        self.sites = {
+            76: {
+                "id": 76,
+                "name": "Test Site",
+                "url": "https://test.example",
+                "logo_url": "https://test.example/logo.png",
+                "category_id": 3,
+                "favorite_count": 0,
+            }
+        }
         self.website_columns = {"id", "favorite_count"}
         self.favorites = []
+        self.raise_favorites_list_error = False
 
     def connect(self):
         return FakeFavoritesConnection(self)
@@ -137,8 +147,19 @@ class FakeFavoritesCursor:
                     self.rowcount = 1
             return
 
-        if "from favorites f" in normalized:
-            self.result = []
+        if "from favorites f join websites w" in normalized:
+            if self.database.raise_favorites_list_error:
+                raise RuntimeError("favorites query failed")
+            user_id = int(params[0])
+            self.result = [
+                {
+                    **deepcopy(self.database.sites[favorite["site_id"]]),
+                    "category_name": "Test Category",
+                    "note": favorite["note"],
+                }
+                for favorite in self.database.favorites
+                if favorite["user_id"] == user_id
+            ]
             return
 
         if "insert into user_behaviors" in normalized:
@@ -262,6 +283,55 @@ class FavoritesV1Tests(unittest.TestCase):
 
         self.assert_login_expired(list_response)
         self.assert_login_expired(update_response)
+
+    def test_real_application_has_one_get_favorites_route_owned_by_v1(self):
+        from app import app as real_app
+
+        rules = [
+            rule
+            for rule in real_app.url_map.iter_rules()
+            if rule.rule == "/api/favorites" and "GET" in rule.methods
+        ]
+
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(rules[0].endpoint, "v1_favorites")
+
+    def test_added_favorite_is_returned_as_a_complete_site_object(self):
+        self.add_favorite("testuser")
+
+        response = self.client.get("/api/favorites", headers=self.auth_headers("testuser"))
+
+        self.assertEqual(response.status_code, 200)
+        items = response.get_json()["data"]
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["id"], 76)
+        for field in ("name", "url", "logo_url", "category_id", "category_name", "note"):
+            self.assertIn(field, items[0])
+        self.assertTrue(items[0]["is_favorited"])
+
+    def test_favorite_list_supports_numeric_username_and_email_identities(self):
+        self.add_favorite("7")
+        self.assertEqual(
+            self.client.get("/api/favorites", headers=self.auth_headers("7")).get_json()["data"][0]["id"],
+            76,
+        )
+
+        self.database.favorites = []
+        self.add_favorite("test@example.com")
+        self.assertEqual(
+            self.client.get("/api/favorites", headers=self.auth_headers("test@example.com")).get_json()["data"][0]["id"],
+            76,
+        )
+
+    def test_favorite_list_returns_safe_500_for_database_errors(self):
+        self.database.raise_favorites_list_error = True
+        self.app.config["PROPAGATE_EXCEPTIONS"] = False
+
+        response = self.client.get("/api/favorites", headers=self.auth_headers("testuser"))
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.get_json()["code"], 500)
+        self.assertNotIn("favorites query failed", response.get_json()["message"])
 
     def test_missing_authorization_is_rejected(self):
         response = self.client.post("/api/sites/76/favorite", json={"note": "useful"})

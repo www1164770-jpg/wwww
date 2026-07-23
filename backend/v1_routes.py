@@ -1287,8 +1287,9 @@ def register_v1_routes(app, get_db_connection):
             with conn.cursor() as cursor:
                 cursor.execute("SELECT w.*, c.name AS category_name, f.note FROM favorites f JOIN websites w ON w.id=f.site_id LEFT JOIN categories c ON c.id=w.category_id WHERE f.user_id=%s ORDER BY f.created_at DESC", (user["id"],))
                 rows = cursor.fetchall()
-        except Exception:
-            rows = []
+        except Exception as exc:
+            app.logger.error("favorites list query failed (error_type=%s)", type(exc).__name__)
+            return api_error("收藏加载失败，请稍后重试", 500, 500)
         finally:
             conn.close()
         ids = [row["id"] for row in rows]
@@ -1298,6 +1299,7 @@ def register_v1_routes(app, get_db_connection):
         for row in rows:
             item = normalize_site(row, tags.get(row["id"], []), occupations.get(row["id"], []))
             item["note"] = row.get("note")
+            item["is_favorited"] = True
             items.append(item)
         return api_success(items)
 

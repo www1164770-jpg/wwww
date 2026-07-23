@@ -2707,7 +2707,6 @@ def cache_logo():
 
 # --- 1. 获取收藏列表 API ---
 # 加上 OPTIONS 方法，让浏览器的跨域预检顺利通过
-@app.route('/api/favorites', methods=['GET', 'OPTIONS'])
 def get_favorites():
     """
     获取当前用户的收藏网站 ID 列表接口（需要 JWT 认证）。
