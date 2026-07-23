@@ -16,6 +16,8 @@
     "test:ai-unified-entry": "node scripts/verify-ai-unified-entry.mjs",
     "test:home-layout-restructure": "node scripts/verify-home-layout-restructure.mjs",
     "test:category-sites-page": "node scripts/verify-category-sites-page.mjs",
+    "test:favorites-cards-visible": "node scripts/verify-favorites-cards-visible.mjs",
+    "test:hero-search-engine-layout": "node scripts/verify-hero-search-engine-layout.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

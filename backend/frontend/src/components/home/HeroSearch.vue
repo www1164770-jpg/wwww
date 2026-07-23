@@ -1,5 +1,8 @@
 <template>
-  <section class="hero-search reveal-on-scroll">
+  <section
+    class="hero-search reveal-on-scroll"
+    :class="{ 'engine-menu-open': engineMenuOpen }"
+  >
     <div class="hero-copy">
       <h1>根据你的职业，推荐最适合的 AI 工具</h1>
       <p>
@@ -7,20 +10,27 @@
       </p>
     </div>
 
-    <SearchBar
-      :model-value="modelValue"
-      class="hero-search__bar"
-      placeholder="搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
-      :navigate-on-submit="false"
-      @update:model-value="$emit('update:modelValue', $event)"
-      @search="$emit('search', $event)"
-    />
+    <div
+      class="hero-search__search-area"
+      :class="{ 'engine-menu-open': engineMenuOpen }"
+    >
+      <SearchBar
+        :model-value="modelValue"
+        class="hero-search__bar"
+        placeholder="搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
+        :navigate-on-submit="false"
+        @update:model-value="$emit('update:modelValue', $event)"
+        @search="$emit('search', $event)"
+        @engine-menu-change="engineMenuOpen = $event"
+      />
+    </div>
 
     <p class="hero-stats">已收录工具 · 热门分类 · 个性化推荐已开启</p>
   </section>
 </template>
 
 <script setup>
+import { ref } from "vue";
 import SearchBar from "../common/SearchBar.vue";
 
 defineProps({
@@ -31,16 +41,20 @@ defineProps({
 });
 
 defineEmits(["update:modelValue", "search", "show-all", "show-favorites"]);
+
+const engineMenuOpen = ref(false);
 </script>
 
 <style scoped>
 .hero-search {
   display: grid;
+  position: relative;
   min-height: clamp(380px, 46vh, 480px);
   place-items: center;
   align-content: center;
   gap: 28px;
   padding: 82px 20px 48px;
+  overflow: visible;
   background:
     radial-gradient(
       circle at 14% 18%,
@@ -53,6 +67,10 @@ defineEmits(["update:modelValue", "search", "show-all", "show-favorites"]);
       transparent 32%
     ),
     linear-gradient(180deg, #ffffff 0%, #fffdfc 54%, #ffffff 100%);
+}
+
+.hero-search.engine-menu-open {
+  z-index: 2;
 }
 
 .hero-copy {
@@ -80,8 +98,19 @@ h1 {
 }
 
 .hero-search__bar {
-  width: min(720px, calc(100vw - 32px));
+  width: min(820px, calc(100vw - 40px));
   justify-self: center;
+}
+
+.hero-search__search-area {
+  display: grid;
+  width: 100%;
+  place-items: center;
+  transition: padding-bottom 0.22s ease;
+}
+
+.hero-search__search-area.engine-menu-open {
+  padding-bottom: 274px;
 }
 
 .hero-stats {

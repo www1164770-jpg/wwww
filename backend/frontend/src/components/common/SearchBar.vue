@@ -85,7 +85,7 @@ const props = defineProps({
   navigateOnSubmit: { type: Boolean, default: true },
   defaultEngine: { type: String, default: "internal" },
 });
-const emit = defineEmits(["update:modelValue", "search"]);
+const emit = defineEmits(["update:modelValue", "search", "engine-menu-change"]);
 const router = useRouter();
 const keyword = ref(props.modelValue);
 const selectedEngine = ref(props.defaultEngine || "internal");
@@ -113,6 +113,7 @@ watch(
 );
 
 watch(keyword, (value) => emit("update:modelValue", value || ""));
+watch(engineOpen, (value) => emit("engine-menu-change", value));
 
 function toggleEngineMenu() {
   engineOpen.value = !engineOpen.value;
@@ -180,45 +181,49 @@ onBeforeUnmount(() => {
 .search-bar {
   position: relative;
   display: flex;
-  width: min(680px, calc(100vw - 32px));
-  max-width: 680px;
-  min-height: 62px;
+  width: min(820px, calc(100vw - 40px));
+  max-width: 820px;
+  min-height: 72px;
   align-items: center;
-  gap: 10px;
+  gap: 0;
   margin: 0 auto;
-  border: 1px solid rgba(226, 232, 240, 0.88);
+  border: 1px solid rgba(255, 107, 87, 0.34);
   border-radius: 999px;
-  background: #ffffff;
-  padding: 8px;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 5px;
+  box-shadow: 0 16px 40px rgba(36, 50, 74, 0.08);
   transition:
     border-color var(--transition),
     box-shadow var(--transition);
 }
 
 .search-bar:focus-within {
-  border-color: rgba(255, 112, 88, 0.46);
-  box-shadow: 0 18px 46px rgba(255, 112, 88, 0.15);
+  border-color: rgba(255, 107, 87, 0.68);
+  box-shadow:
+    0 18px 44px rgba(36, 50, 74, 0.1),
+    0 0 0 4px rgba(255, 107, 87, 0.08);
 }
 
 .engine-picker {
   position: relative;
-  flex: 0 0 auto;
+  flex: 0 0 145px;
 }
 
 .engine-picker__button {
-  height: 44px;
-  min-width: 104px;
-  border: 1px solid rgba(255, 112, 88, 0.22);
+  min-width: 0;
+  flex: 0 0 145px;
+  height: 56px;
+  margin-left: 2px;
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: #fff7f4;
+  background: rgba(255, 112, 88, 0.06);
   color: #253044;
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 0 14px 0 18px;
-  font-size: 14px;
+  gap: 10px;
+  padding: 0 18px;
+  font-size: 15px;
   font-weight: 800;
   cursor: pointer;
   transition:
@@ -230,9 +235,9 @@ onBeforeUnmount(() => {
 .engine-picker__button:hover,
 .engine-picker__button.is-open,
 .engine-picker__button:focus-visible {
-  border-color: #ff7058;
-  background: #fff1ec;
-  box-shadow: 0 10px 24px rgba(255, 112, 88, 0.14);
+  border-color: rgba(255, 112, 88, 0.2);
+  background: rgba(255, 112, 88, 0.12);
+  box-shadow: none;
   outline: none;
 }
 
@@ -249,8 +254,10 @@ onBeforeUnmount(() => {
   position: absolute;
   top: calc(100% + 10px);
   left: 0;
-  z-index: 50;
-  min-width: 150px;
+  z-index: 300;
+  width: 230px;
+  max-height: 260px;
+  overflow-y: auto;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
   background: #ffffff;
@@ -261,7 +268,7 @@ onBeforeUnmount(() => {
 .engine-picker__option {
   display: flex;
   width: 100%;
-  height: 38px;
+  min-height: 48px;
   align-items: center;
   gap: 8px;
   border: 0;
@@ -304,22 +311,30 @@ onBeforeUnmount(() => {
 }
 
 .search-input {
-  flex: 1 1 auto;
+  flex: 1;
   min-width: 0;
+  height: 100%;
   border: 0;
   background: transparent;
-  padding: 0 8px;
+  box-shadow: none;
+  padding: 0 22px;
   color: var(--color-heading);
   outline: 0;
-  font-size: 15px;
+  font-size: clamp(16px, 1.25vw, 19px);
+}
+
+.search-input:focus {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0;
 }
 
 .search-button {
-  flex: 0 0 auto;
+  flex: 0 0 64px;
   align-self: center;
-  width: 52px;
-  height: 52px;
-  min-width: 52px;
+  width: 64px;
+  height: 62px;
+  min-width: 64px;
   border: 0;
   border-radius: 50%;
   background: var(--color-primary);
@@ -375,48 +390,62 @@ onBeforeUnmount(() => {
 
 @media (max-width: 560px) {
   .search-bar {
-    width: calc(100vw - 32px);
-    min-height: 58px;
-    gap: 8px;
-    padding: 7px;
+    width: min(820px, calc(100vw - 32px));
+    min-height: 64px;
+    padding: 4px;
+  }
+
+  .engine-picker {
+    flex-basis: 112px;
   }
 
   .engine-picker__button {
-    min-width: 92px;
-    padding: 0 12px;
+    flex-basis: 112px;
+    height: 56px;
+    padding: 0 13px;
     font-size: 13px;
   }
 
   .search-input {
-    padding: 0 4px;
-    font-size: 14px;
+    padding: 0 8px;
+    font-size: 16px;
   }
 
   .search-button {
-    width: 46px;
-    height: 46px;
-    min-width: 46px;
+    flex-basis: 56px;
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
   }
 }
 
 @media (max-width: 420px) {
   .search-bar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    border-radius: 24px;
+    display: flex;
+    flex-wrap: nowrap;
+    border-radius: 999px;
   }
 
   .engine-picker {
-    grid-column: 1 / -1;
-    width: 100%;
+    width: auto;
+    flex-basis: 108px;
   }
 
   .engine-picker__button {
-    width: 100%;
+    width: 108px;
+    flex-basis: 108px;
+    padding: 0 11px;
   }
 
   .engine-picker__menu {
-    width: 100%;
+    width: min(230px, calc(100vw - 32px));
+  }
+
+  .search-button {
+    flex-basis: 52px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
   }
 }
 </style>
