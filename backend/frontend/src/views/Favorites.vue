@@ -24,24 +24,25 @@
 
       <LoadingState v-if="loading" text="正在加载收藏..." />
       <EmptyState v-else-if="error" title="收藏加载失败" :description="error" />
-      <SiteList
-        v-else
-        :sites="filteredFavorites"
-        :favorite-ids="favorites.map((site) => site.id)"
-        :favorite-pending-ids="favoritePendingIds"
-        empty-title="暂无收藏"
-        empty-description="去首页发现适合你的 AI 工具"
-        empty-action-text="去首页看看"
-        empty-action-to="/"
-        @favorite="remove"
-        @visit="visit"
-      />
+      <div v-else ref="favoritesPanel">
+        <SiteList
+          :sites="filteredFavorites"
+          :favorite-ids="favorites.map((site) => site.id)"
+          :favorite-pending-ids="favoritePendingIds"
+          empty-title="暂无收藏"
+          empty-description="去首页发现适合你的 AI 工具"
+          empty-action-text="去首页看看"
+          empty-action-to="/"
+          @favorite="remove"
+          @visit="visit"
+        />
+      </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -55,6 +56,7 @@ const selectedCategory = ref("");
 const loading = ref(false);
 const error = ref("");
 const favoritePendingIds = ref([]);
+const favoritesPanel = ref(null);
 const filteredFavorites = computed(() => {
   if (!selectedCategory.value) return favorites.value;
   return favorites.value.filter((site) => {
@@ -62,6 +64,43 @@ const filteredFavorites = computed(() => {
     return String(id) === selectedCategory.value;
   });
 });
+
+let favoriteCardsObserver;
+
+function observeFavoriteCards() {
+  const elements = Array.from(
+    favoritesPanel.value?.querySelectorAll(".reveal-on-scroll") || [],
+  );
+  const reduceMotion = window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    elements.forEach((element) => element.classList.add("is-visible"));
+    return;
+  }
+
+  if (!favoriteCardsObserver) {
+    favoriteCardsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          entry.target.classList.toggle("is-visible", entry.isIntersecting);
+        });
+      },
+      { threshold: 0.16, rootMargin: "0px 0px -40px 0px" },
+    );
+  }
+
+  elements.forEach((element, index) => {
+    if (element.dataset.revealBound === "1") return;
+    element.style.setProperty(
+      "--reveal-delay",
+      `${Math.min(index * 35, 220)}ms`,
+    );
+    element.dataset.revealBound = "1";
+    favoriteCardsObserver.observe(element);
+  });
+}
 
 async function load() {
   loading.value = true;
@@ -103,7 +142,24 @@ async function visit(site) {
   await siteAPI.recordClick(site.id).catch(() => {});
   window.open(site.url, "_blank", "noopener,noreferrer");
 }
-onMounted(load);
+onMounted(async () => {
+  await load();
+  await nextTick();
+  observeFavoriteCards();
+});
+
+watch(
+  filteredFavorites,
+  async () => {
+    await nextTick();
+    observeFavoriteCards();
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  favoriteCardsObserver?.disconnect();
+});
 </script>
 
 <style scoped>
