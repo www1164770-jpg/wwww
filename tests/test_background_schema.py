@@ -13,14 +13,23 @@ class BackgroundSchemaTests(unittest.TestCase):
         self.assertTrue(UP_PATH.exists(), f"missing migration: {UP_PATH.name}")
         sql = UP_PATH.read_text(encoding="utf-8")
 
+        self.assertTrue(
+            sql.startswith("-- migration-target-tables: user_backgrounds,user_background_settings\n")
+        )
         self.assertIn("CREATE TABLE user_backgrounds", sql)
         self.assertIn("CREATE TABLE user_background_settings", sql)
+        self.assertEqual(sql.count("ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"), 2)
+        self.assertEqual(sql.count("user_id INT NOT NULL"), 2)
         self.assertIn("status ENUM('active', 'deleted') NOT NULL DEFAULT 'active'", sql)
         self.assertIn(
             "page_type ENUM('global', 'home', 'category', 'favorites', 'ai_assistant', 'profile') NOT NULL",
             sql,
         )
         self.assertIn("UNIQUE KEY uq_user_background_settings_page (user_id, page_type)", sql)
+        self.assertIn("UNIQUE KEY uq_user_backgrounds_storage_path (storage_path)", sql)
+        self.assertIn("KEY idx_user_backgrounds_user_status_created (user_id, status, created_at)", sql)
+        self.assertIn("KEY idx_user_background_settings_background (background_id)", sql)
+        self.assertIn("FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE", sql)
         self.assertIn("ON DELETE SET NULL", sql)
         for constraint in (
             "chk_user_backgrounds_size",
@@ -64,6 +73,19 @@ class BackgroundSchemaTests(unittest.TestCase):
             {"SET NULL"},
         )
         self.assertEqual(setting_columns.overlay_opacity.default.arg, 0.36)
+        for column in (
+            background_columns.id,
+            background_columns.file_size,
+            background_columns.width,
+            background_columns.height,
+            setting_columns.id,
+            setting_columns.background_id,
+            setting_columns.blur_px,
+            setting_columns.position_x,
+            setting_columns.position_y,
+        ):
+            with self.subTest(column=column.name):
+                self.assertTrue(getattr(column.type, "unsigned", False))
 
 
 if __name__ == "__main__":

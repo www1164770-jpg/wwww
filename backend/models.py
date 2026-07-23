@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects import mysql
 
 db = SQLAlchemy()
 
@@ -48,14 +49,14 @@ class UserProfile(db.Model):
 class UserBackground(db.Model):
     __tablename__ = "user_backgrounds"
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(mysql.BIGINT(unsigned=True), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     storage_path = db.Column(db.String(255), nullable=False, unique=True)
     original_name = db.Column(db.String(255), nullable=False)
     mime_type = db.Column(db.String(32), nullable=False, default="image/webp")
-    file_size = db.Column(db.Integer, nullable=False)
-    width = db.Column(db.SmallInteger, nullable=False)
-    height = db.Column(db.SmallInteger, nullable=False)
+    file_size = db.Column(mysql.INTEGER(unsigned=True), nullable=False)
+    width = db.Column(mysql.SMALLINT(unsigned=True), nullable=False)
+    height = db.Column(mysql.SMALLINT(unsigned=True), nullable=False)
     status = db.Column(db.Enum("active", "deleted"), nullable=False, default="active")
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -64,21 +65,21 @@ class UserBackground(db.Model):
 class UserBackgroundSetting(db.Model):
     __tablename__ = "user_background_settings"
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(mysql.BIGINT(unsigned=True), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     page_type = db.Column(
         db.Enum("global", "home", "category", "favorites", "ai_assistant", "profile"),
         nullable=False,
     )
     background_id = db.Column(
-        db.BigInteger,
+        mysql.BIGINT(unsigned=True),
         db.ForeignKey("user_backgrounds.id", ondelete="SET NULL"),
         nullable=True,
     )
     overlay_opacity = db.Column(db.Numeric(3, 2), nullable=False, default=0.36)
-    blur_px = db.Column(db.SmallInteger, nullable=False, default=0)
-    position_x = db.Column(db.SmallInteger, nullable=False, default=50)
-    position_y = db.Column(db.SmallInteger, nullable=False, default=50)
+    blur_px = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=0)
+    position_x = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=50)
+    position_y = db.Column(mysql.TINYINT(unsigned=True), nullable=False, default=50)
     size_mode = db.Column(db.Enum("cover", "contain", "auto"), nullable=False, default="cover")
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
