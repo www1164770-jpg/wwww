@@ -34,12 +34,33 @@ def register_v1_routes(app, get_db_connection):
         }), status
 
     def current_user_row():
-        username = get_jwt_identity()
+        identity = get_jwt_identity()
+        if identity is None:
+            return None
+        identity_text = str(identity).strip()
+        if not identity_text:
+            return None
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM users WHERE username=%s OR email=%s", (username, username))
-                return cursor.fetchone()
+                cursor.execute(
+                    "SELECT * FROM (SELECT * FROM users WHERE username=%s OR email=%s) AS matched_user "
+                    "WHERE deleted_at IS NULL LIMIT 1",
+                    (identity_text, identity_text),
+                )
+                user = cursor.fetchone()
+                if user:
+                    return user
+                if (
+                    (isinstance(identity, int) and not isinstance(identity, bool))
+                    or (isinstance(identity, str) and identity_text.isdigit())
+                ):
+                    cursor.execute(
+                        "SELECT * FROM users WHERE id=%s AND deleted_at IS NULL LIMIT 1",
+                        (int(identity_text),),
+                    )
+                    return cursor.fetchone()
+                return None
         finally:
             conn.close()
 
@@ -1259,6 +1280,8 @@ def register_v1_routes(app, get_db_connection):
     @jwt_required()
     def v1_favorites():
         user = current_user_row()
+        if not user:
+            return api_error("登录状态已失效，请重新登录", 401, 401)
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -1282,15 +1305,29 @@ def register_v1_routes(app, get_db_connection):
     @jwt_required()
     def v1_add_favorite(site_id):
         user = current_user_row()
+        if not user:
+            return api_error("登录状态已失效，请重新登录", 401, 401)
         data = request.get_json(silent=True) or {}
+        has_favorite_count = "favorite_count" in table_columns("websites")
         inserted = False
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute("INSERT IGNORE INTO favorites (user_id, site_id, note) VALUES (%s,%s,%s)", (user["id"], site_id, data.get("note")))
-                if cursor.rowcount:
+                cursor.execute("SELECT id FROM websites WHERE id=%s LIMIT 1", (site_id,))
+                if not cursor.fetchone():
+                    return api_error("网站不存在", 404, 404)
+                cursor.execute(
+                    "SELECT id FROM favorites WHERE user_id=%s AND site_id=%s LIMIT 1",
+                    (user["id"], site_id),
+                )
+                if not cursor.fetchone():
+                    cursor.execute(
+                        "INSERT INTO favorites (user_id, site_id, note) VALUES (%s,%s,%s)",
+                        (user["id"], site_id, data.get("note")),
+                    )
                     inserted = True
-                    cursor.execute("UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s", (site_id,))
+                    if has_favorite_count:
+                        cursor.execute("UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s", (site_id,))
             conn.commit()
         finally:
             conn.close()
@@ -1302,6 +1339,9 @@ def register_v1_routes(app, get_db_connection):
     @jwt_required()
     def v1_remove_favorite(site_id):
         user = current_user_row()
+        if not user:
+            return api_error("登录状态已失效，请重新登录", 401, 401)
+        has_favorite_count = "favorite_count" in table_columns("websites")
         removed = False
         conn = get_db_connection()
         try:
@@ -1309,7 +1349,8 @@ def register_v1_routes(app, get_db_connection):
                 cursor.execute("DELETE FROM favorites WHERE user_id=%s AND site_id=%s", (user["id"], site_id))
                 if cursor.rowcount:
                     removed = True
-                    cursor.execute("UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s", (site_id,))
+                    if has_favorite_count:
+                        cursor.execute("UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s", (site_id,))
             conn.commit()
         finally:
             conn.close()
@@ -1319,6 +1360,8 @@ def register_v1_routes(app, get_db_connection):
     @jwt_required()
     def v1_update_favorite_note(site_id):
         user = current_user_row()
+        if not user:
+            return api_error("登录状态已失效，请重新登录", 401, 401)
         data = request.get_json(silent=True) or {}
         conn = get_db_connection()
         try:
