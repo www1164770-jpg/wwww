@@ -1,5 +1,8 @@
 import io
+import struct
 import unittest
+import zlib
+from unittest.mock import patch
 
 from PIL import Image
 
@@ -34,6 +37,34 @@ class OversizeStream:
         count = self.remaining if size < 0 else min(size, self.remaining)
         self.remaining -= count
         return b"x" * count
+
+
+class OversizedChunkStream:
+    def read(self, size=-1):
+        return b"x" * (size + 1)
+
+
+class BoundedByteArray(bytearray):
+    def extend(self, value):
+        if len(self) + len(value) > BACKGROUND_MAX_FILE_BYTES + 1:
+            raise AssertionError("source buffer exceeded the configured bound")
+        super().extend(value)
+
+
+def png_header(width, height):
+    def chunk(chunk_type, data):
+        return (
+            struct.pack(">I", len(data))
+            + chunk_type
+            + data
+            + struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
+        )
+
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
+        + chunk(b"IEND", b"")
+    )
 
 
 class BackgroundImageServiceTests(unittest.TestCase):
@@ -127,6 +158,18 @@ class BackgroundImageServiceTests(unittest.TestCase):
     def test_rejects_observed_stream_above_limit(self):
         with self.assertRaises(BackgroundUploadTooLarge):
             process_background_upload(OversizeStream(BACKGROUND_MAX_FILE_BYTES + 1), "large.png")
+
+    def test_caps_buffer_when_stream_returns_more_than_requested(self):
+        with patch("builtins.bytearray", BoundedByteArray):
+            with self.assertRaises(BackgroundUploadTooLarge):
+                process_background_upload(OversizedChunkStream(), "untrusted.png")
+
+    def test_converts_exact_over_pixel_limit_decompression_warning(self):
+        source = png_header(1, BACKGROUND_MAX_PIXELS + 1)
+
+        with patch.object(Image, "MAX_IMAGE_PIXELS", BACKGROUND_MAX_PIXELS):
+            with self.assertRaises(InvalidBackgroundImage):
+                process_background_upload(io.BytesIO(source), "warning.png")
 
     def test_rejects_image_above_pixel_limit(self):
         side = int(BACKGROUND_MAX_PIXELS ** 0.5) + 1

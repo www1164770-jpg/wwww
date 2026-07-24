@@ -39,9 +39,12 @@ class ProcessedBackground:
 def _read_limited(file_stream: BinaryIO) -> bytes:
     content = bytearray()
     while len(content) <= BACKGROUND_MAX_FILE_BYTES:
-        chunk = file_stream.read(BACKGROUND_MAX_FILE_BYTES + 1 - len(content))
+        remaining = BACKGROUND_MAX_FILE_BYTES + 1 - len(content)
+        chunk = file_stream.read(remaining)
         if not chunk:
             return bytes(content)
+        if len(chunk) > remaining:
+            raise BackgroundUploadTooLarge("Background upload exceeds the maximum file size")
         content.extend(chunk)
     raise BackgroundUploadTooLarge("Background upload exceeds the maximum file size")
 
