@@ -25,7 +25,8 @@
 | Path | Responsibility |
 | --- | --- |
 | `backend/sql/migrations/20260723_user_backgrounds.up.sql` | Two MySQL tables, keys, checks, and foreign keys. |
-| `backend/background_service.py` | Path validation, Pillow processing, private metadata projection, and secure deletion helpers. |
+| `backend/background_image_service.py` | Bounded in-memory Pillow validation, normalization, and WebP encoding; never creates, reads, or deletes files. |
+| `backend/background_storage.py` | UUID path allocation, atomic private-file storage, safe relative-path resolution, reading, and deletion; never decodes images. |
 | `backend/background_migration.py` | One-shot controlled migration of valid legacy HTTPS wallpaper URLs. |
 | `backend/v1_routes.py` | Private library and setting API endpoints only. |
 | `backend/app.py`, `backend/models.py`, `requirements.txt`, `.gitignore` | Configuration, model declarations, Pillow pin, and ignored upload root. |
@@ -77,43 +78,96 @@
 - [ ] **Step 6: Inspect the change.** Run `git diff -- backend/app.py .gitignore tests/test_background_storage_config.py`; allow only those files.
 - [ ] **Step 7: Commit.** Run `git add backend/app.py .gitignore tests/test_background_storage_config.py` then `git commit -m "feat(background): configure private upload storage"`.
 
-### Task 3: Pillow validation and WebP processing service
+### Task 3: Background Image Processing Service
 
 **Files:**
-- Create: `backend/background_service.py`, `tests/test_background_image_processing.py`
-- Modify: `requirements.txt`
-- Test: `tests/test_background_image_processing.py`
+- Create: `backend/background_image_service.py`, `tests/test_background_image_service.py`
+- Test: `tests/test_background_image_service.py`
+- Do not modify: `requirements.txt`, `.gitignore`, `backend/app.py`, `backend/v1_routes.py`, or `backend/models.py`.
 
 **Interfaces:**
-- Consumes: `FileStorage.stream`, configured upload root, and bytes limited to 10,485,760.
-- Produces: `process_background_upload(file_storage, user_id, upload_root) -> dict` with `relative_path`, `mime_type`, `file_size`, `width`, and `height`.
 
-- [ ] **Step 1: Write the failing test.** Use generated in-memory JPEG, PNG with alpha, WebP, GIF, invalid bytes, and a mocked 20,000,001-pixel image. Assert JPEG becomes `image/webp`, output quality is invoked as `84`, width and height do not exceed 2560/1440, and invalid types raise `InvalidBackgroundImage`.
-- [ ] **Step 2: Run the failing test.** Run `python -m unittest tests.test_background_image_processing -v`; expect import failure for `background_service`.
-- [ ] **Step 3: Write the minimal implementation.** Pin `Pillow>=10.0.0,<12.0.0`. Define `MAX_UPLOAD_BYTES = 10_485_760`, `MAX_IMAGE_PIXELS = 20_000_000`, and `process_background_upload`. Call `Image.verify()`, reopen, convert `DecompressionBombWarning` into `InvalidBackgroundImage`, apply `ImageOps.exif_transpose`, `thumbnail((2560,1440), Image.Resampling.LANCZOS)`, convert RGB/RGBA, and atomically replace a UUID `.webp` from `.tmp`.
-- [ ] **Step 4: Run the focused test.** Run `python -m unittest tests.test_background_image_processing -v`; expect `OK`.
-- [ ] **Step 5: Run regression checks.** Run `python -m py_compile backend/background_service.py` and `python -m unittest tests.test_backend_startup_safety -v`; expect no compile error and `OK`.
-- [ ] **Step 6: Inspect the change.** Run `git diff -- backend/background_service.py requirements.txt tests/test_background_image_processing.py`; allow only those files.
-- [ ] **Step 7: Commit.** Run `git add backend/background_service.py requirements.txt tests/test_background_image_processing.py` then `git commit -m "feat(background): process private background images"`.
+```python
+from dataclasses import dataclass
+from typing import BinaryIO
 
-### Task 4: Atomic file cleanup helpers
+
+@dataclass(frozen=True)
+class ProcessedBackground:
+    content: bytes
+    width: int
+    height: int
+    mime_type: str
+    file_size: int
+
+
+def process_background_upload(
+    file_stream: BinaryIO,
+    original_filename: str,
+    content_length: int | None = None,
+) -> ProcessedBackground:
+    ...
+```
+
+- Consumes: a binary stream, the display-only original filename, and the Task 2 constants from `backend/background_config.py`.
+- Produces: only an in-memory `ProcessedBackground`; it never returns a path.
+- Raises: `BackgroundUploadTooLarge` when the declared or observed stream exceeds `BACKGROUND_MAX_FILE_BYTES`; raises `InvalidBackgroundImage` for empty, corrupt, unsupported, animated, decompression-bomb, or over-pixel-limit images.
+- Must not: generate UUIDs; construct paths; create directories or temporary files; write, read, or delete disk files; access the database; import Flask request objects; or form HTTP responses.
+
+- [ ] **Step 1: Write the failing test.** Create in-memory JPEG, PNG with alpha, static WebP, animated WebP, invalid bytes, an empty stream, an EXIF-rotated JPEG, and a mocked 20,000,001-pixel image. Assert the public signature and immutable result, exact Task 2 limits, rejection of declared and actual over-10 MiB streams, rejection of unsupported/corrupt/animated/over-pixel inputs, `image/webp` output, no upscaling, 2560x1440 proportional downscaling, EXIF transpose, preserved alpha, and no copied EXIF/ICC/XMP metadata.
+- [ ] **Step 2: Run the failing test.** Run `python -m unittest tests.test_background_image_service -v`; expect an import failure for `background_image_service`.
+- [ ] **Step 3: Write the minimal implementation.** Import every limit, allowed format, output format, output MIME type, and quality from `background_config`; do not redefine them. Read the stream with an observed byte limit, reject an excessive `content_length`, open once with `Image.verify()`, reopen for processing, and convert `DecompressionBombWarning` to `InvalidBackgroundImage`. Accept only Pillow-reported JPEG, PNG, or WebP and reject animated content. Apply `ImageOps.exif_transpose`, `thumbnail((BACKGROUND_MAX_WIDTH, BACKGROUND_MAX_HEIGHT), Image.Resampling.LANCZOS)`, retain alpha as `RGBA`, otherwise convert to `RGB`, and encode a fresh in-memory WebP with `quality=BACKGROUND_WEBP_QUALITY` and `method=6` without copying metadata. Return bytes, output dimensions, fixed MIME, and `len(content)`.
+- [ ] **Step 4: Run the focused test.** Run `python -m unittest tests.test_background_image_service -v`; expect `OK`.
+- [ ] **Step 5: Run regression checks.** Run `python -m py_compile backend/background_image_service.py` and `python -m unittest tests.test_background_storage_config tests.test_backend_startup_safety -v`; expect no compile error and `OK`.
+- [ ] **Step 6: Inspect the change.** Run `git diff -- backend/background_image_service.py tests/test_background_image_service.py`; allow only those files.
+- [ ] **Step 7: Commit.** Run `git add backend/background_image_service.py tests/test_background_image_service.py` then `git commit -m "feat(background): process private background images"`.
+
+### Task 4: Background Local Storage Service
 
 **Files:**
-- Create: `tests/test_background_file_cleanup.py`
-- Modify: `backend/background_service.py`
-- Test: `tests/test_background_file_cleanup.py`
+- Create: `backend/background_storage.py`, `tests/test_background_storage.py`
+- Test: `tests/test_background_storage.py`
 
 **Interfaces:**
-- Consumes: `relative_path` from Task 3 and the configured root.
-- Produces: `resolve_background_path(root, relative_path) -> Path` and `delete_background_file(root, relative_path) -> bool`.
 
-- [ ] **Step 1: Write the failing test.** Assert `backgrounds/42/a.webp` resolves below the root, `../escape.webp` and absolute paths raise `InvalidStoragePath`, and a missing file returns `False` without creating directories.
-- [ ] **Step 2: Run the failing test.** Run `python -m unittest tests.test_background_file_cleanup -v`; expect missing helper failures.
-- [ ] **Step 3: Write the minimal implementation.** Resolve both root and candidate, reject `candidate` unless `candidate.is_relative_to(root)`, and unlink only the resolved candidate. In `process_background_upload`, remove the temporary file on every exception and remove the final file when its caller reports database failure.
-- [ ] **Step 4: Run the focused test.** Run `python -m unittest tests.test_background_file_cleanup -v`; expect `OK`.
-- [ ] **Step 5: Run regression checks.** Run `python -m unittest tests.test_background_image_processing tests.test_background_file_cleanup -v`; expect `OK`.
-- [ ] **Step 6: Inspect the change.** Run `git diff -- backend/background_service.py tests/test_background_file_cleanup.py`; allow only those files.
-- [ ] **Step 7: Commit.** Run `git add backend/background_service.py tests/test_background_file_cleanup.py` then `git commit -m "feat(background): secure private file cleanup"`.
+```python
+from pathlib import Path
+
+from background_image_service import ProcessedBackground
+
+
+def store_processed_background(
+    processed: ProcessedBackground,
+    user_id: int,
+    upload_root: Path,
+) -> str:
+    ...
+
+
+def resolve_background_path(upload_root: Path, storage_path: str) -> Path:
+    ...
+
+
+def read_background_file(upload_root: Path, storage_path: str) -> bytes:
+    ...
+
+
+def delete_background_file(upload_root: Path, storage_path: str) -> bool:
+    ...
+```
+
+- Consumes: the in-memory `ProcessedBackground` from Task 3, a positive `user_id`, and the configured `BACKGROUND_UPLOAD_ROOT` supplied by a later caller.
+- Produces: a server-generated relative `storage_path` and safe file read/delete operations. `store_processed_background` must create `<upload_root>/<user_id>/`, assign a UUID `.webp` filename, write atomically through a same-directory temporary file, and return only the relative path.
+- Raises: `InvalidStoragePath` for absolute, traversal, or out-of-root paths; `BackgroundFileNotFound` for a safe relative path whose file is absent; and `BackgroundStorageError` for non-recoverable filesystem failures. `delete_background_file` returns `False` for an already-missing safe file.
+- Must not: import Pillow; decode, identify, rotate, resize, or encode images; create database records; or accept Flask request/HTTP objects.
+
+- [ ] **Step 1: Write the failing test.** Use a temporary upload root and a synthetic `ProcessedBackground` bytes value. Assert a positive user ID creates only that user directory, returned storage paths are relative UUID `.webp` names, bytes are atomically persisted and read back, deletion is idempotent, missing reads are handled, absolute paths and traversal are rejected, and a simulated disk failure leaves no final partial file. Assert the storage module source has no Pillow imports or image-processing calls.
+- [ ] **Step 2: Run the failing test.** Run `python -m unittest tests.test_background_storage -v`; expect an import failure for `background_storage`.
+- [ ] **Step 3: Write the minimal implementation.** Resolve the upload root and candidate with `pathlib.Path`, reject any storage path that is absolute or resolves outside the root, create the validated user directory only during storage, generate a UUID `.webp` name, write bytes to a same-directory temporary file, and atomically replace it with the final file. Keep all returned paths relative to the root. Implement safe byte reads and idempotent deletion; remove the temporary file when a write fails and wrap filesystem errors in the declared storage exception without exposing absolute paths.
+- [ ] **Step 4: Run the focused test.** Run `python -m unittest tests.test_background_storage -v`; expect `OK`.
+- [ ] **Step 5: Run regression checks.** Run `python -m unittest tests.test_background_image_service tests.test_background_storage tests.test_background_storage_config -v`; expect `OK`.
+- [ ] **Step 6: Inspect the change.** Run `git diff -- backend/background_storage.py tests/test_background_storage.py`; allow only those files.
+- [ ] **Step 7: Commit.** Run `git add backend/background_storage.py tests/test_background_storage.py` then `git commit -m "feat(background): add private background storage"`.
 
 ### Task 5: Private background library read endpoint
 
@@ -138,20 +192,20 @@
 
 **Files:**
 - Create: `tests/test_background_upload_v1.py`
-- Modify: `backend/v1_routes.py`, `backend/background_service.py`
+- Modify: `backend/v1_routes.py`
 - Test: `tests/test_background_upload_v1.py`
 
 **Interfaces:**
-- Consumes: Task 3 processor and `POST /api/backgrounds` multipart field `file`.
+- Consumes: Task 3 in-memory processor, Task 4 local storage service, and `POST /api/backgrounds` multipart field `file`.
 - Produces: 201 `{background:item}`, errors 400, 409 `background_library_full`, 413, and 422 `invalid_background_image`.
 
 - [ ] **Step 1: Write the failing test.** Cover missing file, a valid upload, ten locked active rows, an oversized content length, invalid bytes, `rollback()` after INSERT failure, and final-file removal after that rollback.
 - [ ] **Step 2: Run the failing test.** Run `python -m unittest tests.test_background_upload_v1 -v`; expect endpoint failure.
-- [ ] **Step 3: Write the minimal implementation.** Lock the current user using `SELECT id FROM users WHERE id=%s FOR UPDATE`, count active rows, call the processor only below quota, insert metadata with `%s` parameters, `commit`, and on every exception `rollback` then remove the created final relative path. Do not log source names, paths, tokens, or bytes.
+- [ ] **Step 3: Write the minimal implementation.** Lock the current user using `SELECT id FROM users WHERE id=%s FOR UPDATE`, count active rows, call Task 3 only below quota, pass its result to Task 4 for storage, insert metadata with `%s` parameters, `commit`, and on every exception `rollback` then call Task 4 to remove the created relative path. Do not log source names, paths, tokens, or bytes.
 - [ ] **Step 4: Run the focused test.** Run `python -m unittest tests.test_background_upload_v1 -v`; expect `OK`.
 - [ ] **Step 5: Run regression checks.** Run `python -m unittest tests.test_background_library_v1 tests.test_auth -v`; expect `OK`.
-- [ ] **Step 6: Inspect the change.** Run `git diff -- backend/v1_routes.py backend/background_service.py tests/test_background_upload_v1.py`; allow only those files.
-- [ ] **Step 7: Commit.** Run `git add backend/v1_routes.py backend/background_service.py tests/test_background_upload_v1.py` then `git commit -m "feat(background): add private background upload API"`.
+- [ ] **Step 6: Inspect the change.** Run `git diff -- backend/v1_routes.py tests/test_background_upload_v1.py`; allow only those files.
+- [ ] **Step 7: Commit.** Run `git add backend/v1_routes.py tests/test_background_upload_v1.py` then `git commit -m "feat(background): add private background upload API"`.
 
 ### Task 7: Authenticated image download endpoint
 
@@ -313,12 +367,12 @@
 - Test: `tests/test_background_legacy_migration.py`
 
 **Interfaces:**
-- Consumes: a user `custom_wallpaper` value, Task 3 processor, and Task 12 settings SQL.
+- Consumes: a user `custom_wallpaper` value, Task 3 processor, Task 4 storage service, and Task 12 settings SQL.
 - Produces: `migrate_legacy_custom_wallpaper(user_id, url, ...) -> bool`, which imports only HTTP/HTTPS URLs.
 
 - [ ] **Step 1: Write the failing test.** Assert non-HTTP values do nothing; success writes one active image plus global setting; request, decode, quota, disk, or database failure leaves `custom_wallpaper` unchanged and no partial DB/file artifact.
 - [ ] **Step 2: Run the failing test.** Run `python -m unittest tests.test_background_legacy_migration -v`; expect import failure.
-- [ ] **Step 3: Write the minimal implementation.** Parse URL with `urlparse`, allow only `http` and `https`, download in the controlled task with `requests.get(..., timeout=(5,20), stream=True)`, pass content through Task 3, then insert image and global setting in one transaction. Do not expose this helper through a user API or modify legacy routes.
+- [ ] **Step 3: Write the minimal implementation.** Parse URL with `urlparse`, allow only `http` and `https`, download in the controlled task with `requests.get(..., timeout=(5,20), stream=True)`, pass content through Task 3, store the resulting bytes through Task 4, then insert image and global setting in one transaction. Do not expose this helper through a user API or modify legacy routes.
 - [ ] **Step 4: Run the focused test.** Run `python -m unittest tests.test_background_legacy_migration -v`; expect `OK`.
 - [ ] **Step 5: Run regression checks.** Run `python -m unittest tests.test_auth tests.test_background_settings_regression -v`; expect `OK`.
 - [ ] **Step 6: Inspect the change.** Run `git diff -- backend/background_migration.py tests/test_background_legacy_migration.py`; allow only those files.
@@ -541,7 +595,7 @@
 1. `feat(background): add background schema`
 2. `feat(background): configure private upload storage`
 3. `feat(background): process private background images`
-4. `feat(background): secure private file cleanup`
+4. `feat(background): add private background storage`
 5. `feat(background): add private background library read API`
 6. `feat(background): add private background upload API`
 7. `feat(background): add private background image API`
