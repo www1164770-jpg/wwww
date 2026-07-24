@@ -1,6 +1,7 @@
 import importlib
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -28,9 +29,48 @@ class BackgroundStorageConfigTests(unittest.TestCase):
             if previous is not None:
                 os.environ["BACKGROUND_UPLOAD_ROOT"] = previous
 
-    def test_dependency_is_pinned_to_required_pillow_version(self):
-        requirements = (ROOT_DIR / "requirements.txt").read_text(encoding="utf-8")
-        self.assertIn("Pillow==12.3.0", requirements.splitlines())
+    def test_dependency_contract_rejects_a_second_imaging_dependency(self):
+        global ROOT_DIR
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            fixture_root = Path(temporary_directory)
+            (fixture_root / "requirements.txt").write_text(
+                "Pillow==12.3.0\nopencv-contrib-python==4.11.0.86\n",
+                encoding="utf-8",
+            )
+            original_root = ROOT_DIR
+            ROOT_DIR = fixture_root
+            try:
+                with self.assertRaises(AssertionError):
+                    self.test_dependency_is_the_only_pinned_pillow_declaration()
+            finally:
+                ROOT_DIR = original_root
+
+    def test_dependency_is_the_only_pinned_pillow_declaration(self):
+        dependency_lines = [
+            line.strip()
+            for line in (ROOT_DIR / "requirements.txt").read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        ]
+        dependency_names = [
+            re.match(r"[A-Za-z0-9_.-]+", line).group(0).lower()
+            for line in dependency_lines
+        ]
+        pillow_declarations = [
+            line for line, name in zip(dependency_lines, dependency_names)
+            if name == "pillow"
+        ]
+        imaging_library_names = {
+            "pil", "pillow", "pillow-simd", "imageio", "opencv-python",
+            "opencv-python-headless", "opencv-contrib-python", "scikit-image",
+            "wand", "pyvips",
+        }
+
+        self.assertEqual(pillow_declarations, ["Pillow==12.3.0"])
+        self.assertEqual(
+            [name for name in dependency_names if name in imaging_library_names],
+            ["pillow"],
+        )
 
     def test_module_exposes_exact_immutable_upload_configuration(self):
         config = self._load_config()
@@ -42,6 +82,7 @@ class BackgroundStorageConfigTests(unittest.TestCase):
         self.assertEqual(config.BACKGROUND_MAX_WIDTH, 2560)
         self.assertEqual(config.BACKGROUND_MAX_HEIGHT, 1440)
         self.assertEqual(config.BACKGROUND_WEBP_QUALITY, 84)
+        self.assertIs(type(config.BACKGROUND_ALLOWED_IMAGE_FORMATS), frozenset)
         self.assertEqual(config.BACKGROUND_ALLOWED_IMAGE_FORMATS, frozenset({"JPEG", "PNG", "WEBP"}))
         self.assertEqual(config.BACKGROUND_OUTPUT_FORMAT, "WEBP")
         self.assertEqual(config.BACKGROUND_OUTPUT_MIME_TYPE, "image/webp")
@@ -114,6 +155,37 @@ print('BACKGROUND_CONFIG_PROBE=' + json.dumps(payload, sort_keys=True))
     def test_gitignore_has_only_the_specific_background_upload_rule(self):
         rules = (ROOT_DIR / ".gitignore").read_text(encoding="utf-8").splitlines()
         self.assertEqual(rules.count("backend/uploads/backgrounds/"), 1)
+        normalized_rules = [rule.strip().lower().replace("\\", "/") for rule in rules]
+        forbidden_broad_rules = {
+            "backend", "backend/", "uploads", "uploads/", "backend/uploads/",
+            "migrations", "migrations/", "backend/migrations/", "tests", "tests/",
+            "backend/tests/",
+        }
+
+        self.assertFalse(set(normalized_rules) & forbidden_broad_rules)
+        self.assertFalse(
+            any(
+                re.fullmatch(
+                    r"(?:\*\*/)?(?:backend|uploads|migrations|tests)/(?:\*|\*\*)/?",
+                    rule,
+                )
+                for rule in normalized_rules
+            )
+        )
+        self.assertFalse(
+            any(
+                rule.startswith("backend/uploads/")
+                and rule != "backend/uploads/backgrounds/"
+                for rule in normalized_rules
+            )
+        )
+        self.assertFalse(any(".gitkeep" in rule for rule in normalized_rules))
+        self.assertFalse(
+            any(
+                re.match(r"^[a-z]:/", rule) or rule.startswith("/")
+                for rule in normalized_rules
+            )
+        )
 
 
 if __name__ == "__main__":
