@@ -50,7 +50,11 @@ class UserBackground(db.Model):
     __tablename__ = "user_backgrounds"
 
     id = db.Column(mysql.BIGINT(unsigned=True), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE", name="fk_user_backgrounds_user"),
+        nullable=False,
+    )
     storage_path = db.Column(db.String(255), nullable=False)
     original_name = db.Column(db.String(255), nullable=False)
     mime_type = db.Column(
@@ -89,14 +93,22 @@ class UserBackgroundSetting(db.Model):
     __tablename__ = "user_background_settings"
 
     id = db.Column(mysql.BIGINT(unsigned=True), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE", name="fk_user_background_settings_user"),
+        nullable=False,
+    )
     page_type = db.Column(
         db.Enum("global", "home", "category", "favorites", "ai_assistant", "profile"),
         nullable=False,
     )
     background_id = db.Column(
         mysql.BIGINT(unsigned=True),
-        db.ForeignKey("user_backgrounds.id", ondelete="SET NULL"),
+        db.ForeignKey(
+            "user_backgrounds.id",
+            ondelete="SET NULL",
+            name="fk_user_background_settings_background",
+        ),
         nullable=True,
     )
     overlay_opacity = db.Column(

@@ -1,5 +1,8 @@
 from pathlib import Path
+import re
 import unittest
+
+from sqlalchemy.dialects import mysql
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +34,42 @@ class BackgroundSchemaTests(unittest.TestCase):
         self.assertIn("KEY idx_user_background_settings_background (background_id)", sql)
         self.assertIn("FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE", sql)
         self.assertIn("ON DELETE SET NULL", sql)
+        table_bodies = {
+            table_name: "\n".join(line.strip() for line in match.group(1).splitlines() if line.strip())
+            for table_name in ("user_backgrounds", "user_background_settings")
+            if (match := re.search(
+                rf"CREATE TABLE {table_name} \((.*?)\) ENGINE=InnoDB", sql, flags=re.DOTALL
+            ))
+        }
+        self.assertEqual(set(table_bodies), {"user_backgrounds", "user_background_settings"})
+        for table_name, clause in {
+            "user_backgrounds": "CONSTRAINT fk_user_backgrounds_user\nFOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+            "user_background_settings": "CONSTRAINT fk_user_background_settings_user\nFOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,\nCONSTRAINT fk_user_background_settings_background\nFOREIGN KEY (background_id) REFERENCES user_backgrounds(id) ON DELETE SET NULL,",
+        }.items():
+            with self.subTest(table=table_name, foreign_key_clause=clause):
+                self.assertIn(clause, table_bodies[table_name])
+        for declaration in (
+            "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,",
+            "user_id INT NOT NULL,",
+            "storage_path VARCHAR(255) NOT NULL,",
+            "original_name VARCHAR(255) NOT NULL,",
+            "mime_type VARCHAR(32) NOT NULL DEFAULT 'image/webp',",
+            "file_size INT UNSIGNED NOT NULL,",
+            "width SMALLINT UNSIGNED NOT NULL,",
+            "height SMALLINT UNSIGNED NOT NULL,",
+            "status ENUM('active', 'deleted') NOT NULL DEFAULT 'active',",
+            "page_type ENUM('global', 'home', 'category', 'favorites', 'ai_assistant', 'profile') NOT NULL,",
+            "background_id BIGINT UNSIGNED NULL,",
+            "overlay_opacity DECIMAL(3,2) NOT NULL DEFAULT 0.36,",
+            "blur_px TINYINT UNSIGNED NOT NULL DEFAULT 0,",
+            "position_x TINYINT UNSIGNED NOT NULL DEFAULT 50,",
+            "position_y TINYINT UNSIGNED NOT NULL DEFAULT 50,",
+            "size_mode ENUM('cover', 'contain', 'auto') NOT NULL DEFAULT 'cover',",
+            "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+            "updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
+        ):
+            with self.subTest(declaration=declaration):
+                self.assertIn(declaration, sql)
         for constraint in (
             "chk_user_backgrounds_size",
             "chk_user_backgrounds_dimensions",
@@ -72,12 +111,24 @@ class BackgroundSchemaTests(unittest.TestCase):
             {"CASCADE"},
         )
         self.assertEqual(
+            {foreign_key.constraint.name for foreign_key in background_columns.user_id.foreign_keys},
+            {"fk_user_backgrounds_user"},
+        )
+        self.assertEqual(
             {foreign_key.ondelete for foreign_key in setting_columns.user_id.foreign_keys},
             {"CASCADE"},
         )
         self.assertEqual(
+            {foreign_key.constraint.name for foreign_key in setting_columns.user_id.foreign_keys},
+            {"fk_user_background_settings_user"},
+        )
+        self.assertEqual(
             {foreign_key.ondelete for foreign_key in setting_columns.background_id.foreign_keys},
             {"SET NULL"},
+        )
+        self.assertEqual(
+            {foreign_key.constraint.name for foreign_key in setting_columns.background_id.foreign_keys},
+            {"fk_user_background_settings_background"},
         )
         self.assertEqual(
             {foreign_key.target_fullname for foreign_key in setting_columns.background_id.foreign_keys},
@@ -89,6 +140,16 @@ class BackgroundSchemaTests(unittest.TestCase):
             ["global", "home", "category", "favorites", "ai_assistant", "profile"],
         )
         self.assertEqual(setting_columns.size_mode.type.enums, ["cover", "contain", "auto"])
+        self.assertEqual(background_columns.storage_path.type.length, 255)
+        self.assertEqual(background_columns.original_name.type.length, 255)
+        self.assertEqual(background_columns.mime_type.type.length, 32)
+        self.assertIsInstance(background_columns.id.type, mysql.BIGINT)
+        self.assertIsInstance(background_columns.file_size.type, mysql.INTEGER)
+        self.assertIsInstance(background_columns.width.type, mysql.SMALLINT)
+        self.assertIsInstance(background_columns.height.type, mysql.SMALLINT)
+        self.assertIsInstance(setting_columns.background_id.type, mysql.BIGINT)
+        self.assertIsInstance(setting_columns.blur_px.type, mysql.TINYINT)
+        self.assertEqual((setting_columns.overlay_opacity.type.precision, setting_columns.overlay_opacity.type.scale), (3, 2))
         for column in (
             background_columns.user_id,
             background_columns.storage_path,
