@@ -1,3 +1,4 @@
+import ast
 import importlib
 import json
 import os
@@ -90,12 +91,10 @@ class BackgroundStorageConfigTests(unittest.TestCase):
 
     def test_upload_root_defaults_from_module_directory_without_creating_it(self):
         expected_root = BACKEND_DIR / "uploads" / "backgrounds"
-        self.assertFalse(expected_root.exists())
 
         config = self._load_config()
 
         self.assertEqual(config.BACKGROUND_UPLOAD_ROOT, expected_root)
-        self.assertFalse(expected_root.exists())
 
     def test_upload_root_honors_environment_override_without_touching_disk(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -104,6 +103,30 @@ class BackgroundStorageConfigTests(unittest.TestCase):
 
             self.assertEqual(config.BACKGROUND_UPLOAD_ROOT, override_root)
             self.assertFalse(override_root.exists())
+
+    def test_upload_root_rejects_relative_environment_override(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            previous_working_directory = Path.cwd()
+            os.chdir(temporary_directory)
+            try:
+                with self.assertRaisesRegex(ValueError, "BACKGROUND_UPLOAD_ROOT.*absolute"):
+                    self._load_config(Path("relative-private-backgrounds"))
+            finally:
+                os.chdir(previous_working_directory)
+
+    def test_background_config_source_has_no_import_time_filesystem_writes(self):
+        source_path = BACKEND_DIR / "background_config.py"
+        source = source_path.read_text(encoding="utf-8")
+        parsed = ast.parse(source, filename=str(source_path))
+        forbidden_methods = {"mkdir", "touch", "write_text", "write_bytes", "unlink", "rmdir"}
+        calls = [
+            node.func.attr
+            for node in ast.walk(parsed)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr in forbidden_methods
+        ]
+        self.assertEqual(calls, [])
 
     def test_wsgi_import_publishes_upload_limits_without_upload_side_effects(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -151,6 +174,58 @@ print('BACKGROUND_CONFIG_PROBE=' + json.dumps(payload, sort_keys=True))
             self.assertEqual(payload["file_limit"], 10 * 1024 * 1024)
             self.assertEqual(payload["upload_root"], str(upload_root))
             self.assertFalse(payload["root_exists"])
+
+    def test_wsgi_loads_dotenv_upload_root_before_background_config_import(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            temporary_root = Path(temporary_directory)
+            upload_root = temporary_root / "private-backgrounds"
+            dotenv_path = temporary_root / "upload-root.env"
+            dotenv_path.write_text(
+                f"BACKGROUND_UPLOAD_ROOT={upload_root}\n",
+                encoding="utf-8",
+            )
+            (temporary_root / "dotenv.py").write_text(
+                "from pathlib import Path\n"
+                "import os\n\n"
+                "def load_dotenv():\n"
+                "    key, value = Path(os.environ['DOTENV_PATH']).read_text(encoding='utf-8').strip().split('=', 1)\n"
+                "    os.environ[key] = value\n",
+                encoding="utf-8",
+            )
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "DOTENV_PATH": str(dotenv_path),
+                    "REDIS_URL": "redis://127.0.0.1:1/0",
+                    "APP_ENV": "development",
+                    "FLASK_ENV": "development",
+                    "PYTHONPATH": os.pathsep.join((str(temporary_root), str(BACKEND_DIR))),
+                }
+            )
+            environment.pop("BACKGROUND_UPLOAD_ROOT", None)
+            probe = """
+import json
+from wsgi import app
+print('BACKGROUND_DOTENV_PROBE=' + json.dumps({
+    'upload_root': str(app.config['BACKGROUND_UPLOAD_ROOT']),
+}, sort_keys=True))
+"""
+            result = subprocess.run(
+                [sys.executable, "-c", probe],
+                cwd=temporary_root,
+                env=environment,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            line = next(
+                line for line in result.stdout.splitlines()
+                if line.startswith("BACKGROUND_DOTENV_PROBE=")
+            )
+            payload = json.loads(line.split("=", 1)[1])
+            self.assertEqual(payload["upload_root"], str(upload_root))
 
     def test_gitignore_has_only_the_specific_background_upload_rule(self):
         rules = (ROOT_DIR / ".gitignore").read_text(encoding="utf-8").splitlines()

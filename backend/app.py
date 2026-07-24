@@ -21,6 +21,8 @@
 
 import os  # 操作系统接口，用于读取环境变量和文件路径
 from dotenv import load_dotenv  # 从 .env 文件加载环境变量，保护敏感配置不硬编码
+load_dotenv()
+
 from background_config import (
     BACKGROUND_MAX_FILE_BYTES,
     BACKGROUND_MAX_REQUEST_BYTES,
@@ -76,7 +78,6 @@ from db_pool import MYSQL_CHARSET, get_connection as pool_get_connection
 import app_extensions
 
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
-load_dotenv()  # 将 .env 文件中的键值对注入到系统环境变量，后续通过 os.getenv() 读取
 
 app = Flask(__name__)  # 创建 Flask 应用实例，__name__ 用于确定资源文件的根路径
 app.config["MAX_CONTENT_LENGTH"] = BACKGROUND_MAX_REQUEST_BYTES

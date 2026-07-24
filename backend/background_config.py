@@ -16,6 +16,10 @@ BACKGROUND_OUTPUT_FORMAT = "WEBP"
 BACKGROUND_OUTPUT_MIME_TYPE = "image/webp"
 
 _DEFAULT_BACKGROUND_UPLOAD_ROOT = Path(__file__).resolve().parent / "uploads" / "backgrounds"
-BACKGROUND_UPLOAD_ROOT = Path(os.environ["BACKGROUND_UPLOAD_ROOT"]) if os.environ.get(
-    "BACKGROUND_UPLOAD_ROOT"
-) else _DEFAULT_BACKGROUND_UPLOAD_ROOT
+_configured_upload_root = os.environ.get("BACKGROUND_UPLOAD_ROOT")
+if _configured_upload_root:
+    BACKGROUND_UPLOAD_ROOT = Path(_configured_upload_root)
+    if not BACKGROUND_UPLOAD_ROOT.is_absolute():
+        raise ValueError("BACKGROUND_UPLOAD_ROOT must be an absolute path")
+else:
+    BACKGROUND_UPLOAD_ROOT = _DEFAULT_BACKGROUND_UPLOAD_ROOT
