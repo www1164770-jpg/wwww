@@ -48,38 +48,54 @@ class BackgroundSchemaTests(unittest.TestCase):
         }.items():
             with self.subTest(table=table_name, foreign_key_clause=clause):
                 self.assertIn(clause, table_bodies[table_name])
-        for declaration in (
-            "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,",
-            "user_id INT NOT NULL,",
-            "storage_path VARCHAR(255) NOT NULL,",
-            "original_name VARCHAR(255) NOT NULL,",
-            "mime_type VARCHAR(32) NOT NULL DEFAULT 'image/webp',",
-            "file_size INT UNSIGNED NOT NULL,",
-            "width SMALLINT UNSIGNED NOT NULL,",
-            "height SMALLINT UNSIGNED NOT NULL,",
-            "status ENUM('active', 'deleted') NOT NULL DEFAULT 'active',",
-            "page_type ENUM('global', 'home', 'category', 'favorites', 'ai_assistant', 'profile') NOT NULL,",
-            "background_id BIGINT UNSIGNED NULL,",
-            "overlay_opacity DECIMAL(3,2) NOT NULL DEFAULT 0.36,",
-            "blur_px TINYINT UNSIGNED NOT NULL DEFAULT 0,",
-            "position_x TINYINT UNSIGNED NOT NULL DEFAULT 50,",
-            "position_y TINYINT UNSIGNED NOT NULL DEFAULT 50,",
-            "size_mode ENUM('cover', 'contain', 'auto') NOT NULL DEFAULT 'cover',",
-            "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,",
-            "updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
-        ):
-            with self.subTest(declaration=declaration):
-                self.assertIn(declaration, sql)
-        for constraint in (
-            "chk_user_backgrounds_size",
-            "chk_user_backgrounds_dimensions",
-            "chk_user_background_settings_overlay",
-            "chk_user_background_settings_blur",
-            "chk_user_background_settings_x",
-            "chk_user_background_settings_y",
-        ):
-            with self.subTest(constraint=constraint):
-                self.assertIn(constraint, sql)
+        expected_declarations = {
+            "user_backgrounds": (
+                "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,",
+                "user_id INT NOT NULL,",
+                "storage_path VARCHAR(255) NOT NULL,",
+                "original_name VARCHAR(255) NOT NULL,",
+                "mime_type VARCHAR(32) NOT NULL DEFAULT 'image/webp',",
+                "file_size INT UNSIGNED NOT NULL,",
+                "width SMALLINT UNSIGNED NOT NULL,",
+                "height SMALLINT UNSIGNED NOT NULL,",
+                "status ENUM('active', 'deleted') NOT NULL DEFAULT 'active',",
+                "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+                "updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
+            ),
+            "user_background_settings": (
+                "id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,",
+                "user_id INT NOT NULL,",
+                "page_type ENUM('global', 'home', 'category', 'favorites', 'ai_assistant', 'profile') NOT NULL,",
+                "background_id BIGINT UNSIGNED NULL,",
+                "overlay_opacity DECIMAL(3,2) NOT NULL DEFAULT 0.36,",
+                "blur_px TINYINT UNSIGNED NOT NULL DEFAULT 0,",
+                "position_x TINYINT UNSIGNED NOT NULL DEFAULT 50,",
+                "position_y TINYINT UNSIGNED NOT NULL DEFAULT 50,",
+                "size_mode ENUM('cover', 'contain', 'auto') NOT NULL DEFAULT 'cover',",
+                "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,",
+                "updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,",
+            ),
+        }
+        for table_name, declarations in expected_declarations.items():
+            for declaration in declarations:
+                with self.subTest(table=table_name, declaration=declaration):
+                    self.assertIn(declaration, table_bodies[table_name])
+        expected_checks = {
+            "user_backgrounds": (
+                "CONSTRAINT chk_user_backgrounds_size CHECK (file_size > 0 AND file_size <= 10485760)",
+                "CONSTRAINT chk_user_backgrounds_dimensions CHECK (width > 0 AND height > 0)",
+            ),
+            "user_background_settings": (
+                "CONSTRAINT chk_user_background_settings_overlay CHECK (overlay_opacity >= 0.00 AND overlay_opacity <= 0.70)",
+                "CONSTRAINT chk_user_background_settings_blur CHECK (blur_px <= 20)",
+                "CONSTRAINT chk_user_background_settings_x CHECK (position_x <= 100)",
+                "CONSTRAINT chk_user_background_settings_y CHECK (position_y <= 100)",
+            ),
+        }
+        for table_name, checks in expected_checks.items():
+            for check in checks:
+                with self.subTest(table=table_name, check=check):
+                    self.assertIn(check, table_bodies[table_name])
 
     def test_downgrade_drops_child_table_before_parent_table(self):
         self.assertTrue(DOWN_PATH.exists(), f"missing migration: {DOWN_PATH.name}")
@@ -147,8 +163,11 @@ class BackgroundSchemaTests(unittest.TestCase):
         self.assertIsInstance(background_columns.file_size.type, mysql.INTEGER)
         self.assertIsInstance(background_columns.width.type, mysql.SMALLINT)
         self.assertIsInstance(background_columns.height.type, mysql.SMALLINT)
+        self.assertIsInstance(setting_columns.id.type, mysql.BIGINT)
         self.assertIsInstance(setting_columns.background_id.type, mysql.BIGINT)
         self.assertIsInstance(setting_columns.blur_px.type, mysql.TINYINT)
+        self.assertIsInstance(setting_columns.position_x.type, mysql.TINYINT)
+        self.assertIsInstance(setting_columns.position_y.type, mysql.TINYINT)
         self.assertEqual((setting_columns.overlay_opacity.type.precision, setting_columns.overlay_opacity.type.scale), (3, 2))
         for column in (
             background_columns.user_id,
