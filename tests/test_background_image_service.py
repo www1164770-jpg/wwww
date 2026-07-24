@@ -44,6 +44,11 @@ class OversizedChunkStream:
         return b"x" * (size + 1)
 
 
+class UnreadableStream:
+    def read(self, size=-1):
+        raise OSError("storage read failed")
+
+
 class BoundedByteArray(bytearray):
     def extend(self, value):
         if len(self) + len(value) > BACKGROUND_MAX_FILE_BYTES + 1:
@@ -65,6 +70,15 @@ def png_header(width, height):
         + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
         + chunk(b"IEND", b"")
     )
+
+
+def png_with_corrupted_idat_crc():
+    source = bytearray(image_bytes(Image.new("RGB", (2, 2), "red"), "PNG"))
+    idat_offset = source.index(b"IDAT")
+    idat_length = struct.unpack(">I", source[idat_offset - 4:idat_offset])[0]
+    crc_offset = idat_offset + 4 + idat_length
+    source[crc_offset] ^= 0x01
+    return bytes(source)
 
 
 class BackgroundImageServiceTests(unittest.TestCase):
@@ -121,6 +135,24 @@ class BackgroundImageServiceTests(unittest.TestCase):
         gif = image_bytes(Image.new("RGB", (8, 8), "white"), "GIF")
         with self.assertRaises(InvalidBackgroundImage):
             process_background_upload(io.BytesIO(gif), "unsupported.gif")
+
+    def test_normalizes_real_pillow_syntax_error_from_corrupted_png_idat_crc(self):
+        source = png_with_corrupted_idat_crc()
+
+        with Image.open(io.BytesIO(source)) as image:
+            with self.assertRaises(SyntaxError):
+                image.verify()
+
+        with self.assertRaises(InvalidBackgroundImage) as raised:
+            process_background_upload(io.BytesIO(source), "corrupted.png")
+
+        self.assertIsInstance(raised.exception.__cause__, SyntaxError)
+
+    def test_normalizes_unreadable_stream_os_error(self):
+        with self.assertRaises(InvalidBackgroundImage) as raised:
+            process_background_upload(UnreadableStream(), "unreadable.png")
+
+        self.assertIsInstance(raised.exception.__cause__, OSError)
 
     def test_rejects_empty_input(self):
         with self.assertRaises(InvalidBackgroundImage):

@@ -64,7 +64,12 @@ def process_background_upload(
     if content_length is not None and content_length > BACKGROUND_MAX_FILE_BYTES:
         raise BackgroundUploadTooLarge("Background upload exceeds the maximum file size")
 
-    source = _read_limited(file_stream)
+    try:
+        source = _read_limited(file_stream)
+    except BackgroundUploadTooLarge:
+        raise
+    except OSError as error:
+        raise InvalidBackgroundImage("Invalid background image") from error
     if not source:
         raise InvalidBackgroundImage("Background upload is empty")
 
@@ -94,7 +99,7 @@ def process_background_upload(
                     quality=BACKGROUND_WEBP_QUALITY,
                     method=6,
                 )
-    except (Image.DecompressionBombWarning, Image.DecompressionBombError, UnidentifiedImageError, OSError, ValueError) as error:
+    except (Image.DecompressionBombWarning, Image.DecompressionBombError, UnidentifiedImageError, OSError, SyntaxError, ValueError) as error:
         if isinstance(error, InvalidBackgroundImage):
             raise
         raise InvalidBackgroundImage("Invalid background image") from error
