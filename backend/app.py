@@ -21,6 +21,11 @@
 
 import os  # 操作系统接口，用于读取环境变量和文件路径
 from dotenv import load_dotenv  # 从 .env 文件加载环境变量，保护敏感配置不硬编码
+from background_config import (
+    BACKGROUND_MAX_FILE_BYTES,
+    BACKGROUND_MAX_REQUEST_BYTES,
+    BACKGROUND_UPLOAD_ROOT,
+)
 from flask import Flask, jsonify, request, redirect, session, url_for, g  # Flask 核心：应用实例、JSON响应、请求对象、重定向
 from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调用后端接口
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
@@ -74,6 +79,9 @@ import app_extensions
 load_dotenv()  # 将 .env 文件中的键值对注入到系统环境变量，后续通过 os.getenv() 读取
 
 app = Flask(__name__)  # 创建 Flask 应用实例，__name__ 用于确定资源文件的根路径
+app.config["MAX_CONTENT_LENGTH"] = BACKGROUND_MAX_REQUEST_BYTES
+app.config["BACKGROUND_MAX_FILE_BYTES"] = BACKGROUND_MAX_FILE_BYTES
+app.config["BACKGROUND_UPLOAD_ROOT"] = BACKGROUND_UPLOAD_ROOT
 DEFAULT_DEV_SECRET = "dev-secret-key-change-me"
 
 
