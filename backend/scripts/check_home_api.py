@@ -1,13 +1,21 @@
 import json
+import os
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
+from dotenv import load_dotenv
 
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+load_dotenv(BACKEND_DIR / ".env")
+API_BASE_URL = os.getenv(
+    "BACKEND_API_BASE_URL", "http://127.0.0.1:5000/api"
+).rstrip("/")
 URLS = [
-    "http://127.0.0.1:5000/api/categories",
-    "http://127.0.0.1:5000/api/sites/hot?limit=8",
-    "http://127.0.0.1:5000/api/sites/latest?limit=8",
-    "http://127.0.0.1:5000/api/sites/recommend?limit=8",
+    f"{API_BASE_URL}/categories",
+    f"{API_BASE_URL}/sites/hot?limit=8",
+    f"{API_BASE_URL}/sites/latest?limit=8",
+    f"{API_BASE_URL}/sites/recommend?limit=8",
 ]
 
 

@@ -5,18 +5,21 @@ import {
   isValidAuthToken,
 } from "../utils/auth";
 
+const HEADER_OFFSET = 88;
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 const routes = [
   { path: "/", name: "Home", component: () => import("../views/Home.vue") },
   {
     path: "/login",
     name: "Login",
     component: () => import("../views/Login.vue"),
-    meta: { public: true },
-  },
-  {
-    path: "/authing/callback",
-    name: "AuthingCallback",
-    component: () => import("../views/AuthingCallback.vue"),
     meta: { public: true },
   },
   {
@@ -124,6 +127,12 @@ const routes = [
         component: () => import("../views/admin/AdminSettings.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
+      {
+        path: "/admin/crawler-review",
+        name: "AdminCrawlerReview",
+        component: () => import("../views/admin/AdminCrawlerReview.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
     ],
   },
   {
@@ -153,14 +162,17 @@ const router = createRouter({
         setTimeout(() => {
           resolve({
             el: to.hash,
-            top: 88,
-            behavior: "smooth",
+            top: HEADER_OFFSET,
+            behavior: prefersReducedMotion() ? "auto" : "smooth",
           });
         }, 80);
       });
     }
 
-    return { top: 0, behavior: "smooth" };
+    return {
+      top: 0,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    };
   },
 });
 

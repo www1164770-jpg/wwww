@@ -72,7 +72,7 @@ class SchemaCursor:
                     "clicks": 7,
                     "status": "approved",
                     "source": "admin",
-                    "description": "AI resource",
+                    "description": "Frontend AI resource",
                     "category_name": "AI工具",
                 }
             ]
@@ -146,6 +146,17 @@ class RecommendSortV1Tests(unittest.TestCase):
         executed_params = repr([params for _sql, params in self.database.statements])
         self.assertNotIn("fallback-github", executed_params)
         self.assertNotIn("fallback-vue", executed_params)
+
+    def test_canonical_occupation_uses_existing_chinese_career_rule(self):
+        response = self.client.get(
+            "/api/sites/recommend?occupation=frontend_developer&limit=8&ai_only=1"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload["data"])
+        self.assertIn("前端开发", payload["data"][0]["reason"])
+        self.assertNotIn("工作和创作场景", payload["data"][0]["reason"])
 
 
 if __name__ == "__main__":

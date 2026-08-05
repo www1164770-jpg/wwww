@@ -1,5 +1,7 @@
 # Questionnaire Foundation Backend Implementation Plan
 
+> **Archived:** this historical plan predates the removal of the Authing integration; references to Authing below are no longer implementation requirements.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 建立新版问卷后台基础数据模型、迁移和管理员只读查询接口，同时保持现有问卷、认证和推荐功能不变。

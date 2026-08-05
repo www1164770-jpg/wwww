@@ -37,6 +37,7 @@ export const useUserStore = defineStore("user", () => {
   const userRole = ref("user");
   const questionnaireCompleted = ref(false);
   const userInfo = ref({ ...DEFAULT_USER_INFO });
+  const isHydrated = ref(false);
 
   const username = computed(() => userInfo.value.username);
   const avatar = computed(
@@ -52,10 +53,16 @@ export const useUserStore = defineStore("user", () => {
     userRole.value = getStoredUserRole();
     questionnaireCompleted.value = getStoredQuestionnaireCompleted();
     userInfo.value = { ...DEFAULT_USER_INFO, ...getStoredUserInfo() };
+    isHydrated.value = true;
   }
 
   function initFromStorage() {
     syncFromStorage();
+  }
+
+  async function ensureHydrated() {
+    if (!isHydrated.value) syncFromStorage();
+    return true;
   }
 
   function persistToStorage() {
@@ -118,7 +125,8 @@ export const useUserStore = defineStore("user", () => {
 
   function updateQuestionnaireCompleted(value) {
     persistQuestionnaireCompleted(value);
-    questionnaireCompleted.value = value === true || value === "true" || value === 1;
+    questionnaireCompleted.value =
+      value === true || value === "true" || value === 1;
   }
 
   async function syncProfileFromServer() {
@@ -129,7 +137,15 @@ export const useUserStore = defineStore("user", () => {
         userInfo.value = {
           ...userInfo.value,
           ...Object.fromEntries(
-            ["username", "email", "avatar", "phone", "gender", "birthday", "bio"]
+            [
+              "username",
+              "email",
+              "avatar",
+              "phone",
+              "gender",
+              "birthday",
+              "bio",
+            ]
               .filter((key) => data[key])
               .map((key) => [key, data[key]]),
           ),
@@ -150,10 +166,12 @@ export const useUserStore = defineStore("user", () => {
     refreshToken,
     userRole,
     questionnaireCompleted,
+    isHydrated,
     userInfo,
     username,
     avatar,
     initFromStorage,
+    ensureHydrated,
     persistToStorage,
     setUserInfo,
     logout,

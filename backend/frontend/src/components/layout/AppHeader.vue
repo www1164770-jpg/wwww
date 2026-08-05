@@ -1,51 +1,108 @@
 <template>
-  <header class="app-header">
+  <header
+    class="app-header"
+    :class="{ 'app-header--compact': isCompact }"
+    :data-compact="isCompact"
+  >
     <div class="header-inner">
-      <RouterLink class="brand" to="/">
-        <span class="brand-mark">智</span>
-        <span>智汇导航</span>
+      <RouterLink class="brand" to="/" aria-label="知航屿首页">
+        <img
+          class="brand-logo"
+          src="/vocanav-logo.png"
+          alt=""
+          width="331"
+          height="269"
+        />
+        <span class="brand-name">知航屿</span>
       </RouterLink>
 
-      <nav class="nav-links" aria-label="主导航">
-        <RouterLink to="/">首页</RouterLink>
-        <RouterLink to="/#tools" @click="scrollToSection('tools')"
-          >热门网站</RouterLink
-        >
-        <RouterLink to="/#career" @click="scrollToSection('career')"
-          >职业推荐</RouterLink
-        >
-        <RouterLink to="/#categories" @click="scrollToSection('categories')"
-          >热门分类</RouterLink
-        >
+      <nav
+        class="nav-links"
+        aria-label="主导航"
+        data-testid="primary-navigation"
+      >
         <RouterLink
-          to="/#recommend-tools"
-          @click="scrollToSection('recommend-tools')"
-          >常用工具</RouterLink
+          class="nav-item nav-home"
+          to="/"
+          exact-active-class="is-active"
+          data-testid="home-navigation-link"
+          aria-label="首页"
+          title="首页"
         >
+          <svg
+            class="home-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+          >
+            <path
+              d="m3 10.75 9-7.5 9 7.5v8a2 2 0 0 1-2 2h-4.25v-6h-5.5v6H5a2 2 0 0 1-2-2v-8Z"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </RouterLink>
+        <RouterLink
+          class="nav-item nav-favorites"
+          to="/favorites"
+          exact-active-class="is-active"
+          data-testid="favorites-navigation-link"
+          aria-label="收藏夹"
+          title="收藏夹"
+        >
+          <Star
+            class="favorite-star-icon"
+            :size="22"
+            :stroke-width="1.7"
+            aria-hidden="true"
+          />
+          <span
+            v-if="favoriteCount > 0"
+            class="favorite-count"
+            aria-hidden="true"
+          >
+            {{ favoriteCount > 99 ? "99+" : favoriteCount }}
+          </span>
+        </RouterLink>
         <button
           type="button"
-          class="nav-ai-login-entry"
-          :aria-label="
-            loggedIn ? '打开 AI 网站推荐助手' : '登录并使用 AI 网站推荐助手'
-          "
+          class="nav-item nav-ai-login-entry"
+          :class="{ 'is-active': aiAssistantStore.isOpen }"
+          :aria-label="loggedIn ? '打开知航AI助手' : '登录并使用知航AI助手'"
+          :aria-expanded="loggedIn ? aiAssistantStore.isOpen : undefined"
+          data-testid="ai-assistant-entry"
           @click="handleAiAssistantEntry"
         >
-          AI 助手
+          知航AI
         </button>
-        <RouterLink v-if="loggedIn" to="/favorites">我的收藏</RouterLink>
       </nav>
 
       <div class="actions">
         <div v-if="loggedIn" ref="userMenuRef" class="user-menu">
           <button
-            class="avatar"
+            class="user-trigger"
             type="button"
             aria-label="打开用户菜单"
             aria-controls="user-dropdown-menu"
             :aria-expanded="menuOpen"
             @click="toggleMenu"
           >
-            {{ initials }}
+            <svg
+              class="user-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="none"
+            >
+              <path
+                d="M12 12a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5Zm7.25 8.5a7.25 7.25 0 0 0-14.5 0"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
           </button>
           <div
             v-if="menuOpen"
@@ -74,26 +131,28 @@
             </div>
           </div>
         </div>
-        <template v-else>
-          <RouterLink class="login-link" to="/login">登录</RouterLink>
-          <RouterLink class="primary" to="/register">注册</RouterLink>
-        </template>
+        <RouterLink v-else class="login-link" to="/login">登录</RouterLink>
       </div>
     </div>
   </header>
+  <div class="app-header-spacer" aria-hidden="true"></div>
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { useAiAssistantStore } from "../../stores/aiAssistant";
-import { useUserStore } from "../../stores/user";
+import { Star } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
+import { useAiAssistantStore } from "../../stores/aiAssistant";
+import { useFavoritesStore } from "../../stores/favorites";
+import { useUserStore } from "../../stores/user";
 import { getAccessToken, isValidAuthToken } from "../../utils/auth";
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 const aiAssistantStore = useAiAssistantStore();
+const favoriteStore = useFavoritesStore();
+const isCompact = ref(false);
 const menuOpen = ref(false);
 const userMenuRef = ref(null);
 const authTick = ref(0);
@@ -108,9 +167,6 @@ const user = computed(() => {
   route.fullPath;
   return userStore.userInfo;
 });
-const initials = computed(() =>
-  (user.value.username || "U").slice(0, 1).toUpperCase(),
-);
 const displayName = computed(() => user.value.username || "用户");
 const displayEmail = computed(() => user.value.email || "暂无邮箱");
 const roleLabel = computed(
@@ -121,21 +177,17 @@ const roleLabel = computed(
       user: "普通用户",
     })[user.value.role || userStore.userRole || "user"] || "普通用户",
 );
-
-function scrollToSection(id) {
-  if (window.location.pathname !== "/") return;
-  const target = document.getElementById(id);
-  if (!target) return;
-  const top = target.getBoundingClientRect().top + window.scrollY - 88;
-  window.scrollTo({ top, behavior: "smooth" });
-}
+const favoriteCount = computed(() => favoriteStore.favoriteCount);
 
 function goToAiAssistantLogin() {
   router.push({ path: "/login", query: { redirect: "/" } });
 }
 
-function handleAiAssistantEntry() {
+async function handleAiAssistantEntry() {
   if (loggedIn.value) {
+    if (route.path !== "/") {
+      await router.push("/");
+    }
     aiAssistantStore.openAssistant();
     return;
   }
@@ -143,8 +195,26 @@ function handleAiAssistantEntry() {
   goToAiAssistantLogin();
 }
 
+function handleScroll() {
+  const nextCompact = window.scrollY > 40;
+  if (isCompact.value !== nextCompact) {
+    isCompact.value = nextCompact;
+  }
+}
+
 function refreshAuthState() {
   authTick.value += 1;
+}
+
+function syncFavoriteState(nextLoggedIn = loggedIn.value) {
+  if (nextLoggedIn) {
+    void favoriteStore.loadFavorites({
+      keepExistingData: true,
+      background: true,
+    });
+  } else {
+    favoriteStore.clearFavoriteState();
+  }
 }
 
 function toggleMenu() {
@@ -179,8 +249,11 @@ function logout() {
 }
 
 watch(() => route.fullPath, closeMenu);
+watch(loggedIn, syncFavoriteState, { immediate: true });
 
 onMounted(() => {
+  handleScroll();
+  window.addEventListener("scroll", handleScroll, { passive: true });
   window.addEventListener("storage", refreshAuthState);
   window.addEventListener("focus", refreshAuthState);
   document.addEventListener("pointerdown", handlePointerDown);
@@ -188,6 +261,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("scroll", handleScroll);
   window.removeEventListener("storage", refreshAuthState);
   window.removeEventListener("focus", refreshAuthState);
   document.removeEventListener("pointerdown", handlePointerDown);
@@ -197,149 +271,344 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  border-bottom: 1px solid rgba(229, 231, 235, 0.78);
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(18px);
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  z-index: 1000;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  height: 68px;
+  padding: 0 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 34px;
+  background-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: translateX(-50%);
+  transition:
+    top 220ms ease,
+    height 220ms ease,
+    padding 220ms ease,
+    gap 220ms ease,
+    border-radius 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+
+.app-header--compact {
+  top: 8px;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 24px;
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.app-header-spacer {
+  height: 0;
 }
 
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  width: min(1200px, calc(100% - 40px));
+  gap: 28px;
+  width: 100%;
   min-width: 0;
-  height: 72px;
-  margin: 0 auto;
+  height: 100%;
+  transition: gap 220ms ease;
+}
+
+.app-header--compact .header-inner {
+  gap: 12px;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
-  gap: 10px;
+  gap: 9px;
+  min-width: 0;
+  min-height: 40px;
   color: var(--color-heading);
-  font-size: 18px;
-  font-weight: 850;
   text-decoration: none;
   white-space: nowrap;
+  transition:
+    gap 220ms ease,
+    opacity 180ms ease;
 }
 
-.brand-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 14px;
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--color-primary), #ff9b75);
-  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.2);
+.brand:hover,
+.brand:focus-visible {
+  opacity: 0.78;
+  outline: none;
+}
+
+.brand:focus-visible {
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 36px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  transition:
+    width 220ms ease,
+    height 220ms ease;
+}
+
+.brand-name {
+  overflow: hidden;
+  color: #0b2f75;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-overflow: clip;
+  transition: font-size 220ms ease;
+}
+
+.app-header--compact .brand {
+  gap: 7px;
+}
+
+.app-header--compact .brand-logo {
+  height: 26px;
+}
+
+.app-header--compact .brand-name {
+  font-size: 15px;
 }
 
 .nav-links,
 .actions {
   display: flex;
   align-items: center;
-  gap: 10px;
   min-width: 0;
 }
 
 .nav-links {
-  flex: 1;
   justify-content: center;
-  overflow-x: auto;
-  scrollbar-width: none;
+  gap: 28px;
+  transition: gap 220ms ease;
 }
 
-.nav-links::-webkit-scrollbar {
-  display: none;
+.app-header--compact .nav-links {
+  gap: 12px;
 }
 
-a {
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 700;
-  transition:
-    color var(--transition),
-    background var(--transition),
-    transform var(--transition);
-}
-
-.nav-links a,
-.nav-ai-login-entry {
+.nav-item {
+  position: relative;
+  display: inline-grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
   min-height: 40px;
-  border-radius: var(--radius-pill);
-  padding: 10px 15px;
-  white-space: nowrap;
-}
-
-.nav-ai-login-entry {
+  place-items: center;
   border: 0;
+  border-radius: 12px;
   background: transparent;
-  color: var(--color-text);
-  font: inherit;
+  color: var(--color-heading);
+  padding: 0;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  opacity: 0.72;
   cursor: pointer;
+  transition:
+    width 220ms ease,
+    height 220ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
 }
 
-.nav-links a:hover,
-.nav-links a:focus-visible,
-.nav-links a.router-link-active,
-.nav-ai-login-entry:hover,
-.nav-ai-login-entry:focus-visible {
-  color: var(--color-primary);
-  background: var(--color-soft-orange);
+.nav-item::after {
+  position: absolute;
+  right: 9px;
+  bottom: 3px;
+  left: 9px;
+  height: 1px;
+  border-radius: 1px;
+  background: currentColor;
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.45);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.nav-item:hover,
+.nav-item:focus-visible,
+.nav-item.is-active {
+  color: #0f172a;
+  opacity: 1;
   outline: none;
+}
+
+.nav-item:focus-visible {
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.nav-item.is-active::after {
+  opacity: 0.72;
+  transform: scaleX(1);
+}
+
+.home-icon {
+  width: 22px;
+  height: 22px;
+  transition:
+    width 220ms ease,
+    height 220ms ease;
+}
+
+.app-header--compact .home-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.favorite-star-icon {
+  width: 22px;
+  height: 22px;
+  transition:
+    width 220ms ease,
+    height 220ms ease;
+}
+
+.app-header--compact .favorite-star-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.favorite-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #f36f52;
+  color: #ffffff;
+  padding: 0 3px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.actions {
+  flex: 0 0 auto;
 }
 
 .login-link {
-  min-height: 40px;
-  border: 1px solid rgba(255, 112, 88, 0.28);
-  border-radius: var(--radius-pill);
-  background: var(--color-soft-orange);
-  color: var(--color-primary);
-  padding: 10px 16px;
-}
-
-.primary,
-.avatar {
   display: inline-grid;
-  min-height: 40px;
+  min-width: 54px;
+  height: 42px;
+  min-height: 42px;
   place-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  color: #ffffff;
-  padding: 0 18px;
-  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.18);
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  border-radius: 21px;
+  background: transparent;
+  color: var(--color-heading);
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    width 220ms ease,
+    height 220ms ease,
+    min-height 220ms ease,
+    padding 220ms ease,
+    border-radius 220ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease;
 }
 
-.primary:hover,
-.primary:focus-visible,
-.avatar:hover,
-.avatar:focus-visible {
-  background: var(--color-primary-dark);
-  color: #ffffff;
-  transform: translateY(-1px);
+.login-link:hover,
+.login-link:focus-visible {
+  border-color: rgba(15, 23, 42, 0.48);
+  opacity: 0.76;
   outline: none;
 }
 
-.avatar {
-  width: 42px;
-  height: 42px;
-  border: 0;
-  padding: 0;
-  font-weight: 850;
-  cursor: pointer;
+.login-link:focus-visible {
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.app-header--compact .login-link {
+  min-width: 48px;
+  height: 40px;
+  min-height: 40px;
+  border-radius: 20px;
+  padding: 0 10px;
+  font-size: 13px;
 }
 
 .user-menu {
   position: relative;
   flex: 0 0 auto;
+}
+
+.user-trigger {
+  display: inline-grid;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
+  padding: 0;
+  cursor: pointer;
+  transition:
+    width 220ms ease,
+    height 220ms ease,
+    min-width 220ms ease,
+    min-height 220ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.user-trigger:hover,
+.user-trigger:focus-visible {
+  border-color: rgba(15, 23, 42, 0.48);
+  opacity: 0.76;
+  outline: none;
+}
+
+.user-trigger:focus-visible {
+  box-shadow: 0 0 0 2px currentColor;
+}
+
+.app-header--compact .user-trigger {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+}
+
+.user-icon {
+  width: 23px;
+  height: 23px;
+  transition:
+    width 220ms ease,
+    height 220ms ease;
+}
+
+.app-header--compact .user-icon {
+  width: 19px;
+  height: 19px;
 }
 
 .dropdown {
@@ -349,14 +618,16 @@ a {
   z-index: 40;
   display: grid;
   width: 320px;
-  max-width: calc(100vw - 32px);
+  max-width: calc(100vw - 24px);
   max-height: min(520px, calc(100vh - 96px));
   overflow-x: hidden;
   overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .user-summary {
@@ -392,9 +663,10 @@ a {
 
 .user-summary small {
   justify-self: start;
+  border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: var(--radius-pill);
-  background: var(--color-soft-orange);
-  color: var(--color-primary);
+  background: transparent;
+  color: var(--color-text);
   padding: 4px 9px;
   font-size: 12px;
   font-weight: 800;
@@ -408,12 +680,14 @@ a {
 .dropdown button {
   display: block;
   width: 100%;
+  min-height: 42px;
   border: 0;
   border-radius: 0;
-  background: #ffffff;
+  background: transparent;
   color: var(--color-text);
   padding: 12px 14px;
   text-align: left;
+  text-decoration: none;
   font: inherit;
   font-size: 14px;
   font-weight: 750;
@@ -425,51 +699,113 @@ a {
 .dropdown a:focus-visible,
 .dropdown button:hover,
 .dropdown button:focus-visible {
-  background: var(--color-soft-orange);
-  color: var(--color-primary);
+  background: rgba(15, 23, 42, 0.05);
+  color: var(--color-heading);
   outline: none;
 }
 
-@media (max-width: 900px) {
-  .header-inner {
-    width: min(100% - 28px, 1200px);
-    height: auto;
-    min-height: 72px;
-    flex-wrap: wrap;
-    padding: 12px 0;
-  }
-
-  .nav-links {
-    order: 3;
-    flex-basis: 100%;
-    justify-content: flex-start;
-    padding-bottom: 2px;
-  }
-}
-
 @media (max-width: 560px) {
-  .header-inner {
-    width: min(100% - 24px, 1200px);
-    gap: 12px;
+  .app-header {
+    top: 12px;
+    max-width: calc(100vw - 24px);
+    padding: 0 10px;
+  }
+
+  .app-header--compact {
+    top: 8px;
+    padding: 0 8px;
+  }
+
+  .app-header-spacer {
+    height: 0;
+  }
+
+  .header-inner,
+  .app-header--compact .header-inner {
+    gap: 6px;
   }
 
   .brand {
-    font-size: 16px;
+    gap: 5px;
   }
 
-  .actions {
-    gap: 8px;
+  .brand-logo {
+    height: 28px;
   }
 
-  .login-link,
-  .primary {
-    min-height: 38px;
-    padding-inline: 13px;
+  .brand-name {
+    font-size: 14px;
+  }
+
+  .app-header--compact .brand {
+    gap: 4px;
+  }
+
+  .app-header--compact .brand-logo {
+    height: 24px;
+  }
+
+  .app-header--compact .brand-name {
+    font-size: 13px;
+  }
+
+  .nav-links,
+  .app-header--compact .nav-links {
+    gap: 4px;
+  }
+
+  .login-link {
+    min-width: 46px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .user-trigger {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
   }
 
   .dropdown {
+    right: -4px;
     width: min(320px, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 380px) {
+  .app-header {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .header-inner,
+  .app-header--compact .header-inner {
+    gap: 4px;
+  }
+
+  .brand-logo {
+    height: 26px;
+  }
+
+  .brand-name {
+    font-size: 13px;
+  }
+
+  .nav-links,
+  .app-header--compact .nav-links {
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-header,
+  .app-header *,
+  .app-header *::before,
+  .app-header *::after {
+    transition-duration: 0.001ms !important;
   }
 }
 </style>

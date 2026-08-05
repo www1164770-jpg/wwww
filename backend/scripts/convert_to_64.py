@@ -1,5 +1,9 @@
 import requests
 import base64
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+RESULT_PATH = SCRIPT_DIR / "result.txt"
 
 # 这里填入你想要转换的网站列表
 raw_sites = [
@@ -33,7 +37,6 @@ for s in raw_sites:
 final_code += "])"
 
 # 将结果保存到文件，因为控制台可能显示不全
-with open("result.txt", "w", encoding="utf-8") as f:
-    f.write(final_code)
+RESULT_PATH.write_text(final_code, encoding="utf-8")
 
 print("✨ 转换完成！请打开同文件夹下的 result.txt，直接复制里面的内容粘贴到 App.vue 即可。")

@@ -10,7 +10,6 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 VERCEL_CONFIG_PATH = ROOT_DIR / "vercel.json"
 FRONTEND_DIR = ROOT_DIR / "backend" / "frontend"
 REQUIRED_RUNTIME_PACKAGES = {
-    "authing",
     "authlib",
     "dbutils",
     "feedparser",
@@ -22,12 +21,14 @@ REQUIRED_RUNTIME_PACKAGES = {
     "flask-limiter",
     "flask-sqlalchemy",
     "meilisearch",
+    "pillow",
     "pyjwt",
     "pymysql",
     "python-dotenv",
     "redis",
     "requests",
     "sqlalchemy",
+    "urllib3",
     "werkzeug",
     "websockets",
 }
@@ -77,7 +78,7 @@ class VercelConfigurationTests(unittest.TestCase):
         self.assertTrue((FRONTEND_DIR / "package-lock.json").is_file())
         self.assertEqual(
             config["installCommand"],
-            "npm ci --prefix backend/frontend",
+            "npm ci --legacy-peer-deps --prefix backend/frontend",
         )
         self.assertEqual(
             config["buildCommand"],
@@ -209,8 +210,6 @@ class VercelConfigurationTests(unittest.TestCase):
             "Redis",
             "Production",
             "Preview",
-            "Authing",
-            "/authing/callback",
             "GET /api/health",
             "GET /api/health/db",
             "GET /api/sites/recommend",

@@ -22,6 +22,9 @@
         <RouterLink to="/admin/comments" exact-active-class="active"
           >评论审核</RouterLink
         >
+        <RouterLink to="/admin/crawler-review" exact-active-class="active"
+          >爬虫审核</RouterLink
+        >
         <RouterLink to="/admin/questionnaires" exact-active-class="active"
           >问卷管理</RouterLink
         >

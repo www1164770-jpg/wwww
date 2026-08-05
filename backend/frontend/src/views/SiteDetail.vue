@@ -18,18 +18,17 @@
           <div class="hero-copy">
             <p>{{ site.category_name || "AI 资源" }}</p>
             <h1>{{ site.name }}</h1>
-            <span>{{ site.summary || "暂无简介" }}</span>
+            <span v-if="siteDescription">{{ siteDescription }}</span>
             <div class="actions">
               <button
                 type="button"
-                :disabled="favoriteLoading"
-                :aria-label="site.is_favorited ? '取消收藏' : '收藏'"
+                :aria-label="isSiteFavorited ? '取消收藏' : '收藏'"
                 @click="toggleFavorite"
               >
                 {{
-                  favoriteLoading
+                  false
                     ? "处理中..."
-                    : site.is_favorited
+                    : isSiteFavorited
                       ? "取消收藏"
                       : "收藏"
                 }}
@@ -48,17 +47,9 @@
 
         <div class="detail-layout">
           <div class="main-column">
-            <section class="content">
+            <section v-if="siteDescription" class="content">
               <h2>详细介绍</h2>
-              <p>{{ site.description || "暂无详细介绍" }}</p>
-              <a
-                class="site-url"
-                :href="site.url"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ site.url }}
-              </a>
+              <p>{{ siteDescription }}</p>
             </section>
 
             <section class="comments">
@@ -193,10 +184,8 @@
               <h2>相似网站推荐</h2>
               <SiteList
                 :sites="site.similar_sites || []"
-                :favorite-pending-ids="favoritePendingIds"
                 empty-title="暂无相似网站"
                 empty-description="后续会根据标签和职业推荐更多相似资源"
-                @favorite="favoriteSimilar"
                 @visit="visitSimilar"
               />
             </section>
@@ -204,35 +193,49 @@
         </div>
       </template>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
-import { commentAPI, favoriteAPI, siteAPI, unwrapResponse } from "../utils/api";
+import {
+  normalizeFavoriteError,
+  useFavoritesStore,
+} from "../stores/favorites";
+import {
+  commentAPI,
+  getSiteDescription,
+  siteAPI,
+  unwrapResponse,
+} from "../utils/api";
 import { getAccessToken, isValidAuthToken } from "../utils/auth";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
 const router = useRouter();
+const favoritesStore = useFavoritesStore();
 const site = ref(null);
 const loading = ref(false);
 const error = ref("");
 const comments = ref([]);
 const commentsLoading = ref(false);
 const commentSubmitting = ref(false);
-const favoriteLoading = ref(false);
-const favoritePendingIds = ref([]);
 const deletingCommentId = ref(null);
 const commentForm = reactive({ rating: 5, content: "" });
 const fallbackLogo = "https://api.dicebear.com/7.x/shapes/svg?seed=site";
 const logoFailed = ref(false);
 const loggedIn = computed(() => isValidAuthToken(getAccessToken()));
+const siteDescription = computed(() => getSiteDescription(site.value));
+const isSiteFavorited = computed(() =>
+  site.value ? favoritesStore.isFavorite(site.value) : false,
+);
 const logoSrc = computed(() =>
   logoFailed.value ? fallbackLogo : site.value?.logo_url || fallbackLogo,
 );
@@ -293,55 +296,26 @@ async function loadComments() {
     commentsLoading.value = false;
   }
 }
-async function toggleFavorite() {
+function toggleFavorite() {
   if (!loggedIn.value) return goLogin();
-  if (favoriteLoading.value) return;
-  const wasFavorited = Boolean(site.value.is_favorited);
-  favoriteLoading.value = true;
+  if (!site.value) return;
+  const wasFavorited = isSiteFavorited.value;
   try {
-    if (wasFavorited) {
-      await favoriteAPI.removeFavorite(site.value.id);
-      site.value.is_favorited = false;
-      successToast("已取消收藏");
-    } else {
-      await favoriteAPI.addFavorite(site.value.id);
-      site.value.is_favorited = true;
-      successToast("已收藏");
-    }
-  } catch {
-    site.value.is_favorited = wasFavorited;
-    errorToast("操作失败，请稍后重试");
-  } finally {
-    favoriteLoading.value = false;
+    const syncPromise = favoritesStore.toggleFavorite(site.value);
+    if (!syncPromise) return;
+    void syncPromise.catch((requestError) => {
+      const normalizedError = normalizeFavoriteError(requestError);
+      errorToast(normalizedError.message || "收藏服务出现异常，请稍后重试");
+    });
+    successToast(wasFavorited ? "已取消收藏" : "已收藏");
+  } catch (requestError) {
+    const normalizedError = normalizeFavoriteError(requestError);
+    errorToast(normalizedError.message || "收藏服务出现异常，请稍后重试");
   }
 }
 async function visit() {
   await siteAPI.recordClick(site.value.id).catch(() => {});
   window.open(site.value.url, "_blank", "noopener,noreferrer");
-}
-async function favoriteSimilar(item) {
-  if (!loggedIn.value) return goLogin();
-  if (favoritePendingIds.value.includes(item.id)) return;
-  const wasFavorited = Boolean(item.is_favorited);
-  favoritePendingIds.value = [...favoritePendingIds.value, item.id];
-  try {
-    if (wasFavorited) {
-      await favoriteAPI.removeFavorite(item.id);
-      item.is_favorited = false;
-      successToast("已取消收藏");
-    } else {
-      await favoriteAPI.addFavorite(item.id);
-      item.is_favorited = true;
-      successToast("已收藏");
-    }
-  } catch {
-    item.is_favorited = wasFavorited;
-    errorToast("操作失败，请稍后重试");
-  } finally {
-    favoritePendingIds.value = favoritePendingIds.value.filter(
-      (id) => id !== item.id,
-    );
-  }
 }
 async function visitSimilar(item) {
   await siteAPI.recordClick(item.id).catch(() => {});
@@ -509,8 +483,7 @@ h2 {
   display: grid;
 }
 
-button,
-.site-url {
+button {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: #ffffff;
@@ -526,9 +499,7 @@ button,
 }
 
 button:hover,
-button:focus-visible,
-.site-url:hover,
-.site-url:focus-visible {
+button:focus-visible {
   border-color: rgba(255, 112, 88, 0.38);
   color: var(--color-primary);
   transform: translateY(-1px);
@@ -555,12 +526,6 @@ button.primary:focus-visible,
 .comment-form button:focus-visible {
   background: var(--color-primary-dark);
   color: #ffffff;
-}
-
-.site-url {
-  display: inline-flex;
-  max-width: 100%;
-  overflow-wrap: anywhere;
 }
 
 .facts {

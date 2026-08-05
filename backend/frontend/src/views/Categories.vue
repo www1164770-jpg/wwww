@@ -37,11 +37,13 @@
         description="可以尝试更换关键词或稍后再来查看。"
       />
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -105,11 +107,15 @@ main {
   display: grid;
   gap: 28px;
   width: min(1120px, calc(100% - 40px));
+  min-width: 0;
   margin: 48px auto 78px;
 }
 
 .hero {
   display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 22px;
   border-radius: 24px;
@@ -145,6 +151,7 @@ h1 {
 }
 
 .hero :deep(.search-bar) {
+  width: 100%;
   max-width: 700px;
 }
 

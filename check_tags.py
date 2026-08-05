@@ -1,6 +1,10 @@
 import re
+from pathlib import Path
 
-lines = open('backend/frontend/src/views/Home.vue', encoding='utf-8').readlines()
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR if (SCRIPT_DIR / "backend").is_dir() else SCRIPT_DIR.parent
+HOME_VIEW = PROJECT_ROOT / "backend" / "frontend" / "src" / "views" / "Home.vue"
+lines = HOME_VIEW.read_text(encoding="utf-8").splitlines(keepends=True)
 
 template_end = 0
 for i, l in enumerate(lines):

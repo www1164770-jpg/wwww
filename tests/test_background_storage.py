@@ -68,6 +68,24 @@ class BackgroundStorageTests(unittest.TestCase):
                 with self.assertRaises(InvalidStoragePath):
                     resolve_background_path(self.root, storage_path)
 
+    def test_rejects_root_self_and_drive_relative_paths(self):
+        for storage_path in (".", "C:relative.webp"):
+            with self.subTest(storage_path=storage_path):
+                with self.assertRaises(InvalidStoragePath):
+                    resolve_background_path(self.root, storage_path)
+
+    def test_rejects_existing_symlink_that_resolves_outside_root(self):
+        resolved_root = self.root.resolve()
+        linked_path = resolved_root / "linked.webp"
+        outside_path = Path(self.temporary_directory.name) / "outside.webp"
+
+        def resolve_path(path):
+            return outside_path if path == linked_path else resolved_root
+
+        with patch("backend.background_storage.Path.resolve", autospec=True, side_effect=resolve_path):
+            with self.assertRaises(InvalidStoragePath):
+                resolve_background_path(self.root, "linked.webp")
+
     def test_missing_read_raises_and_missing_delete_is_idempotent(self):
         with self.assertRaises(BackgroundFileNotFound) as raised:
             read_background_file(self.root, "12/missing.webp")
@@ -90,6 +108,16 @@ class BackgroundStorageTests(unittest.TestCase):
 
         self.assertEqual(list((self.root / "4").iterdir()), [])
 
+    def test_surfaces_cleanup_failure_after_a_write_failure(self):
+        with patch("backend.background_storage.Path.write_bytes", side_effect=OSError("write failed")):
+            with patch("backend.background_storage.Path.unlink", side_effect=OSError("cleanup failed")):
+                with self.assertRaisesRegex(
+                    BackgroundStorageError, "^Unable to clean up failed background storage$"
+                ) as raised:
+                    store_processed_background(processed(), 4, self.root)
+
+        self.assertNotIn(str(self.root), str(raised.exception))
+
     def test_wraps_read_and_delete_filesystem_errors(self):
         storage_path = store_processed_background(processed(), 4, self.root)
 
@@ -102,6 +130,19 @@ class BackgroundStorageTests(unittest.TestCase):
             with self.assertRaises(BackgroundStorageError) as delete_error:
                 delete_background_file(self.root, storage_path)
         self.assertNotIn(str(self.root), str(delete_error.exception))
+
+    def test_delete_returns_false_when_file_disappears_before_unlink(self):
+        storage_path = store_processed_background(processed(), 4, self.root)
+
+        with patch("backend.background_storage.Path.unlink", side_effect=FileNotFoundError):
+            self.assertFalse(delete_background_file(self.root, storage_path))
+
+    def test_delete_returns_false_when_file_disappears_before_is_file(self):
+        storage_path = store_processed_background(processed(), 4, self.root)
+
+        with patch("backend.background_storage.Path.exists", side_effect=(True, False)):
+            with patch("backend.background_storage.Path.is_file", return_value=False):
+                self.assertFalse(delete_background_file(self.root, storage_path))
 
     def test_storage_source_does_not_process_images_or_import_pillow(self):
         source = Path(__file__).parents[1] / "backend" / "background_storage.py"

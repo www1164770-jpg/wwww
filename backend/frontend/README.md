@@ -1,15 +1,19 @@
-# 智慧导航 Frontend
+# 知航屿前端
 
-Vue 3 + Vite frontend for the AI tool navigation app.
+Vue 3 + Vite frontend for 知航屿，智能网站导航与资源推荐平台。
 
 ## Local Development
 
+From the repository root:
+
 ```bash
-npm install
-npm run dev
+npm ci --legacy-peer-deps --prefix backend/frontend
+npm run dev --prefix backend/frontend
 ```
 
-Create or update `.env.development` when the backend API address changes:
+Copy `backend/frontend/.env.example` to
+`backend/frontend/.env.development` when the backend API address changes.
+`VITE_API_BASE_URL` may point to a local or remote backend:
 
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:5000/api
@@ -17,15 +21,21 @@ VITE_API_BASE_URL=http://127.0.0.1:5000/api
 
 ## Vercel Deployment
 
-Use these settings when deploying this repository to Vercel:
+The root `vercel.json` builds both the frontend and Python function. Keep the
+Vercel project Root Directory at the repository root:
 
-- Root Directory: backend/frontend
-- Install Command: npm install
-- Build Command: npm run build
-- Output Directory: dist
+- Root Directory: repository root (leave the Dashboard field empty)
+- Install Command: `npm ci --legacy-peer-deps --prefix backend/frontend`
+- Build Command: `npm run build --prefix backend/frontend`
+- Output Directory: `backend/frontend/dist`
 
-Set the production environment variable to your deployed backend API:
+For the same-origin Vercel deployment, keep `VITE_API_BASE_URL` unset so the
+frontend uses `/api`. For a separately hosted backend, set it to that public
+API endpoint:
 
 ```bash
-VITE_API_BASE_URL=https://你的后端域名/api
+VITE_API_BASE_URL=https://backend.example.com/api
 ```
+
+See `DEPLOY_VERCEL.md` in the repository root for backend environment
+variables and deployment checks.

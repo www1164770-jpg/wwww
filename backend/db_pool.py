@@ -10,17 +10,87 @@ MySQL 连接池模块 (基于 DBUtils.PooledDB)
     # ... 使用 conn ...
     conn.close()  # 并非真正关闭，而是归还到连接池
 
-配置从 .env 环境变量读取，如未配置则使用默认值。
+配置从 backend/.env 环境变量读取。主机和端口有本地默认值，
+数据库用户和数据库名必须显式配置。
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from dbutils.pooled_db import PooledDB
 import pymysql
 
-load_dotenv()
+BACKEND_DIR = Path(__file__).resolve().parent
+load_dotenv(BACKEND_DIR / ".env")
 
 MYSQL_CHARSET = 'utf8mb4'
+
+
+def _first_nonempty_environment_value(*names, default=None):
+    for name in names:
+        value = os.getenv(name)
+        if value is not None and value.strip():
+            return value.strip()
+    return default
+
+
+def _database_password():
+    for name in ("MYSQL_PASSWORD", "DB_PASSWORD"):
+        if name in os.environ:
+            return os.environ[name]
+    return ""
+
+
+def _database_port():
+    raw_value = _first_nonempty_environment_value(
+        "MYSQL_PORT", "DB_PORT", default="3306"
+    )
+    try:
+        port = int(raw_value)
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(
+            "MYSQL_PORT or DB_PORT must be an integer between 1 and 65535"
+        ) from exc
+    if not 1 <= port <= 65535:
+        raise RuntimeError(
+            "MYSQL_PORT or DB_PORT must be an integer between 1 and 65535"
+        )
+    return port
+
+
+def get_database_config():
+    """Return database settings without opening a connection."""
+    return {
+        "host": _first_nonempty_environment_value(
+            "MYSQL_HOST", "DB_HOST", default="localhost"
+        ),
+        "port": _database_port(),
+        "user": _first_nonempty_environment_value("MYSQL_USER", "DB_USER"),
+        "password": _database_password(),
+        "database": _first_nonempty_environment_value(
+            "MYSQL_DATABASE", "DB_NAME"
+        ),
+        "charset": MYSQL_CHARSET,
+    }
+
+
+def validate_database_config(config=None):
+    """Fail before connecting when identity or database settings are missing."""
+    config = config or get_database_config()
+    missing = []
+    if not config.get("user"):
+        missing.append("MYSQL_USER (or DB_USER)")
+    if not config.get("database"):
+        missing.append("MYSQL_DATABASE (or DB_NAME)")
+    if missing:
+        raise RuntimeError(
+            "Missing database configuration in backend/.env: set "
+            + ", ".join(missing)
+        )
+    return config
+
+
+DATABASE_CONFIG = get_database_config()
 
 # 连接池配置
 POOL_CONFIG = {
@@ -33,12 +103,7 @@ POOL_CONFIG = {
     'maxusage': None,          # 单个连接最多被重复使用的次数（None 表示无限制）
     'setsession': None,        # 连接创建后可执行的初始化 SQL 命令列表
     'ping': 1,                 # 取连接时检查服务端，避免复用失效连接
-    'host': os.getenv('MYSQL_HOST') or os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', '3306')),
-    'user': os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root'),
-    'password': os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', ''),
-    'database': os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site'),
-    'charset': MYSQL_CHARSET,
+    **DATABASE_CONFIG,
     'cursorclass': pymysql.cursors.DictCursor,  # 返回字典格式的查询结果
     'autocommit': False,       # 关闭自动提交，由业务代码手动 commit
 }
@@ -50,6 +115,7 @@ def get_pool():
     """获取或创建连接池实例（懒初始化单例）"""
     global _pool
     if _pool is None:
+        validate_database_config(POOL_CONFIG)
         _pool = PooledDB(**POOL_CONFIG)
     return _pool
 

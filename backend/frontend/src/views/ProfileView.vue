@@ -56,12 +56,10 @@
             <h2>我的推荐</h2>
             <SiteList
               :sites="profile.recommendations || []"
-              :favorite-pending-ids="favoritePendingIds"
               empty-title="暂无推荐"
               empty-description="完成问卷后会在这里展示个性化推荐。"
               empty-action-text="完善问卷"
               empty-action-to="/questionnaire"
-              @favorite="favorite"
               @visit="visit"
             />
           </section>
@@ -124,7 +122,7 @@ import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
-import { favoriteAPI, siteAPI, userAPI } from "../utils/api";
+import { siteAPI, userAPI } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const profile = ref({});
@@ -133,7 +131,6 @@ const newPassword = ref("");
 const loading = ref(false);
 const error = ref("");
 const passwordLoading = ref(false);
-const favoritePendingIds = ref([]);
 const hasQuestionnaire = computed(() => Boolean(profile.value.profile));
 
 const labelMap = {
@@ -193,29 +190,6 @@ async function load() {
     errorToast(error.value);
   } finally {
     loading.value = false;
-  }
-}
-async function favorite(site) {
-  if (favoritePendingIds.value.includes(site.id)) return;
-  const wasFavorited = Boolean(site.is_favorited);
-  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
-  try {
-    if (wasFavorited) {
-      await favoriteAPI.removeFavorite(site.id);
-      site.is_favorited = false;
-      successToast("已取消收藏");
-    } else {
-      await favoriteAPI.addFavorite(site.id);
-      site.is_favorited = true;
-      successToast("已收藏");
-    }
-  } catch {
-    site.is_favorited = wasFavorited;
-    errorToast("操作失败，请稍后重试");
-  } finally {
-    favoritePendingIds.value = favoritePendingIds.value.filter(
-      (id) => id !== site.id,
-    );
   }
 }
 async function visit(site) {

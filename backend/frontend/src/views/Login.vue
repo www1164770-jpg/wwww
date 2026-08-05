@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">智汇导航</RouterLink>
+      <RouterLink class="brand" to="/">知航屿</RouterLink>
       <div class="auth-heading">
         <p>欢迎回来</p>
         <h1>登录账号</h1>
@@ -11,7 +11,6 @@
         <input
           v-model.trim="account"
           autocomplete="username"
-          aria-label="邮箱或用户名"
           required
           @input="clearError"
         />
@@ -22,17 +21,13 @@
           v-model="password"
           autocomplete="current-password"
           type="password"
-          aria-label="密码"
           required
           @input="clearError"
         />
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <button type="submit" :disabled="loginLoading">
-        {{ loginLoading ? "登录中..." : "登录" }}
-      </button>
-      <button type="button" class="authing-button" @click="loginWithAuthing">
-        使用 Authing 登录
+        {{ loginLoading ? "登录中…" : "登录" }}
       </button>
       <RouterLink class="switch-link" to="/register">
         还没有账号？去注册
@@ -42,9 +37,10 @@
 </template>
 
 <script setup>
+import axios from "axios";
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { API_BASE_URL, authAPI } from "../utils/api";
+import { authAPI } from "../utils/api";
 import { normalizeAuthSession } from "../utils/auth";
 import { useUserStore } from "../stores/user";
 import { errorToast, successToast } from "../utils/toast";
@@ -55,18 +51,7 @@ const userStore = useUserStore();
 const account = ref("");
 const password = ref("");
 const loginLoading = ref(false);
-const authingErrorMessages = {
-  invalid_token: "登录凭证无效，请重新登录",
-  jwt_failed: "生成登录凭证失败，请检查后端 JWT 配置。",
-  state_mismatch: "登录状态校验失败，请重新登录",
-  token_exchange_failed:
-    "Authing 授权码换取 token 失败，请检查 App ID、App Secret 和回调地址",
-  userinfo_failed: "获取 Authing 用户信息失败，请检查 Authing 应用配置。",
-  user_sync_failed: "同步用户信息失败，请检查 users 表字段",
-  authing_exchange_unavailable: "认证服务暂不可用，请稍后重试。",
-  authing_failed: "Authing 登录失败，请稍后重试",
-};
-const error = ref(authingErrorMessages[route.query.authing_error] || "");
+const error = ref("");
 
 function normalizeRedirect(path) {
   const value = String(path || "");
@@ -83,9 +68,7 @@ function normalizeRedirect(path) {
 }
 
 function clearError() {
-  if (error.value) {
-    error.value = "";
-  }
+  error.value = "";
 }
 
 function showError(message) {
@@ -93,26 +76,48 @@ function showError(message) {
   errorToast(message);
 }
 
+function getLoginErrorMessage(err) {
+  const status = err?.response?.status;
+  const responseData = err?.response?.data;
+  const responseCode = responseData?.code;
+  const serverMessage = responseData?.message ?? responseData?.msg;
+
+  if (
+    status === 401 ||
+    responseCode === 401 ||
+    responseCode === "INVALID_CREDENTIALS"
+  ) {
+    return "\u8d26\u53f7\u6216\u5bc6\u7801\u9519\u8bef";
+  }
+  if (status >= 500)
+    return "\u767b\u5f55\u670d\u52a1\u6682\u65f6\u4e0d\u53ef\u7528";
+  if (axios.isCancel(err) || err?.code === "ERR_CANCELED") {
+    return "\u767b\u5f55\u8bf7\u6c42\u88ab\u53d6\u6d88\uff0c\u8bf7\u91cd\u65b0\u63d0\u4ea4";
+  }
+  if (
+    err?.code === "ECONNABORTED" ||
+    err?.code === "ETIMEDOUT" ||
+    String(err?.message ?? "")
+      .toLowerCase()
+      .includes("timeout")
+  ) {
+    return "\u767b\u5f55\u8bf7\u6c42\u8d85\u65f6\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5";
+  }
+  if (err?.response) return serverMessage || "\u767b\u5f55\u5931\u8d25";
+  return "\u65e0\u6cd5\u8fde\u63a5\u8ba4\u8bc1\u670d\u52a1";
+}
+
 async function submit() {
   if (loginLoading.value) return;
-  if (!account.value.trim()) {
-    showError("请输入邮箱或用户名");
-    return;
-  }
-  if (!password.value) {
-    showError("请输入密码");
-    return;
-  }
+  if (!account.value.trim()) return showError("请输入邮箱或用户名");
+  if (!password.value) return showError("请输入密码");
+
   loginLoading.value = true;
   error.value = "";
   try {
-    const response = await authAPI.login(account.value, password.value);
-    const session = normalizeAuthSession(response);
-    const questionnaireCompleted = session.questionnaire_completed === true ||
-      session.questionnaire_completed === 1 ||
-      session.questionnaire_completed === "1" ||
-      session.questionnaire_completed === "true";
-
+    const session = normalizeAuthSession(
+      await authAPI.login(account.value.trim(), password.value),
+    );
     if (!session.access_token) {
       showError("登录成功但未返回登录凭证，请检查后端接口");
       return;
@@ -120,32 +125,37 @@ async function submit() {
 
     userStore.setLoginSuccess(session);
     successToast("登录成功");
-    if (!questionnaireCompleted) {
-      router.replace("/questionnaire");
-    } else {
-      router.replace(normalizeRedirect(route.query.redirect));
-    }
+    await router.replace(normalizeRedirect(route.query.redirect));
   } catch (err) {
-    if (err.response?.status === 429) {
-      showError(err.response.data?.msg || "请求过于频繁，请稍后再试");
-    } else if (err.response?.status === 401) {
-      showError("账号或密码错误");
-    } else {
-      showError(err.response?.data?.msg || "账号或密码错误");
+    if (import.meta.env.DEV) {
+      console.error("[Auth] login error", {
+        name: err?.name,
+        message: err?.message,
+        axiosCode: err?.code,
+        status: err?.response?.status,
+        responseCode: err?.response?.data?.code,
+        responseMessage:
+          err?.response?.data?.message ?? err?.response?.data?.msg,
+        hasResponse: Boolean(err?.response),
+        hasRequest: Boolean(err?.request),
+        timeout: err?.config?.timeout,
+        url: err?.config?.url,
+        method: err?.config?.method,
+        signalAborted: Boolean(err?.config?.signal?.aborted),
+        isCanceled: axios.isCancel(err) || err?.code === "ERR_CANCELED",
+        isTimeout:
+          err?.code === "ECONNABORTED" ||
+          err?.code === "ETIMEDOUT" ||
+          String(err?.message ?? "")
+            .toLowerCase()
+            .includes("timeout"),
+      });
     }
+    showError(getLoginErrorMessage(err));
+    return;
   } finally {
     loginLoading.value = false;
   }
-}
-
-function loginWithAuthing() {
-  const redirect = route.query.redirect || "/";
-  const apiBase = API_BASE_URL;
-  const backendBase = apiBase.replace(/\/api\/?$/, "");
-
-  window.location.href = `${backendBase}/api/authing/login?redirect=${encodeURIComponent(
-    redirect,
-  )}`;
 }
 </script>
 
@@ -154,6 +164,7 @@ function loginWithAuthing() {
   display: grid;
   min-height: 100vh;
   place-items: center;
+  padding: 24px;
   background:
     radial-gradient(
       circle at 12% 20%,
@@ -166,21 +177,21 @@ function loginWithAuthing() {
       transparent 30%
     ),
     linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
-  padding: 24px;
 }
 
 .auth-panel {
   display: grid;
   gap: 18px;
   width: min(460px, 100%);
+  padding: clamp(28px, 5vw, 40px);
   border: 1px solid var(--color-border);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
-  padding: clamp(28px, 5vw, 40px);
   box-shadow: var(--shadow-card);
 }
 
-.brand {
+.brand,
+.switch-link {
   color: var(--color-primary);
   font-weight: 850;
   text-decoration: none;
@@ -207,32 +218,20 @@ label {
 
 input {
   min-width: 0;
+  padding: 13px 14px;
   border: 1px solid var(--color-border);
   border-radius: 14px;
   background: #ffffff;
-  padding: 13px 14px;
 }
 
 button {
+  padding: 14px;
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #ffffff;
-  padding: 14px;
   font-weight: 850;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
-  transition:
-    transform var(--transition),
-    background var(--transition),
-    box-shadow var(--transition);
-}
-
-button:hover,
-button:focus-visible {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
-  outline: none;
 }
 
 button:disabled {
@@ -240,31 +239,8 @@ button:disabled {
   opacity: 0.72;
 }
 
-.authing-button {
-  border: 1px solid rgba(255, 112, 88, 0.34);
-  background: #ffffff;
-  color: var(--color-primary);
-  box-shadow: none;
-}
-
-.authing-button:hover,
-.authing-button:focus-visible {
-  background: rgba(255, 112, 88, 0.08);
-  color: var(--color-primary-dark);
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.12);
-}
-
 .switch-link {
-  color: var(--color-primary);
   text-align: center;
-  text-decoration: none;
-  font-weight: 750;
-}
-
-.switch-link:hover,
-.switch-link:focus-visible {
-  color: var(--color-primary-dark);
-  outline: none;
 }
 
 .error {

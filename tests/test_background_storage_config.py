@@ -187,7 +187,7 @@ print('BACKGROUND_CONFIG_PROBE=' + json.dumps(payload, sort_keys=True))
             (temporary_root / "dotenv.py").write_text(
                 "from pathlib import Path\n"
                 "import os\n\n"
-                "def load_dotenv():\n"
+                "def load_dotenv(dotenv_path=None):\n"
                 "    key, value = Path(os.environ['DOTENV_PATH']).read_text(encoding='utf-8').strip().split('=', 1)\n"
                 "    os.environ[key] = value\n",
                 encoding="utf-8",

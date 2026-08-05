@@ -1,11 +1,23 @@
 import json
 import random
+import re
+from time import perf_counter
 from functools import wraps
+from urllib.parse import urlsplit
 
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from ai_site_recommend_service import normalize_text, recommend_sites_for_query
+from career_recommend_service import (
+    build_career_recommendations,
+    filter_sites_for_career,
+)
+from occupation_utils import (
+    OCCUPATION_LABELS,
+    get_occupation_label,
+    normalize_occupation,
+)
 from recommend_service import rank_sites
 
 
@@ -15,8 +27,35 @@ AI_SITE_CANDIDATE_LIMIT = 1000
 def register_v1_routes(app, get_db_connection):
     columns_cache = {}
 
+    CATEGORY_CODE_ALIASES = {
+        "常用推荐": "common",
+        "开发社区": "community",
+        "摸鱼娱乐": "entertainment",
+        "实用工具": "productivity",
+        "AI 神器": "ai",
+        "框架文档": "framework_docs",
+        "UI 组件库": "ui_components",
+        "可视化/3D": "visualization_3d",
+        "工具/构建": "build_tools",
+        "灵感采集": "inspiration",
+        "素材资源": "assets",
+        "在线工具": "online_tools",
+        "字体/配色": "fonts_colors",
+        "原型设计": "prototype",
+        "文档办公": "office",
+        "数据分析": "data_analysis",
+        "竞品调研": "competitive_research",
+    }
+
+    def category_code_for_name(name):
+        value = str(name or "").strip()
+        if value in CATEGORY_CODE_ALIASES:
+            return CATEGORY_CODE_ALIASES[value]
+        return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_") or "category"
+
     def api_success(data=None, msg="success", status=200):
         return jsonify({
+            "success": True,
             "code": status,
             "legacy_code": 0,
             "message": msg,
@@ -26,7 +65,9 @@ def register_v1_routes(app, get_db_connection):
 
     def api_error(msg, code=400, status=400, data=None):
         return jsonify({
+            "success": False,
             "code": code,
+            "error_code": code if isinstance(code, str) else None,
             "legacy_code": 0,
             "message": msg,
             "msg": msg,
@@ -40,8 +81,9 @@ def register_v1_routes(app, get_db_connection):
         identity_text = str(identity).strip()
         if not identity_text:
             return None
-        conn = get_db_connection()
+        conn = None
         try:
+            conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(
                     "SELECT * FROM (SELECT * FROM users WHERE username=%s OR email=%s) AS matched_user "
@@ -61,8 +103,11 @@ def register_v1_routes(app, get_db_connection):
                     )
                     return cursor.fetchone()
                 return None
+        except Exception:
+            safe_rollback(conn)
+            raise
         finally:
-            conn.close()
+            safe_close(conn)
 
     def record_behavior(user_id=None, site_id=None, behavior_type="", keyword=None):
         if not user_id:
@@ -83,18 +128,43 @@ def register_v1_routes(app, get_db_connection):
         finally:
             conn.close()
 
+    def log_favorite_timing(action, timing, site_id=None):
+        def elapsed(stage):
+            started = timing.get(f"{stage}_started")
+            finished = timing.get(f"{stage}_finished")
+            if started is None or finished is None:
+                return 0.0
+            return round((finished - started) * 1000, 2)
+
+        app.logger.info(
+            "favorite_%s_timing site_id=%s auth_ms=%.2f schema_ms=%.2f "
+            "site_lookup_ms=%.2f favorite_lookup_ms=%.2f commit_ms=%.2f "
+            "behavior_ms=%.2f total_ms=%.2f",
+            action,
+            site_id or "",
+            elapsed("auth"),
+            elapsed("schema"),
+            elapsed("site_lookup"),
+            elapsed("favorite_lookup"),
+            elapsed("commit"),
+            elapsed("behavior"),
+            round((perf_counter() - timing["started"]) * 1000, 2),
+        )
+
     def table_columns(table):
         if table in columns_cache:
             return columns_cache[table]
-        conn = get_db_connection()
+        conn = None
         try:
+            conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute(f"SHOW COLUMNS FROM {table}")
                 columns_cache[table] = {row["Field"] for row in cursor.fetchall()}
         except Exception:
+            safe_rollback(conn)
             columns_cache[table] = set()
         finally:
-            conn.close()
+            safe_close(conn)
         return columns_cache[table]
 
     def admin_required(fn):
@@ -191,18 +261,7 @@ def register_v1_routes(app, get_db_connection):
                     "key": "occupation",
                     "label": "职业",
                     "required": True,
-                    "options": [
-                        "programmer",
-                        "designer",
-                        "product_manager",
-                        "operations",
-                        "marketing",
-                        "ecommerce",
-                        "teacher",
-                        "student",
-                        "creator",
-                        "other",
-                    ],
+                    "options": list(OCCUPATION_LABELS),
                 },
                 {
                     "key": "purposes",
@@ -260,12 +319,19 @@ def register_v1_routes(app, get_db_connection):
                 },
             ],
             "occupation_tag_map": {
-                "programmer": ["programming", "AI tools", "project_development"],
-                "designer": ["design resources", "assets", "AI tools"],
+                "frontend_developer": ["programming", "AI tools", "project_development"],
+                "backend_developer": ["programming", "API", "database"],
+                "ai_app_developer": ["AI tools", "programming", "project_development"],
+                "llm_engineer": ["AI tools", "model", "programming"],
                 "product_manager": ["product management", "startup resources", "data analysis"],
+                "ui_ux_designer": ["design resources", "assets", "AI tools"],
+                "data_analyst": ["data analysis", "programming", "AI tools"],
                 "operations": ["growth", "content_creation", "office efficiency"],
+                "technical_operations": ["operations", "monitoring", "automation"],
                 "teacher": ["learning platforms", "AI tools", "content_creation"],
                 "student": ["learning platforms", "programming", "AI tools"],
+                "creator": ["content_creation", "assets", "AI tools"],
+                "other": ["AI tools", "office efficiency"],
             },
         }
 
@@ -282,25 +348,44 @@ def register_v1_routes(app, get_db_connection):
                 or []
             )
 
+        normalized_occupations = list(dict.fromkeys(
+            normalized
+            for item in options("occupation")
+            if (normalized := normalize_occupation(item))
+        ))
+        raw_tag_map = config.get("occupation_tag_map") or fallback["occupation_tag_map"]
+        normalized_tag_map = {}
+        for occupation, tags in raw_tag_map.items():
+            canonical = normalize_occupation(occupation)
+            if canonical:
+                normalized_tag_map.setdefault(canonical, tags)
+
         return {
-            "occupations": options("occupation"),
+            "occupations": normalized_occupations or list(OCCUPATION_LABELS),
             "purposes": options("purposes"),
             "interests": options("interests"),
             "skill_levels": options("skill_level"),
             "preferences": options("preferences"),
             "questions": questions or fallback["questions"],
-            "occupation_tag_map": config.get("occupation_tag_map") or fallback["occupation_tag_map"],
+            "occupation_tag_map": normalized_tag_map,
         }
 
     def default_recommend_rules():
         return {
             "occupation_site_weights": {
-                "programmer": ["programming", "code", "docs", "developer"],
-                "designer": ["design", "ui", "assets", "prototype"],
+                "frontend_developer": ["frontend", "Vue", "React", "JavaScript", "code"],
+                "backend_developer": ["backend", "Python", "API", "database", "code"],
+                "ai_app_developer": ["AI", "API", "agent", "application", "code"],
+                "llm_engineer": ["LLM", "model", "prompt", "RAG", "AI"],
                 "product_manager": ["product", "prototype", "analytics", "collaboration"],
+                "ui_ux_designer": ["design", "ui", "ux", "assets", "prototype"],
+                "data_analyst": ["data", "analytics", "SQL", "Python", "visualization"],
                 "operations": ["growth", "marketing", "content", "office"],
+                "technical_operations": ["monitoring", "automation", "deployment", "operations"],
                 "teacher": ["learning", "writing", "knowledge", "course"],
                 "student": ["learning", "docs", "AI", "programming"],
+                "creator": ["content", "video", "writing", "image", "AIGC"],
+                "other": ["AI", "office", "learning", "efficiency"],
             },
             "weights": {
                 "occupation_score": 0.4,
@@ -321,7 +406,7 @@ def register_v1_routes(app, get_db_connection):
 
     def default_admin_settings():
         return {
-            "site_name": "智汇导航",
+            "site_name": "知航屿",
             "audit_mode": "manual",
             "allow_registration": True,
             "comment_default_status": "visible",
@@ -399,15 +484,21 @@ def register_v1_routes(app, get_db_connection):
 
     def normalize_site(row, tags=None, occupations=None):
         summary = row.get("summary") or row.get("description") or row.get("desc") or ""
+        category_name = row.get("category_name") or ""
+        category_code = row.get("category_code") or category_code_for_name(category_name)
         return {
             "id": row.get("id"),
             "name": row.get("name"),
             "url": row.get("url"),
             "logo_url": row.get("logo_url"),
+            "logoUrl": row.get("logo_url"),
             "summary": summary,
             "description": row.get("description") or summary,
             "category_id": row.get("category_id"),
-            "category_name": row.get("category_name"),
+            "category_name": category_name,
+            "categoryName": category_name,
+            "category_code": category_code,
+            "categoryCode": category_code,
             "tags": tags or [],
             "occupations": occupations or [],
             "is_free": bool(row.get("is_free", True)),
@@ -475,9 +566,12 @@ def register_v1_routes(app, get_db_connection):
         "学生": ["学习", "论文", "PPT", "编程入门", "效率", "AI", "写作"],
         "前端开发": ["前端", "Vue", "React", "JavaScript", "代码", "编程", "开发", "AI"],
         "后端开发": ["后端", "Python", "Flask", "API", "数据库", "代码", "编程", "AI"],
+        "AI 应用开发": ["AI", "AIGC", "智能体", "API", "应用开发", "代码", "编程"],
+        "大模型工程师": ["大模型", "LLM", "模型", "RAG", "向量", "Prompt", "AI", "Python"],
         "产品经理": ["产品", "原型", "需求", "文档", "流程图", "数据分析", "AI"],
         "UI/UX 设计师": ["设计", "UI", "UX", "Figma", "图标", "图片", "绘图", "AI"],
         "运营": ["运营", "文案", "内容", "数据分析", "增长", "办公", "AI"],
+        "技术运营": ["技术运营", "监控", "自动化", "部署", "数据分析", "AI"],
         "教师": ["教学", "课件", "PPT", "学习", "题库", "教育", "AI"],
         "自媒体创作者": ["写作", "视频", "剪辑", "图片", "内容创作", "AIGC", "AI"],
         "数据分析师": ["数据分析", "可视化", "Python", "SQL", "报表", "AI"],
@@ -487,9 +581,12 @@ def register_v1_routes(app, get_db_connection):
         "学生": ["ChatGPT", "Kimi", "Perplexity", "Poe", "Notion", "ProcessOn", "Bilibili", "Coursera"],
         "前端开发": ["GitHub", "MDN Web Docs", "Vue 官方文档", "Stack Overflow", "Vercel", "CodePen", "ChatGPT"],
         "后端开发": ["GitHub", "Flask 官方文档", "Postman", "Stack Overflow", "Docker", "LeetCode", "ChatGPT"],
+        "AI 应用开发": ["OpenAI", "Hugging Face", "GitHub", "LangChain", "Vercel", "ChatGPT"],
+        "大模型工程师": ["Hugging Face", "GitHub", "Kaggle", "Jupyter", "OpenAI", "ChatGPT"],
         "产品经理": ["Notion", "ProcessOn", "飞书", "Figma", "Trello", "ChatGPT"],
         "UI/UX 设计师": ["Figma", "Canva", "Iconfont", "Unsplash", "Midjourney", "Dribbble", "Runway"],
         "运营": ["ChatGPT", "Canva", "Notion", "飞书", "ProcessOn", "豆包"],
+        "技术运营": ["GitHub", "Docker", "Grafana", "Postman", "Notion", "ChatGPT"],
         "教师": ["ChatGPT", "Kimi", "Canva", "ProcessOn", "Bilibili", "Coursera"],
         "自媒体创作者": ["ChatGPT", "Canva", "Runway", "Midjourney", "豆包", "Bilibili"],
         "数据分析师": ["Kaggle", "Tableau", "Power BI", "Jupyter", "Python", "SQL", "ChatGPT"],
@@ -499,9 +596,12 @@ def register_v1_routes(app, get_db_connection):
         "学生": "适合学习、论文写作和知识整理。",
         "前端开发": "适合前端开发、代码学习和项目构建。",
         "后端开发": "适合后端开发、接口调试和代码辅助。",
+        "AI 应用开发": "适合 AI 应用搭建、接口集成和智能体开发。",
+        "大模型工程师": "适合模型研发、RAG 构建和大模型工程实践。",
         "产品经理": "适合需求分析、产品文档和流程梳理。",
         "UI/UX 设计师": "适合界面设计、素材查找和创意生成。",
         "运营": "适合内容运营、文案生成和数据分析。",
+        "技术运营": "适合监控分析、流程自动化和技术支持。",
         "教师": "适合课件制作、教学设计和资料整理。",
         "自媒体创作者": "适合内容创作、视频脚本和图片生成。",
         "数据分析师": "适合数据分析、报表整理和效率提升。",
@@ -655,16 +755,32 @@ def register_v1_routes(app, get_db_connection):
         return items[:limit]
 
     def query_career_sites(occupation, limit=8, ai_only=False, exclude_ids=None, rules=None):
-        occupation = str(occupation or "").strip()
+        raw_occupation = str(occupation or "").strip()
+        canonical_occupation = normalize_occupation(raw_occupation)
+        occupation_label = get_occupation_label(canonical_occupation)
         exclude_ids = exclude_ids or []
         rules = rules or {}
-        if not occupation:
+        if not canonical_occupation or not occupation_label:
             return []
-        configured_keywords = (rules.get("occupation_site_weights") or {}).get(occupation)
-        keywords = configured_keywords or career_ai_keywords.get(occupation, career_ai_keywords["其他"])
-        preferred_names = career_preferred_names.get(occupation, career_preferred_names["其他"])
+
+        def occupation_rule(mapping):
+            for key in (canonical_occupation, occupation_label, raw_occupation):
+                if key in mapping:
+                    return mapping[key]
+            for key, value in mapping.items():
+                if normalize_occupation(key) == canonical_occupation:
+                    return value
+            return None
+
+        configured_keywords = occupation_rule(
+            rules.get("occupation_site_weights") or {}
+        )
+        keywords = configured_keywords or career_ai_keywords[occupation_label]
+        preferred_names = career_preferred_names[occupation_label]
         resource_keywords = list(dict.fromkeys(ai_keywords + fallback_keywords + keywords))
-        reason = (rules.get("reason_templates") or {}).get(occupation) or career_reasons.get(occupation, career_reasons["其他"])
+        reason = occupation_rule(
+            rules.get("reason_templates") or {}
+        ) or career_reasons[occupation_label]
         blacklist = [str(item).lower() for item in (rules.get("blacklist") or [])]
         candidates = query_resource_sites(
             limit=max(limit * 8, 40),
@@ -690,7 +806,11 @@ def register_v1_routes(app, get_db_connection):
             text = site_text(site)
             if any(keyword in text for keyword in blacklist):
                 continue
-            exact_occupation = occupation in (site.get("occupations") or [])
+            site_occupation_values = site.get("occupations") or []
+            exact_occupation = occupation_label in site_occupation_values or any(
+                normalize_occupation(value) == canonical_occupation
+                for value in site_occupation_values
+            )
             keyword_hits = sum(1 for keyword in keywords if keyword.lower() in text)
             name = str(site.get("name") or "").lower()
             preferred_index = next(
@@ -838,6 +958,71 @@ def register_v1_routes(app, get_db_connection):
         occupations = site_occupations(ids)
         return [normalize_site(row, tags.get(row["id"], []), occupations.get(row["id"], [])) for row in rows]
 
+    def count_sites(category_id=None, keyword=None, tag=None, is_free=None, region=None):
+        """Count the same filtered site set used by /api/sites without loading cards."""
+        website_columns = table_columns("websites")
+        category_columns = table_columns("categories")
+        where = []
+        params = []
+        joins = "LEFT JOIN categories c ON c.id = w.category_id"
+        if "status" in website_columns:
+            where.append("COALESCE(w.status, 'approved') IN ('approved', 'active')")
+        if category_id:
+            category_value = str(category_id).strip()
+            if category_value.isdigit():
+                if "parent_id" in category_columns:
+                    where.append("(w.category_id=%s OR c.parent_id=%s)")
+                    params.extend([int(category_value), int(category_value)])
+                else:
+                    where.append("w.category_id=%s")
+                    params.append(int(category_value))
+            elif "name" in category_columns:
+                if "parent_id" in category_columns:
+                    joins += " LEFT JOIN categories pc ON pc.id=c.parent_id"
+                    where.append("(c.name=%s OR pc.name=%s)")
+                    params.extend([category_value, category_value])
+                else:
+                    where.append("c.name=%s")
+                    params.append(category_value)
+        if keyword:
+            search_fields = []
+            for column in ("name", "summary", "description", "url"):
+                if column in website_columns:
+                    search_fields.append(f"w.{column} LIKE %s")
+            if "name" in category_columns:
+                search_fields.append("c.name LIKE %s")
+            if table_columns("site_tags"):
+                joins += " LEFT JOIN site_tags st_search ON st_search.site_id=w.id LEFT JOIN tags t_search ON t_search.id=st_search.tag_id"
+                search_fields.append("t_search.name LIKE %s")
+            if search_fields:
+                where.append(f"({' OR '.join(search_fields)})")
+                params.extend([f"%{keyword}%"] * len(search_fields))
+        if tag:
+            joins += " LEFT JOIN site_tags st_filter ON st_filter.site_id=w.id LEFT JOIN tags t_filter ON t_filter.id=st_filter.tag_id"
+            where.append("t_filter.name=%s")
+            params.append(tag)
+        if "is_free" in website_columns and is_free in ("free", "1", "true", True):
+            where.append("COALESCE(w.is_free, 1)=1")
+        elif "is_free" in website_columns and is_free in ("paid", "0", "false", False):
+            where.append("COALESCE(w.is_free, 1)=0")
+        if region and "region" in website_columns:
+            where.append("w.region=%s")
+            params.append(region)
+        where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"SELECT COUNT(DISTINCT w.id) AS total FROM websites w {joins} {where_sql}",
+                    params,
+                )
+                row = cursor.fetchone() or {}
+                return int(row.get("total") or 0)
+        except Exception:
+            return 0
+        finally:
+            conn.close()
+
     @app.route("/api/auth/logout", methods=["POST"])
     @jwt_required(optional=True)
     def v1_logout():
@@ -906,6 +1091,10 @@ def register_v1_routes(app, get_db_connection):
         if not user:
             return api_error("user not found", 404, 404)
         data = request.get_json(silent=True) or {}
+        raw_occupation = data.get("occupation")
+        occupation = normalize_occupation(raw_occupation)
+        if raw_occupation and not occupation:
+            return api_error("invalid occupation", 400, 400)
         interests = data.get("interests") or []
         preferences = data.get("preferences") or []
         purposes = data.get("purposes") or data.get("purpose") or []
@@ -919,7 +1108,7 @@ def register_v1_routes(app, get_db_connection):
                     ON DUPLICATE KEY UPDATE occupation=VALUES(occupation), skill_level=VALUES(skill_level),
                     interests=VALUES(interests), preferences=VALUES(preferences), purposes=VALUES(purposes)
                     """,
-                    (user["id"], data.get("occupation"), data.get("skill_level"), json.dumps(interests, ensure_ascii=False), json.dumps(preferences, ensure_ascii=False), json.dumps(purposes, ensure_ascii=False)),
+                    (user["id"], occupation, data.get("skill_level"), json.dumps(interests, ensure_ascii=False), json.dumps(preferences, ensure_ascii=False), json.dumps(purposes, ensure_ascii=False)),
                 )
                 cursor.execute(
                     "UPDATE users SET questionnaire_completed=1, has_survey=1, user_tags=%s, interests=%s WHERE id=%s",
@@ -955,6 +1144,120 @@ def register_v1_routes(app, get_db_connection):
             "questionnaire_completed": bool(user.get("questionnaire_completed") or user.get("has_survey")),
         })
 
+    @app.route("/api/career/recommend", methods=["GET"])
+    @app.route("/api/career/recommendations", methods=["GET"])
+    @jwt_required()
+    def v1_career_recommendations():
+        """Build the logged-in user's career and website recommendations."""
+        user = current_user_row()
+        if not user:
+            return api_error("user not found", 404, 404)
+
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM user_profiles WHERE user_id=%s", (user["id"],))
+                profile_row = cursor.fetchone() or {}
+        finally:
+            conn.close()
+
+        profile = {
+            "occupation": normalize_occupation(profile_row.get("occupation")),
+            "skill_level": profile_row.get("skill_level") or "",
+            "interests": parse_json_list(profile_row.get("interests") or user.get("interests")),
+            "preferences": parse_json_list(profile_row.get("preferences")),
+            "purposes": parse_json_list(profile_row.get("purposes")),
+        }
+        completed = bool(
+            user.get("questionnaire_completed")
+            or user.get("has_survey")
+            or profile.get("occupation")
+            or profile.get("interests")
+        )
+        if not completed:
+            return api_success(
+                {
+                    "questionnaire_completed": False,
+                    "profile": profile,
+                    "ability_tags": [],
+                    "interest_tags": [],
+                    "careers": [],
+                    "selected_career": "",
+                    "websites": [],
+                }
+            )
+
+        config = load_json_setting("questionnaire_config", default_questionnaire_config())
+        questionnaire_options = questionnaire_options_from_config(config)
+        careers = build_career_recommendations(
+            profile,
+            questionnaire_options.get("occupations") or list(OCCUPATION_LABELS),
+            questionnaire_options.get("occupation_tag_map"),
+            limit=5,
+        )
+
+        source_sites = query_sites(limit=1000, sort="recommend")
+        recommend_rules = load_json_setting("recommend_rules", default_recommend_rules())
+        profile_interest_values = list(profile["interests"]) + list(profile["purposes"])
+        for career in careers:
+            career_code = career["code"]
+            career_label = career["label"]
+            configured_keywords = (recommend_rules.get("occupation_site_weights") or {}).get(career_code)
+            career_keywords = [
+                str(keyword).casefold()
+                for keyword in (configured_keywords or career_ai_keywords.get(career_label, []))
+                if str(keyword).strip()
+            ]
+            career_candidates = filter_sites_for_career(
+                source_sites,
+                career_code,
+                career_keywords,
+            )
+            ranked_sites = rank_sites(
+                career_candidates,
+                {
+                    "occupation": career_code,
+                    "interests": profile_interest_values,
+                },
+                limit=10,
+                rules=recommend_rules,
+            )
+            for site in ranked_sites:
+                site["career_code"] = career_code
+                site["career_codes"] = [career_code]
+                site["career_label"] = career_label
+                site["career_match_score"] = career["match_score"]
+                site["recommendation_reason"] = site.get("reason") or career["reason"]
+                site["reason"] = f"{career_label}：{site['recommendation_reason']}"
+            career["careerCode"] = career_code
+            career["careerName"] = career_label
+            career["score"] = career["match_score"]
+            career["sites"] = ranked_sites
+            career["websites"] = ranked_sites
+
+        selected_career = careers[0] if careers else None
+        ability_tags = []
+        if profile.get("skill_level"):
+            ability_tags.append(profile["skill_level"])
+        if profile.get("occupation"):
+            ability_tags.append(get_occupation_label(profile["occupation"]))
+        return api_success(
+            {
+                "questionnaire_completed": True,
+                "questionnaire_version": str(
+                    profile_row.get("updated_at")
+                    or profile_row.get("created_at")
+                    or "current"
+                ),
+                "profile": profile,
+                "ability_tags": list(dict.fromkeys(ability_tags)),
+                "interest_tags": list(dict.fromkeys(profile["interests"] + profile["purposes"])),
+                "careers": careers,
+                "selected_career": selected_career["code"] if selected_career else "",
+                "websites": selected_career.get("websites", []) if selected_career else [],
+            }
+        )
+
     @app.route("/api/user/profile-tags", methods=["GET"])
     @jwt_required()
     def v1_profile_tags():
@@ -971,6 +1274,7 @@ def register_v1_routes(app, get_db_connection):
         icon_expr = "icon" if "icon" in category_columns else "'' AS icon"
         sort_expr = "sort_order" if "sort_order" in category_columns else "0 AS sort_order"
         status_expr = "status" if "status" in category_columns else "'active' AS status"
+        code_expr = "code" if "code" in category_columns else "NULL AS code"
         where_sql = "WHERE COALESCE(status, 'active')='active'" if "status" in category_columns else ""
         order_sql = "COALESCE(parent_id, 0), sort_order, id" if "parent_id" in category_columns else "sort_order, id"
         conn = get_db_connection()
@@ -978,7 +1282,7 @@ def register_v1_routes(app, get_db_connection):
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"""
-                    SELECT id, {parent_expr}, name, {icon_expr}, {sort_expr}, {status_expr}
+                    SELECT id, {parent_expr}, name, {icon_expr}, {sort_expr}, {status_expr}, {code_expr}
                     FROM categories
                     {where_sql}
                     ORDER BY {order_sql}
@@ -987,6 +1291,13 @@ def register_v1_routes(app, get_db_connection):
                 rows = cursor.fetchall()
         finally:
             conn.close()
+        for row in rows:
+            code = row.get("code") or category_code_for_name(row.get("name"))
+            row["code"] = code
+            row["category_code"] = code
+            row["categoryCode"] = code
+            row["categoryName"] = row.get("name")
+            row["description"] = row.get("description") or f"浏览{row.get('name') or '该分类'}下收录的网站资源。"
         return api_success(categories_with_children(rows))
 
     @app.route("/api/categories/<int:category_id>", methods=["GET"])
@@ -1023,18 +1334,81 @@ def register_v1_routes(app, get_db_connection):
             request.args.get("per_page", request.args.get("page_size", 20, type=int), type=int),
             type=int,
         ), 100))
+        category_id = clean_arg(request.args.get("category_id")) or clean_arg(request.args.get("category"))
+        category_code = clean_arg(request.args.get("category_code")) or clean_arg(request.args.get("categoryCode"))
+        if category_code and not category_id:
+            category_columns = table_columns("categories")
+            code_expr = "code" if "code" in category_columns else "NULL AS code"
+            category_status = "status IS NULL OR status='active'" if "status" in category_columns else "1=1"
+            conn = get_db_connection()
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(f"SELECT id, name, {code_expr} FROM categories WHERE {category_status}")
+                    category_rows = cursor.fetchall()
+            except Exception:
+                category_rows = []
+            finally:
+                conn.close()
+            matched = next(
+                (
+                    row
+                    for row in category_rows
+                    if str(row.get("code") or category_code_for_name(row.get("name"))).lower()
+                    == str(category_code).lower()
+                ),
+                None,
+            )
+            if matched:
+                category_id = matched.get("id")
+        keyword = clean_arg(request.args.get("q")) or clean_arg(request.args.get("keyword"))
+        tag = clean_arg(request.args.get("tag"))
+        is_free = clean_arg(request.args.get("is_free"))
+        region = clean_arg(request.args.get("region"))
         items = query_sites(
             limit=per_page,
             offset=max(page - 1, 0) * per_page,
-            category_id=clean_arg(request.args.get("category_id")) or clean_arg(request.args.get("category")),
-            keyword=clean_arg(request.args.get("q")) or clean_arg(request.args.get("keyword")),
-            tag=clean_arg(request.args.get("tag")),
-            is_free=clean_arg(request.args.get("is_free")),
-            region=clean_arg(request.args.get("region")),
+            category_id=category_id,
+            keyword=keyword,
+            tag=tag,
+            is_free=is_free,
+            region=region,
             sort=clean_arg(request.args.get("sort")) or "recommend",
             exclude_ids=parse_id_list(request.args.get("exclude_ids")),
         )
-        return api_success({"items": items, "page": page, "per_page": per_page})
+        total = count_sites(
+            category_id=category_id,
+            keyword=keyword,
+            tag=tag,
+            is_free=is_free,
+            region=region,
+        )
+        total_pages = (total + per_page - 1) // per_page if total else 0
+        pagination = {
+            "page": page,
+            "pageSize": per_page,
+            "total": total,
+            "totalPages": total_pages,
+            "hasMore": page < total_pages,
+        }
+        return api_success(
+            {
+                "items": items,
+                "page": page,
+                "pageSize": per_page,
+                "per_page": per_page,
+                "total": total,
+                "total_count": total,
+                "totalPages": total_pages,
+                "hasMore": page < total_pages,
+                "pagination": pagination,
+                "category": {
+                    "code": category_code,
+                    "id": category_id,
+                }
+                if category_code or category_id
+                else None,
+            }
+        )
 
     @app.route("/api/sites/random", methods=["GET"])
     def v1_random_sites():
@@ -1279,16 +1653,49 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/favorites", methods=["GET"])
     @jwt_required()
     def v1_favorites():
-        user = current_user_row()
+        started_at = perf_counter()
+        try:
+            user = current_user_row()
+        except Exception:
+            app.logger.exception("favorites user lookup failed")
+            return api_error(
+                "收藏服务暂时不可用，请稍后重试",
+                "DATABASE_UNAVAILABLE",
+                503,
+            )
         if not user:
             return api_error("登录状态已失效，请重新登录", 401, 401)
-        conn = get_db_connection()
+        try:
+            conn = get_db_connection()
+        except Exception:
+            app.logger.exception("favorites database connection failed")
+            return api_error(
+                "收藏服务暂时不可用，请稍后重试",
+                "DATABASE_UNAVAILABLE",
+                503,
+            )
         try:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT w.*, c.name AS category_name, f.note FROM favorites f JOIN websites w ON w.id=f.site_id LEFT JOIN categories c ON c.id=w.category_id WHERE f.user_id=%s ORDER BY f.created_at DESC", (user["id"],))
+                cursor.execute(
+                    """
+                    SELECT
+                        w.id, w.name, w.url, w.logo_url, w.summary, w.description,
+                        w.category_id, w.is_free, w.need_login, w.region,
+                        w.quality_score, w.recommend_level, w.click_count, w.clicks,
+                        w.favorite_count, w.rating_avg, w.status, w.created_at,
+                        w.updated_at, c.name AS category_name, f.note,
+                        f.id AS favorite_id, f.created_at AS favorited_at
+                    FROM favorites f
+                    JOIN websites w ON w.id = f.site_id
+                    LEFT JOIN categories c ON c.id = w.category_id
+                    WHERE f.user_id = %s
+                    ORDER BY f.created_at DESC
+                    """,
+                    (user["id"],),
+                )
                 rows = cursor.fetchall()
-        except Exception as exc:
-            app.logger.error("favorites list query failed (error_type=%s)", type(exc).__name__)
+        except Exception:
+            app.logger.exception("favorites list query failed")
             return api_error("收藏加载失败，请稍后重试", 500, 500)
         finally:
             conn.close()
@@ -1300,63 +1707,417 @@ def register_v1_routes(app, get_db_connection):
             item = normalize_site(row, tags.get(row["id"], []), occupations.get(row["id"], []))
             item["note"] = row.get("note")
             item["is_favorited"] = True
+            item["favoriteId"] = row.get("favorite_id")
+            item["siteId"] = row["id"]
+            item["logoUrl"] = row.get("logo_url") or ""
+            item["categoryName"] = row.get("category_name") or ""
+            item["favoritedAt"] = row.get("favorited_at")
+            item["updatedAt"] = row.get("updated_at")
             items.append(item)
+        app.logger.info(
+            "Favorites loaded",
+            extra={
+                "user_id": user["id"],
+                "count": len(items),
+                "duration_ms": round((perf_counter() - started_at) * 1000, 2),
+            },
+        )
         return api_success(items)
+
+    def resolve_favorite_site_id(cursor, data):
+        raw_site_id = data.get("site_id") or data.get("siteId") or data.get("id")
+        site_id = str(raw_site_id or "").strip()
+        if site_id.isdigit():
+            cursor.execute("SELECT id FROM websites WHERE id=%s LIMIT 1", (int(site_id),))
+            return int(site_id) if cursor.fetchone() else None
+
+        raw_url = data.get("url") or data.get("website_url") or data.get("link")
+        url = str(raw_url or "").strip()
+        if not url:
+            return None
+
+        try:
+            parsed_url = urlsplit(url if "://" in url else f"https://{url}")
+            parsed_hostname = parsed_url.hostname
+            parsed_url.port
+        except ValueError:
+            return None
+        hostname = (parsed_hostname or "").lower().removeprefix("www.")
+        if not hostname:
+            return None
+        port = f":{parsed_url.port}" if parsed_url.port else ""
+        path = parsed_url.path.rstrip("/") or "/"
+        url_key = f"{hostname}{port}{path}"
+        if parsed_url.query:
+            url_key += f"?{parsed_url.query}"
+
+        without_trailing_slash = url.rstrip("/")
+        host_patterns = (
+            f"https://{hostname}%",
+            f"http://{hostname}%",
+            f"https://www.{hostname}%",
+            f"http://www.{hostname}%",
+        )
+        cursor.execute(
+            """
+            SELECT id, url
+            FROM websites
+            WHERE LOWER(url) IN (LOWER(%s), LOWER(%s))
+               OR LOWER(url) LIKE LOWER(%s)
+               OR LOWER(url) LIKE LOWER(%s)
+               OR LOWER(url) LIKE LOWER(%s)
+               OR LOWER(url) LIKE LOWER(%s)
+            LIMIT 20
+            """,
+            (url, without_trailing_slash, *host_patterns),
+        )
+        for row in cursor.fetchall() or []:
+            stored_url = str(row.get("url") or "").strip()
+            parsed_stored_url = urlsplit(
+                stored_url if "://" in stored_url else f"https://{stored_url}"
+            )
+            stored_hostname = (parsed_stored_url.hostname or "").lower().removeprefix(
+                "www."
+            )
+            stored_port = f":{parsed_stored_url.port}" if parsed_stored_url.port else ""
+            stored_path = parsed_stored_url.path.rstrip("/") or "/"
+            stored_key = f"{stored_hostname}{stored_port}{stored_path}"
+            if parsed_stored_url.query:
+                stored_key += f"?{parsed_stored_url.query}"
+            if stored_key == url_key:
+                return int(row["id"])
+        return None
+
+    def favorite_reference_error(data):
+        raw_site_id = data.get("site_id") or data.get("siteId") or data.get("id")
+        raw_url = data.get("url") or data.get("website_url") or data.get("link")
+        if raw_site_id and not str(raw_site_id).strip().isdigit():
+            return api_error("网站信息不完整，暂时无法收藏", "INVALID_SITE", 422)
+        if not str(raw_url or "").strip():
+            return api_error("网站信息不完整，暂时无法收藏", "INVALID_SITE", 422)
+        try:
+            parsed_url = urlsplit(
+                str(raw_url).strip()
+                if "://" in str(raw_url).strip()
+                else f"https://{str(raw_url).strip()}"
+            )
+            hostname = parsed_url.hostname
+            parsed_url.port
+        except ValueError:
+            hostname = None
+        if not hostname:
+            return api_error("网站信息不完整，暂时无法收藏", "INVALID_SITE", 422)
+        return api_error("该网站尚未录入资源库", "SITE_NOT_FOUND", 404)
+
+    def safe_rollback(conn):
+        if conn is None or not hasattr(conn, "rollback"):
+            return
+        try:
+            conn.rollback()
+        except Exception:
+            app.logger.warning("favorite transaction rollback failed")
+
+    def safe_close(conn):
+        if conn is None:
+            return
+        try:
+            conn.close()
+        except Exception:
+            app.logger.warning("favorite database connection close failed")
+
+    def is_duplicate_favorite_error(error):
+        error_args = getattr(error, "args", ()) or ()
+        return (
+            any(str(value) == "1062" for value in error_args)
+            or "duplicate entry" in str(error).lower()
+            or "duplicate key" in str(error).lower()
+            or "unique constraint" in str(error).lower()
+        )
+
+    def favorite_database_error(action, error, conn=None):
+        safe_rollback(conn)
+        app.logger.exception(
+            "favorite_%s database operation failed error_type=%s",
+            action,
+            type(error).__name__,
+        )
+        return api_error(
+            "收藏服务暂时不可用，请稍后重试",
+            "FAVORITE_DATABASE_ERROR",
+            503,
+        )
+
+    def favorite_user_or_error():
+        try:
+            user = current_user_row()
+        except Exception as error:
+            return None, favorite_database_error("auth", error)
+        if not user:
+            return None, api_error("请先登录后操作收藏", "AUTH_REQUIRED", 401)
+        return user, None
+
+    def favorite_record_payload(favorite_id, site_id):
+        return {
+            "id": favorite_id,
+            "favoriteId": favorite_id,
+            "favorite_id": favorite_id,
+            "siteId": site_id,
+            "site_id": site_id,
+        }
+
+    def insert_favorite(user_id, site_id, note, has_favorite_count, timing):
+        try:
+            conn = get_db_connection()
+        except Exception as error:
+            return None, False, favorite_database_error("add", error)
+
+        inserted = False
+        favorite_id = None
+        try:
+            with conn.cursor() as cursor:
+                timing["favorite_lookup_started"] = perf_counter()
+                cursor.execute(
+                    "SELECT id FROM favorites WHERE user_id=%s AND site_id=%s LIMIT 1",
+                    (user_id, site_id),
+                )
+                existing = cursor.fetchone()
+                timing["favorite_lookup_finished"] = perf_counter()
+                if existing:
+                    favorite_id = existing.get("id")
+                else:
+                    try:
+                        cursor.execute(
+                            "INSERT INTO favorites (user_id, site_id, note) VALUES (%s,%s,%s)",
+                            (user_id, site_id, note),
+                        )
+                    except Exception as error:
+                        if not is_duplicate_favorite_error(error):
+                            raise
+                        safe_rollback(conn)
+                        cursor.execute(
+                            "SELECT id FROM favorites WHERE user_id=%s AND site_id=%s LIMIT 1",
+                            (user_id, site_id),
+                        )
+                        existing = cursor.fetchone()
+                        if not existing:
+                            raise
+                        favorite_id = existing.get("id")
+                    else:
+                        inserted = True
+                        favorite_id = getattr(cursor, "lastrowid", None)
+                        if has_favorite_count:
+                            cursor.execute(
+                                "UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s",
+                                (site_id,),
+                            )
+                        if favorite_id is None:
+                            cursor.execute(
+                                "SELECT id FROM favorites WHERE user_id=%s AND site_id=%s LIMIT 1",
+                                (user_id, site_id),
+                            )
+                            created_record = cursor.fetchone()
+                            favorite_id = created_record.get("id") if created_record else None
+                timing["favorite_lookup_finished"] = perf_counter()
+            timing["commit_started"] = perf_counter()
+            conn.commit()
+            timing["commit_finished"] = perf_counter()
+            return favorite_id, inserted, None
+        except Exception as error:
+            return None, False, favorite_database_error("add", error, conn)
+        finally:
+            safe_close(conn)
+
+    def delete_favorite(user_id, site_id, has_favorite_count, timing):
+        try:
+            conn = get_db_connection()
+        except Exception as error:
+            return False, favorite_database_error("remove", error)
+
+        removed = False
+        try:
+            with conn.cursor() as cursor:
+                timing["favorite_lookup_started"] = perf_counter()
+                cursor.execute(
+                    "DELETE FROM favorites WHERE user_id=%s AND site_id=%s",
+                    (user_id, site_id),
+                )
+                removed = bool(cursor.rowcount)
+                timing["favorite_lookup_finished"] = perf_counter()
+                if removed and has_favorite_count:
+                    cursor.execute(
+                        "UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s",
+                        (site_id,),
+                    )
+            timing["commit_started"] = perf_counter()
+            conn.commit()
+            timing["commit_finished"] = perf_counter()
+            return removed, None
+        except Exception as error:
+            return False, favorite_database_error("remove", error, conn)
+        finally:
+            safe_close(conn)
+
+    @app.route("/api/favorites", methods=["POST"])
+    @jwt_required()
+    def v1_add_favorite_by_reference():
+        timing = {"started": perf_counter()}
+        user, user_error = favorite_user_or_error()
+        timing["auth_finished"] = perf_counter()
+        if user_error:
+            return user_error
+        data = request.get_json(silent=True) or {}
+        timing["schema_started"] = perf_counter()
+        has_favorite_count = "favorite_count" in table_columns("websites")
+        timing["schema_finished"] = perf_counter()
+        conn = None
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                timing["site_lookup_started"] = perf_counter()
+                site_id = resolve_favorite_site_id(cursor, data)
+                timing["site_lookup_finished"] = perf_counter()
+        except Exception as error:
+            return favorite_database_error("add", error, conn)
+        finally:
+            safe_close(conn)
+        if not site_id:
+            return favorite_reference_error(data)
+        favorite_id, inserted, database_error = insert_favorite(
+            user["id"], site_id, data.get("note"), has_favorite_count, timing
+        )
+        if database_error:
+            return database_error
+        log_favorite_timing("add", timing, site_id)
+        return api_success(
+            {
+                "favorited": True,
+                "created": inserted,
+                "alreadyExists": not inserted,
+                "site_id": site_id,
+                "favorite": favorite_record_payload(favorite_id, site_id),
+            }
+        )
+
+    @app.route("/api/favorites", methods=["DELETE"])
+    @jwt_required()
+    def v1_remove_favorite_by_reference():
+        timing = {"started": perf_counter()}
+        user, user_error = favorite_user_or_error()
+        timing["auth_finished"] = perf_counter()
+        if user_error:
+            return user_error
+        data = request.get_json(silent=True) or {}
+        timing["schema_started"] = perf_counter()
+        has_favorite_count = "favorite_count" in table_columns("websites")
+        timing["schema_finished"] = perf_counter()
+        conn = None
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                timing["site_lookup_started"] = perf_counter()
+                site_id = resolve_favorite_site_id(cursor, data)
+                timing["site_lookup_finished"] = perf_counter()
+        except Exception as error:
+            return favorite_database_error("remove", error, conn)
+        finally:
+            safe_close(conn)
+        if not site_id:
+            return favorite_reference_error(data)
+        removed, database_error = delete_favorite(
+            user["id"], site_id, has_favorite_count, timing
+        )
+        if database_error:
+            return database_error
+        log_favorite_timing("remove", timing, site_id)
+        return api_success(
+            {
+                "favorited": False,
+                "removed": removed,
+                "alreadyRemoved": not removed,
+                "site_id": site_id,
+            }
+        )
 
     @app.route("/api/sites/<int:site_id>/favorite", methods=["POST"])
     @jwt_required()
     def v1_add_favorite(site_id):
-        user = current_user_row()
-        if not user:
-            return api_error("登录状态已失效，请重新登录", 401, 401)
+        timing = {"started": perf_counter()}
+        user, user_error = favorite_user_or_error()
+        timing["auth_finished"] = perf_counter()
+        if user_error:
+            return user_error
         data = request.get_json(silent=True) or {}
+        timing["schema_started"] = perf_counter()
         has_favorite_count = "favorite_count" in table_columns("websites")
-        inserted = False
-        conn = get_db_connection()
+        timing["schema_finished"] = perf_counter()
+        conn = None
         try:
+            conn = get_db_connection()
             with conn.cursor() as cursor:
+                timing["site_lookup_started"] = perf_counter()
                 cursor.execute("SELECT id FROM websites WHERE id=%s LIMIT 1", (site_id,))
-                if not cursor.fetchone():
-                    return api_error("网站不存在", 404, 404)
-                cursor.execute(
-                    "SELECT id FROM favorites WHERE user_id=%s AND site_id=%s LIMIT 1",
-                    (user["id"], site_id),
-                )
-                if not cursor.fetchone():
-                    cursor.execute(
-                        "INSERT INTO favorites (user_id, site_id, note) VALUES (%s,%s,%s)",
-                        (user["id"], site_id, data.get("note")),
-                    )
-                    inserted = True
-                    if has_favorite_count:
-                        cursor.execute("UPDATE websites SET favorite_count=COALESCE(favorite_count,0)+1 WHERE id=%s", (site_id,))
-            conn.commit()
+                website = cursor.fetchone()
+                timing["site_lookup_finished"] = perf_counter()
+        except Exception as error:
+            return favorite_database_error("add", error, conn)
         finally:
-            conn.close()
-        if inserted:
-            record_behavior(user.get("id"), site_id, "favorite")
-        return api_success({"favorited": True, "created": inserted})
+            safe_close(conn)
+        if not website:
+            return api_error("该网站尚未录入资源库", "SITE_NOT_FOUND", 404)
+        favorite_id, inserted, database_error = insert_favorite(
+            user["id"], site_id, data.get("note"), has_favorite_count, timing
+        )
+        if database_error:
+            return database_error
+        log_favorite_timing("add", timing, site_id)
+        return api_success(
+            {
+                "favorited": True,
+                "created": inserted,
+                "alreadyExists": not inserted,
+                "favorite": favorite_record_payload(favorite_id, site_id),
+            }
+        )
 
     @app.route("/api/sites/<int:site_id>/favorite", methods=["DELETE"])
     @jwt_required()
     def v1_remove_favorite(site_id):
-        user = current_user_row()
-        if not user:
-            return api_error("登录状态已失效，请重新登录", 401, 401)
+        timing = {"started": perf_counter()}
+        user, user_error = favorite_user_or_error()
+        timing["auth_finished"] = perf_counter()
+        if user_error:
+            return user_error
+        timing["schema_started"] = perf_counter()
         has_favorite_count = "favorite_count" in table_columns("websites")
-        removed = False
-        conn = get_db_connection()
+        timing["schema_finished"] = perf_counter()
+        conn = None
         try:
+            conn = get_db_connection()
             with conn.cursor() as cursor:
-                cursor.execute("DELETE FROM favorites WHERE user_id=%s AND site_id=%s", (user["id"], site_id))
-                if cursor.rowcount:
-                    removed = True
-                    if has_favorite_count:
-                        cursor.execute("UPDATE websites SET favorite_count=GREATEST(COALESCE(favorite_count,0)-1,0) WHERE id=%s", (site_id,))
-            conn.commit()
+                timing["site_lookup_started"] = perf_counter()
+                cursor.execute("SELECT id FROM websites WHERE id=%s LIMIT 1", (site_id,))
+                website = cursor.fetchone()
+                timing["site_lookup_finished"] = perf_counter()
+        except Exception as error:
+            return favorite_database_error("remove", error, conn)
         finally:
-            conn.close()
-        return api_success({"favorited": False, "removed": removed})
+            safe_close(conn)
+        if not website:
+            return api_error("该网站尚未录入资源库", "SITE_NOT_FOUND", 404)
+        removed, database_error = delete_favorite(
+            user["id"], site_id, has_favorite_count, timing
+        )
+        if database_error:
+            return database_error
+        log_favorite_timing("remove", timing, site_id)
+        return api_success(
+            {
+                "favorited": False,
+                "removed": removed,
+                "alreadyRemoved": not removed,
+                "site_id": site_id,
+            }
+        )
 
     @app.route("/api/sites/<int:site_id>/favorite", methods=["PUT"])
     @jwt_required()

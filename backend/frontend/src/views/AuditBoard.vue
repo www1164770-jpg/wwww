@@ -16,9 +16,14 @@
         <div class="card-content">
           <span class="source-badge">{{ site.source || "爬虫采集" }}</span>
           <h3 class="site-title">{{ site.name }}</h3>
-          <a :href="site.url" target="_blank" class="site-url">{{
-            site.url
-          }}</a>
+          <a
+            :href="site.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="site-url"
+          >
+            查看官网
+          </a>
           <p class="site-desc">{{ site.description }}</p>
         </div>
 

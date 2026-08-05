@@ -1,5 +1,7 @@
 # User Background Customization Implementation Plan
 
+> **Archived:** this historical plan predates the removal of the Authing integration; references to Authing below are no longer implementation requirements.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give each authenticated account a private background library and per-page background configuration, including overlay, blur, position, and scale.

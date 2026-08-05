@@ -30,21 +30,21 @@
           <SiteList
             v-else
             :sites="sites"
-            :favorite-pending-ids="favoritePendingIds"
             empty-title="暂无搜索结果"
             empty-description="可以试试“AI工具 / 编程开发 / 设计资源 / 学习成长”"
-            @favorite="favorite"
             @visit="visit"
           />
         </section>
       </section>
     </main>
+    <AppFooter />
   </div>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -53,14 +53,12 @@ import SiteFilter from "../components/site/SiteFilter.vue";
 import SiteList from "../components/site/SiteList.vue";
 import {
   categoryAPI,
-  favoriteAPI,
   searchAPI,
   siteAPI,
   tagAPI,
   unwrapResponse,
 } from "../utils/api";
-import { getAccessToken } from "../utils/auth";
-import { errorToast, successToast } from "../utils/toast";
+import { errorToast } from "../utils/toast";
 
 const route = useRoute();
 const router = useRouter();
@@ -77,7 +75,6 @@ const categories = ref([]);
 const tags = ref([]);
 const loading = ref(false);
 const error = ref("");
-const favoritePendingIds = ref([]);
 
 function flattenCategories(value) {
   const source = Array.isArray(value)
@@ -118,32 +115,6 @@ async function search(value = keyword.value) {
     loading.value = false;
   }
 }
-async function favorite(site) {
-  if (!getAccessToken()) {
-    return router.push({ path: "/login", query: { redirect: route.fullPath } });
-  }
-  if (favoritePendingIds.value.includes(site.id)) return;
-  const wasFavorited = Boolean(site.is_favorited);
-  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
-  try {
-    if (wasFavorited) {
-      await favoriteAPI.removeFavorite(site.id);
-      site.is_favorited = false;
-      successToast("已取消收藏");
-    } else {
-      await favoriteAPI.addFavorite(site.id);
-      site.is_favorited = true;
-      successToast("已收藏");
-    }
-  } catch {
-    site.is_favorited = wasFavorited;
-    errorToast("操作失败，请稍后重试");
-  } finally {
-    favoritePendingIds.value = favoritePendingIds.value.filter(
-      (id) => id !== site.id,
-    );
-  }
-}
 async function visit(site) {
   await siteAPI.recordClick(site.id).catch(() => {});
   window.open(site.url, "_blank", "noopener,noreferrer");
@@ -179,11 +150,15 @@ main {
   display: grid;
   gap: 24px;
   width: min(1180px, calc(100% - 40px));
+  min-width: 0;
   margin: 48px auto 78px;
 }
 
 .search-hero {
   display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   gap: 18px;
   border-radius: 24px;
@@ -217,6 +192,7 @@ h1 {
 }
 
 .search-hero :deep(.search-bar) {
+  width: 100%;
   max-width: 780px;
 }
 

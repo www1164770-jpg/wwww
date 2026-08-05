@@ -35,7 +35,7 @@ const checks = [
   ["search button has a fixed desktop size", /\.search-button\s*\{[\s\S]*?flex:\s*0 0 64px[\s\S]*?width:\s*64px[\s\S]*?height:\s*62px/.test(searchBar)],
   ["engine menu is an opaque absolute overlay above its picker", /position:\s*relative/.test(enginePickerCss) && /position:\s*absolute/.test(engineMenuCss) && /top:\s*calc\(100% \+ 10px\)/.test(engineMenuCss) && /z-index:\s*1000/.test(engineMenuCss) && /background:\s*#ffffff/.test(engineMenuCss) && /width:\s*230px/.test(engineMenuCss) && /max-height:\s*260px/.test(engineMenuCss) && /overflow-y:\s*auto/.test(engineMenuCss)],
   ["hero receives the engine menu open state", /engineMenuOpen[\s\S]*?@engine-menu-change/.test(heroSearch)],
-  ["hero keeps its visible content structurally rendered", /<div class="hero-copy">[\s\S]*?<h1>[\s\S]*?<SearchBar[\s\S]*?hero-stats/.test(heroSearch)],
+  ["hero keeps its visible content structurally rendered", /<div class="hero-copy">[\s\S]*?<h1(?:\s[^>]*)?>[\s\S]*?<SearchBar[\s\S]*?hero-stats/.test(heroSearch)],
   ["hero keeps the reveal class while adding only the menu state", /<section\s+class="hero-search reveal-on-scroll"\s+:class="\{\s*'engine-menu-open': engineMenuOpen\s*\}"/.test(heroSearch)],
   ["hero menu state starts closed", /const engineMenuOpen\s*=\s*ref\(false\)/.test(heroSearch)],
   ["hero has a direct visible fallback when the observer has not run", /opacity:\s*1/.test(heroVisibleFallbackCss) && /transform:\s*none/.test(heroVisibleFallbackCss)],

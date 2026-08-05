@@ -1,7 +1,7 @@
 <template>
   <div class="auth-page">
     <form class="auth-panel" @submit.prevent="submit">
-      <RouterLink class="brand" to="/">智汇导航</RouterLink>
+      <RouterLink class="brand" to="/">知航屿</RouterLink>
       <div class="auth-heading">
         <p>开启个性化推荐</p>
         <h1>注册账号</h1>
@@ -18,6 +18,37 @@
           type="email"
           required
         />
+      </label>
+      <label>
+        邮箱验证码
+        <div class="verification-field">
+          <input
+            v-model.trim="verificationCode"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            placeholder="请输入邮箱验证码"
+            required
+          />
+          <button
+            class="send-code"
+            type="button"
+            :disabled="
+              isSendingCode || countdown > 0 || !isValidEmail(form.email)
+            "
+            @click="sendVerificationCode"
+          >
+            {{
+              isSendingCode
+                ? "发送中..."
+                : countdown > 0
+                  ? `${countdown}s 后重发`
+                  : "发送验证码"
+            }}
+          </button>
+        </div>
+        <span v-if="codeError" class="field-error">{{ codeError }}</span>
       </label>
       <label>
         密码
@@ -37,127 +68,218 @@
           required
         />
       </label>
-      <div class="code-row">
-        <label>
-          邮箱验证码
-          <input v-model.trim="form.code" required />
-        </label>
-        <button
-          type="button"
-          class="secondary"
-          :disabled="codeLoading || submitLoading"
-          @click="sendCode"
-        >
-          {{ codeLoading ? "发送中..." : "发送验证码" }}
-        </button>
-      </div>
       <label class="check">
         <input v-model="accepted" type="checkbox" />
         我已阅读并同意用户协议和隐私政策
       </label>
       <p v-if="message" :class="{ error: hasError, success: !hasError }">
         {{ message }}
+        <RouterLink v-if="showLoginLink" to="/login" class="inline-login-link"
+          >前往登录</RouterLink
+        >
       </p>
       <button type="submit" :disabled="submitLoading">
-        {{ submitLoading ? "处理中..." : "创建账号" }}
+        {{ submitLoading ? "正在创建…" : "创建账号" }}
       </button>
       <RouterLink class="switch-link" to="/login">
-        已有账号？去登录
+        已有账号？前往登录
       </RouterLink>
     </form>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { onBeforeUnmount, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { authAPI } from "../utils/api";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
-const form = reactive({ username: "", email: "", password: "", code: "" });
+const form = reactive({ username: "", email: "", password: "" });
 const confirmPassword = ref("");
+const verificationCode = ref("");
 const accepted = ref(false);
 const message = ref("");
 const hasError = ref(false);
-const codeLoading = ref(false);
 const submitLoading = ref(false);
+const isSendingCode = ref(false);
+const countdown = ref(0);
+const codeError = ref("");
+const showLoginLink = ref(false);
+let countdownTimer = null;
 
-function isEmail(value) {
+function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function setError(value) {
-  hasError.value = true;
-  message.value = value;
-  errorToast(value);
+function resetVerificationState() {
+  verificationCode.value = "";
+  codeError.value = "";
+  countdown.value = 0;
+  showLoginLink.value = false;
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
 }
 
-async function sendCode() {
-  if (codeLoading.value) return;
-  if (!isEmail(form.email)) {
-    setError("请输入正确的邮箱地址");
+function startCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdown.value = 60;
+  countdownTimer = setInterval(() => {
+    countdown.value -= 1;
+    if (countdown.value <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+  }, 1000);
+}
+
+function getVerificationErrorMessage(error) {
+  const code = error?.response?.data?.code;
+  const messages = {
+    EMAIL_REQUIRED: "请输入邮箱地址",
+    EMAIL_INVALID: "邮箱格式不正确",
+    EMAIL_ALREADY_REGISTERED: "该邮箱已注册，请直接登录",
+    CODE_RATE_LIMITED: "验证码发送过于频繁，请稍后再试",
+    RATE_LIMITED: "操作过于频繁，请稍后再试",
+    MAIL_CONFIG_MISSING: "邮件服务尚未完成配置，请联系管理员",
+    MAIL_NOT_CONFIGURED: "邮件服务尚未配置",
+    SMTP_DNS_FAILED: "无法解析邮件服务器地址",
+    SMTP_CONNECTION_TIMEOUT: "连接邮件服务器超时，请稍后重试",
+    SMTP_CONNECTION_FAILED: "邮件服务器连接失败，请稍后重试",
+    SMTP_SSL_FAILED: "邮件服务器安全连接失败，请联系管理员",
+    SMTP_AUTH_FAILED: "QQ 邮箱 SMTP 认证失败，请联系管理员检查授权码",
+    SMTP_SENDER_REJECTED: "发件邮箱被邮件服务器拒绝",
+    SMTP_RECIPIENT_REJECTED: "收件邮箱被邮件服务器拒绝",
+    SMTP_SEND_FAILED: "邮件发送失败，请稍后重试",
+    DATABASE_FAILED: "验证码服务暂不可用，请稍后重试",
+    MAIL_AUTH_FAILED: "邮件服务认证失败，请联系管理员检查 SMTP 授权码",
+    MAIL_CONNECTION_FAILED: "邮件服务器连接失败，请稍后重试",
+    MAIL_RECIPIENT_REJECTED: "收件邮箱被邮件服务器拒绝",
+    MAIL_SENDER_REJECTED: "发件邮箱被邮件服务器拒绝",
+    MAIL_SEND_FAILED: "邮件发送失败，请稍后重试",
+    VERIFICATION_STORAGE_UNAVAILABLE: "验证码服务暂不可用，请稍后重试",
+  };
+  return (
+    messages[code] ||
+    error?.response?.data?.message ||
+    "验证码发送失败，请稍后重试"
+  );
+}
+
+function getRegisterErrorMessage(error) {
+  const messages = {
+    USERNAME_REQUIRED: "请输入用户名",
+    USERNAME_INVALID: "用户名格式不正确",
+    USERNAME_EXISTS: "该用户名已被使用",
+    EMAIL_INVALID: "邮箱格式不正确",
+    EMAIL_ALREADY_REGISTERED: "该邮箱已注册，请直接登录",
+    PASSWORD_REQUIRED: "请输入密码",
+    PASSWORD_TOO_SHORT: "密码长度不足",
+    CODE_REQUIRED: "请输入邮箱验证码",
+    CODE_NOT_FOUND: "请先获取验证码",
+    CODE_INVALID: "验证码错误",
+    CODE_EXPIRED: "验证码已过期，请重新获取",
+    CODE_TOO_MANY_ATTEMPTS: "验证码错误次数过多，请重新获取",
+    CODE_ALREADY_USED: "验证码已使用，请重新获取",
+    REGISTRATION_UNAVAILABLE: "注册服务暂不可用，请稍后重试",
+    VERIFICATION_STORAGE_UNAVAILABLE: "验证码服务暂不可用，请稍后重试",
+    DATABASE_ERROR: "账号创建失败，请稍后重试",
+  };
+  const code = error?.response?.data?.code;
+  return (
+    messages[code] ||
+    error?.response?.data?.message ||
+    error?.response?.data?.msg ||
+    "注册失败，请稍后重试"
+  );
+}
+
+function isEmailAlreadyRegisteredError(error) {
+  return error?.response?.data?.code === "EMAIL_ALREADY_REGISTERED";
+}
+
+async function sendVerificationCode() {
+  if (isSendingCode.value || countdown.value > 0) return;
+  const email = form.email.trim().toLowerCase();
+  codeError.value = "";
+  if (!isValidEmail(email)) {
+    codeError.value = "请输入有效的邮箱地址";
     return;
   }
-  codeLoading.value = true;
-  hasError.value = false;
+
+  isSendingCode.value = true;
   try {
-    await authAPI.sendCode(form.email);
-    message.value = "验证码已发送";
-    successToast("验证码已发送");
-  } catch (err) {
-    hasError.value = true;
-    message.value = err.response?.data?.msg || "验证码发送失败，请稍后重试";
-    errorToast(message.value);
+    await authAPI.sendRegisterCode({ email });
+    startCountdown();
+    successToast("验证码已发送，请检查邮箱");
+  } catch (error) {
+    const code = error?.response?.data?.code;
+    if (code === "EMAIL_ALREADY_REGISTERED") {
+      showLoginLink.value = true;
+      codeError.value = "该邮箱已注册，请直接登录";
+    } else {
+      codeError.value = getVerificationErrorMessage(error);
+    }
+    errorToast(codeError.value);
   } finally {
-    codeLoading.value = false;
+    isSendingCode.value = false;
   }
+}
+
+function setError(value, loginLink = false) {
+  hasError.value = true;
+  message.value = value;
+  showLoginLink.value = loginLink;
+  errorToast(value);
 }
 
 async function submit() {
   if (submitLoading.value) return;
-  if (!form.username.trim()) {
-    setError("请输入用户名");
-    return;
+  if (!form.username.trim()) return setError("请输入用户名");
+  if (!isValidEmail(form.email)) return setError("请输入正确的邮箱地址");
+  if (!/^\d{6}$/.test(verificationCode.value)) {
+    return setError("请输入 6 位邮箱验证码");
   }
-  if (!isEmail(form.email)) {
-    setError("请输入正确的邮箱地址");
-    return;
-  }
-  if (!form.password) {
-    setError("请输入密码");
-    return;
-  }
-  if (form.password.length < 8) {
-    setError("密码至少需要 8 位");
-    return;
-  }
+  if (!form.password) return setError("请输入密码");
+  if (form.password.length < 8) return setError("密码至少需要 8 位");
   if (form.password !== confirmPassword.value) {
-    setError("两次输入的密码不一致");
-    return;
+    return setError("两次输入的密码不一致");
   }
-  if (!form.code.trim()) {
-    setError("请输入验证码");
-    return;
-  }
-  if (!accepted.value) {
-    setError("请先同意用户协议和隐私政策");
-    return;
-  }
+  if (!accepted.value) return setError("请先同意用户协议和隐私政策");
+
   submitLoading.value = true;
   hasError.value = false;
+  message.value = "";
+  showLoginLink.value = false;
   try {
-    await authAPI.register(form);
-    successToast("注册成功，请登录");
-    router.push("/login");
-  } catch (err) {
-    hasError.value = true;
-    message.value = err.response?.data?.msg || "注册失败，请检查信息后重试";
-    errorToast(message.value);
+    await authAPI.register({
+      username: form.username.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      verification_code: verificationCode.value,
+    });
+  } catch (error) {
+    const needsLoginLink = isEmailAlreadyRegisteredError(error);
+    setError(getRegisterErrorMessage(error), needsLoginLink);
+    return;
   } finally {
     submitLoading.value = false;
   }
+
+  successToast("注册成功，请登录");
+  await router.push("/login?registered=1");
 }
+
+watch(
+  () => form.email,
+  () => resetVerificationState(),
+);
+
+onBeforeUnmount(() => {
+  if (countdownTimer) clearInterval(countdownTimer);
+});
 </script>
 
 <style scoped>
@@ -165,6 +287,7 @@ async function submit() {
   display: grid;
   min-height: 100vh;
   place-items: center;
+  padding: 24px;
   background:
     radial-gradient(
       circle at 12% 20%,
@@ -177,21 +300,21 @@ async function submit() {
       transparent 30%
     ),
     linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
-  padding: 24px;
 }
 
 .auth-panel {
   display: grid;
   gap: 18px;
   width: min(500px, 100%);
+  padding: clamp(28px, 5vw, 40px);
   border: 1px solid var(--color-border);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.96);
-  padding: clamp(28px, 5vw, 40px);
   box-shadow: var(--shadow-card);
 }
 
-.brand {
+.brand,
+.switch-link {
   color: var(--color-primary);
   font-weight: 850;
   text-decoration: none;
@@ -216,19 +339,42 @@ label {
   font-weight: 750;
 }
 
-input {
-  min-width: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: #ffffff;
-  padding: 13px 14px;
-}
-
-.code-row {
+.verification-field {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  align-items: end;
+}
+
+.verification-field input {
+  min-width: 0;
+}
+
+button.send-code {
+  min-width: 112px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-primary);
+  background: #ffffff;
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+button.send-code:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.field-error {
+  color: #d14343;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+input {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #ffffff;
 }
 
 .check {
@@ -243,70 +389,40 @@ input {
 }
 
 button {
+  padding: 14px 16px;
   border: 0;
   border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: #ffffff;
-  padding: 14px 16px;
   font-weight: 850;
   box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
-  transition:
-    transform var(--transition),
-    background var(--transition),
-    box-shadow var(--transition);
-}
-
-button:hover,
-button:focus-visible {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
-  outline: none;
 }
 
 button:disabled {
   cursor: wait;
   opacity: 0.72;
-  transform: none;
-}
-
-.secondary {
-  border: 1px solid rgba(255, 112, 88, 0.28);
-  background: var(--color-soft-orange);
-  color: var(--color-primary);
-  box-shadow: none;
-}
-
-.secondary:hover,
-.secondary:focus-visible {
-  background: #ffe8e0;
-  color: var(--color-primary-dark);
 }
 
 .switch-link {
-  color: var(--color-primary);
   text-align: center;
-  text-decoration: none;
-  font-weight: 750;
-}
-
-.switch-link:hover,
-.switch-link:focus-visible {
-  color: var(--color-primary-dark);
-  outline: none;
 }
 
 .error {
+  margin: 0;
   color: #b91c1c;
+  font-weight: 750;
+}
+
+.inline-login-link {
+  margin-left: 6px;
+  color: var(--color-primary);
+  font-weight: 850;
+  text-decoration: underline;
 }
 
 .success {
-  color: #047857;
-}
-
-@media (max-width: 560px) {
-  .code-row {
-    grid-template-columns: 1fr;
-  }
+  margin: 0;
+  color: #15803d;
+  font-weight: 750;
 }
 </style>

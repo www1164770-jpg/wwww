@@ -2,9 +2,11 @@
   <section
     class="hero-search reveal-on-scroll"
     :class="{ 'engine-menu-open': engineMenuOpen }"
+    data-testid="home-hero"
+    aria-labelledby="home-hero-title"
   >
     <div class="hero-copy">
-      <h1>根据你的职业，推荐最适合的 AI 工具</h1>
+      <h1 id="home-hero-title">根据你的职业，推荐最适合的工具</h1>
       <p>
         收集、筛选和推荐高质量网站资源，让学习、工作、创作和项目开发更高效。
       </p>
@@ -17,7 +19,7 @@
       <SearchBar
         :model-value="modelValue"
         class="hero-search__bar"
-        placeholder="搜索 AI 工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
+        placeholder="搜索工具、网站或使用场景，例如：论文写作、编程、PPT、设计"
         :navigate-on-submit="false"
         @update:model-value="$emit('update:modelValue', $event)"
         @search="$emit('search', $event)"
@@ -53,7 +55,7 @@ const engineMenuOpen = ref(false);
   place-items: center;
   align-content: center;
   gap: 28px;
-  padding: 82px 20px 48px;
+  padding: 100px 20px 48px;
   overflow: visible;
   background:
     radial-gradient(
@@ -123,7 +125,7 @@ h1 {
 @media (max-width: 640px) {
   .hero-search {
     min-height: auto;
-    padding: 72px 16px 36px;
+    padding: 80px 16px 36px;
   }
 }
 </style>

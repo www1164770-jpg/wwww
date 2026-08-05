@@ -2,7 +2,7 @@
   <div v-if="visible" class="modal-backdrop" @click.self="$emit('close')">
     <section class="modal">
       <button class="close" type="button" @click="$emit('close')">×</button>
-      <h2>登录智慧导航</h2>
+      <h2>登录知航屿</h2>
       <p>登录后可以同步收藏、提交网站并进入个人中心。</p>
       <RouterLink class="primary" to="/login" @click="$emit('close')"
         >前往登录</RouterLink

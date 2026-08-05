@@ -1,14 +1,16 @@
 <template>
   <article class="tool-card">
+    <FavoriteStarButton
+      :site="site"
+      :favorited="isFavorited"
+      :disabled="favoritePending"
+    />
+
     <div class="tool-head">
       <img :src="logoUrl" :alt="site.name" @error="handleIconError" />
       <div>
         <h3>{{ site.name }}</h3>
-        <p>
-          {{
-            site.desc || site.description || "快速直达常用 AI 工具与效率网站。"
-          }}
-        </p>
+        <p v-if="siteDescription">{{ siteDescription }}</p>
       </div>
     </div>
 
@@ -19,13 +21,6 @@
     <p class="audience">适合：{{ normalizedAudiences.join("、") }}</p>
 
     <div class="actions">
-      <button
-        type="button"
-        class="ghost"
-        @click="$emit('toggle-favorite', site)"
-      >
-        {{ isFavorited ? "已收藏" : "收藏" }}
-      </button>
       <button type="button" @click="$emit('visit', site)">访问网站</button>
     </div>
   </article>
@@ -33,6 +28,8 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import FavoriteStarButton from "../site/FavoriteStarButton.vue";
+import { getSiteDescription } from "../../utils/api";
 
 const props = defineProps({
   site: {
@@ -43,11 +40,16 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  favoritePending: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 defineEmits(["visit", "toggle-favorite"]);
 
 const iconFailed = ref(false);
+const siteDescription = computed(() => getSiteDescription(props.site));
 
 const domain = computed(() => {
   try {
@@ -87,11 +89,13 @@ const handleIconError = () => {
 
 <style scoped>
 .tool-card {
+  position: relative;
   display: grid;
   gap: 16px;
   border: 1px solid #dbe4ef;
   border-radius: 8px;
   padding: 18px;
+  padding-right: 68px;
   background: #fff;
   box-shadow: 0 12px 28px rgba(31, 53, 84, 0.08);
 }
@@ -144,7 +148,7 @@ h3 {
 
 .actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
@@ -155,10 +159,5 @@ button {
   color: #fff;
   background: #18212f;
   cursor: pointer;
-}
-
-button.ghost {
-  color: #18212f;
-  background: #edf3fa;
 }
 </style>

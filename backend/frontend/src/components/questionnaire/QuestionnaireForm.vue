@@ -8,7 +8,7 @@
           <select v-model="form.occupation" required>
             <option disabled value="">请选择职业</option>
             <option v-for="item in occupations" :key="item" :value="item">
-              {{ labelText(item) }}
+              {{ occupationLabel(item) }}
             </option>
           </select>
         </label>
@@ -55,6 +55,7 @@
 
 <script setup>
 import { reactive } from "vue";
+import { getOccupationLabel } from "../../utils/occupation.js";
 
 defineProps({
   occupations: { type: Array, default: () => [] },
@@ -75,16 +76,6 @@ const form = reactive({
 });
 
 const labelMap = {
-  programmer: "程序员",
-  designer: "设计师",
-  product_manager: "产品经理",
-  operations: "运营",
-  marketing: "市场营销",
-  ecommerce: "电商从业者",
-  teacher: "教师",
-  student: "学生",
-  creator: "内容创作者",
-  other: "其他",
   beginner: "入门",
   junior: "初级",
   intermediate: "中级",
@@ -117,6 +108,10 @@ const labelMap = {
 
 function labelText(value) {
   return labelMap[value] || value;
+}
+
+function occupationLabel(value) {
+  return getOccupationLabel(value) || labelText(value);
 }
 </script>
 

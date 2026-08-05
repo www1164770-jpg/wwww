@@ -1,84 +1,83 @@
 <template>
-  <section class="favorite-band">
+  <section v-if="displaySites.length" class="favorite-band">
     <div class="favorite-stack">
       <div class="favorite-copy">
         <p>常用工具推荐</p>
         <h2>精选高频使用的网站资源</h2>
-        <span>
-          适合日常学习、工作和创作的高质量工具，优先避开首页其他推荐区已展示的网站。
-        </span>
+        <span>适合日常学习、工作和创作的高质量工具。</span>
       </div>
 
-      <div v-if="displaySites.length" class="favorite-list">
-        <button
+      <div class="favorite-list">
+        <article
           v-for="site in displaySites"
           :key="site.id || site.url || site.name"
-          type="button"
-          @click="visitSite(site)"
+          class="compact-tool-card"
         >
-          <strong>{{ site.name }}</strong>
-          <small>{{ site.summary || site.description || site.url }}</small>
-        </button>
+          <a
+            class="compact-tool-card__link"
+            :href="normalizeUrl(site.url)"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="`访问 ${site.name}`"
+            @click.stop.prevent="visitSite(site)"
+          >
+            <SiteLogo
+              class="compact-tool-card__logo"
+              :name="site.name"
+              :url="site.url"
+              :logo="site.logo_url"
+              size="md"
+              decorative
+            />
+            <div class="compact-tool-card__content">
+              <strong class="compact-tool-card__title">{{ site.name }}</strong>
+              <AppTooltip
+                v-if="siteDescription(site)"
+                :content="siteDescription(site)"
+                :disabled="!siteDescription(site)"
+                :show-on-overflow="true"
+              >
+                <small
+                  class="compact-tool-card__description"
+                  data-tooltip-overflow-target
+                >
+                  {{ siteDescription(site) }}
+                </small>
+              </AppTooltip>
+            </div>
+            <ExternalLink
+              class="compact-tool-card__external"
+              aria-hidden="true"
+            />
+          </a>
+          <FavoriteStarButton :site="site" size="sm" />
+        </article>
       </div>
-      <div v-else class="empty-note">暂无常用工具数据</div>
     </div>
   </section>
 </template>
 
 <script setup>
 import { computed } from "vue";
+import { ExternalLink } from "lucide-vue-next";
+import AppTooltip from "../common/AppTooltip.vue";
+import FavoriteStarButton from "../site/FavoriteStarButton.vue";
+import SiteLogo from "../site/SiteLogo.vue";
+import { getSiteDescription, normalizeUrl } from "../../utils/api";
 
 const props = defineProps({
-  sites: {
-    type: Array,
-    default: () => [],
-  },
+  sites: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["visit"]);
+const displaySites = computed(() =>
+  props.sites
+    .filter((site) => site?.name && normalizeUrl(site?.url))
+    .slice(0, 6),
+);
 
-const fallbackSites = [
-  {
-    name: "Notion",
-    url: "https://www.notion.so",
-    summary: "笔记、知识库和项目管理工具。",
-  },
-  {
-    name: "飞书",
-    url: "https://www.feishu.cn",
-    summary: "团队协作、文档和项目沟通平台。",
-  },
-  {
-    name: "ProcessOn",
-    url: "https://www.processon.com",
-    summary: "在线流程图和思维导图工具。",
-  },
-  {
-    name: "Figma",
-    url: "https://www.figma.com",
-    summary: "在线协作设计与原型工具。",
-  },
-  {
-    name: "Canva",
-    url: "https://www.canva.com",
-    summary: "在线设计与内容创作工具。",
-  },
-  {
-    name: "GitHub",
-    url: "https://github.com",
-    summary: "代码托管与协作开发平台。",
-  },
-];
-
-const displaySites = computed(() => {
-  const sites = props.sites.filter((site) => site?.name);
-  return (sites.length ? sites : fallbackSites).slice(0, 6);
-});
-
-function normalizeUrl(url) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
+function siteDescription(site) {
+  return getSiteDescription(site);
 }
 
 function visitSite(site) {
@@ -89,14 +88,8 @@ function visitSite(site) {
 <style scoped>
 .favorite-band {
   margin-top: 54px;
-  background:
-    radial-gradient(
-      circle at 12% 20%,
-      rgba(255, 112, 88, 0.12),
-      transparent 28%
-    ),
-    linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   padding: 96px 0;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
 }
 
 .favorite-stack {
@@ -113,7 +106,7 @@ function visitSite(site) {
   font-weight: 850;
 }
 
-h2 {
+.favorite-copy h2 {
   margin: 0 0 14px;
   color: var(--color-heading);
   font-size: clamp(32px, 4vw, 46px);
@@ -131,54 +124,94 @@ h2 {
   gap: 16px;
 }
 
-button,
-.empty-note {
-  display: grid;
-  gap: 8px;
+.compact-tool-card {
+  position: relative;
+  min-width: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  padding: 20px;
-  color: var(--color-heading);
-  text-align: left;
   background: #ffffff;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
-}
-
-button {
   transition:
     transform var(--transition),
     box-shadow var(--transition),
     border-color var(--transition);
 }
 
-button:hover,
-button:focus-visible {
+.compact-tool-card:hover {
   border-color: rgba(255, 112, 88, 0.34);
   transform: translateY(-4px);
-  outline: none;
   box-shadow: var(--shadow-card);
 }
 
-small {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--color-muted);
-  line-height: 1.55;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+.compact-tool-card__link {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 54px 16px 16px;
+  color: inherit;
+  text-decoration: none;
 }
 
-.empty-note {
-  color: var(--color-muted);
+.compact-tool-card__link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.compact-tool-card__logo {
+  flex: 0 0 auto;
+}
+
+.compact-tool-card__content {
+  min-width: 0;
+}
+
+.compact-tool-card__title,
+.compact-tool-card__description {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-tool-card__title {
+  color: var(--color-heading);
+}
+
+.compact-tool-card__description {
+  margin-top: 4px;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
+.compact-tool-card__external {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-primary);
 }
 
 @media (max-width: 820px) {
   .favorite-stack {
     grid-template-columns: 1fr;
+    width: min(100% - 28px, 1200px);
   }
+}
 
+@media (max-width: 520px) {
   .favorite-list {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compact-tool-card {
+    transition: none;
+  }
+
+  .compact-tool-card:hover {
+    transform: none;
   }
 }
 </style>

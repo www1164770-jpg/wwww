@@ -25,10 +25,6 @@ DATABASE_ENV_KEYS = (
     "DB_CHARSET",
 )
 SENSITIVE_ENV_KEYS = (
-    "AUTHING_APP_ID",
-    "AUTHING_APP_SECRET",
-    "AUTHING_HOST",
-    "AUTHING_ISSUER",
     "FLASK_SECRET_KEY",
     "JWT_SECRET_KEY",
     "SECRET_KEY",
@@ -37,11 +33,13 @@ SENSITIVE_ENV_KEYS = (
     "SMTP_AUTH_CODE",
     "SMTP_PASSWORD",
     "EMAIL_PASSWORD",
+    "MAIL_PASSWORD",
+    "MAIL_USERNAME",
     "REDIS_PASSWORD",
 )
 
 
-def run_runtime_probe(probe_source, **environment_overrides):
+def run_runtime_probe(probe_source, timeout=30, **environment_overrides):
     environment = os.environ.copy()
     for key in DATABASE_ENV_KEYS + SENSITIVE_ENV_KEYS:
         environment.pop(key, None)
@@ -70,7 +68,7 @@ def run_runtime_probe(probe_source, **environment_overrides):
         text=True,
         encoding="utf-8",
         errors="replace",
-        timeout=30,
+        timeout=timeout,
         check=False,
     )
     if result.returncode != 0:
@@ -235,8 +233,6 @@ class BackendRuntimeConfigTests(unittest.TestCase):
         )
 
         origins = probe["configured_origins"]
-        self.assertIn("http://localhost:5173", origins)
-        self.assertIn("http://127.0.0.1:5173", origins)
         self.assertIn("https://app.example.test", origins)
         self.assertIn("https://admin.example.test", origins)
         self.assertNotIn("*", origins)
@@ -248,6 +244,106 @@ class BackendRuntimeConfigTests(unittest.TestCase):
             probe["admin_origin_header"], "https://admin.example.test"
         )
         self.assertIsNone(probe["untrusted_origin_header"])
+
+    def test_cors_covers_vite_ipv4_and_ipv6_origins_on_home_api_routes(self):
+        origins = (
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://[::1]:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://[::1]:5174",
+        )
+        probe = run_runtime_probe(
+            """
+            import json
+            from flask import Flask, jsonify
+            import app
+
+            cors_app = Flask("cors-probe")
+            app.configure_cors(cors_app, app.LOCAL_VITE_ORIGINS)
+
+            @cors_app.get("/api/categories")
+            def api_response():
+                return jsonify({"code": 200, "data": []})
+
+            cors_app.add_url_rule(
+                "/api/sites/recommend",
+                endpoint="recommend_response",
+                view_func=api_response,
+                methods=["GET"],
+            )
+            client = cors_app.test_client()
+            results = []
+            for origin in %(origins)r:
+                for path in ("/api/categories", "/api/sites/recommend"):
+                    get_response = client.get(path, headers={"Origin": origin})
+                    options_response = client.options(
+                        path,
+                        headers={
+                            "Origin": origin,
+                            "Access-Control-Request-Method": "GET",
+                            "Access-Control-Request-Headers": "authorization, content-type",
+                        },
+                    )
+                    for method, response in (("GET", get_response), ("OPTIONS", options_response)):
+                        results.append({
+                            "origin": origin,
+                            "path": path,
+                            "method": method,
+                            "status": response.status_code,
+                            "allow_origin": response.headers.get("Access-Control-Allow-Origin"),
+                            "allow_credentials": response.headers.get("Access-Control-Allow-Credentials"),
+                            "allow_origin_values": response.headers.getlist("Access-Control-Allow-Origin"),
+                        })
+
+            untrusted = client.options(
+                "/api/categories",
+                headers={"Origin": "https://untrusted.example.test", "Access-Control-Request-Method": "GET"},
+            )
+            print("RUNTIME_CONFIG_PROBE=" + json.dumps({
+                "results": results,
+                "untrusted_allow_origin": untrusted.headers.get("Access-Control-Allow-Origin"),
+            }, sort_keys=True))
+            """ % {"origins": origins},
+            FRONTEND_URL="",
+            CORS_ALLOWED_ORIGINS="",
+        )
+
+        self.assertIsNone(probe["untrusted_allow_origin"])
+        self.assertEqual(len(probe["results"]), len(origins) * 4)
+        for result in probe["results"]:
+            with self.subTest(**result):
+                self.assertEqual(result["status"], 200)
+                self.assertEqual(result["allow_origin"], result["origin"])
+                self.assertEqual(result["allow_credentials"], "true")
+                self.assertEqual(result["allow_origin_values"], [result["origin"]])
+
+    def test_production_cors_does_not_default_to_local_vite_origins(self):
+        probe = run_runtime_probe(
+            """
+            import json
+            import app
+
+            response = app.app.test_client().options(
+                "/api/categories",
+                headers={"Origin": "http://[::1]:5173", "Access-Control-Request-Method": "GET"},
+            )
+            print("RUNTIME_CONFIG_PROBE=" + json.dumps({
+                "origins": app.get_cors_origins(),
+                "allow_origin": response.headers.get("Access-Control-Allow-Origin"),
+            }, sort_keys=True))
+            """,
+            APP_ENV="production",
+            FLASK_ENV="production",
+            FRONTEND_URL="",
+            CORS_ALLOWED_ORIGINS="",
+            FLASK_SECRET_KEY="production-test-flask-secret",
+            JWT_SECRET_KEY="production-test-jwt-secret",
+        )
+
+        self.assertEqual(probe["origins"], [])
+        self.assertIsNone(probe["allow_origin"])
 
 
 if __name__ == "__main__":

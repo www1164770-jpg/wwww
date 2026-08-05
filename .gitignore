@@ -37,6 +37,21 @@ logs/
 backend/logs/
 *.log
 
+# Crawler runtime data (keep only directory markers and documentation)
+!backend/data/crawler/logs/
+backend/data/crawler/icons/*
+backend/data/crawler/logs/*
+backend/data/crawler/tmp/*
+backend/data/crawler/pids/*
+!backend/data/crawler/icons/.gitkeep
+!backend/data/crawler/logs/.gitkeep
+!backend/data/crawler/tmp/.gitkeep
+!backend/data/crawler/pids/.gitkeep
+!backend/data/crawler/icons/README.md
+!backend/data/crawler/logs/README.md
+!backend/data/crawler/tmp/README.md
+!backend/data/crawler/pids/README.md
+
 # Meilisearch 数据
 meili_data/
 backend/meili_data/

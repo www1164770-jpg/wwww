@@ -1,7 +1,7 @@
-import json
 import os
 import sys
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -56,10 +56,22 @@ class FakeCursor:
         return self.fetchall_value
 
 
+class ScriptedCursor(FakeCursor):
+    def __init__(self, fetchone_values):
+        super().__init__()
+        self.fetchone_values = list(fetchone_values)
+
+    def fetchone(self):
+        if self.fetchone_values:
+            return self.fetchone_values.pop(0)
+        return None
+
+
 class FakeConnection:
     def __init__(self, cursor):
         self.cursor_instance = cursor
         self.committed = False
+        self.rolled_back = False
         self.closed = False
 
     def cursor(self):
@@ -69,137 +81,10 @@ class FakeConnection:
         self.committed = True
 
     def rollback(self):
-        pass
+        self.rolled_back = True
 
     def close(self):
         self.closed = True
-
-
-class AuthExchangeTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        import app as app_module
-
-        cls.app_module = app_module
-        cls.client = app_module.app.test_client()
-
-    def test_exchange_code_uses_secure_random_and_60_second_ttl(self):
-        redis_client = FakeRedis()
-        with patch.object(self.app_module, "redis_client", redis_client), patch.object(
-            self.app_module.secrets, "token_urlsafe", return_value="secure-code"
-        ):
-            code = self.app_module.issue_authing_exchange_code(7, "/favorites")
-
-        self.assertEqual(code, "secure-code")
-        self.assertEqual(len(redis_client.setex_calls), 1)
-        key, ttl, raw_value = redis_client.setex_calls[0]
-        self.assertEqual(ttl, 60)
-        self.assertEqual(key, "authing_exchange:secure-code")
-        self.assertEqual(json.loads(raw_value), {"user_id": 7, "redirect": "/favorites"})
-
-    def test_exchange_code_is_consumed_only_once(self):
-        redis_client = FakeRedis()
-        redis_client.values["authing_exchange:one-time"] = json.dumps(
-            {"user_id": 7, "redirect": "/"}
-        )
-        with patch.object(self.app_module, "redis_client", redis_client):
-            first = self.app_module.consume_authing_exchange_code("one-time")
-            second = self.app_module.consume_authing_exchange_code("one-time")
-
-        self.assertEqual(first, {"user_id": 7, "redirect": "/"})
-        self.assertIsNone(second)
-
-    def test_exchange_code_uses_atomic_lua_fallback_without_getdel(self):
-        class LuaRedis:
-            def __init__(self):
-                self.value = json.dumps({"user_id": 7, "redirect": "/"})
-                self.eval_calls = 0
-
-            def eval(self, _script, _numkeys, _key):
-                self.eval_calls += 1
-                value, self.value = self.value, None
-                return value
-
-        redis_client = LuaRedis()
-        with patch.object(self.app_module, "redis_client", redis_client):
-            first = self.app_module.consume_authing_exchange_code("lua-code")
-            second = self.app_module.consume_authing_exchange_code("lua-code")
-
-        self.assertEqual(first, {"user_id": 7, "redirect": "/"})
-        self.assertIsNone(second)
-        self.assertEqual(redis_client.eval_calls, 2)
-
-    def test_redirect_must_be_an_internal_relative_path(self):
-        normalize = self.app_module.normalize_frontend_redirect
-
-        self.assertEqual(normalize("/favorites"), "/favorites")
-        self.assertEqual(normalize("/category/1"), "/category/1")
-        for unsafe in ("https://evil.com", "http://evil.com", "//evil.com", r"\evil.com"):
-            self.assertEqual(normalize(unsafe), "/")
-
-    def test_unknown_exchange_code_is_rejected(self):
-        with patch.object(self.app_module, "redis_client", FakeRedis()):
-            response = self.client.post(
-                "/api/authing/exchange", json={"code": "missing"}
-            )
-        self.assertIn(response.status_code, (400, 401))
-
-    def test_redis_failure_returns_service_unavailable(self):
-        class BrokenRedis:
-            def getdel(self, _key):
-                raise RuntimeError("redis down")
-
-        with patch.object(self.app_module, "redis_client", BrokenRedis()):
-            response = self.client.post("/api/authing/exchange", json={"code": "x"})
-
-        self.assertEqual(response.status_code, 503)
-
-    def test_exchange_returns_same_auth_session_shape_as_local_login(self):
-        redis_client = FakeRedis()
-        redis_client.values["authing_exchange:valid"] = json.dumps(
-            {"user_id": 7, "redirect": "/profile"}
-        )
-        user = {
-            "id": 7,
-            "username": "authing-user",
-            "email": "authing@example.com",
-            "role": "user",
-            "questionnaire_completed": 1,
-        }
-        with patch.object(self.app_module, "redis_client", redis_client), patch.object(
-            self.app_module, "user_by_id", return_value=user
-        ), patch.object(
-            self.app_module, "create_project_token", return_value="access-token"
-        ), patch.object(
-            self.app_module, "create_refresh_token", return_value="refresh-token"
-        ):
-            response = self.client.post(
-                "/api/authing/exchange", json={"code": "valid"}
-            )
-
-        self.assertEqual(response.status_code, 200)
-        data = response.get_json()["data"]
-        self.assertEqual(
-            set(
-                (
-                    "access_token",
-                    "refresh_token",
-                    "user_info",
-                    "user_role",
-                    "questionnaire_completed",
-                )
-            ),
-            set(data).intersection(
-                {
-                    "access_token",
-                    "refresh_token",
-                    "user_info",
-                    "user_role",
-                    "questionnaire_completed",
-                }
-            ),
-        )
-        self.assertEqual(data["redirect"], "/profile")
 
 
 class LocalAuthTests(unittest.TestCase):
@@ -219,16 +104,13 @@ class LocalAuthTests(unittest.TestCase):
             self.assertEqual(response.status_code, 400)
 
     def test_registration_rejects_invalid_email_and_short_password(self):
-        redis_client = FakeRedis()
-        redis_client.values["verify_code:a@example.com"] = "123456"
-        with patch.object(self.app_module, "redis_client", redis_client):
+        with patch.object(self.app_module, "redis_client", FakeRedis()):
             invalid_email = self.client.post(
                 "/api/auth/register",
                 json={
                     "username": "alice",
                     "email": "not-an-email",
                     "password": "password",
-                    "code": "123456",
                 },
             )
             short_password = self.client.post(
@@ -237,21 +119,21 @@ class LocalAuthTests(unittest.TestCase):
                     "username": "alice",
                     "email": "a@example.com",
                     "password": "short",
-                    "code": "123456",
                 },
             )
 
         self.assertEqual(invalid_email.status_code, 400)
         self.assertEqual(short_password.status_code, 400)
 
-    def test_registration_success_deletes_verification_code_after_commit(self):
-        redis_client = FakeRedis()
-        redis_client.values["verify_code:alice@example.com"] = "123456"
+    def test_registration_success_uses_local_account_fields_only(self):
         connection = FakeConnection(FakeCursor(fetchone_value=None))
-        with patch.object(self.app_module, "redis_client", redis_client), patch.object(
-            self.app_module, "get_db_connection", return_value=connection
+        with patch.object(self.app_module, "get_db_connection", return_value=connection
         ), patch.object(
             self.app_module, "generate_password_hash", return_value="hashed"
+        ), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ), patch.object(
+            self.app_module, "_verify_registration_code", return_value=(True, None, None)
         ):
             response = self.client.post(
                 "/api/auth/register",
@@ -259,27 +141,222 @@ class LocalAuthTests(unittest.TestCase):
                     "username": " alice ",
                     "email": "Alice@Example.com ",
                     "password": "password1",
-                    "code": "123456",
+                    "verification_code": "123456",
                 },
             )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.get_json()["code"], "REGISTER_SUCCESS")
         self.assertTrue(connection.committed)
-        self.assertNotIn("verify_code:alice@example.com", redis_client.values)
 
-    def test_send_code_does_not_store_code_when_email_fails(self):
-        redis_client = FakeRedis()
-        with patch.object(self.app_module, "redis_client", redis_client), patch.object(
-            self.app_module,
-            "send_verification_email",
-            return_value=(False, "smtp down"),
-        ):
+    def test_registration_requires_verification_code(self):
+        response = self.client.post(
+            "/api/auth/register",
+            json={"username": "alice", "email": "a@example.com", "password": "password1"},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "CODE_REQUIRED")
+
+
+class RegistrationVerificationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import app as app_module
+
+        cls.app_module = app_module
+        cls.client = app_module.app.test_client()
+
+    def _valid_record(self, email="a@example.com", code="123456"):
+        return {
+            "id": 1,
+            "code_hash": self.app_module._registration_code_digest(email, code),
+            "expires_at": datetime.utcnow() + timedelta(minutes=5),
+            "attempt_count": 0,
+            "used_at": None,
+        }
+
+    def test_send_register_code_rejects_invalid_email_without_smtp(self):
+        response = self.client.post(
+            "/api/auth/send-register-code", json={"email": "not-an-email"}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "EMAIL_INVALID")
+
+    def test_send_register_code_saves_only_after_successful_smtp(self):
+        cursor = ScriptedCursor([None, None, {"total": 0}, {"total": 0}])
+        connection = FakeConnection(cursor)
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ), patch.object(
+            self.app_module, "validate_mail_config", return_value=[]
+        ), patch.object(
+            self.app_module, "send_verification_email", return_value=(True, "OK")
+        ) as send_mail:
             response = self.client.post(
-                "/api/auth/send-code", json={"email": "alice@example.com"}
+                "/api/auth/send-register-code", json={"email": "a@example.com"}
             )
 
-        self.assertEqual(response.status_code, 502)
-        self.assertEqual(redis_client.setex_calls, [])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["code"], 0)
+        send_mail.assert_called_once()
+        self.assertTrue(connection.committed)
+        self.assertTrue(any("INSERT INTO email_verification_codes" in sql for sql, _ in cursor.executed))
+
+    def test_send_register_code_reports_missing_mail_configuration(self):
+        with patch.object(
+            self.app_module, "validate_mail_config", return_value=["MAIL_USERNAME"]
+        ), patch.object(self.app_module, "get_db_connection") as get_connection:
+            response = self.client.post(
+                "/api/auth/send-register-code", json={"email": "a@example.com"}
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.get_json()["code"], "MAIL_CONFIG_MISSING")
+        get_connection.assert_not_called()
+
+    def test_send_register_code_does_not_store_code_when_smtp_fails(self):
+        cursor = ScriptedCursor([None, None, {"total": 0}, {"total": 0}])
+        connection = FakeConnection(cursor)
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ), patch.object(
+            self.app_module, "validate_mail_config", return_value=[]
+        ), patch.object(
+            self.app_module, "send_verification_email", return_value=(False, "SMTP_AUTH_FAILED")
+        ):
+            response = self.client.post(
+                "/api/auth/send-register-code", json={"email": "a@example.com"}
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.get_json()["code"], "SMTP_AUTH_FAILED")
+        self.assertFalse(any("INSERT INTO email_verification_codes" in sql for sql, _ in cursor.executed))
+
+    def test_wrong_code_is_rejected_and_counted(self):
+        cursor = ScriptedCursor([self._valid_record()])
+        connection = FakeConnection(cursor)
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ):
+            response = self.client.post(
+                "/api/auth/register",
+                json={
+                    "username": "alice",
+                    "email": "a@example.com",
+                    "password": "password1",
+                    "verification_code": "654321",
+                },
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "CODE_INVALID")
+        self.assertTrue(connection.committed)
+
+    def test_correct_code_creates_user_and_marks_code_used(self):
+        cursor = ScriptedCursor([self._valid_record(), None, None])
+        connection = FakeConnection(cursor)
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ), patch.object(
+            self.app_module, "generate_password_hash", return_value="hashed"
+        ):
+            response = self.client.post(
+                "/api/auth/register",
+                json={
+                    "username": "alice",
+                    "email": "a@example.com",
+                    "password": "password1",
+                    "verification_code": "123456",
+                },
+            )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(connection.committed)
+        self.assertTrue(any("used_at" in sql for sql, _ in cursor.executed))
+
+    def test_missing_code_record_has_specific_error(self):
+        cursor = ScriptedCursor([None])
+        connection = FakeConnection(cursor)
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ):
+            response = self.client.post(
+                "/api/auth/register",
+                json={"username": "alice", "email": "a@example.com", "password": "password1", "verification_code": "123456"},
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "CODE_NOT_FOUND")
+
+    def test_expired_and_used_codes_have_specific_errors(self):
+        expired = self._valid_record()
+        expired["expires_at"] = datetime.utcnow() - timedelta(seconds=1)
+        used = self._valid_record()
+        used["used_at"] = datetime.utcnow()
+        for record, expected in ((expired, "CODE_EXPIRED"), (used, "CODE_ALREADY_USED")):
+            connection = FakeConnection(ScriptedCursor([record]))
+            with self.subTest(expected=expected), patch.object(
+                self.app_module, "get_db_connection", return_value=connection
+            ), patch.object(self.app_module, "ensure_registration_code_table", return_value=None):
+                response = self.client.post(
+                    "/api/auth/register",
+                    json={"username": "alice", "email": "a@example.com", "password": "password1", "verification_code": "123456"},
+                )
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.get_json()["code"], expected)
+
+    def test_invalid_username_has_specific_error(self):
+        response = self.client.post(
+            "/api/auth/register",
+            json={"username": "a!", "email": "a@example.com", "password": "password1", "verification_code": "123456"},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["code"], "USERNAME_INVALID")
+
+    def test_database_failure_rolls_back_without_marking_code_used(self):
+        cursor = ScriptedCursor([self._valid_record(), None, None])
+        connection = FakeConnection(cursor)
+        original_execute = cursor.execute
+
+        def fail_user_insert(sql, params=None):
+            if "INSERT INTO users" in sql:
+                raise RuntimeError("simulated database failure")
+            return original_execute(sql, params)
+
+        cursor.execute = fail_user_insert
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ):
+            response = self.client.post(
+                "/api/auth/register",
+                json={"username": "alice", "email": "a@example.com", "password": "password1", "verification_code": "123456"},
+            )
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.get_json()["code"], "DATABASE_ERROR")
+        self.assertTrue(connection.rolled_back)
+        self.assertFalse(any("UPDATE email_verification_codes SET used_at" in sql for sql, _ in cursor.executed))
+
+    def test_duplicate_username_returns_conflict(self):
+        cursor = ScriptedCursor([self._valid_record(), {"id": 9}])
+        connection = FakeConnection(cursor)
+        with patch.object(self.app_module, "get_db_connection", return_value=connection), patch.object(
+            self.app_module, "ensure_registration_code_table", return_value=None
+        ):
+            response = self.client.post(
+                "/api/auth/register",
+                json={
+                    "username": "alice",
+                    "email": "a@example.com",
+                    "password": "password1",
+                    "verification_code": "123456",
+                },
+            )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.get_json()["code"], "USERNAME_EXISTS")
 
     def test_login_rejects_missing_account_or_password(self):
         missing_account = self.client.post(

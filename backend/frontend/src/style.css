@@ -29,9 +29,9 @@ html {
   width: 100%;
   min-height: 100%;
   overflow-y: scroll;
-  background: #ffffff;
+  background: transparent;
   scroll-behavior: smooth;
-  scroll-padding-top: 88px;
+  scroll-padding-top: 20px;
 }
 
 body {
@@ -39,7 +39,7 @@ body {
   width: 100%;
   min-height: 100vh;
   color: var(--color-text);
-  background: #ffffff;
+  background: transparent;
   font-family:
     Inter,
     ui-sans-serif,
@@ -102,7 +102,7 @@ select:focus {
 
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: transparent;
 }
 
 .home-section,

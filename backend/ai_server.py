@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+from pathlib import Path
 from flask import Flask, request, jsonify
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -8,7 +9,8 @@ from flask_caching import Cache
 from dotenv import load_dotenv
 
 # 加载环境变量
-load_dotenv()
+BACKEND_DIR = Path(__file__).resolve().parent
+load_dotenv(BACKEND_DIR / ".env")
 
 app = Flask(__name__)
 
@@ -119,5 +121,16 @@ def ratelimit_handler(e):
     return jsonify({'code': 429, 'msg': '您思考得太快了，请1分钟后再让AI推荐！'}), 429
 
 if __name__ == '__main__':
-    # ✨ 核心修改：将端口改为 5001，避免和 app.py 冲突
-    app.run(port=5001)
+    host = (os.getenv("AI_SERVER_HOST") or "127.0.0.1").strip()
+    raw_port = (os.getenv("AI_SERVER_PORT") or "5001").strip()
+    try:
+        port = int(raw_port)
+    except ValueError as exc:
+        raise RuntimeError(
+            "AI_SERVER_PORT must be an integer between 1 and 65535"
+        ) from exc
+    if not 1 <= port <= 65535:
+        raise RuntimeError(
+            "AI_SERVER_PORT must be an integer between 1 and 65535"
+        )
+    app.run(host=host, port=port)

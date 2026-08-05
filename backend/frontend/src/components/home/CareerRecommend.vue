@@ -7,18 +7,27 @@
 
     <div class="career-grid">
       <button
-        v-for="career in careerRecommendations"
-        :key="career.key"
+        v-for="career in recommendations"
+        :key="career.careerCode || career.career_code || career.code"
         type="button"
         class="career-card"
-        :class="{ active: activeCareer === career.key }"
+        :class="{
+          active:
+            activeCareerCode ===
+            (career.careerCode || career.career_code || career.code),
+        }"
         @click="selectCareer(career)"
       >
-        <span class="career-icon">{{ career.icon }}</span>
-        <strong>{{ career.name }}</strong>
-        <small>{{ career.description }}</small>
+        <span class="career-icon">{{ career.label || career.careerName }}</span>
+        <strong>{{ career.label || career.careerName }}</strong>
+        <small>{{ career.reason || career.reasons?.[0] }}</small>
         <span class="tag-row">
-          <em v-for="keyword in career.keywords" :key="keyword">
+          <em
+            v-for="keyword in career.interest_tags ||
+            career.occupation_tags ||
+            []"
+            :key="keyword"
+          >
             {{ keyword }}
           </em>
         </span>
@@ -29,86 +38,17 @@
 
 <script setup>
 defineProps({
-  activeCareer: {
+  recommendations: {
+    type: Array,
+    default: () => [],
+  },
+  activeCareerCode: {
     type: String,
     default: "",
   },
 });
 
 const emit = defineEmits(["select-career"]);
-
-const careerRecommendations = [
-  {
-    key: "student",
-    name: "学生",
-    icon: "学",
-    description: "论文写作、文献检索、翻译、PPT 制作和在线课程工具。",
-    keywords: ["学习", "论文写作", "PPT", "编程入门"],
-  },
-  {
-    key: "frontend",
-    name: "前端开发",
-    icon: "前",
-    description: "Vue、React、JavaScript、组件设计和前端工程工具。",
-    keywords: ["Vue", "React", "JavaScript", "组件"],
-  },
-  {
-    key: "backend",
-    name: "后端开发",
-    icon: "后",
-    description: "接口调试、数据库、Python、框架文档和代码辅助工具。",
-    keywords: ["Python", "Flask", "API", "数据库"],
-  },
-  {
-    key: "product",
-    name: "产品经理",
-    icon: "产",
-    description: "需求分析、产品文档、原型流程和数据洞察工具。",
-    keywords: ["需求", "原型", "文档", "流程图"],
-  },
-  {
-    key: "uiux",
-    name: "UI/UX 设计师",
-    icon: "设",
-    description: "界面设计、素材查找、图标管理和创意生成工具。",
-    keywords: ["Figma", "UI", "图标", "图片"],
-  },
-  {
-    key: "operations",
-    name: "运营",
-    icon: "营",
-    description: "文案生成、内容运营、增长分析和办公协作工具。",
-    keywords: ["文案", "内容", "数据分析", "增长"],
-  },
-  {
-    key: "teacher",
-    name: "教师",
-    icon: "教",
-    description: "课件制作、教学设计、题库整理和学习资源工具。",
-    keywords: ["教学", "课件", "PPT", "题库"],
-  },
-  {
-    key: "creator",
-    name: "自媒体创作者",
-    icon: "创",
-    description: "内容创作、视频脚本、图片生成和灵感整理工具。",
-    keywords: ["写作", "视频", "图片", "AIGC"],
-  },
-  {
-    key: "data",
-    name: "数据分析师",
-    icon: "数",
-    description: "数据分析、可视化、报表整理和效率提升工具。",
-    keywords: ["数据分析", "可视化", "Python", "SQL"],
-  },
-  {
-    key: "other",
-    name: "其他",
-    icon: "AI",
-    description: "学习、工作、创作和办公场景里的通用 AI 工具。",
-    keywords: ["AI", "效率", "学习", "办公"],
-  },
-];
 
 function selectCareer(career) {
   emit("select-career", career);

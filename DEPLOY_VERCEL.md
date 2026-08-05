@@ -9,7 +9,7 @@ Function。本文只记录配置方法，不包含任何真实密钥或生产域
 - 准备允许 Vercel 访问的远程 MySQL。`DB_HOST` 不能使用 `localhost`，也不能使用
   `127.0.0.1`。
 - 如果登录、验证码或一次性交换码使用 Redis，准备 Vercel 可访问的远程 Redis；不能使用本机 Redis。
-- 准备 SMTP 发信账户和 Authing 应用配置。只在 Vercel Dashboard 中填写授权码和密钥。
+- 如需邮件功能，准备 SMTP 发信账户；只在 Vercel Dashboard 中填写授权码和密钥。
 - 不提交 `.env`、`.vercel/`、数据库导出、Token 或密码。
 
 ## 2. 导入项目
@@ -24,13 +24,15 @@ Function。本文只记录配置方法，不包含任何真实密钥或生产域
 当前构建设置：
 
 ```text
-Install Command: npm ci --prefix backend/frontend
+Install Command: npm ci --legacy-peer-deps --prefix backend/frontend
 Build Command: npm run build --prefix backend/frontend
 Output Directory: backend/frontend/dist
 Python Function: api/index.py
 ```
 
-`backend/frontend/package-lock.json` 已存在，因此安装使用 `npm ci`。生成的
+`backend/frontend/package-lock.json` 已存在，因此安装使用 `npm ci`。
+当前前端依赖包含仅在 WASM 平台使用的可选 peer，npm 11 需要
+`--legacy-peer-deps` 才能按锁文件完成清洁安装。生成的
 `backend/frontend/dist` 是构建产物，不需要提交。
 
 ## 3. 路由架构
@@ -65,10 +67,6 @@ Vercel Dashboard，不要把值写入 Git。
 | `JWT_SECRET_KEY` | JWT 签名 |
 | `FRONTEND_URL` | 当前 Production 或 Preview 的前端来源 |
 | `REDIS_URL` | 远程 Redis 连接地址；认证验证码和一次性交换流程需要 |
-| `AUTHING_ISSUER` | Authing OIDC Issuer |
-| `AUTHING_APP_ID` | Authing 应用 ID |
-| `AUTHING_APP_SECRET` | Authing 应用 Secret |
-| `AUTHING_REDIRECT_URI` | 当前环境的后端回调 URL，路径为 `/api/authing/callback` |
 
 ### 按功能选填
 
@@ -90,17 +88,7 @@ Vercel Dashboard，不要把值写入 Git。
 - `VERCEL_ENV`：由 Vercel 自动提供。
 - `FLASK_ENV`、`WERKZEUG_RUN_MAIN`、`AUTHLIB_INSECURE_TRANSPORT`：仅用于本地开发或测试，不作为生产密钥配置。
 
-## 5. Authing 配置
-
-源码的认证流程包含两个不同回调路径：
-
-- Authing 控制台允许的后端回调 URL：`https://<部署域名>/api/authing/callback`，并将同一地址写入 `AUTHING_REDIRECT_URI`。
-- 后端处理完成后返回的 Vue Router 页面：`https://<部署域名>/authing/callback`。
-
-Production 和 Preview 使用不同域名时，需要在 Authing 控制台人工加入对应的允许回调 URL。
-不要修改源码中的 Authing App ID、Secret、Host 或 Issuer 来适配部署。
-
-## 6. 首次部署后验证
+## 5. 首次部署后验证
 
 在对应部署域名逐项验证：
 
@@ -117,7 +105,7 @@ Production 和 Preview 使用不同域名时，需要在 Authing 控制台人工
 同时检查静态 JS/CSS 能加载、请求中没有 `/api/api/`、浏览器没有相关 CORS 或
 Network Error。首次部署验证只读接口，不写入或修改生产数据。
 
-## 7. 常见问题与日志
+## 6. 常见问题与日志
 
 - SPA 刷新 404：确认 Root Directory 为仓库根目录，并检查最后一条 SPA rewrite。
 - `/api` 返回 `index.html`：确认两条 API rewrite 位于 SPA fallback 之前。
@@ -125,12 +113,21 @@ Network Error。首次部署验证只读接口，不写入或修改生产数据�
 - 缺少 Python 包：查看 Deployment 的 Build Logs，并与 `requirements.txt` 对照。
 - MySQL 无法连接：确认远程网络允许 Vercel 访问，且 `DB_HOST` 不是本机地址。
 - CORS 错误：同源部署不需要通配符；核对 `FRONTEND_URL` 和可选的 `CORS_ALLOWED_ORIGINS`。
-- Authing 回调错误：核对 Dashboard 变量和 Authing 控制台允许的回调 URL 是否完全一致。
 - 后端 500：在 Vercel Dashboard 打开对应 Deployment，进入 Functions，选择
   `api/index.py` 查看 Function Logs。日志和截图不得包含完整数据库 URI、Token 或密码。
 - 修改环境变量后，需要重新部署才会进入新的构建和 Function 运行环境。
 
-## 8. 回滚
+## 7. 回滚
 
 在 Vercel Dashboard 的 Deployments 中选择上一个成功版本，执行 Promote 或平台提供的
 回滚操作。回滚前检查数据库迁移兼容性；不要通过提交 `.vercel/` 或编造自动化按钮名称来回滚。
+
+## 9. 定时任务
+
+`backend/app.py` 当前注册每日 03:00 的 Hacker News 抓取任务，以及每 10 分钟一次的
+Redis 计数持久化任务。调度器只在直接执行 `python backend/app.py` 时启动；通过
+`backend/wsgi.py` 导入应用时不会启动。
+
+Vercel Python Function 是按请求创建并可能随时销毁的 Serverless 实例，不能依赖应用进程内
+APScheduler 保证定时任务执行。生产环境如需这些任务，应使用 Vercel Cron、GitHub Actions、
+云平台定时任务或独立的单实例 worker 调用经过鉴权的任务入口；本仓库目前未提供该生产调度入口。

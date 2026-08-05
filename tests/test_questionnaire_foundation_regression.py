@@ -202,7 +202,7 @@ class QuestionnaireFoundationScopeRegressionTests(unittest.TestCase):
 
     def test_foundation_module_boundaries_do_not_reach_unrelated_systems(self) -> None:
         imports_by_file = {filename: _imports(_tree(filename)) for filename in FOUNDATION_FILES}
-        forbidden_prefixes = ("authing_service", "recommend_service", "frontend")
+        forbidden_prefixes = ("recommend_service", "frontend")
         for filename, imports in imports_by_file.items():
             with self.subTest(filename=filename):
                 self.assertFalse(

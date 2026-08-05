@@ -10,9 +10,12 @@ import {
 } from "./auth";
 import { resolveApiBaseURL } from "./apiBase";
 
-const DEFAULT_API_BASE_URL = import.meta.env.DEV
-  ? "http://127.0.0.1:5000/api"
-  : "/api";
+const DEFAULT_API_BASE_URL = "/api";
+
+export const API_TIMEOUT_MS = 15000;
+export const FAVORITE_MUTATION_TIMEOUT_MS = 10000;
+export const AUTH_REQUEST_TIMEOUT_MS = 15000;
+export const VERIFICATION_REQUEST_TIMEOUT_MS = 30000;
 
 export const API_BASE_URL = resolveApiBaseURL(
   import.meta.env,
@@ -21,7 +24,8 @@ export const API_BASE_URL = resolveApiBaseURL(
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: API_TIMEOUT_MS,
+  withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -34,14 +38,173 @@ export function unwrapResponse(response) {
 }
 
 export function unwrapList(response) {
-  if (Array.isArray(response)) return response;
-  const payload = response?.data;
-  const data = payload?.data ?? payload;
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.items)) return data.items;
-  if (Array.isArray(data?.list)) return data.list;
-  if (Array.isArray(data?.rows)) return data.rows;
+  const payload = response?.data ?? response;
+  const candidates = [
+    payload,
+    payload?.data,
+    payload?.items,
+    payload?.sites,
+    payload?.results,
+    payload?.list,
+    payload?.rows,
+    payload?.data?.items,
+    payload?.data?.sites,
+    payload?.data?.results,
+    payload?.data?.list,
+    payload?.data?.rows,
+  ];
+  return candidates.find(Array.isArray) || [];
+}
+
+export function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value
+      .filter(Boolean)
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return value
+      .split(/[,，、|]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
   return [];
+}
+
+function isUsableSiteSummary(value) {
+  const text = String(value || "").trim();
+  return Boolean(text) && !/^(?:https?:\/\/|www\.)/i.test(text);
+}
+
+export function normalizeWebsite(site = {}) {
+  const relatedCategory = site.category;
+  const categoryName =
+    typeof relatedCategory === "object"
+      ? relatedCategory?.name
+      : relatedCategory;
+  const id =
+    site.id ?? site.site_id ?? site.siteId ?? site.url ?? site.name ?? "";
+  const name = site.name ?? site.title ?? site.site_name ?? "未命名网站";
+  const url = site.url ?? site.website_url ?? site.href ?? site.link ?? "";
+  const normalizedId = String(id);
+  const renderKey = String(site.renderKey ?? `${normalizedId}::${url || name}`);
+  const shortDescription =
+    [
+      site.shortDescription,
+      site.short_description,
+      site.summary,
+      site.intro,
+      site.site_description,
+      site.description,
+    ]
+      .find((value) => isUsableSiteSummary(value))
+      ?.trim() || "";
+
+  return {
+    ...site,
+    id: normalizedId,
+    renderKey,
+    name,
+    url,
+    category_code:
+      site.category_code ?? site.categoryCode ?? site.category_code_id ?? "",
+    categoryCode:
+      site.categoryCode ?? site.category_code ?? site.category_code_id ?? "",
+    category_name:
+      site.category_name ?? site.categoryName ?? categoryName ?? "未分类",
+    categoryName:
+      site.categoryName ?? site.category_name ?? categoryName ?? "未分类",
+    shortDescription,
+    summary: shortDescription,
+    tags: normalizeStringArray(site.tags),
+    occupations: normalizeStringArray(site.occupations),
+    logo_url: site.logo_url ?? site.logo ?? site.icon ?? site.favicon ?? "",
+    logoUrl:
+      site.logoUrl ?? site.logo_url ?? site.logo ?? site.icon ?? site.favicon ?? "",
+  };
+}
+
+const CAREER_SITE_SUMMARY_FALLBACKS = Object.freeze({
+  github: "代码托管、开源协作与项目交付平台。",
+  "mdn web docs": "面向 Web 开发者的权威技术文档网站。",
+  mdn: "面向 Web 开发者的权威技术文档网站。",
+  "stack overflow": "开发者常用的技术问答与问题检索社区。",
+  kaggle: "提供数据集、竞赛和练习项目的数据科学平台。",
+  "hugging face": "聚合模型、数据集与 AI 开发资源的平台。",
+  figma: "支持协作设计与原型制作的产品设计工具。",
+  coursera: "提供系统课程学习与职业提升内容的在线教育平台。",
+  "power bi": "用于数据分析、报表制作与可视化展示的工具平台。",
+  leetcode: "用于算法练习、面试准备和编程能力提升的平台。",
+  behance: "设计作品展示与创意灵感发现平台。",
+});
+
+const CAREER_CATEGORY_SUMMARY_FALLBACKS = Object.freeze({
+  前端开发: "面向前端开发学习与项目实践的工具和资源。",
+  后端开发: "面向后端服务、API 开发与工程实践的资源。",
+  数据分析: "用于数据处理、分析建模和可视化实践的资源。",
+  技术研发: "面向技术研发、代码实践与项目协作的资源。",
+  教育与内容: "用于学习、知识整理和内容创作的资源。",
+  产品与设计: "支持产品规划、界面设计和协作交付的资源。",
+  设计资源: "用于视觉设计、灵感收集和素材制作的资源。",
+  学习资源: "帮助学习、练习和查找专业资料的资源。",
+});
+
+export function normalizeWebsiteList(response) {
+  return unwrapList(response).filter(Boolean).map(normalizeWebsite);
+}
+
+export function generateFallbackSummary(site = {}) {
+  const name = normalizeSiteName(site.name);
+  const knownSummary = CAREER_SITE_SUMMARY_FALLBACKS[name];
+  if (knownSummary) return knownSummary;
+
+  const category = String(
+    site.category_name || site.categoryName || site.category || "",
+  ).trim();
+  const categorySummary = CAREER_CATEGORY_SUMMARY_FALLBACKS[category];
+  if (categorySummary) return `${site.name || "该网站"}：${categorySummary}`;
+
+  const tags = normalizeStringArray(site.tags).slice(0, 2);
+  if (tags.length) {
+    return `${site.name || "该网站"}：围绕${tags.join("、")}提供实用工具与参考资源。`;
+  }
+
+  return `${site.name || "该网站"}：提供适合当前职业方向的学习与实践资源。`;
+}
+
+export function normalizeCareerSite(site = {}) {
+  const sourceSummary = getSiteSummary(site);
+  const normalized = normalizeWebsite(site);
+  const summary =
+    sourceSummary ||
+    getSiteSummary(normalized) ||
+    generateFallbackSummary(normalized);
+  const careerCodes = normalizeStringArray(
+    site.careerCodes ||
+      site.career_codes ||
+      site.occupationCodes ||
+      site.occupations,
+  );
+  const description = isUsableSiteSummary(site.description)
+    ? site.description.trim()
+    : summary;
+
+  return {
+    ...normalized,
+    summary,
+    shortDescription: summary,
+    description,
+    logoUrl: normalized.logo_url,
+    categoryName: normalized.category_name,
+    careerCodes,
+  };
+}
+
+export function normalizeCareerSiteList(response) {
+  return unwrapList(response).filter(Boolean).map(normalizeCareerSite);
 }
 
 export function normalizeUrl(url) {
@@ -59,13 +222,99 @@ export function getDomain(url) {
   }
 }
 
-export function getFaviconUrl(site = {}) {
-  if (site.logo_url) return site.logo_url;
+export function normalizeSiteKey(site = {}) {
+  try {
+    const hostname = new URL(normalizeUrl(site?.url)).hostname
+      .toLowerCase()
+      .replace(/^www\./, "");
+    if (hostname) return `host:${hostname}`;
+  } catch {
+    // Fall back to the normalized name below.
+  }
+
+  if (site?.id !== undefined && site?.id !== null && String(site.id).trim()) {
+    return `id:${String(site.id).trim()}`;
+  }
+
+  const name = normalizeSiteName(site?.name);
+  return name ? `name:${name}` : "";
+}
+
+function normalizeLogoUrl(value) {
+  const source = String(value || "").trim();
+  if (!source) return "";
+  // Keep same-origin assets, but reject protocol-relative URLs: on an HTTPS
+  // page they could resolve to an unexpected insecure or third-party source.
+  if (source.startsWith("/") && !source.startsWith("//")) return source;
+
+  try {
+    const parsed = new URL(source);
+    return parsed.protocol === "https:" ? parsed.href : "";
+  } catch {
+    return "";
+  }
+}
+
+export function resolveSiteLogo(site = {}) {
+  const logoUrl = normalizeLogoUrl(site.logo_url);
+  if (logoUrl) return logoUrl;
+
   const domain = getDomain(site.url);
   if (domain) {
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
   }
   return "";
+}
+
+export function getFaviconUrl(site = {}) {
+  return resolveSiteLogo(site);
+}
+
+export const SITE_DESCRIPTION_FALLBACKS = Object.freeze({
+  github: "代码托管与协作开发平台",
+  "mdn web docs": "面向 Web 开发者的权威技术文档",
+  mdn: "面向 Web 开发者的权威技术文档",
+  "stack overflow": "开发者问答与知识社区",
+  figma: "协作式界面设计与原型工具",
+  vercel: "面向前端团队的云端部署平台",
+  chatgpt: "通用型 AI 助手",
+  midjourney: "AI 图像生成与创意工具",
+  "hugging face": "开源模型、数据集与机器学习社区",
+  notion: "笔记、知识库与团队协作工具",
+  claude: "面向分析、写作与编程的 AI 助手",
+});
+
+export function normalizeSiteName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+export function getSiteSummary(site = {}) {
+  const values = [
+    site.summary,
+    site.description,
+    site.slogan,
+    site.shortDescription,
+    site.short_description,
+    site.intro,
+    site.site_description,
+    site.desc,
+  ];
+  const providedDescription = values.find((value) =>
+    isUsableSiteSummary(value),
+  );
+
+  return (
+    providedDescription?.trim() ||
+    SITE_DESCRIPTION_FALLBACKS[normalizeSiteName(site.name)] ||
+    generateFallbackSummary(site)
+  );
+}
+
+export function getSiteDescription(site = {}) {
+  return getSiteSummary(site);
 }
 
 export const CATEGORY_FALLBACK_SITES = {
@@ -282,20 +531,19 @@ function isAuthEndpoint(config = {}) {
   return [
     "/auth/login",
     "/auth/register",
-    "/auth/send-code",
+    "/auth/send-register-code",
     "/auth/send-reset-code",
     "/auth/verify-reset-code",
     "/auth/reset-password",
     "/auth/refresh",
     "/auth/logout",
-    "/authing/exchange",
   ].some((path) => url.includes(path));
 }
 
 function redirectToLogin() {
   if (
     typeof window === "undefined" ||
-    ["/login", "/authing/callback"].includes(window.location.pathname)
+    ["/login"].includes(window.location.pathname)
   ) {
     return;
   }
@@ -327,10 +575,14 @@ function refreshAccessToken() {
 
   if (!refreshPromise) {
     refreshPromise = api
-      .post("/auth/refresh", {}, {
-        skipAuth: true,
-        headers: { Authorization: `Bearer ${refreshToken}` },
-      })
+      .post(
+        "/auth/refresh",
+        {},
+        {
+          skipAuth: true,
+          headers: { Authorization: `Bearer ${refreshToken}` },
+        },
+      )
       .then((response) => {
         const session = normalizeAuthSession(response);
         if (!isValidAuthToken(session.access_token)) {
@@ -398,29 +650,50 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  sendCode: (email) => api.post("/auth/send-code", { email }),
-  register: (data) => api.post("/auth/register", data),
-  login: (account, password) => api.post("/auth/login", { account, password }),
+  register: (data) =>
+    api.post("/auth/register", data, { timeout: AUTH_REQUEST_TIMEOUT_MS }),
+  sendRegisterCode: (data) =>
+    api.post("/auth/send-register-code", data, {
+      timeout: VERIFICATION_REQUEST_TIMEOUT_MS,
+    }),
+  login: (account, password) =>
+    api.post(
+      "/auth/login",
+      { account: account.trim(), password },
+      { timeout: AUTH_REQUEST_TIMEOUT_MS },
+    ),
   logout: () => api.post("/auth/logout"),
   refresh: () => {
     const refreshToken = getRefreshToken();
     if (!refreshToken) return Promise.reject(new Error("Refresh Token 不存在"));
-    return api.post("/auth/refresh", {}, {
-      skipAuth: true,
-      headers: { Authorization: `Bearer ${refreshToken}` },
-    });
+    return api.post(
+      "/auth/refresh",
+      {},
+      {
+        skipAuth: true,
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      },
+    );
   },
   refreshToken: () => {
     const refreshToken = getRefreshToken();
     if (!refreshToken) return Promise.reject(new Error("Refresh Token 不存在"));
-    return api.post("/auth/refresh", {}, {
-      skipAuth: true,
-      headers: { Authorization: `Bearer ${refreshToken}` },
-    });
+    return api.post(
+      "/auth/refresh",
+      {},
+      {
+        skipAuth: true,
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      },
+    );
   },
-  exchange: (code) => api.post("/authing/exchange", { code }, { skipAuth: true }),
   me: () => api.get("/auth/me"),
-  sendResetCode: (email) => api.post("/auth/send-reset-code", { email }),
+  sendResetCode: (email) =>
+    api.post(
+      "/auth/send-reset-code",
+      { email: email.trim().toLowerCase() },
+      { timeout: VERIFICATION_REQUEST_TIMEOUT_MS },
+    ),
   verifyResetCode: (email, code) =>
     api.post("/auth/verify-reset-code", { email, code }),
   resetPassword: (email, code, newPassword) =>
@@ -462,13 +735,22 @@ export const questionnaireAPI = {
   getProfileTags: () => api.get("/user/profile-tags"),
 };
 
+export const careerAPI = {
+  getRecommendations: (config = {}) => api.get("/career/recommend", config),
+};
+
 export const siteAPI = {
-  getSites: (params = {}) => api.get("/sites", { params }),
+  getSites: (params = {}, config = {}) =>
+    api.get("/sites", { ...config, params }),
   getSite: (id) => api.get(`/sites/${id}`),
-  getRandom: (params = {}) => api.get("/sites/random", { params }),
-  getHot: (params = {}) => api.get("/sites/hot", { params }),
-  getLatest: (params = {}) => api.get("/sites/latest", { params }),
-  getRecommend: (params = {}) => api.get("/sites/recommend", { params }),
+  getRandom: (params = {}, config = {}) =>
+    api.get("/sites/random", { ...config, params }),
+  getHot: (params = {}, config = {}) =>
+    api.get("/sites/hot", { ...config, params }),
+  getLatest: (params = {}, config = {}) =>
+    api.get("/sites/latest", { ...config, params }),
+  getRecommend: (params = {}, config = {}) =>
+    api.get("/sites/recommend", { ...config, params }),
   recordClick: (id) => api.post(`/sites/${id}/click`),
   getSimilar: (id) => api.get(`/sites/${id}/similar`),
 };
@@ -477,11 +759,129 @@ export const aiAPI = {
   recommendSites: (payload) => api.post("/ai/site-recommend", payload),
 };
 
+function getFavoriteTarget(siteOrId) {
+  if (siteOrId && typeof siteOrId === "object") {
+    const rawSiteId =
+      siteOrId.siteId ?? siteOrId.site_id ?? siteOrId.id ?? "";
+    const siteId = /^\d+$/.test(String(rawSiteId).trim())
+      ? String(rawSiteId).trim()
+      : "";
+    const rawUrl =
+      siteOrId.url ?? siteOrId.website_url ?? siteOrId.link ?? "";
+    const rawFavoriteId =
+      siteOrId.favoriteId ?? siteOrId.favorite_id ?? "";
+    const favoriteId = /^\d+$/.test(String(rawFavoriteId).trim())
+      ? String(rawFavoriteId).trim()
+      : "";
+    return { siteId, favoriteId, url: normalizeUrl(rawUrl) };
+  }
+
+  const value = String(siteOrId ?? "").trim();
+  return {
+    siteId: /^\d+$/.test(value) ? value : "",
+    favoriteId: "",
+    url: "",
+  };
+}
+
+function favoriteMutationDiagnostic(operation, target, requestConfig, response, error) {
+  const startedAt = requestConfig.startedAt;
+  const responsePayload = response?.data;
+  const errorPayload = error?.response?.data;
+  return {
+    operation,
+    siteId: target.siteId || "",
+    favoriteId: target.favoriteId || "",
+    url: requestConfig.url,
+    method: requestConfig.method,
+    payload: requestConfig.payload ?? null,
+    status: response?.status ?? error?.response?.status ?? null,
+    durationMs: Math.max(0, Date.now() - startedAt),
+    code:
+      errorPayload?.code ??
+      errorPayload?.error_code ??
+      responsePayload?.code ??
+      responsePayload?.data?.code ??
+      "",
+    response: responsePayload ?? errorPayload ?? null,
+  };
+}
+
+async function runFavoriteMutation(operation, target, requestConfig, request) {
+  const config = { ...requestConfig, startedAt: Date.now() };
+  try {
+    const response = await request(config);
+    if (import.meta.env.DEV) {
+      console.debug(
+        "[Favorite sync completed]",
+        favoriteMutationDiagnostic(operation, target, config, response, null),
+      );
+    }
+    return response;
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error("[Favorite sync failed]", favoriteMutationDiagnostic(operation, target, config, null, error));
+    }
+    throw error;
+  }
+}
+
+function notifyFavoriteStateChange(siteOrId, favorited) {
+  if (typeof window === "undefined") return;
+  const { siteId, url } = getFavoriteTarget(siteOrId);
+  window.dispatchEvent(
+    new CustomEvent("favorite-state-changed", {
+      detail: {
+        siteId,
+        url,
+        site: siteOrId,
+        favorited: Boolean(favorited),
+      },
+    }),
+  );
+}
+
 export const favoriteAPI = {
-  getFavorites: () => api.get("/favorites"),
-  addFavorite: (siteId, note = "") =>
-    api.post(`/sites/${siteId}/favorite`, { note }),
-  removeFavorite: (siteId) => api.delete(`/sites/${siteId}/favorite`),
+  getFavorites: (config = {}) => api.get("/favorites", config),
+  addFavorite: async (siteOrId, note = "") => {
+    const target = getFavoriteTarget(siteOrId);
+    const url = target.siteId
+      ? `/sites/${target.siteId}/favorite`
+      : "/favorites";
+    const payload = target.siteId
+      ? { note }
+      : { url: target.url, note };
+    const response = await runFavoriteMutation(
+      "add",
+      target,
+      { url, method: "POST", timeout: FAVORITE_MUTATION_TIMEOUT_MS, payload },
+      (config) => api.post(url, payload, { timeout: config.timeout }),
+    );
+    notifyFavoriteStateChange(siteOrId, true);
+    return response;
+  },
+  removeFavorite: async (siteOrId) => {
+    const target = getFavoriteTarget(siteOrId);
+    const url = target.siteId ? `/sites/${target.siteId}/favorite` : "/favorites";
+    const payload = target.siteId ? undefined : { url: target.url };
+    const response = await runFavoriteMutation(
+      "remove",
+      target,
+      {
+        url,
+        method: "DELETE",
+        timeout: FAVORITE_MUTATION_TIMEOUT_MS,
+        payload,
+      },
+      (config) =>
+        api.delete(url, {
+          data: payload,
+          timeout: config.timeout,
+        }),
+    );
+    notifyFavoriteStateChange(siteOrId, false);
+    return response;
+  },
   updateNote: (siteId, note = "") =>
     api.put(`/sites/${siteId}/favorite`, { note }),
 };
@@ -492,8 +892,37 @@ export const searchAPI = {
   hotKeywords: () => api.get("/search/hot-keywords"),
 };
 
+const CATEGORY_CACHE_TTL_MS = 60_000;
+let cachedCategoriesResponse = null;
+let cachedCategoriesExpiresAt = 0;
+let pendingCategoriesRequest = null;
+
+function getCategoriesWithCache(config = {}) {
+  const { force = false, ...requestConfig } = config;
+  const now = Date.now();
+  if (!force && cachedCategoriesResponse && now < cachedCategoriesExpiresAt) {
+    return Promise.resolve(cachedCategoriesResponse);
+  }
+  if (!force && pendingCategoriesRequest) return pendingCategoriesRequest;
+
+  const requestPromise = api
+    .get("/categories", requestConfig)
+    .then((response) => {
+      cachedCategoriesResponse = response;
+      cachedCategoriesExpiresAt = Date.now() + CATEGORY_CACHE_TTL_MS;
+      return response;
+    })
+    .finally(() => {
+      if (pendingCategoriesRequest === requestPromise) {
+        pendingCategoriesRequest = null;
+      }
+    });
+  pendingCategoriesRequest = requestPromise;
+  return requestPromise;
+}
+
 export const categoryAPI = {
-  getCategories: () => api.get("/categories"),
+  getCategories: (config = {}) => getCategoriesWithCache(config),
   getCategory: (id) => api.get(`/categories/${id}`),
 };
 
@@ -539,6 +968,22 @@ export const adminAPI = {
     api.get("/admin/content-audit", { params: { status, page } }),
   reviewContent: (id, action, reason = "") =>
     api.post("/admin/review-content", { id, action, reason }),
+  getCrawlerReviews: (params = {}) =>
+    api.get("/admin/crawler/reviews", { params }),
+  getCrawlerReview: (reviewUid) =>
+    api.get(`/admin/crawler/reviews/${reviewUid}`),
+  assignCrawlerReview: (reviewUid, data) =>
+    api.post(`/admin/crawler/reviews/${reviewUid}/assign`, data),
+  approveCrawlerReview: (reviewUid, data) =>
+    api.post(`/admin/crawler/reviews/${reviewUid}/approve`, data),
+  rejectCrawlerReview: (reviewUid, data) =>
+    api.post(`/admin/crawler/reviews/${reviewUid}/reject`, data),
+  previewCrawlerPublish: (reviewUid, data) =>
+    api.post(`/admin/crawler/reviews/${reviewUid}/publish-preview`, data),
+  publishCrawlerReview: (reviewUid, data) =>
+    api.post(`/admin/crawler/reviews/${reviewUid}/publish`, data),
+  retryCrawlerPublish: (publishUid, data) =>
+    api.post(`/admin/crawler/publishes/${publishUid}/retry`, data),
 };
 
 export const commentAPI = {

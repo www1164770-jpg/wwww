@@ -54,8 +54,20 @@ assert.equal(
 );
 assert.equal(
   resolveApiBaseURL({ VITE_API_BASE_URL: "/", PROD: true }),
-  "/",
-  "the root base URL should not be normalized to an empty string",
+  "",
+  "the root base URL should produce root-relative endpoint URLs",
+);
+assert.throws(
+  () => resolveApiBaseURL({ VITE_API_BASE_URL: "//api" }),
+  /Invalid VITE_API_BASE_URL/u,
+);
+assert.throws(
+  () => resolveApiBaseURL({ VITE_API_BASE_URL: "/api/api" }),
+  /Invalid VITE_API_BASE_URL/u,
+);
+assert.throws(
+  () => resolveApiBaseURL({ VITE_API_BASE_URL: "undefined" }),
+  /Invalid VITE_API_BASE_URL/u,
 );
 
 const productionRecommendURL = `${resolveApiBaseURL({ PROD: true })}/sites/recommend`;

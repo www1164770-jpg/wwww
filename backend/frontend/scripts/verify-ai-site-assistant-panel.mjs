@@ -5,7 +5,9 @@ const root = resolve(import.meta.dirname, "..");
 const read = (path) => readFileSync(resolve(root, path), "utf8");
 const assistantPath = resolve(root, "src/components/ai/AiSiteAssistant.vue");
 const storePath = resolve(root, "src/stores/aiAssistant.js");
-const assistant = existsSync(assistantPath) ? read("src/components/ai/AiSiteAssistant.vue") : "";
+const assistant = existsSync(assistantPath)
+  ? read("src/components/ai/AiSiteAssistant.vue")
+  : "";
 const store = existsSync(storePath) ? read("src/stores/aiAssistant.js") : "";
 const api = read("src/utils/api.js");
 const home = read("src/views/Home.vue");
@@ -20,15 +22,21 @@ const checks = [
       /function openAssistant\(\)/.test(store) &&
       /function closeAssistant\(\)/.test(store) &&
       /function toggleAssistant\(\)/.test(store) &&
-      !/localStorage|accessToken|refreshToken|Authorization|recommendSites/.test(store),
+      !/localStorage|accessToken|refreshToken|Authorization|recommendSites/.test(
+        store,
+      ),
   ],
   [
     "API uses the existing axios client and the required endpoint",
-    /export const aiAPI\s*=\s*\{[\s\S]*?recommendSites:\s*\(payload\)\s*=>\s*api\.post\(\s*["']\/ai\/site-recommend["']\s*,\s*payload\s*\)/.test(api),
+    /export const aiAPI\s*=\s*\{[\s\S]*?recommendSites:\s*\(payload\)\s*=>\s*api\.post\(\s*["']\/ai\/site-recommend["']\s*,\s*payload\s*\)/.test(
+      api,
+    ),
   ],
   [
     "assistant sends only query and limit five",
-    /aiAPI\.recommendSites\(\{\s*query:\s*trimmedQuery,\s*limit:\s*5,?\s*\}\)/s.test(assistant),
+    /aiAPI\.recommendSites\(\{\s*query:\s*trimmedQuery,\s*limit:\s*5,?\s*\}\)/s.test(
+      assistant,
+    ),
   ],
   [
     "assistant does not read tokens or manually set authorization",
@@ -38,8 +46,14 @@ const checks = [
     "Home mounts assistant only for logged-in users and reuses visitSite",
     /<AiSiteAssistant\s+v-if="loggedIn"\s+@visit="visitSite"\s*\/>/.test(home),
   ],
-  ["signed-out users cannot see the assistant launcher", !assistant.includes('v-if="!loggedIn"')],
-  ["input enforces the 500 character limit", /<textarea[^>]*maxlength="500"/.test(assistant)],
+  [
+    "signed-out users cannot see the assistant launcher",
+    !assistant.includes('v-if="!loggedIn"'),
+  ],
+  [
+    "input enforces the 500 character limit",
+    /<textarea[^>]*maxlength="500"/.test(assistant),
+  ],
   [
     "keyboard behavior covers Enter, Shift+Enter, IME composition and Escape",
     /@keydown="handleKeydown"/.test(assistant) &&
@@ -59,7 +73,8 @@ const checks = [
   ["results hide match scores", !assistant.includes("match_score")],
   [
     "result interaction emits visit without opening windows directly",
-    /emit\((["'])visit\1,\s*site\)/.test(assistant) && !/window\.open|recordClick/.test(assistant),
+    /emit\((["'])visit\1,\s*site\)/.test(assistant) &&
+      !/window\.open|recordClick/.test(assistant),
   ],
   [
     "assistant includes accessible dialog and live status semantics",
@@ -75,8 +90,14 @@ const checks = [
       !header.includes("<AiSiteAssistant") &&
       !header.includes("/ai/site-recommend"),
   ],
-  ["existing AI login prompt remains", home.includes('class="ai-login-prompt"')],
-  ["ToolMarquee target remains available", home.includes("ToolMarquee") && !home.includes('id="hot"')],
+  [
+    "existing 知航AI login prompt remains",
+    home.includes('class="ai-login-prompt"'),
+  ],
+  [
+    "ToolMarquee target remains available",
+    home.includes("ToolMarquee") && !home.includes('id="hot"'),
+  ],
 ];
 
 let failed = false;

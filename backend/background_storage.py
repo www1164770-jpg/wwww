@@ -59,11 +59,15 @@ def store_processed_background(
         temporary_path.write_bytes(processed.content)
         os.replace(temporary_path, final_path)
     except OSError as error:
+        cleanup_error = None
         for path in (temporary_path, final_path):
             try:
                 path.unlink(missing_ok=True)
-            except OSError:
-                pass
+            except OSError as cleanup_failure:
+                if cleanup_error is None:
+                    cleanup_error = cleanup_failure
+        if cleanup_error is not None:
+            raise BackgroundStorageError("Unable to clean up failed background storage") from cleanup_error
         raise BackgroundStorageError("Unable to store background file") from error
 
     return f"{user_id}/{filename}"
@@ -75,11 +79,13 @@ def resolve_background_path(upload_root: Path, storage_path: str) -> Path:
         raise InvalidStoragePath("Storage path must be a nonempty relative path")
 
     path = Path(storage_path)
-    if path.is_absolute() or ".." in path.parts:
+    if path.is_absolute() or path.drive or ".." in path.parts:
         raise InvalidStoragePath("Storage path is invalid")
 
     root = Path(upload_root).resolve()
     candidate = (root / path).resolve()
+    if candidate == root:
+        raise InvalidStoragePath("Storage path is invalid")
     try:
         candidate.relative_to(root)
     except ValueError as error:
@@ -105,8 +111,12 @@ def delete_background_file(upload_root: Path, storage_path: str) -> bool:
         if not path.exists():
             return False
         if not path.is_file():
+            if not path.exists():
+                return False
             raise OSError("Background path is not a regular file")
         path.unlink()
         return True
+    except FileNotFoundError:
+        return False
     except OSError as error:
         raise BackgroundStorageError("Unable to delete background file") from error

@@ -35,20 +35,39 @@ class FakeFavoritesDatabase:
         self.website_columns = {"id", "favorite_count"}
         self.favorites = []
         self.raise_favorites_list_error = False
+        self.raise_connect_error = False
+        self.raise_insert_error = False
+        self.raise_delete_error = False
+        self.raise_commit_error_once = False
+        self.rollback_count = 0
+        self.last_sql = ""
+        self.favorite_query_sql = ""
 
     def connect(self):
+        if self.raise_connect_error:
+            raise RuntimeError("database unavailable")
         return FakeFavoritesConnection(self)
 
 
 class FakeFavoritesConnection:
     def __init__(self, database):
         self.database = database
+        self.favorites_snapshot = deepcopy(database.favorites)
+        self.sites_snapshot = deepcopy(database.sites)
 
     def cursor(self):
         return FakeFavoritesCursor(self.database)
 
     def commit(self):
+        if self.database.raise_commit_error_once:
+            self.database.raise_commit_error_once = False
+            raise RuntimeError("commit failed")
         return None
+
+    def rollback(self):
+        self.database.rollback_count += 1
+        self.database.favorites = deepcopy(self.favorites_snapshot)
+        self.database.sites = deepcopy(self.sites_snapshot)
 
     def close(self):
         return None
@@ -59,6 +78,7 @@ class FakeFavoritesCursor:
         self.database = database
         self.result = []
         self.rowcount = 0
+        self.last_sql = ""
 
     def __enter__(self):
         return self
@@ -67,6 +87,8 @@ class FakeFavoritesCursor:
         return False
 
     def execute(self, sql, params=None):
+        self.last_sql = sql
+        self.database.last_sql = sql
         normalized = " ".join(sql.split()).lower()
         params = tuple(params or ())
         self.result = []
@@ -102,6 +124,15 @@ class FakeFavoritesCursor:
             self.result = [{"id": site["id"]}] if site else []
             return
 
+        if normalized.startswith("select id, url from websites"):
+            requested_urls = {str(value).rstrip("/").lower() for value in params}
+            self.result = [
+                {"id": site["id"], "url": site["url"]}
+                for site in self.database.sites.values()
+                if str(site["url"]).rstrip("/").lower() in requested_urls
+            ]
+            return
+
         if normalized.startswith("select id from favorites where user_id=%s and site_id=%s"):
             user_id, site_id = map(int, params[:2])
             self.result = [
@@ -112,6 +143,8 @@ class FakeFavoritesCursor:
             return
 
         if normalized.startswith("insert into favorites") or normalized.startswith("insert ignore into favorites"):
+            if self.database.raise_insert_error:
+                raise RuntimeError("favorite insert failed")
             user_id, site_id, note = params[:3]
             self.database.favorites.append({"user_id": int(user_id), "site_id": int(site_id), "note": note})
             self.rowcount = 1
@@ -130,6 +163,8 @@ class FakeFavoritesCursor:
             return
 
         if normalized.startswith("delete from favorites where user_id=%s and site_id=%s"):
+            if self.database.raise_delete_error:
+                raise RuntimeError("favorite delete failed")
             user_id, site_id = map(int, params[:2])
             before = len(self.database.favorites)
             self.database.favorites = [
@@ -148,6 +183,7 @@ class FakeFavoritesCursor:
             return
 
         if "from favorites f join websites w" in normalized:
+            self.database.favorite_query_sql = sql
             if self.database.raise_favorites_list_error:
                 raise RuntimeError("favorites query failed")
             user_id = int(params[0])
@@ -155,9 +191,10 @@ class FakeFavoritesCursor:
                 {
                     **deepcopy(self.database.sites[favorite["site_id"]]),
                     "category_name": "Test Category",
+                    "favorite_id": index + 1,
                     "note": favorite["note"],
                 }
-                for favorite in self.database.favorites
+                for index, favorite in enumerate(self.database.favorites)
                 if favorite["user_id"] == user_id
             ]
             return
@@ -194,8 +231,8 @@ class FavoritesV1Tests(unittest.TestCase):
     def assert_login_expired(self, response):
         self.assertEqual(response.status_code, 401)
         body = response.get_json()
-        self.assertEqual(body["code"], 401)
-        self.assertEqual(body["message"], "登录状态已失效，请重新登录")
+        self.assertIn(body["code"], ("AUTH_REQUIRED", 401))
+        self.assertIn(body["message"], ("请先登录后操作收藏", "登录状态已失效，请重新登录"))
 
     def add_favorite(self, identity, site_id=76):
         return self.client.post(
@@ -251,6 +288,14 @@ class FavoritesV1Tests(unittest.TestCase):
         self.assertFalse(second.get_json()["data"]["created"])
         self.assertEqual(len(self.database.favorites), 1)
 
+    def test_add_response_keeps_favorite_id_separate_from_site_id(self):
+        response = self.add_favorite("testuser")
+
+        favorite = response.get_json()["data"]["favorite"]
+        self.assertEqual(favorite["favoriteId"], 1)
+        self.assertEqual(favorite["siteId"], 76)
+        self.assertNotEqual(favorite["favoriteId"], favorite["siteId"])
+
     def test_remove_favorite_removes_the_record(self):
         self.add_favorite("testuser")
         response = self.client.delete("/api/sites/76/favorite", headers=self.auth_headers("testuser"))
@@ -258,6 +303,105 @@ class FavoritesV1Tests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.get_json()["data"]["favorited"])
         self.assertEqual(self.database.favorites, [])
+
+    def test_duplicate_remove_is_idempotent_success(self):
+        self.add_favorite("testuser")
+        first = self.client.delete("/api/sites/76/favorite", headers=self.auth_headers("testuser"))
+        second = self.client.delete("/api/sites/76/favorite", headers=self.auth_headers("testuser"))
+
+        self.assertEqual(first.status_code, 200)
+        self.assertTrue(first.get_json()["data"]["removed"])
+        self.assertEqual(second.status_code, 200)
+        self.assertFalse(second.get_json()["data"]["removed"])
+        self.assertTrue(second.get_json()["data"]["alreadyRemoved"])
+
+    def test_reference_endpoint_rejects_missing_site_data(self):
+        response = self.client.post(
+            "/api/favorites",
+            headers=self.auth_headers("testuser"),
+            json={},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.get_json()["code"], "INVALID_SITE")
+
+    def test_reference_endpoint_returns_site_not_found_for_unknown_url(self):
+        response = self.client.post(
+            "/api/favorites",
+            headers=self.auth_headers("testuser"),
+            json={"url": "https://missing.example"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.get_json()["code"], "SITE_NOT_FOUND")
+
+    def test_reference_endpoint_rejects_malformed_url(self):
+        response = self.client.post(
+            "/api/favorites",
+            headers=self.auth_headers("testuser"),
+            json={"url": "https://bad:not-a-port"},
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.get_json()["code"], "INVALID_SITE")
+
+    def test_reference_endpoint_accepts_normalized_url(self):
+        response = self.client.post(
+            "/api/favorites",
+            headers=self.auth_headers("testuser"),
+            json={"url": "https://test.example/", "note": "url favorite"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["data"]["favorite"]["siteId"], 76)
+
+    def test_user_cannot_remove_another_users_favorite(self):
+        self.database.favorites = [{"user_id": 42, "site_id": 76, "note": "private"}]
+
+        response = self.client.delete(
+            "/api/sites/76/favorite",
+            headers=self.auth_headers("testuser"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.get_json()["data"]["removed"])
+        self.assertEqual(self.database.favorites[0]["user_id"], 42)
+
+    def test_insert_error_rolls_back_and_next_request_can_succeed(self):
+        self.database.raise_insert_error = True
+        failed = self.add_favorite("testuser")
+
+        self.assertEqual(failed.status_code, 503)
+        self.assertEqual(failed.get_json()["code"], "FAVORITE_DATABASE_ERROR")
+        self.assertGreaterEqual(self.database.rollback_count, 1)
+        self.assertEqual(self.database.favorites, [])
+
+        self.database.raise_insert_error = False
+        recovered = self.add_favorite("testuser")
+        self.assertEqual(recovered.status_code, 200)
+
+    def test_commit_error_rolls_back_relation_and_counter(self):
+        self.database.raise_commit_error_once = True
+
+        response = self.add_favorite("testuser")
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(self.database.favorites, [])
+        self.assertEqual(self.database.sites[76]["favorite_count"], 0)
+        self.assertGreaterEqual(self.database.rollback_count, 1)
+
+    def test_delete_error_rolls_back_and_keeps_existing_favorite(self):
+        self.add_favorite("testuser")
+        self.database.raise_delete_error = True
+
+        response = self.client.delete(
+            "/api/sites/76/favorite",
+            headers=self.auth_headers("testuser"),
+        )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.get_json()["code"], "FAVORITE_DATABASE_ERROR")
+        self.assertEqual(len(self.database.favorites), 1)
 
     def test_missing_favorite_count_column_keeps_favorite_relation_working(self):
         self.database.website_columns.remove("favorite_count")
@@ -308,6 +452,21 @@ class FavoritesV1Tests(unittest.TestCase):
         for field in ("name", "url", "logo_url", "category_id", "category_name", "note"):
             self.assertIn(field, items[0])
         self.assertTrue(items[0]["is_favorited"])
+        self.assertEqual(items[0]["siteId"], 76)
+        self.assertEqual(items[0]["favoriteId"], 1)
+        self.assertEqual(items[0]["categoryName"], "Test Category")
+
+    def test_favorite_list_uses_explicit_fields_and_user_order_index_shape(self):
+        self.add_favorite("testuser")
+
+        self.client.get("/api/favorites", headers=self.auth_headers("testuser"))
+
+        query = " ".join(self.database.favorite_query_sql.split()).lower()
+        self.assertIn("w.id, w.name, w.url, w.logo_url", query)
+        self.assertIn("f.created_at as favorited_at", query)
+        self.assertNotIn("select w.*", query)
+        self.assertIn("where f.user_id = %s", query)
+        self.assertIn("order by f.created_at desc", query)
 
     def test_favorite_list_supports_numeric_username_and_email_identities(self):
         self.add_favorite("7")
@@ -331,7 +490,19 @@ class FavoritesV1Tests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.get_json()["code"], 500)
+        self.assertFalse(response.get_json()["success"])
         self.assertNotIn("favorites query failed", response.get_json()["message"])
+
+    def test_favorite_list_returns_503_for_database_connection_errors(self):
+        self.database.raise_connect_error = True
+        self.app.config["PROPAGATE_EXCEPTIONS"] = False
+
+        response = self.client.get("/api/favorites", headers=self.auth_headers("testuser"))
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.get_json()["code"], "DATABASE_UNAVAILABLE")
+        self.assertEqual(response.get_json()["error_code"], "DATABASE_UNAVAILABLE")
+        self.assertFalse(response.get_json()["success"])
 
     def test_missing_authorization_is_rejected(self):
         response = self.client.post("/api/sites/76/favorite", json={"note": "useful"})

@@ -1,9 +1,13 @@
 import re
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+RESULT_PATH = SCRIPT_DIR / "result.txt"
+OUTPUT_PATH = SCRIPT_DIR / "insert_websites_data.sql"
 
 # 1. 读取你之前生成的 result.txt
 try:
-    with open('result.txt', 'r', encoding='utf-8') as f:
-        content = f.read()
+    content = RESULT_PATH.read_text(encoding="utf-8")
 except Exception as e:
     print(f"读取 result.txt 失败: {e}")
     exit()
@@ -33,7 +37,6 @@ for match in matches:
     sql_commands.append(cmd)
 
 # 4. 保存为最终可执行文件
-with open('insert_websites_data.sql', 'w', encoding='utf-8') as f:
-    f.write("\n".join(sql_commands))
+OUTPUT_PATH.write_text("\n".join(sql_commands), encoding="utf-8")
 
 print(f"✨ 成功生成 insert_websites_data.sql！共处理了 {len(matches)} 个网站。")

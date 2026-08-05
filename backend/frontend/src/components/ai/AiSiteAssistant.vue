@@ -3,13 +3,13 @@
     <button
       type="button"
       class="ai-site-assistant__launcher"
-      aria-label="打开 AI 网站推荐助手"
+      aria-label="打开知航AI助手"
       :aria-expanded="isOpen"
       aria-controls="ai-site-assistant-panel"
       @click="toggleAssistant"
     >
       <span aria-hidden="true">✦</span>
-      AI 帮我找网站
+      知航AI帮我找网站
     </button>
 
     <div
@@ -26,13 +26,13 @@
       >
         <header class="ai-site-assistant__header">
           <div>
-            <p class="ai-site-assistant__eyebrow">AI 网站推荐助手</p>
+            <p class="ai-site-assistant__eyebrow">知航AI助手</p>
             <h2 id="ai-site-assistant-title">描述你的需求</h2>
           </div>
           <button
             type="button"
             class="ai-site-assistant__close"
-            aria-label="关闭 AI 网站推荐助手"
+            aria-label="关闭知航AI助手"
             @click="closeAssistant"
           >
             ×
@@ -101,7 +101,7 @@
             class="ai-site-assistant__feedback"
             role="alert"
           >
-            <p>登录状态已失效，请重新登录后继续使用 AI 助手。</p>
+            <p>登录状态已失效，请重新登录后继续使用知航AI助手。</p>
             <button type="button" @click="goToLogin">重新登录</button>
           </div>
 
@@ -116,14 +116,17 @@
           <section
             v-if="status === 'success'"
             class="ai-site-assistant__results"
-            aria-label="AI 推荐网站"
+            aria-label="知航AI推荐网站"
           >
-            <p class="ai-site-assistant__results-title">为你找到 {{ results.length }} 个网站</p>
+            <p class="ai-site-assistant__results-title">
+              为你找到 {{ results.length }} 个网站
+            </p>
             <article
               v-for="site in results"
               :key="site.id || site.url || site.name"
               class="ai-site-assistant__result"
             >
+              <FavoriteStarButton :site="site" size="sm" />
               <div class="ai-site-assistant__result-head">
                 <img
                   v-if="getSiteLogo(site) && !hasLogoFailed(site)"
@@ -131,24 +134,36 @@
                   :alt="`${site.name || '网站'} Logo`"
                   @error="markLogoFailed(site)"
                 />
-                <span v-else class="ai-site-assistant__text-logo" aria-hidden="true">
+                <span
+                  v-else
+                  class="ai-site-assistant__text-logo"
+                  aria-hidden="true"
+                >
                   {{ getTextLogo(site) }}
                 </span>
                 <div>
                   <h3>{{ site.name || "推荐网站" }}</h3>
-                  <span v-if="site.category_name" class="ai-site-assistant__category">
+                  <span
+                    v-if="site.category_name"
+                    class="ai-site-assistant__category"
+                  >
                     {{ site.category_name }}
                   </span>
                 </div>
               </div>
-              <p class="ai-site-assistant__description">
-                {{ site.summary || site.description || "为你的需求匹配的网站资源。" }}
+              <p
+                v-if="siteDescription(site)"
+                class="ai-site-assistant__description"
+              >
+                {{ siteDescription(site) }}
               </p>
               <div v-if="site.reason" class="ai-site-assistant__reason">
                 <strong>推荐原因</strong>
                 <span>{{ site.reason }}</span>
               </div>
-              <button type="button" @click="emit('visit', site)">访问网站</button>
+              <button type="button" @click="emit('visit', site)">
+                访问网站
+              </button>
             </article>
           </section>
         </div>
@@ -158,10 +173,24 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useRouter } from "vue-router";
+import FavoriteStarButton from "../site/FavoriteStarButton.vue";
 import { useAiAssistantStore } from "../../stores/aiAssistant";
-import { aiAPI, getFaviconUrl, getTextLogo, unwrapResponse } from "../../utils/api";
+import {
+  aiAPI,
+  getFaviconUrl,
+  getSiteDescription,
+  getTextLogo,
+  unwrapResponse,
+} from "../../utils/api";
 
 const emit = defineEmits(["visit"]);
 const router = useRouter();
@@ -181,7 +210,9 @@ const examples = [
   "制作海报和图片素材",
 ];
 
-const canSubmit = computed(() => query.value.trim().length >= 2 && !isLoading.value);
+const canSubmit = computed(
+  () => query.value.trim().length >= 2 && !isLoading.value,
+);
 
 watch(isOpen, async (opened) => {
   if (!opened) return;
@@ -272,6 +303,10 @@ function getSiteLogo(site) {
   return getFaviconUrl(site);
 }
 
+function siteDescription(site) {
+  return getSiteDescription(site);
+}
+
 function goToLogin() {
   router.push({ path: "/login", query: { redirect: "/" } });
 }
@@ -311,7 +346,9 @@ onBeforeUnmount(() => {
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .ai-site-assistant__launcher:hover,
@@ -503,6 +540,7 @@ button:focus-visible {
 }
 
 .ai-site-assistant__result {
+  position: relative;
   display: grid;
   gap: 12px;
   border: 1px solid var(--color-border);

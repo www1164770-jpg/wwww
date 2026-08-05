@@ -1,4 +1,5 @@
--- Focused, idempotent Authing identity migration for users.
+-- DEPRECATED: historical Authing identity migration retained for existing databases.
+-- The application no longer uses this provider; do not add new runtime dependencies.
 -- Back up the target database before executing this file.
 
 SET @schema_name = DATABASE();

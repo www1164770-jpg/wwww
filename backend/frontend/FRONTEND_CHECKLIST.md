@@ -7,7 +7,6 @@
 5. 测试 Google / 必应 / 百度搜索。
 6. 注册账号。
 7. 登录账号。
-8. Authing 登录。
 9. 首次登录进入问卷。
 10. 提交问卷。
 11. 首页查看职业推荐。
@@ -52,7 +51,7 @@ npm run build
 后端：
 
 ```bash
-python -m py_compile app.py authing_service.py v1_routes.py recommend_service.py db_pool.py email_service.py models.py
+python -m py_compile app.py v1_routes.py recommend_service.py db_pool.py email_service.py models.py
 ```
 
 提交前检查 `git status`，确认不要提交 `.env`、`backend/.env`、`backend/frontend/.env`、`node_modules`、`dist`、`meili_data`、`meili_fresh`、`meilisearch.exe`、`dump.rdb` 或任何包含密钥的文件。

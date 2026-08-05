@@ -4,7 +4,7 @@
 本文件是整个后端服务的核心入口，基于 Flask 框架构建。
 
 主要功能模块：
-  1. 用户认证与授权（JWT 双 Token 机制 + Authing 第三方认证 + GitHub OAuth 登录）
+  1. 用户认证与授权（JWT 双 Token 机制 + GitHub OAuth 登录）
   2. 网站导航数据管理（分类、网站的增删改查 RESTful API）
   3. 全文搜索引擎集成（Meilisearch 极速搜索）
   4. 实时热度排行榜（多源热榜数据聚合）
@@ -20,15 +20,27 @@
 """
 
 import os  # 操作系统接口，用于读取环境变量和文件路径
+import sys
+from pathlib import Path
 from dotenv import load_dotenv  # 从 .env 文件加载环境变量，保护敏感配置不硬编码
-load_dotenv()
+
+BACKEND_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = BACKEND_DIR.parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
+if str(BACKEND_DIR.parent) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR.parent))
+
+for env_path in (BACKEND_DIR / ".env", PROJECT_DIR / ".env"):
+    if env_path.exists():
+        load_dotenv(env_path, override=False)
 
 from background_config import (
     BACKGROUND_MAX_FILE_BYTES,
     BACKGROUND_MAX_REQUEST_BYTES,
     BACKGROUND_UPLOAD_ROOT,
 )
-from flask import Flask, jsonify, request, redirect, session, url_for, g  # Flask 核心：应用实例、JSON响应、请求对象、重定向
+from flask import Flask, jsonify, request, redirect, url_for, g  # Flask 核心：应用实例、JSON响应、请求对象、重定向
 from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调用后端接口
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
 import time  # 时间工具，用于时间戳记录和延迟控制
@@ -37,8 +49,6 @@ import questionnaire_models  # noqa: F401  Register foundation models on the sha
 from sqlalchemy import func  # SQLAlchemy 聚合函数（如 COUNT、SUM），用于统计查询
 import json  # JSON 序列化/反序列化，用于存储复杂配置字段
 import re  # 正则表达式，用于 URL 格式校验等文本处理
-import hashlib
-import unicodedata
 from urllib.parse import quote_plus, urlparse  # URL 解析工具，用于验证 URL 合法性
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, verify_jwt_in_request  # JWT 认证扩展：Token 管理器、创建/验证 Token 的工具函数
 from flask_bcrypt import Bcrypt  # 密码哈希扩展，使用 bcrypt 算法安全存储用户密码
@@ -47,32 +57,33 @@ import meilisearch  # Meilisearch 搜索引擎客户端，提供毫秒级全文�
 from flask_apscheduler import APScheduler  # 定时任务调度器，用于定时执行爬虫等后台任务
 from spider import auto_fetch_hacker_news  # 自定义爬虫模块，自动抓取 Hacker News 热门站点
 from functools import wraps  # 装饰器工具，用于保留被装饰函数的元信息
-from authing import AuthenticationClient  # Authing 身份云客户端，用于 Token 校验和用户管理
 from sqlalchemy import text  # SQLAlchemy 原生 SQL 执行工具，用于执行复杂的原始 SQL 语句
 import feedparser  # RSS/Atom Feed 解析库，用于抓取和解析行业资讯订阅源
 import redis
 import pymysql
-import smtplib
 import random
+import hmac
+import secrets
 import logging
 import traceback
-from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from concurrent.futures import ThreadPoolExecutor
-from email_service import send_verification_email
+from email_service import MAIL_ERROR_MESSAGES, send_verification_email, validate_mail_config
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from recommend_service import rank_sites
 from v1_routes import register_v1_routes
 from questionnaire_admin_read_routes import register_questionnaire_admin_read_routes
-from authing_service import AuthingService
-import base64
-import secrets
-from urllib.parse import urlencode
+from backend.crawler.review.routes import register_review_routes
 
 # 导入连接池模块
-from db_pool import MYSQL_CHARSET, get_connection as pool_get_connection
+from db_pool import (
+    MYSQL_CHARSET,
+    get_connection as pool_get_connection,
+    get_database_config,
+    validate_database_config,
+)
 
 # 导入扩展模块
 import app_extensions
@@ -124,279 +135,38 @@ def get_secret_config():
 
 secret_config = get_secret_config()
 app.secret_key = secret_config["flask_secret"]
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_URL = (os.getenv("REDIS_URL") or "redis://localhost:6379/0").strip()
 
 
 def get_limiter_storage_uri():
-    """Redis 不可用时降级到内存限流，避免本地首页接口被限流器拦成 500。"""
-    try:
-        redis.StrictRedis.from_url(REDIS_URL, decode_responses=True).ping()
-        return REDIS_URL
-    except redis.exceptions.RedisError as exc:
-        app.logger.warning(
-            "Redis unavailable for rate limiter; using memory storage (error_type=%s)",
-            type(exc).__name__,
-        )
-        return "memory://"
+    """Return limiter storage without connecting to Redis during import."""
+    return (os.getenv("RATELIMIT_STORAGE_URI") or REDIS_URL).strip()
+
+
+def should_swallow_limiter_errors():
+    """Keep development usable without silently bypassing production limits."""
+    environments = {
+        (os.getenv(name) or "").strip().lower()
+        for name in ("APP_ENV", "FLASK_ENV", "ENV", "VERCEL_ENV")
+    }
+    return "production" not in environments
 
 def table_columns(cursor, table_name):
     cursor.execute(f"SHOW COLUMNS FROM {table_name}")
     return {row["Field"] for row in cursor.fetchall()}
 
 
-AUTHING_EMAIL_MAX_LENGTH = 120
-AUTHING_AVATAR_MAX_LENGTH = 255
-AUTHING_USERNAME_MAX_LENGTH = 50
-AUTHING_USERNAME_MAX_ATTEMPTS = 50
-AUTHING_SYNC_MAX_ATTEMPTS = 5
-
-
-def normalize_authing_user_email(value):
-    normalized = str(value or "").strip().lower()
-    return normalized or None
-
-
-def usable_verified_authing_email(authing_user):
-    email = normalize_authing_user_email(authing_user.get("email"))
-    if authing_user.get("email_verified") is not True:
-        return None
-    if not email or len(email) > AUTHING_EMAIL_MAX_LENGTH:
-        return None
-    return email
-
-
-def normalize_authing_avatar(value):
-    avatar = str(value or "").strip()
-    if not avatar or len(avatar) > AUTHING_AVATAR_MAX_LENGTH:
-        return None
-    return avatar
-
-
-def authing_sub_digest(authing_sub):
-    return hashlib.sha256(str(authing_sub).encode("utf-8")).hexdigest()
-
-
-def build_authing_placeholder_email(authing_sub):
-    digest = authing_sub_digest(authing_sub)
-    email = f"authing_{digest}@authing.local"
-    return email[:AUTHING_EMAIL_MAX_LENGTH]
-
-
-def sanitize_authing_username(value):
-    cleaned = "".join(
-        character
-        for character in str(value or "")
-        if not unicodedata.category(character).startswith("C")
-    ).strip()
-    return cleaned[:AUTHING_USERNAME_MAX_LENGTH]
-
-
-def build_authing_username_candidate(base, digest, attempt):
-    normalized_base = sanitize_authing_username(base)
-    if attempt == 0:
-        return normalized_base
-
-    suffix = f"_{digest[:8]}" if attempt == 1 else f"_{digest[:8]}_{attempt}"
-    prefix_length = AUTHING_USERNAME_MAX_LENGTH - len(suffix)
-    return f"{normalized_base[:prefix_length]}{suffix}"
-
-
-class AuthingIdentityConflict(RuntimeError):
-    def __init__(self, *local_user_ids):
-        super().__init__("Authing identity conflict")
-        self.local_user_ids = tuple(
-            sorted({user_id for user_id in local_user_ids if user_id is not None})
-        )
-        self.authing_sync_stage = "bind_existing_user"
-
-
-def build_authing_username_base(authing_user, email, digest):
-    candidates = (
-        authing_user.get("name"),
-        authing_user.get("nickname"),
-        authing_user.get("preferred_username"),
-        authing_user.get("username"),
-        email.split("@", 1)[0] if email else None,
-        f"authing_{digest[:16]}",
-    )
-    for value in candidates:
-        candidate = sanitize_authing_username(value)
-        if candidate:
-            return candidate
-    return f"authing_{digest[:16]}"
-
-
-def find_available_authing_username(cursor, base, digest):
-    for attempt in range(AUTHING_USERNAME_MAX_ATTEMPTS):
-        candidate = build_authing_username_candidate(base, digest, attempt)
-        cursor.execute(
-            "SELECT id FROM users WHERE username=%s LIMIT 1",
-            (candidate,),
-        )
-        if not cursor.fetchone():
-            return candidate
-    raise RuntimeError("Unable to allocate Authing username")
-
-
-def mark_authing_sync_exception(exc, stage):
-    if not getattr(exc, "authing_sync_stage", None):
-        exc.authing_sync_stage = stage
-    return exc
-
-
-def log_authing_user_sync_error(exc):
-    error_id = secrets.token_hex(12)
-    stage = getattr(exc, "authing_sync_stage", "unknown")
-    mysql_error_code = (
-        exc.args[0]
-        if getattr(exc, "args", None) and isinstance(exc.args[0], int)
-        else "none"
-    )
-    local_user_ids = ",".join(
-        str(user_id) for user_id in getattr(exc, "local_user_ids", ())
-    ) or "none"
-    event = (
-        "Authing identity conflict"
-        if isinstance(exc, AuthingIdentityConflict)
-        else "Authing user sync error"
-    )
-    app.logger.error(
-        "event=%s error_id=%s exception_type=%s method=%s path=%s "
-        "stage=%s mysql_error_code=%s local_user_ids=%s",
-        event,
-        error_id,
-        type(exc).__name__,
-        request.method,
-        request.path,
-        stage,
-        mysql_error_code,
-        local_user_ids,
-    )
-    return error_id
-
-
-def create_project_token(user):
-    token = create_access_token(
-        identity=user.get("username"),
-        additional_claims={
-            "user_id": user.get("id"),
-            "username": user.get("username"),
-            "email": user.get("email"),
-            "role": user.get("role") or "user",
-        },
-        expires_delta=timedelta(days=7),
-    )
-    if isinstance(token, bytes):
-        token = token.decode("utf-8")
-    return token
-
-
-def is_valid_jwt_string(token):
-    return isinstance(token, str) and len(token.split(".")) == 3
-
-
 def get_frontend_url():
-    return os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    configured_url = (os.getenv("FRONTEND_URL") or "").strip()
+    return (configured_url or "http://localhost:5173").rstrip("/")
 
 
-def frontend_authing_error(error_code, error_id=None):
-    frontend_url = get_frontend_url()
-    query = {"authing_error": str(error_code)[:80]}
-    if error_id:
-        query["error_id"] = str(error_id)[:80]
-    return redirect(f"{frontend_url}/login?{urlencode(query)}")
-
-
-def normalize_frontend_redirect(path):
-    value = str(path or "")
-    parsed = urlparse(value)
-    if (
-        not value
-        or not value.startswith("/")
-        or value.startswith("//")
-        or "\\" in value
-        or any(ord(character) < 32 for character in value)
-        or parsed.scheme
-        or parsed.netloc
-    ):
-        return "/"
-    return value
-
-
-AUTHING_EXCHANGE_TTL_SECONDS = 60
-AUTHING_EXCHANGE_PREFIX = "authing_exchange:"
-AUTHING_GETDEL_LUA = """
-local value = redis.call('GET', KEYS[1])
-if value then
-  redis.call('DEL', KEYS[1])
-end
-return value
-"""
-
-
-class AuthingExchangeUnavailable(RuntimeError):
-    """Raised when the one-time Authing exchange store cannot be reached."""
-
-
-def issue_authing_exchange_code(user_id, redirect_path):
-    code = secrets.token_urlsafe(32)
-    payload = json.dumps(
-        {
-            "user_id": user_id,
-            "redirect": normalize_frontend_redirect(redirect_path),
-        },
-        separators=(",", ":"),
-    )
-    redis_client.setex(
-        f"{AUTHING_EXCHANGE_PREFIX}{code}",
-        AUTHING_EXCHANGE_TTL_SECONDS,
-        payload,
-    )
-    return code
-
-
-def _redis_getdel(key):
-    getdel = getattr(redis_client, "getdel", None)
-    if callable(getdel):
-        try:
-            return getdel(key)
-        except redis.exceptions.ResponseError:
-            pass
-
-    eval_script = getattr(redis_client, "eval", None)
-    if not callable(eval_script):
-        raise AuthingExchangeUnavailable("Redis atomic GETDEL is unavailable")
-    return eval_script(AUTHING_GETDEL_LUA, 1, key)
-
-
-def consume_authing_exchange_code(code):
-    if not code:
+def get_outbound_proxies():
+    """Return an optional proxy configured for outbound HTTP requests."""
+    proxy_url = os.getenv("OUTBOUND_PROXY_URL", "").strip()
+    if not proxy_url:
         return None
-
-    try:
-        raw_value = _redis_getdel(f"{AUTHING_EXCHANGE_PREFIX}{code}")
-    except AuthingExchangeUnavailable:
-        raise
-    except Exception as exc:
-        raise AuthingExchangeUnavailable("Redis exchange store is unavailable") from exc
-
-    if raw_value is None:
-        return None
-    if isinstance(raw_value, bytes):
-        raw_value = raw_value.decode("utf-8")
-
-    try:
-        exchange_data = json.loads(raw_value)
-    except (TypeError, ValueError):
-        return None
-
-    if not isinstance(exchange_data, dict) or not exchange_data.get("user_id"):
-        return None
-
-    return {
-        "user_id": exchange_data["user_id"],
-        "redirect": normalize_frontend_redirect(exchange_data.get("redirect")),
-    }
+    return {"http": proxy_url, "https": proxy_url}
 
 
 def auth_session_data(user, access_token, refresh_token):
@@ -417,19 +187,6 @@ def auth_session_data(user, access_token, refresh_token):
         "user_role": role,
         "questionnaire_completed": questionnaire_completed,
     }
-
-
-def user_by_id(user_id):
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-            user = cursor.fetchone()
-        if user and user.get("deleted_at"):
-            return None
-        return user
-    finally:
-        conn.close()
 
 
 def admin_role_required(fn):
@@ -454,291 +211,14 @@ def admin_role_required(fn):
     return decorator
 
 
-def find_or_create_authing_user(authing_user):
-    authing_sub = str(authing_user.get("sub") or authing_user.get("id") or "").strip()
-    if not authing_sub:
-        raise RuntimeError("Authing user missing sub")
-    if len(authing_sub) > 128:
-        raise ValueError("Authing user sub exceeds storage limit")
-
-    digest = authing_sub_digest(authing_sub)
-    email = usable_verified_authing_email(authing_user)
-    effective_email = email or build_authing_placeholder_email(authing_sub)
-    username_base = build_authing_username_base(authing_user, email, digest)
-    avatar = normalize_authing_avatar(
-        authing_user.get("picture") or authing_user.get("avatar")
-    )
-    conn = get_db_connection()
-    stage = "lookup_by_sub"
-
-    try:
-        for sync_attempt in range(AUTHING_SYNC_MAX_ATTEMPTS):
-            try:
-                with conn.cursor() as cursor:
-                    stage = "lookup_by_sub"
-                    cursor.execute(
-                        "SELECT * FROM users WHERE authing_sub=%s LIMIT 1",
-                        (authing_sub,),
-                    )
-                    sub_user = cursor.fetchone()
-
-                    stage = "lookup_by_email"
-                    cursor.execute(
-                        "SELECT * FROM users WHERE email=%s LIMIT 1",
-                        (effective_email,),
-                    )
-                    email_user = cursor.fetchone()
-
-                    if (
-                        sub_user
-                        and email_user
-                        and sub_user["id"] != email_user["id"]
-                    ):
-                        raise AuthingIdentityConflict(
-                            sub_user["id"], email_user["id"]
-                        )
-
-                    if sub_user:
-                        stage = "bind_existing_user"
-                        updates = ["login_provider=%s"]
-                        params = ["authing"]
-                        if avatar:
-                            updates.append("avatar_url=%s")
-                            params.append(avatar)
-                        params.append(sub_user["id"])
-                        cursor.execute(
-                            f"UPDATE users SET {', '.join(updates)} WHERE id=%s",
-                            params,
-                        )
-                        user_id = sub_user["id"]
-                    elif email_user:
-                        existing_sub = email_user.get("authing_sub")
-                        if existing_sub and existing_sub != authing_sub:
-                            raise AuthingIdentityConflict(email_user["id"])
-
-                        stage = "bind_existing_user"
-                        updates = ["authing_sub=%s", "login_provider=%s"]
-                        params = [authing_sub, "authing"]
-                        if avatar:
-                            updates.append("avatar_url=%s")
-                            params.append(avatar)
-                        params.append(email_user["id"])
-                        params.append(authing_sub)
-                        cursor.execute(
-                            f"UPDATE users SET {', '.join(updates)} "
-                            "WHERE id=%s "
-                            "AND (authing_sub IS NULL OR authing_sub=%s)",
-                            params,
-                        )
-                        if cursor.rowcount != 1:
-                            raise AuthingIdentityConflict(email_user["id"])
-                        user_id = email_user["id"]
-                    else:
-                        stage = "create_user"
-                        username = find_available_authing_username(
-                            cursor, username_base, digest
-                        )
-                        disabled_password_hash = generate_password_hash(
-                            f"authing-disabled:{secrets.token_urlsafe(48)}"
-                        )
-                        cursor.execute(
-                            """
-                            INSERT INTO users (
-                                username,
-                                email,
-                                password_hash,
-                                role,
-                                authing_sub,
-                                login_provider,
-                                questionnaire_completed,
-                                created_at,
-                                status,
-                                avatar_url
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                            """,
-                            (
-                                username,
-                                effective_email,
-                                disabled_password_hash,
-                                "user",
-                                authing_sub,
-                                "authing",
-                                0,
-                                datetime.now(),
-                                "active",
-                                avatar,
-                            ),
-                        )
-                        user_id = cursor.lastrowid
-
-                    stage = "reload_user"
-                    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-                    user = cursor.fetchone()
-                    if not user:
-                        raise RuntimeError("Authing user reload failed")
-
-                conn.commit()
-                return user
-            except pymysql.err.IntegrityError as exc:
-                conn.rollback()
-                error_code = exc.args[0] if exc.args else None
-                if error_code == 1062 and sync_attempt + 1 < AUTHING_SYNC_MAX_ATTEMPTS:
-                    continue
-                raise mark_authing_sync_exception(exc, stage)
-            except Exception as exc:
-                conn.rollback()
-                raise mark_authing_sync_exception(exc, stage)
-    finally:
-        conn.close()
-
-@app.route("/api/authing/login")
-def authing_login():
-    redirect_path = normalize_frontend_redirect(request.args.get("redirect", "/"))
-
-    state_payload = {
-        "nonce": secrets.token_urlsafe(16),
-        "redirect": redirect_path,
-    }
-
-    state = base64.urlsafe_b64encode(
-        json.dumps(state_payload).encode("utf-8")
-    ).decode("utf-8")
-
-    session["authing_state_nonce"] = state_payload["nonce"]
-
-    try:
-        authing = AuthingService()
-        login_url = authing.build_login_url(state)
-    except Exception as exc:
-        print("Authing login error:", exc)
-        return frontend_authing_error("authing_failed")
-
-    return redirect(login_url)
-
-@app.route("/api/authing/callback")
-def authing_callback():
-    code = request.args.get("code")
-    state = request.args.get("state")
-    error = request.args.get("error")
-
-    frontend_url = get_frontend_url()
-
-    if error:
-        return frontend_authing_error("authing_denied")
-
-    if not code:
-        return redirect(f"{frontend_url}/login?authing_error=missing_code")
-
-    try:
-        state_payload = json.loads(
-            base64.urlsafe_b64decode(state.encode("utf-8")).decode("utf-8")
-        )
-    except Exception:
-        return redirect(f"{frontend_url}/login?authing_error=invalid_state")
-
-    expected_nonce = session.get("authing_state_nonce")
-
-    if not expected_nonce or state_payload.get("nonce") != expected_nonce:
-        return redirect(f"{frontend_url}/login?authing_error=state_mismatch")
-
-    session.pop("authing_state_nonce", None)
-
-    try:
-        authing = AuthingService()
-
-        try:
-            token_data = authing.exchange_code_for_token(code)
-        except Exception as exc:
-            print("Authing token exchange error:", exc)
-            return frontend_authing_error("token_exchange_failed")
-
-        access_token = token_data.get("access_token")
-
-        if not access_token:
-            return frontend_authing_error("token_exchange_failed")
-
-        try:
-            authing_user = authing.get_user_info(access_token)
-        except Exception as exc:
-            print("Authing userinfo error:", exc)
-            return frontend_authing_error("userinfo_failed")
-
-        try:
-            user = find_or_create_authing_user(authing_user)
-        except Exception as exc:
-            error_id = log_authing_user_sync_error(exc)
-            error_code = (
-                "authing_identity_conflict"
-                if isinstance(exc, AuthingIdentityConflict)
-                else "user_sync_failed"
-            )
-            return frontend_authing_error(error_code, error_id)
-
-        redirect_path = normalize_frontend_redirect(state_payload.get("redirect"))
-        try:
-            exchange_code = issue_authing_exchange_code(user.get("id"), redirect_path)
-        except Exception as exc:
-            print("Authing exchange code error:", exc)
-            return frontend_authing_error("authing_exchange_unavailable")
-
-        query = urlencode(
-            {
-                "code": exchange_code,
-            }
-        )
-
-        return redirect(f"{frontend_url}/authing/callback?{query}")
-
-    except Exception as exc:
-        print("Authing callback error:", exc)
-        return redirect(f"{frontend_url}/login?authing_error=authing_failed")
-
-
-@app.route("/api/authing/exchange", methods=["POST"])
-def authing_exchange():
-    data = request.get_json(silent=True) or {}
-    code = str(data.get("code") or "").strip()
-    if not code:
-        return jsonify({"code": 400, "msg": "Authing exchange code 无效"}), 400
-
-    try:
-        exchange_data = consume_authing_exchange_code(code)
-    except AuthingExchangeUnavailable:
-        return jsonify({"code": 503, "msg": "认证服务暂不可用，请稍后重试"}), 503
-
-    if not exchange_data:
-        return jsonify({"code": 401, "msg": "Authing exchange code 无效或已过期"}), 401
-
-    try:
-        user = user_by_id(exchange_data["user_id"])
-    except Exception:
-        return jsonify({"code": 503, "msg": "认证服务暂不可用，请稍后重试"}), 503
-
-    if not user:
-        return jsonify({"code": 401, "msg": "Authing 用户不存在或已失效"}), 401
-
-    access_token = create_project_token(user)
-    refresh_token = create_refresh_token(identity=user.get("username"))
-    session_data = auth_session_data(user, access_token, refresh_token)
-    session_data["redirect"] = exchange_data["redirect"]
-    return jsonify(
-        {
-            "code": 0,
-            "msg": "success",
-            "data": session_data,
-            **session_data,
-        }
-    )
-
-#初始化接口防刷限制器
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["5000 per day", "1000 per hour"], # 全局默认限制：每个 IP 每天最多 5000 次请求
-    storage_uri=get_limiter_storage_uri()
+    default_limits=["5000 per day", "1000 per hour"],
+    storage_uri=get_limiter_storage_uri(),
+    swallow_errors=should_swallow_limiter_errors(),
 )
 
-# 初始化 Redis 和 线程池
 redis_client = redis.StrictRedis.from_url(REDIS_URL, decode_responses=True)
 executor = ThreadPoolExecutor(max_workers=10)
 login_failures = {}
@@ -747,6 +227,12 @@ LOGIN_FAILURE_WINDOW_SECONDS = 300
 LOGIN_FAILURE_LIMIT = 5
 LOGIN_LOCK_SECONDS = 60
 AUTH_EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+AUTH_USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]{4,50}$")
+REGISTRATION_CODE_TTL_SECONDS = 300
+REGISTRATION_CODE_RESEND_SECONDS = 60
+REGISTRATION_CODE_HOURLY_LIMIT = 5
+REGISTRATION_CODE_MAX_ATTEMPTS = 5
+REGISTRATION_CODE_PURPOSE = "register"
 
 
 def normalize_auth_email(value):
@@ -756,19 +242,114 @@ def normalize_auth_email(value):
 def is_valid_auth_email(value):
     return bool(AUTH_EMAIL_PATTERN.fullmatch(value))
 
-# 数据库配置（请改成你自己的！）
+
+def registration_error(code, message, status):
+    return jsonify({"success": False, "code": code, "message": message, "msg": message}), status
+
+
+def _registration_code_digest(email, code):
+    secret = str(app.config.get("SECRET_KEY") or app.secret_key or "").encode("utf-8")
+    payload = f"{REGISTRATION_CODE_PURPOSE}:{email}:{code}".encode("utf-8")
+    return hmac.new(secret, payload, "sha256").hexdigest()
+
+
+def ensure_registration_code_table(conn):
+    conn.cursor().execute(
+        """
+        CREATE TABLE IF NOT EXISTS email_verification_codes (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            email VARCHAR(120) NOT NULL,
+            purpose VARCHAR(32) NOT NULL,
+            code_hash CHAR(64) NOT NULL,
+            expires_at DATETIME NOT NULL,
+            sent_at DATETIME NOT NULL,
+            attempt_count TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            used_at DATETIME NULL,
+            request_ip VARCHAR(64) NULL,
+            PRIMARY KEY (id),
+            UNIQUE KEY uq_email_verification_purpose (email, purpose),
+            KEY idx_email_verification_expiry (expires_at),
+            KEY idx_email_verification_ip_sent (request_ip, sent_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """
+    )
+    conn.commit()
+
+
+def _datetime_value(value):
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _rollback_and_close(conn):
+    if conn is None:
+        return
+    try:
+        conn.rollback()
+    except Exception:
+        pass
+    try:
+        conn.close()
+    except Exception:
+        pass
+
+
+def _verify_registration_code(conn, email, verification_code):
+    now = datetime.utcnow()
+    with conn.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT id, code_hash, expires_at, attempt_count, used_at
+            FROM email_verification_codes
+            WHERE email=%s AND purpose=%s
+            ORDER BY sent_at DESC, id DESC
+            LIMIT 1
+            FOR UPDATE
+            """,
+            (email, REGISTRATION_CODE_PURPOSE),
+        )
+        record = cursor.fetchone()
+        if not record:
+            return False, "CODE_NOT_FOUND", "请先获取邮箱验证码"
+
+        expires_at = _datetime_value(record.get("expires_at"))
+        attempts = int(record.get("attempt_count") or 0)
+        if record.get("used_at"):
+            return False, "CODE_ALREADY_USED", "验证码已使用，请重新获取"
+        if expires_at is None or expires_at <= now:
+            return False, "CODE_EXPIRED", "验证码已过期，请重新获取"
+        if attempts >= REGISTRATION_CODE_MAX_ATTEMPTS:
+            return False, "CODE_TOO_MANY_ATTEMPTS", "验证码错误次数过多，请重新获取"
+        if hmac.compare_digest(
+            str(record.get("code_hash") or ""),
+            _registration_code_digest(email, verification_code),
+        ):
+            return True, None, None
+
+        attempts = attempts + 1
+        cursor.execute(
+            "UPDATE email_verification_codes SET attempt_count=%s WHERE id=%s",
+            (attempts, record["id"]),
+        )
+        conn.commit()
+        if attempts >= REGISTRATION_CODE_MAX_ATTEMPTS:
+            return False, "CODE_TOO_MANY_ATTEMPTS", "验证码错误次数过多，请重新获取"
+        return False, "CODE_INVALID", "验证码错误"
+
+
 DB_CONFIG = {
-    'host': os.getenv('MYSQL_HOST') or os.getenv('DB_HOST', 'localhost'),
-    'port': int(os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', '3306')),
-    'user': os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root'),
-    'password': os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', ''),
-    'database': os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site'),
-    'charset': MYSQL_CHARSET,
-    'cursorclass': pymysql.cursors.DictCursor
+    **get_database_config(),
+    "cursorclass": pymysql.cursors.DictCursor,
 }
 
+
 def get_db_connection():
-    """从连接池获取一个数据库连接（推荐使用此函数替代直连）"""
     return pool_get_connection()
 
 
@@ -820,6 +401,9 @@ def database_health_check():
                 conn.close()
             except Exception:
                 pass
+
+
+
 
 
 def login_rate_key(account):
@@ -923,109 +507,221 @@ def change_password():
     finally:
         conn.close()
 
-# ================= 1. 发送真实邮件验证码 =================
-@app.route('/api/auth/send-code', methods=['POST'])
-@limiter.limit("1 per minute", error_message="发送太频繁，请 1 分钟后再试")
-def send_verification_code():
+# ================= 2. 注册验证码 =================
+@app.route('/api/auth/send-register-code', methods=['POST'])
+@limiter.limit("5 per hour")
+def send_register_code():
     data = request.get_json(silent=True) or {}
-    email = normalize_auth_email(data.get('email'))
+    email = normalize_auth_email(data.get("email"))
+    request_id = request.headers.get("X-Request-ID") or secrets.token_hex(8)
     if not email:
-        return jsonify({'code': 400, 'msg': '邮箱不能为空'}), 400
+        return registration_error("EMAIL_REQUIRED", "邮箱不能为空", 400)
     if not is_valid_auth_email(email):
-        return jsonify({'code': 400, 'msg': '请输入正确的邮箱地址'}), 400
+        return registration_error("EMAIL_INVALID", "邮箱格式不正确", 400)
 
-    # 1. 生成 6 位随机验证码
-    code = str(random.randint(100000, 999999))
+    _mail_missing = validate_mail_config()
+    if _mail_missing:
+        app.logger.warning(
+            "register verification mail config missing request_id=%s",
+            request_id,
+        )
+        return registration_error("MAIL_CONFIG_MISSING", "邮件服务尚未完成配置", 503)
 
+    conn = None
     try:
-        is_success, error_message = send_verification_email(email, code)
-    except Exception as exc:
-        print(f"Verification email error: {exc}")
-        is_success, error_message = False, "email service unavailable"
+        conn = get_db_connection()
+        ensure_registration_code_table(conn)
+        now = datetime.utcnow()
+        request_ip = (request.headers.get("X-Forwarded-For") or request.remote_addr or "unknown").split(",")[0].strip()[:64]
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id FROM users WHERE email=%s LIMIT 1", (email,))
+            if cursor.fetchone():
+                _rollback_and_close(conn)
+                return registration_error("EMAIL_ALREADY_REGISTERED", "该邮箱已注册", 409)
 
-    # 邮件成功后再写入 Redis，避免留下用户没有收到的有效验证码。
-    if is_success:
-        try:
-            redis_client.setex(f"verify_code:{email}", 300, code)
-        except Exception as exc:
-            print(f"Verification code storage error: {exc}")
-            return jsonify({'code': 503, 'msg': '验证码服务暂不可用，请稍后重试'}), 503
-        return jsonify({'code': 0, 'msg': '验证码已发送，请查收邮箱'})
-    return jsonify({'code': 502, 'msg': '邮件发送失败，请稍后重试'}), 502
-    
-# ================= 2. 用户注册 =================
+            cursor.execute(
+                "SELECT sent_at FROM email_verification_codes WHERE email=%s AND purpose=%s LIMIT 1",
+                (email, REGISTRATION_CODE_PURPOSE),
+            )
+            previous = cursor.fetchone()
+            previous_sent_at = _datetime_value(previous.get("sent_at")) if previous else None
+            if previous_sent_at and (now - previous_sent_at).total_seconds() < REGISTRATION_CODE_RESEND_SECONDS:
+                retry_after = max(1, REGISTRATION_CODE_RESEND_SECONDS - int((now - previous_sent_at).total_seconds()))
+                _rollback_and_close(conn)
+                return jsonify({
+                    "success": False,
+                    "code": "RATE_LIMITED",
+                    "message": "验证码发送过于频繁，请稍后再试",
+                    "msg": "验证码发送过于频繁，请稍后再试",
+                    "retry_after": retry_after,
+                }), 429
+
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM email_verification_codes WHERE email=%s AND purpose=%s AND sent_at >= %s",
+                (email, REGISTRATION_CODE_PURPOSE, now - timedelta(hours=1)),
+            )
+            if int((cursor.fetchone() or {}).get("total") or 0) >= REGISTRATION_CODE_HOURLY_LIMIT:
+                _rollback_and_close(conn)
+                return registration_error("RATE_LIMITED", "验证码发送次数已达上限，请稍后再试", 429)
+
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM email_verification_codes WHERE request_ip=%s AND purpose=%s AND sent_at >= %s",
+                (request_ip, REGISTRATION_CODE_PURPOSE, now - timedelta(hours=1)),
+            )
+            if int((cursor.fetchone() or {}).get("total") or 0) >= REGISTRATION_CODE_HOURLY_LIMIT * 3:
+                _rollback_and_close(conn)
+                return registration_error("RATE_LIMITED", "当前网络发送次数已达上限，请稍后再试", 429)
+
+        verification_code = f"{secrets.randbelow(1_000_000):06d}"
+        sent, mail_code = send_verification_email(email, verification_code)
+        if not sent:
+            _rollback_and_close(conn)
+            app.logger.warning(
+                "register verification mail failed request_id=%s code=%s",
+                request_id,
+                mail_code,
+            )
+            message = MAIL_ERROR_MESSAGES.get(mail_code, "邮件发送失败，请稍后重试")
+            return registration_error(mail_code, message, 503)
+
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO email_verification_codes
+                    (email, purpose, code_hash, expires_at, sent_at, attempt_count, used_at, request_ip)
+                VALUES (%s, %s, %s, %s, %s, 0, NULL, %s)
+                ON DUPLICATE KEY UPDATE
+                    code_hash=VALUES(code_hash), expires_at=VALUES(expires_at), sent_at=VALUES(sent_at),
+                    attempt_count=0, used_at=NULL, request_ip=VALUES(request_ip)
+                """,
+                (
+                    email,
+                    REGISTRATION_CODE_PURPOSE,
+                    _registration_code_digest(email, verification_code),
+                    now + timedelta(seconds=REGISTRATION_CODE_TTL_SECONDS),
+                    now,
+                    request_ip,
+                ),
+            )
+        conn.commit()
+        return jsonify({"success": True, "code": 0, "message": "验证码已发送", "msg": "验证码已发送"})
+    except Exception as error:
+        _rollback_and_close(conn)
+        app.logger.exception(
+            "register verification persistence failed request_id=%s error_type=%s",
+            request_id,
+            type(error).__name__,
+        )
+        return registration_error("DATABASE_FAILED", "验证码服务暂不可用，请稍后重试", 503)
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+# ================= 3. 用户注册 =================
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     data = request.get_json(silent=True) or {}
     username = str(data.get('username') or '').strip()
     email = normalize_auth_email(data.get('email'))
     password = data.get('password')
-    code = str(data.get('code') or '').strip()
+    verification_code = str(
+        data.get("verification_code")
+        or data.get("verificationCode")
+        or data.get("email_code")
+        or ""
+    ).strip()
 
     if not username:
-        return jsonify({'code': 400, 'msg': '用户名不能为空'}), 400
+        return registration_error("USERNAME_REQUIRED", "请输入用户名", 400)
+    if not AUTH_USERNAME_PATTERN.fullmatch(username):
+        return registration_error(
+            "USERNAME_INVALID", "用户名需为 4-50 位字母、数字或下划线", 400
+        )
     if not email:
-        return jsonify({'code': 400, 'msg': '邮箱不能为空'}), 400
+        return registration_error("EMAIL_REQUIRED", "邮箱不能为空", 400)
     if not is_valid_auth_email(email):
-        return jsonify({'code': 400, 'msg': '请输入正确的邮箱地址'}), 400
+        return registration_error("EMAIL_INVALID", "邮箱格式不正确", 400)
     if not password:
-        return jsonify({'code': 400, 'msg': '密码不能为空'}), 400
+        return registration_error("PASSWORD_REQUIRED", "请输入密码", 400)
     if len(password) < 8:
-        return jsonify({'code': 400, 'msg': '密码至少需要 8 位'}), 400
-    if not code:
-        return jsonify({'code': 400, 'msg': '验证码不能为空'}), 400
+        return registration_error("PASSWORD_TOO_SHORT", "密码长度不足，至少需要 8 位", 400)
+    if not verification_code:
+        return registration_error("CODE_REQUIRED", "请输入邮箱验证码", 400)
 
-    try:
-        saved_code = redis_client.get(f"verify_code:{email}")
-    except Exception as exc:
-        print(f"Verification code lookup error: {exc}")
-        return jsonify({'code': 503, 'msg': '验证码服务暂不可用，请稍后重试'}), 503
-
-    if isinstance(saved_code, bytes):
-        saved_code = saved_code.decode('utf-8')
-    if not saved_code or str(saved_code) != code:
-        return jsonify({'code': 400, 'msg': '验证码错误或已过期'}), 400
-
-    hashed_pw = generate_password_hash(password)
     conn = None
     try:
         conn = get_db_connection()
+        ensure_registration_code_table(conn)
+        app.logger.info(
+            "Registration step username_present=%s email_present=%s",
+            bool(username),
+            bool(email),
+        )
+        valid, error_code, error_message = _verify_registration_code(conn, email, verification_code)
+        if not valid:
+            _rollback_and_close(conn)
+            return registration_error(error_code, error_message, 400)
+
         with conn.cursor() as cursor:
             cursor.execute("SELECT id FROM users WHERE username=%s LIMIT 1", (username,))
             if cursor.fetchone():
-                return jsonify({'code': 400, 'msg': '用户名已存在'}), 400
+                _rollback_and_close(conn)
+                return registration_error("USERNAME_EXISTS", "该用户名已被使用", 409)
             cursor.execute("SELECT id FROM users WHERE email=%s LIMIT 1", (email,))
             if cursor.fetchone():
-                return jsonify({'code': 400, 'msg': '邮箱已注册'}), 400
+                _rollback_and_close(conn)
+                return registration_error("EMAIL_ALREADY_REGISTERED", "该邮箱已注册", 409)
+
+            hashed_pw = generate_password_hash(password)
             cursor.execute(
-                "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)",
-                (username, email, hashed_pw),
+                """INSERT INTO users
+                       (username, email, password_hash, role, status, login_provider, created_at)
+                   VALUES (%s, %s, %s, 'user', 'active', 'local', %s)""",
+                (username, email, hashed_pw, datetime.utcnow()),
+            )
+            cursor.execute(
+                """UPDATE email_verification_codes SET used_at=%s
+                   WHERE email=%s AND purpose=%s AND used_at IS NULL""",
+                (datetime.utcnow(), email, REGISTRATION_CODE_PURPOSE),
             )
         conn.commit()
-    except Exception:
-        if conn is not None:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-        return jsonify({'code': 400, 'msg': '用户名或邮箱已存在'}), 400
+    except pymysql.err.IntegrityError as error:
+        _rollback_and_close(conn)
+        error_text = str(error).lower()
+        if "username" in error_text:
+            return registration_error("USERNAME_EXISTS", "该用户名已被使用", 409)
+        if "email" in error_text:
+            return registration_error("EMAIL_ALREADY_REGISTERED", "该邮箱已注册", 409)
+        app.logger.warning("Local registration integrity error")
+        return registration_error("DATABASE_ERROR", "账号创建失败，请稍后重试", 500)
+    except Exception as error:
+        _rollback_and_close(conn)
+        app.logger.exception("Local registration failed error_type=%s", type(error).__name__)
+        return registration_error("DATABASE_ERROR", "账号创建失败，请稍后重试", 500)
     finally:
         if conn is not None:
-            conn.close()
+            try:
+                conn.close()
+            except Exception:
+                pass
 
-    try:
-        redis_client.delete(f"verify_code:{email}")
-    except Exception as exc:
-        print(f"Verification code cleanup error: {exc}")
-        return jsonify({'code': 503, 'msg': '注册成功但验证码清理失败，请联系管理员'}), 503
-    return jsonify({'code': 0, 'msg': '注册成功'})
+    return jsonify({
+        'success': True,
+        'code': 'REGISTER_SUCCESS',
+        'msg': '注册成功',
+        'message': '注册成功',
+    }), 201
 
 # ================= 3. 用户登录 =================
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json(silent=True) or {}
-    account = str(data.get('account') or '').strip()
-    password = data.get('password')
+    account = str(data.get('account') or data.get('email') or data.get('username') or '').strip()
+    password = str(data.get('password') or '')
     failure_key = login_rate_key(account)
     retry_after = get_login_retry_after(failure_key)
 
@@ -1038,14 +734,39 @@ def login():
         }), 429
 
     if not account or password is None or password == '':
-        return jsonify({'code': 400, 'msg': '请输入账号和密码'}), 400
-    
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        # 支持用户名或邮箱登录，同时过滤掉已注销的账户
-        cursor.execute("SELECT * FROM users WHERE (username = %s OR email = %s) AND deleted_at IS NULL", (account, account))
-        user = cursor.fetchone()
-    conn.close()
+        return jsonify({
+            'success': False,
+            'code': 'CREDENTIALS_REQUIRED',
+            'message': '请输入账号和密码',
+            'msg': '请输入账号和密码',
+        }), 400
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """SELECT * FROM users
+                   WHERE (username = %s OR LOWER(email) = LOWER(%s))
+                     AND deleted_at IS NULL
+                   LIMIT 1""",
+                (account, account),
+            )
+            user = cursor.fetchone()
+    except Exception as error:
+        app.logger.exception("Local login failed reason=DATABASE_ERROR error_type=%s", type(error).__name__)
+        return jsonify({
+            'success': False,
+            'code': 'AUTH_SERVICE_ERROR',
+            'message': '认证服务暂时不可用',
+            'msg': '认证服务暂时不可用',
+        }), 500
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     if user and check_password_hash(user['password_hash'], password):
         clear_login_failures(failure_key)
@@ -1059,6 +780,7 @@ def login():
             **session_data,
         })
 
+    app.logger.info("Local login rejected reason=%s", "PASSWORD_INVALID" if user else "USER_NOT_FOUND")
     retry_after = record_login_failure(failure_key)
     if retry_after > 0:
         return jsonify({
@@ -1068,7 +790,12 @@ def login():
             'retry_after': retry_after,
         }), 429
 
-    return jsonify({'code': 401, 'msg': '账号或密码错误'}), 401
+    return jsonify({
+        'success': False,
+        'code': 'INVALID_CREDENTIALS',
+        'message': '账号或密码错误',
+        'msg': '账号或密码错误',
+    }), 401
 
 
 @app.route('/api/auth/me', methods=['GET'])
@@ -1179,19 +906,70 @@ def calculate_and_cache_growth_rate():
         print(f"计算排行榜严重异常: {e}")
         return []
 
+def is_production_environment():
+    environment_values = {
+        (os.getenv(name) or "").strip().lower()
+        for name in ("APP_ENV", "FLASK_ENV", "ENV", "VERCEL_ENV")
+    }
+    return "production" in environment_values
+
+
 def get_cors_origins():
-    origins = {"http://localhost:5173", "http://127.0.0.1:5173"}
-    configured_origins = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
-    configured_origins.append(os.getenv("FRONTEND_URL", ""))
-    for origin in configured_origins:
-        normalized_origin = origin.strip().rstrip("/")
-        if normalized_origin and normalized_origin != "*":
-            origins.add(normalized_origin)
+    """Return configured origins, or local Vite defaults in development."""
+    configured_origins = [
+        *os.getenv("CORS_ALLOWED_ORIGINS", "").split(","),
+        os.getenv("FRONTEND_URL", ""),
+    ]
+    origins = {
+        origin.strip().rstrip("/")
+        for origin in configured_origins
+        if origin.strip().rstrip("/") and origin.strip().rstrip("/") != "*"
+    }
+    if not is_production_environment():
+        origins.update(LOCAL_VITE_ORIGINS)
     return sorted(origins)
 
 
 # 允许跨域请求
-CORS(app, origins=get_cors_origins(), supports_credentials=True)  # 本地开发默认允许 Vite，线上同域 /api 通常无需跨域
+# flask-cors 6.x does not match a bracketed IPv6 Origin reliably. Vite may
+# bind to ::1 on Windows, so make the supported local Vite origins explicit.
+LOCAL_VITE_ORIGINS = frozenset(
+    {
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://[::1]:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://[::1]:5174",
+    }
+)
+
+def configure_cors(application, origins=None):
+    """Configure exact CORS origins and the Flask-CORS IPv6 compatibility hook."""
+    allowed_origins = frozenset(origins if origins is not None else get_cors_origins())
+    CORS(application, origins=sorted(allowed_origins), supports_credentials=True)
+
+    @application.after_request
+    def allow_ipv6_cors_origin(response):
+        origin = request.headers.get("Origin")
+        if origin not in allowed_origins or not origin.startswith(("http://[", "https://[")):
+            return response
+
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        if "Origin" not in response.headers.get("Vary", ""):
+            response.headers.add("Vary", "Origin")
+        if request.method == "OPTIONS":
+            response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS, POST, PUT, PATCH, DELETE"
+            response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+        return response
+
+    return allowed_origins
+
+
+# Flask-CORS handles ordinary origins. The compatibility hook in configure_cors
+# completes only bracketed IPv6 origins, which Flask-CORS 6.x does not match.
+CORS_ORIGINS = configure_cors(app)
 
 # ===== 生产级日志配置 =====
 app = app_extensions.setup_logging(app)
@@ -1200,12 +978,12 @@ app = app_extensions.setup_logging(app)
 app = app_extensions.register_error_handlers(app)
 
 # ===== 数据库连接配置 =====
-# 从环境变量读取数据库连接参数，如果 .env 中没有配置则使用默认值
-db_user = os.getenv('MYSQL_USER') or os.getenv('DB_USER', 'root')          # 数据库用户名
-db_pass = os.getenv('MYSQL_PASSWORD') or os.getenv('DB_PASSWORD', '')           # 数据库密码
-db_host = os.getenv('MYSQL_HOST') or os.getenv('DB_HOST', '127.0.0.1')     # 数据库主机地址
-db_port = os.getenv('MYSQL_PORT') or os.getenv('DB_PORT', '3306')           # 数据库端口（MySQL 默认 3306）
-db_name = os.getenv('MYSQL_DATABASE') or os.getenv('DB_NAME', 'nav_site')       # 数据库名称
+# 从环境变量读取数据库连接参数；用户和数据库名缺失时在首次连接前明确报错。
+db_user = DB_CONFIG['user'] or ''
+db_pass = DB_CONFIG['password']
+db_host = DB_CONFIG['host']
+db_port = DB_CONFIG['port']
+db_name = DB_CONFIG['database'] or ''
 db_charset = MYSQL_CHARSET       # 数据库字符集
 
 # 配置数据库连接 URL (MySQL)
@@ -1225,6 +1003,10 @@ app.config['SECRET_KEY'] = app.secret_key
 app.config['JWT_SECRET_KEY'] = secret_config['jwt_secret']  # JWT 签名密钥，生产环境必须使用强随机字符串
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)   # Access Token 1小时过期，用于日常接口鉴权
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)  # Refresh Token 30天过期，用于无感刷新 Access Token
+# Admin APIs authenticate only from Authorization: Bearer.  Do not silently
+# accept ambient browser cookies; this keeps the crawler write endpoints out
+# of the cookie-CSRF threat model unless deployment deliberately changes it.
+app.config['JWT_TOKEN_LOCATION'] = ['headers']
 
 class UserFavorite(db.Model):
     """
@@ -1241,6 +1023,53 @@ class UserFavorite(db.Model):
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 db.init_app(app)   # 将 SQLAlchemy 数据库实例与 Flask 应用绑定
 jwt = JWTManager(app)   # 初始化 JWT 管理器，处理 Token 的签发与验证
+
+
+@jwt.unauthorized_loader
+def handle_missing_jwt(reason):
+    return jsonify(
+        {
+            "success": False,
+            "code": "AUTH_REQUIRED",
+            "error_code": "AUTH_REQUIRED",
+            "legacy_code": 401,
+            "message": "请先登录",
+            "msg": "请先登录",
+            "data": {},
+        }
+    ), 401
+
+
+@jwt.invalid_token_loader
+def handle_invalid_jwt(reason):
+    return jsonify(
+        {
+            "success": False,
+            "code": "AUTH_INVALID",
+            "error_code": "AUTH_INVALID",
+            "legacy_code": 401,
+            "message": "登录凭证无效，请重新登录",
+            "msg": "登录凭证无效，请重新登录",
+            "data": {},
+        }
+    ), 401
+
+
+@jwt.expired_token_loader
+def handle_expired_jwt(jwt_header, jwt_payload):
+    return jsonify(
+        {
+            "success": False,
+            "code": "AUTH_EXPIRED",
+            "error_code": "AUTH_EXPIRED",
+            "legacy_code": 401,
+            "message": "登录状态已过期，请重新登录",
+            "msg": "登录状态已过期，请重新登录",
+            "data": {},
+        }
+    ), 401
+
+
 bcrypt = Bcrypt(app)    # 初始化 bcrypt 密码哈希工具，用于安全存储用户密码
 
 def is_valid_url(url):
@@ -1286,117 +1115,6 @@ def setup_search_engine():
     meili_index.update_sortable_attributes(['clicks'])  # 允许按点击量字段排序
 
 
-# ================= 1. 配置 Authing 客户端 =================
-AUTHING_APP_ID = os.getenv('AUTHING_APP_ID')
-AUTHING_APP_SECRET = os.getenv('AUTHING_APP_SECRET')
-AUTHING_APP_HOST = os.getenv('AUTHING_APP_HOST') or os.getenv('AUTHING_ISSUER')
-
-auth_client = None
-if AUTHING_APP_ID and AUTHING_APP_SECRET and AUTHING_APP_HOST:
-    try:
-        auth_client = AuthenticationClient(
-            app_id=AUTHING_APP_ID,
-            app_secret=AUTHING_APP_SECRET,
-            app_host=AUTHING_APP_HOST
-        )
-    except Exception as e:
-        print(f"⚠️ Authing 客户端初始化失败（不影响核心功能）: {e}")
-
-# ================= 2. 编写全局 Token 验证装饰器 =================
-def require_auth(f):
-    """
-    Authing Token 验证装饰器（用于保护需要登录才能访问的接口）。
-
-    使用方式：在路由函数上方添加 @require_auth 即可启用保护。
-    验证流程：
-      1. 检查请求头中是否携带 Authorization 字段
-      2. 验证 Bearer Token 格式是否正确
-      3. 调用 Authing 服务端接口校验 Token 的合法性和有效期
-      4. 验证通过后将用户信息挂载到 Flask 全局变量 g 上
-
-    参数：
-        f: 被装饰的路由函数
-
-    返回：
-        decorated: 包装后的函数，具备 Token 验证能力
-    """
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if not auth_client:
-            return jsonify({"error": "Authing 服务未配置"}), 503
-        
-        auth_header = request.headers.get('Authorization', None)
-        if not auth_header:
-            return jsonify({"error": "未提供 Authorization 凭证"}), 401
-
-        # 2. 检查 Bearer 格式
-        parts = auth_header.split()
-        if parts[0].lower() != 'bearer' or len(parts) != 2:
-            return jsonify({"error": "请求头格式错误，应为 Bearer <token>"}), 401
-
-        token = parts[1]  # 提取 Token 字符串
-
-        try:
-            # 3. 核心：调用 Authing 验证 Token 的合法性和时效性
-            introspection_result = auth_client.introspect_token(token)
-
-            # 4. 检查 active 字段（如果过期或伪造，active 会是 False）
-            if not introspection_result.get('active'):
-                return jsonify({"error": "Token 已失效或过期，请重新登录"}), 401
-
-            # 5. 验证通过！把用户信息挂载到全局变量 g，供后续的接口随意调用
-            g.current_user = introspection_result
-
-        except Exception as e:
-            return jsonify({"error": f"Token 校验失败: {str(e)}"}), 401
-
-        return f(*args, **kwargs)
-    
-    return decorated
-
-
-# ================= 3. 测试接口 =================
-
-# 公开接口（谁都能访问）
-@app.route('/api/public_data', methods=['GET'])
-def public_data():
-    """
-    公开数据接口（无需认证）。
-
-    接口路径：GET /api/public_data
-    功能描述：返回一条公开消息，用于测试接口连通性。
-    参数：无
-    返回：JSON 格式的公开消息
-    """
-    return jsonify({"message": "这是公开数据"})
-
-# 私密接口（带有 @require_auth 的保护盾）
-@app.route('/api/protected/user_profile', methods=['GET'])
-@require_auth
-def protected_profile():
-    """
-    受保护的用户信息接口（需要 Authing Token 认证）。
-
-    接口路径：GET /api/protected/user_profile
-    请求方法：GET
-    功能描述：验证 Authing Token 后，返回当前登录用户的基本信息。
-    请求头：Authorization: Bearer <authing_token>
-    返回：
-        200 - 用户 ID 和 Token 权限范围
-        401 - Token 无效或未提供
-    """
-    # 走到这里，说明 Token 绝对合法，直接从 g 里面拿刚才解析出的用户信息
-    user_data = g.current_user
-    
-    return jsonify({
-        "message": "验证通过，欢迎来到私密领域！",
-        "user_id": user_data.get('sub'),  # Authing 的唯一用户 ID
-        "token_scopes": user_data.get('scope')  # Token 授权的权限范围
-    })
-
-# 3. 编写一键同步接口 (把 MySQL 数据搬到 Meilisearch)
-@app.route('/api/admin/sync-search', methods=['POST'])
-@admin_role_required
 def sync_search_data():
     """
     将 MySQL 中的网站数据全量同步到 Meilisearch 搜索引擎。
@@ -1504,9 +1222,6 @@ def scheduled_spider_task():
     触发方式：cron 定时，每天 03:00 执行
     """
     auto_fetch_hacker_news()  # 调用爬虫函数，抓取 HN 热门站点
-
-# 启动调度器
-scheduler.start()  # 启动后台调度器，开始监听定时任务
 
 # ================= 4. 垂直资讯流聚合 (RSS 穿透防火墙版) =================
 @app.route('/api/news', methods=['GET'])
@@ -1876,19 +1591,16 @@ def crawl_hacker_news():
         500 - 抓取过程中发生异常
     """
     try:
-        my_proxies = {
-            'http': 'http://127.0.0.1:7890',   # HTTP 代理，用于访问被墙的 Firebase API
-            'https': 'http://127.0.0.1:7890'   # HTTPS 代理
-        }
+        request_options = {"proxies": get_outbound_proxies(), "timeout": 10}
         # 获取 HN 最热的 30 篇文章 ID
         top_stories_url = "https://hacker-news.firebaseio.com/v0/topstories.json"
-        story_ids = requests.get(top_stories_url).json()[:30]  # 只取前 30 条热门文章 ID
+        story_ids = requests.get(top_stories_url, **request_options).json()[:30]  # 只取前 30 条热门文章 ID
         
         added_count = 0  # 记录本次新增的待审核站点数量
         
         for story_id in story_ids:
             story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
-            story_info = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json").json()  # 获取文章详情
+            story_info = requests.get(story_url, **request_options).json()  # 获取文章详情
             
             if story_info and 'url' in story_info:  # 只处理包含外链的文章（排除纯讨论帖）
                 url = story_info['url']
@@ -2816,18 +2528,9 @@ limiter = Limiter(
     get_remote_address,
     app=app,
     default_limits=["5000 per day", "1000 per hour"],
-    storage_uri=get_limiter_storage_uri()
+    storage_uri=get_limiter_storage_uri(),
+    swallow_errors=should_swallow_limiter_errors(),
 )
-
-# 【应用防刷】给敏感接口加上限制 (在之前的路由上加装饰器)
-# @app.route('/api/auth/send-code', methods=['POST'])
-# @limiter.limit("1 per minute", error_message="发送太频繁，请1分钟后再试")
-# def send_verification_code(): ...
-
-# @app.route('/api/auth/login', methods=['POST'])
-# @limiter.limit("5 per minute", error_message="密码尝试次数过多，请稍后再试")
-# def login(): ...
-
 
 # ================= 2. 管理员权限校验装饰器 =================
 def admin_required():
@@ -2968,7 +2671,8 @@ def github_callback():
     username = user_data.get('login', 'GitHub用户')
     avatar = user_data.get('avatar_url', '')
 
-    frontend_url = f"http://localhost:5173/?login=success&username={username}&avatar={avatar}"
+    query = urlencode({"login": "success", "username": username, "avatar": avatar})
+    frontend_url = f"{get_frontend_url()}/?{query}"
     print(f"🎉 GitHub 登录成功！用户: {username}")
     return redirect(frontend_url)
 
@@ -3110,6 +2814,7 @@ def delete_website(id):
 try:
     register_v1_routes(app, get_db_connection)
     register_questionnaire_admin_read_routes(app, get_db_connection)
+    register_review_routes(app, admin_required)
     print("V1 routes registered successfully")
 except Exception as e:
     print(f"Failed to register v1 routes: {e}")
@@ -3138,14 +2843,45 @@ def should_initialize_database(debug, run_main=None):
 
 def initialize_database():
     """Create missing tables once and surface initialization failures."""
+    validate_database_config(DB_CONFIG)
     with app.app_context():
         db.create_all()
 
 
+def parse_backend_port():
+    backend_value = os.getenv("BACKEND_PORT")
+    if backend_value is not None and backend_value.strip():
+        variable_name = "BACKEND_PORT"
+        raw_value = backend_value.strip()
+    else:
+        variable_name = "PORT"
+        raw_value = (os.getenv("PORT") or "5000").strip() or "5000"
+
+    try:
+        port = int(raw_value)
+    except ValueError as exc:
+        raise RuntimeError(
+            f"{variable_name} must be an integer between 1 and 65535"
+        ) from exc
+    if not 1 <= port <= 65535:
+        raise RuntimeError(
+            f"{variable_name} must be an integer between 1 and 65535"
+        )
+    return port
+
+
 if __name__ == '__main__':
-    debug_mode = True
-    use_reloader = True
-    if should_initialize_database(debug_mode):
+    if len(sys.argv) > 1 and sys.argv[1] == "smtp-check":
+        from smtp_check import main as smtp_check_main
+
+        raise SystemExit(smtp_check_main(sys.argv[2:]))
+
+    debug_mode = os.getenv("FLASK_DEBUG", "").strip().lower() in {"1", "true", "yes", "on"}
+    use_reloader = debug_mode
+    bind_host = (os.getenv("BACKEND_HOST") or "0.0.0.0").strip()
+    bind_port = parse_backend_port()
+    serving_process = should_initialize_database(debug_mode)
+    if serving_process:
         initialize_database()
         with app.app_context():
             # 启动时自动同步所有分类和网站到数据库
@@ -3171,24 +2907,32 @@ if __name__ == '__main__':
                     if not cur.fetchone():
                         logo = get_logo_url(site['url'])
                         cur.execute(
-                            "INSERT INTO websites (category_id,name,url,logo_url) VALUES (%s,%s,%s,%s)",
-                            (site['cat'], site['name'], site['url'], logo)
+                            "INSERT INTO websites (category_id,name,url,logo_url,summary,description) VALUES (%s,%s,%s,%s,%s,%s)",
+                            (
+                                site['cat'],
+                                site['name'],
+                                site['url'],
+                                logo,
+                                site.get('summary', ''),
+                                site.get('description', ''),
+                            )
                         )
                         new_count += 1
 
                 conn.commit()
                 conn.close()
                 if new_count > 0:
-                    print(f"✅ 启动同步：新增 {new_count} 个网站")
+                    print(f"Startup data sync added {new_count} websites")
                 else:
-                    print(f"✅ 数据库已是最新，共 {len(all_sites)} 条网站数据")
+                    print(f"Startup data is current: {len(all_sites)} websites")
             except Exception as e:
-                print(f"⚠️  启动同步失败（不影响运行）: {e}")
+                print(f"Startup data sync failed (continuing): {e}")
+        scheduler.start()
 
-    print("🚀 智汇导航后端服务已启动！正在监听 http://127.0.0.1:5000 ...")
+    print(f"Backend service listening on {bind_host}:{bind_port}")
     app.run(
-        host='0.0.0.0',
-        port=5000,
+        host=bind_host,
+        port=bind_port,
         debug=debug_mode,
         use_reloader=use_reloader,
     )

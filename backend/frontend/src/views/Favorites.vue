@@ -13,8 +13,8 @@
             <option value="">全部分类</option>
             <option
               v-for="category in categories"
-              :key="category.id || category.name"
-              :value="String(category.id || category.name)"
+              :key="category.id"
+              :value="category.id"
             >
               {{ category.name }}
             </option>
@@ -22,18 +22,40 @@
         </label>
       </section>
 
-      <LoadingState v-if="loading" text="正在加载收藏..." />
-      <EmptyState v-else-if="error" title="收藏加载失败" :description="error" />
+      <LoadingState v-if="isInitialLoading" text="正在加载收藏..." />
+      <section v-else-if="isBlockingError" class="favorite-error" role="alert">
+        <strong>收藏加载失败</strong>
+        <p>{{ errorMessage }}</p>
+        <button type="button" :disabled="retrying" @click="retryFavorites">
+          {{ retrying ? "正在重试..." : "重新加载" }}
+        </button>
+      </section>
       <div v-else ref="favoritesPanel">
+        <p
+          v-if="favoriteStore.isRefreshing"
+          class="favorite-background-status"
+          role="status"
+          aria-live="polite"
+        >
+          正在同步最新收藏...
+        </p>
+        <p
+          v-if="refreshNotice"
+          class="favorite-refresh-status"
+          role="status"
+          aria-live="polite"
+        >
+          最新收藏暂时无法更新，当前展示上次加载的结果。
+          <button type="button" :disabled="retrying" @click="retryFavorites">
+            {{ retrying ? "正在重试..." : "重新加载" }}
+          </button>
+        </p>
         <SiteList
           :sites="filteredFavorites"
-          :favorite-ids="favorites.map((site) => site.id)"
-          :favorite-pending-ids="favoritePendingIds"
-          empty-title="暂无收藏"
-          empty-description="去首页发现适合你的 AI 工具"
-          empty-action-text="去首页看看"
-          empty-action-to="/"
-          @favorite="remove"
+          empty-title="收藏夹还是空的"
+          empty-description="浏览网站资源时点击收藏按钮，稍后可以在这里快速找到它们。"
+          empty-action-text="浏览网站分类"
+          empty-action-to="/categories"
           @visit="visit"
         />
       </div>
@@ -42,28 +64,62 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+import { useRouter } from "vue-router";
 import AppHeader from "../components/layout/AppHeader.vue";
-import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
-import { categoryAPI, favoriteAPI, siteAPI } from "../utils/api";
-import { errorToast, successToast } from "../utils/toast";
+import { useFavoritesStore } from "../stores/favorites";
+import { useUserStore } from "../stores/user";
+import { siteAPI } from "../utils/api";
 
-const favorites = ref([]);
-const categories = ref([]);
+const router = useRouter();
+const userStore = useUserStore();
+const favoriteStore = useFavoritesStore();
 const selectedCategory = ref("");
-const loading = ref(false);
-const error = ref("");
-const favoritePendingIds = ref([]);
+const retrying = ref(false);
 const favoritesPanel = ref(null);
+
+const favorites = computed(() => favoriteStore.items);
+const categories = computed(() => {
+  const categoryMap = new Map();
+  favorites.value.forEach((site) => {
+    const id = String(
+      site.category_id ?? site.categoryName ?? site.category_name ?? "",
+    ).trim();
+    const name = String(site.categoryName ?? site.category_name ?? "").trim();
+    if (id && name && !categoryMap.has(id)) categoryMap.set(id, { id, name });
+  });
+  return [...categoryMap.values()];
+});
 const filteredFavorites = computed(() => {
   if (!selectedCategory.value) return favorites.value;
   return favorites.value.filter((site) => {
-    const id = site.category_id ?? site.category?.id ?? site.category_name;
-    return String(id) === selectedCategory.value;
+    const id = String(
+      site.category_id ?? site.categoryName ?? site.category_name ?? "",
+    );
+    return id === selectedCategory.value;
   });
 });
+const isInitialLoading = computed(
+  () => favoriteStore.status === "loading" && favorites.value.length === 0,
+);
+const isBlockingError = computed(
+  () => favoriteStore.status === "error" && favorites.value.length === 0,
+);
+const refreshNotice = computed(
+  () => Boolean(favoriteStore.error) && favoriteStore.hasSnapshot,
+);
+const errorMessage = computed(
+  () => favoriteStore.error?.message || "收藏服务出现异常，请稍后重试",
+);
 
 let favoriteCardsObserver;
 
@@ -102,51 +158,48 @@ function observeFavoriteCards() {
   });
 }
 
-async function load() {
-  loading.value = true;
-  error.value = "";
-  try {
-    const [favoriteRes, categoryRes] = await Promise.all([
-      favoriteAPI.getFavorites(),
-      categoryAPI.getCategories().catch(() => ({ data: { data: [] } })),
-    ]);
-    const payload = favoriteRes.data?.data ?? favoriteRes.data ?? [];
-    favorites.value = payload.items || payload || [];
-    favorites.value.forEach((site) => {
-      site.is_favorited = true;
+async function initializeFavoritesPage() {
+  await userStore.ensureHydrated();
+  if (!userStore.isLoggedIn) {
+    await router.replace({
+      name: "Login",
+      query: { redirect: "/favorites" },
     });
-    categories.value = categoryRes.data?.data || categoryRes.data || [];
-  } catch (err) {
-    error.value = err.response?.data?.msg || "收藏加载失败，请稍后重试";
-    errorToast(error.value);
-  } finally {
-    loading.value = false;
+    return;
   }
+
+  const userId = userStore.userInfo?.id ?? userStore.userInfo?.user_id;
+  const restored = favoriteStore.restoreFavoriteCache(userId);
+  void favoriteStore.loadFavorites({
+    keepExistingData: true,
+    background: restored,
+  });
+  await nextTick();
+  observeFavoriteCards();
 }
-async function remove(site) {
-  if (favoritePendingIds.value.includes(site.id)) return;
-  favoritePendingIds.value = [...favoritePendingIds.value, site.id];
+
+async function retryFavorites() {
+  if (retrying.value) return;
+  retrying.value = true;
   try {
-    await favoriteAPI.removeFavorite(site.id);
-    favorites.value = favorites.value.filter((item) => item.id !== site.id);
-    successToast("已取消收藏");
-  } catch {
-    errorToast("操作失败，请稍后重试");
+    await favoriteStore.loadFavorites({
+      force: true,
+      keepExistingData: true,
+      background: favoriteStore.hasSnapshot,
+    });
   } finally {
-    favoritePendingIds.value = favoritePendingIds.value.filter(
-      (id) => id !== site.id,
-    );
+    retrying.value = false;
+    await nextTick();
+    observeFavoriteCards();
   }
 }
+
 async function visit(site) {
   await siteAPI.recordClick(site.id).catch(() => {});
   window.open(site.url, "_blank", "noopener,noreferrer");
 }
-onMounted(async () => {
-  await load();
-  await nextTick();
-  observeFavoriteCards();
-});
+
+onMounted(initializeFavoritesPage);
 
 watch(
   filteredFavorites,
@@ -219,6 +272,75 @@ select {
   padding: 12px;
 }
 
+.favorite-error,
+.favorite-refresh-status,
+.favorite-background-status {
+  border: 1px solid rgba(255, 112, 88, 0.25);
+  border-radius: 16px;
+  background: #fff8f5;
+  color: var(--color-text);
+}
+
+.favorite-error {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 42px 24px;
+  text-align: center;
+}
+
+.favorite-error strong {
+  color: var(--color-heading);
+  font-size: 18px;
+}
+
+.favorite-error p,
+.favorite-refresh-status {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.favorite-background-status {
+  margin: 0;
+  border-color: rgba(71, 148, 139, 0.22);
+  background: #f3fbfa;
+  padding: 10px 16px;
+  color: #32766e;
+  line-height: 1.65;
+}
+
+.favorite-error button,
+.favorite-refresh-status button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 10px 16px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.favorite-error button:disabled,
+.favorite-refresh-status button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.favorite-refresh-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+.favorite-refresh-status button {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  font-size: 13px;
+}
+
 @media (max-width: 760px) {
   main {
     width: min(100% - 28px, 1180px);
@@ -226,6 +348,11 @@ select {
   }
 
   .hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .favorite-refresh-status {
     align-items: stretch;
     flex-direction: column;
   }

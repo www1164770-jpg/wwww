@@ -4,9 +4,6 @@
       v-for="site in sites"
       :key="site.id"
       :site="site"
-      :favorited="Boolean(site.is_favorited) || favoriteIds.includes(site.id)"
-      :favorite-pending="favoritePendingIds.includes(site.id)"
-      @favorite="$emit('favorite', $event)"
       @visit="$emit('visit', $event)"
     />
   </div>
@@ -25,8 +22,6 @@ import SiteCard from "./SiteCard.vue";
 
 defineProps({
   sites: { type: Array, default: () => [] },
-  favoriteIds: { type: Array, default: () => [] },
-  favoritePendingIds: { type: Array, default: () => [] },
   emptyTitle: { type: String, default: "暂无网站" },
   emptyDescription: {
     type: String,
@@ -35,7 +30,7 @@ defineProps({
   emptyActionText: { type: String, default: "" },
   emptyActionTo: { type: [String, Object], default: "" },
 });
-defineEmits(["favorite", "visit"]);
+defineEmits(["visit"]);
 </script>
 
 <style scoped>

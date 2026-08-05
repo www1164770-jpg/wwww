@@ -1,7 +1,18 @@
+from pathlib import Path
+
 import pymysql
 import requests
 import base64
 import time
+from dotenv import load_dotenv
+
+BACKEND_DIR = Path(__file__).resolve().parent
+load_dotenv(BACKEND_DIR / ".env")
+
+try:
+    from .db_pool import get_database_config, validate_database_config
+except ImportError:
+    from db_pool import get_database_config, validate_database_config
 
 # 1. 在这里填入你想添加的所有网站名单
 # category_id 参考：1:常用, 2:开发, 3:摸鱼, 4:工具, 5:AI
@@ -20,10 +31,7 @@ all_sites = [
 ]
 
 # 2. 数据库配置
-db_config = {
-    'host': '127.0.0.1', 'user': 'root', 'password': 'weiyijie748',
-    'database': 'navigation_db', 'charset': 'utf8mb4'
-}
+db_config = get_database_config()
 
 def fetch_logo_base64(url):
     domain = url.split('//')[-1].split('/')[0]
@@ -36,6 +44,7 @@ def fetch_logo_base64(url):
     return None
 
 def run():
+    validate_database_config(db_config)
     conn = pymysql.connect(**db_config)
     cursor = conn.cursor()
     print("🚀 开始批量注入网站数据...")

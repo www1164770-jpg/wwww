@@ -1,174 +1,219 @@
 <template>
   <section
-    id="tools"
-    class="tool-marquee home-anchor-section reveal-on-scroll"
-    aria-label="Popular website recommendations"
+    class="brand-marquee home-anchor-section"
+    aria-label="热门工具与平台"
   >
-    <div ref="viewportRef" class="tool-marquee__viewport">
-      <div :key="marqueeKey" class="tool-marquee__track">
-        <button
-          v-for="site in duplicatedSites"
-          :key="site.key"
-          type="button"
-          class="tool-marquee__item"
-          @click="visitSite(site)"
-        >
-          {{ site.name }}
-        </button>
+    <div class="brand-marquee__viewport">
+      <div class="brand-marquee__track">
+        <div class="brand-marquee__group">
+          <a
+            v-for="site in displaySites"
+            :key="site.key"
+            class="brand-marquee__item"
+            :href="site.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="`访问 ${displayName(site)}`"
+            @click="recordVisit(site)"
+          >
+            <SiteLogo
+              class="brand-marquee__logo"
+              :name="displayName(site)"
+              :url="site.href"
+              :logo="resolveSiteLogo(site)"
+              size="sm"
+              decorative
+            />
+            <span class="brand-marquee__name">{{ displayName(site) }}</span>
+          </a>
+        </div>
+
+        <div class="brand-marquee__group" aria-hidden="true">
+          <a
+            v-for="site in displaySites"
+            :key="`${site.key}-clone`"
+            class="brand-marquee__item"
+            :href="site.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            tabindex="-1"
+          >
+            <SiteLogo
+              class="brand-marquee__logo"
+              :name="displayName(site)"
+              :url="site.href"
+              :logo="resolveSiteLogo(site)"
+              size="sm"
+              decorative
+            />
+            <span class="brand-marquee__name">{{ displayName(site) }}</span>
+          </a>
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed } from "vue";
+import SiteLogo from "../site/SiteLogo.vue";
+import {
+  normalizeSiteName,
+  normalizeUrl,
+  resolveSiteLogo,
+  siteAPI,
+} from "../../utils/api";
 
 const props = defineProps({
   sites: { type: Array, default: () => [] },
 });
-const emit = defineEmits(["visit"]);
 
-const marqueeKey = ref(0);
-const viewportRef = ref(null);
-
-const fallbackSites = [
-  { name: "ChatGPT", url: "https://chatgpt.com" },
-  { name: "Claude", url: "https://claude.ai" },
-  { name: "Gemini", url: "https://gemini.google.com" },
-  { name: "Perplexity", url: "https://www.perplexity.ai" },
-  { name: "GitHub", url: "https://github.com" },
-  { name: "MDN", url: "https://developer.mozilla.org" },
-  { name: "Vue", url: "https://vuejs.org" },
-  { name: "Figma", url: "https://www.figma.com" },
-  { name: "Canva", url: "https://www.canva.com" },
-  { name: "Notion", url: "https://www.notion.so" },
-  { name: "飞书", url: "https://www.feishu.cn" },
-  { name: "ProcessOn", url: "https://www.processon.com" },
-].sort(() => Math.random() - 0.5);
-
-const displaySites = computed(() => {
-  const sites = props.sites.filter((site) => site?.name);
-  if (!sites.length) return fallbackSites;
-  if (sites.length >= 8) return sites;
-
-  const used = new Set(sites.map((site) => site.id || site.url || site.name));
-  return [
-    ...sites,
-    ...fallbackSites.filter(
-      (site) => !used.has(site.id || site.url || site.name),
-    ),
-  ].slice(0, 8);
+const BRAND_DISPLAY_NAME_MAP = Object.freeze({
+  "mdn web docs": "MDN",
+  "mdn 官方文档": "MDN",
+  "vue.js": "Vue",
+  "vue 官方文档": "Vue",
+  "flask 官方文档": "Flask",
 });
 
-const duplicatedSites = computed(() =>
-  [...displaySites.value, ...displaySites.value].map((site, index) => ({
-    ...site,
-    key: `${site.id || site.url || site.name}-${index}`,
-  })),
+const displaySites = computed(() =>
+  props.sites
+    .filter((site) => site?.name && normalizeUrl(site.url))
+    .map((site) => ({
+      ...site,
+      href: normalizeUrl(site.url),
+      key: site.id || site.url || site.name,
+    })),
 );
 
-function normalizeUrl(url) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  return `https://${url}`;
+function displayName(site) {
+  const explicitName = [
+    site?.short_name,
+    site?.brand_name,
+    site?.display_name,
+  ].find((value) => typeof value === "string" && value.trim());
+  if (explicitName) return explicitName.trim();
+
+  return (
+    BRAND_DISPLAY_NAME_MAP[normalizeSiteName(site?.name)] ||
+    site?.name ||
+    "网站"
+  );
 }
 
-function visitSite(site) {
-  emit("visit", { ...site, url: normalizeUrl(site.url) });
-}
-
-function restartMarquee() {
-  marqueeKey.value += 1;
-  if (viewportRef.value) {
-    viewportRef.value.scrollLeft = 0;
+function recordVisit(site) {
+  if (site.id && !site.external_only) {
+    siteAPI.recordClick(site.id).catch(() => {});
   }
 }
-
-function handleVisibilityChange() {
-  if (!document.hidden) {
-    restartMarquee();
-  }
-}
-
-onMounted(() => {
-  window.addEventListener("pageshow", restartMarquee);
-  window.addEventListener("focus", restartMarquee);
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("pageshow", restartMarquee);
-  window.removeEventListener("focus", restartMarquee);
-  document.removeEventListener("visibilitychange", handleVisibilityChange);
-});
 </script>
 
 <style scoped>
-.tool-marquee {
+.brand-marquee {
+  position: relative;
   width: 100%;
   overflow: hidden;
   border-top: 1px solid var(--color-border-soft);
   border-bottom: 1px solid var(--color-border-soft);
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.82);
 }
 
-.tool-marquee__viewport {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  touch-action: pan-x;
-  -webkit-overflow-scrolling: touch;
+.brand-marquee__viewport {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 0;
 }
 
-.tool-marquee__viewport::-webkit-scrollbar {
-  display: none;
+.brand-marquee__viewport::before,
+.brand-marquee__viewport::after {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  width: clamp(40px, 8vw, 140px);
+  content: "";
+  pointer-events: none;
 }
 
-.tool-marquee__track {
+.brand-marquee__viewport::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.98), transparent);
+}
+
+.brand-marquee__viewport::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.98), transparent);
+}
+
+.brand-marquee__track {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: clamp(26px, 4vw, 46px);
   width: max-content;
-  min-width: 100%;
-  min-height: 96px;
-  padding: 0 32px;
-  animation: marquee-scroll 34s linear infinite;
+  align-items: center;
+  animation: brand-marquee-scroll 34s linear infinite;
   will-change: transform;
 }
 
-.tool-marquee:hover .tool-marquee__track,
-.tool-marquee:focus-within .tool-marquee__track {
+.brand-marquee:hover .brand-marquee__track,
+.brand-marquee:focus-within .brand-marquee__track {
   animation-play-state: paused;
 }
 
-.tool-marquee__item {
-  display: inline-grid;
-  min-width: auto;
-  min-height: 44px;
-  place-items: center;
+.brand-marquee__group {
+  display: flex;
   flex: 0 0 auto;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  color: #94a3b8;
-  padding: 0;
-  font-size: clamp(24px, 3vw, 28px);
-  font-weight: 800;
-  letter-spacing: 0;
+  align-items: center;
+  gap: clamp(28px, 4vw, 58px);
+  padding-right: clamp(28px, 4vw, 58px);
+}
+
+.brand-marquee__item {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-muted);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
   white-space: nowrap;
-  transition: color var(--transition);
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
-.tool-marquee__item:hover,
-.tool-marquee__item:focus-visible {
+.brand-marquee__item:hover {
   color: var(--color-heading);
-  outline: none;
+  transform: translateY(-2px);
 }
 
-@keyframes marquee-scroll {
+.brand-marquee__item:focus-visible {
+  border-radius: 10px;
+  color: var(--color-heading);
+  outline: 3px solid rgba(255, 112, 88, 0.28);
+  outline-offset: 5px;
+  transform: translateY(-2px);
+}
+
+:deep(.brand-marquee__logo.site-logo--image) {
+  filter: grayscale(1);
+  opacity: 0.55;
+  transition:
+    filter 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.brand-marquee__item:hover :deep(.brand-marquee__logo.site-logo--image),
+.brand-marquee__item:focus-visible
+  :deep(.brand-marquee__logo.site-logo--image) {
+  filter: grayscale(0);
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+@keyframes brand-marquee-scroll {
   from {
     transform: translateX(0);
   }
@@ -178,17 +223,45 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 768px) {
-  .tool-marquee__track {
-    animation: none;
-    gap: 24px;
-    padding: 0 20px;
+@media (max-width: 640px) {
+  .brand-marquee__viewport {
+    padding: 18px 0;
+  }
+
+  .brand-marquee__group {
+    gap: 28px;
+    padding-right: 28px;
+  }
+
+  .brand-marquee__item {
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  :deep(.brand-marquee__logo.site-logo) {
+    width: 25px;
+    height: 25px;
+  }
+
+  .brand-marquee__viewport::before,
+  .brand-marquee__viewport::after {
+    width: 36px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tool-marquee__track {
+  .brand-marquee__viewport {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .brand-marquee__track {
     animation: none;
+    will-change: auto;
+  }
+
+  .brand-marquee__group[aria-hidden="true"] {
+    display: none;
   }
 }
 </style>

@@ -9,13 +9,21 @@
 使用方式：
   直接运行 `python init_db.py` 即可完成数据初始化。
 """
-import pymysql
+from pathlib import Path
 
-# 数据库连接配置，指向本地 MySQL 实例的 nav_site 数据库
-DB_CONFIG = {
-    'host': '127.0.0.1', 'user': 'root', 'password': 'weiyijie748',
-    'database': 'nav_site', 'charset': 'utf8mb4'
-}
+import pymysql
+from dotenv import load_dotenv
+
+BACKEND_DIR = Path(__file__).resolve().parent
+load_dotenv(BACKEND_DIR / ".env")
+
+try:
+    from .db_pool import get_database_config, validate_database_config
+except ImportError:
+    from db_pool import get_database_config, validate_database_config
+
+# 数据库连接配置，优先读取 MYSQL_*，并兼容应用已有的 DB_* 变量。
+DB_CONFIG = get_database_config()
 
 # ===== 需要确保数据库中存在的所有分类 =====
 # 每条记录格式：(id, profession_type, name, sort_order)
@@ -53,8 +61,83 @@ all_categories = [
 #   name - 网站显示名称，对应 websites.name
 #   url  - 网站完整 URL，对应 websites.url，同时用于自动生成 logo_url
 #   cat  - 所属分类 ID，必须与 all_categories 中的 id 对应
+#   summary / description - 优先在卡片和详情页展示的真实简介
+COMMON_RECOMMENDED_SITES = [
+    {
+        "name": "ChatGPT",
+        "url": "https://chatgpt.com",
+        "cat": 1,
+        "summary": "通用型 AI 助手",
+        "description": "用于问答、写作、编程与日常工作辅助。",
+    },
+    {
+        "name": "Claude",
+        "url": "https://claude.ai",
+        "cat": 1,
+        "summary": "面向分析、写作与编程的 AI 助手",
+        "description": "适合长文理解、内容创作和复杂任务分析。",
+    },
+    {
+        "name": "GitHub",
+        "url": "https://github.com",
+        "cat": 1,
+        "summary": "代码托管与协作开发平台",
+        "description": "用于开源项目、团队协作和工程实践。",
+    },
+    {
+        "name": "Hugging Face",
+        "url": "https://huggingface.co",
+        "cat": 1,
+        "summary": "开源模型、数据集与机器学习社区",
+        "description": "用于发现、使用和分享机器学习资源。",
+    },
+    {
+        "name": "Vercel",
+        "url": "https://vercel.com",
+        "cat": 1,
+        "summary": "面向前端团队的云端部署平台",
+        "description": "用于构建、预览和部署现代 Web 应用。",
+    },
+    {
+        "name": "Figma",
+        "url": "https://www.figma.com",
+        "cat": 1,
+        "summary": "协作式界面设计与原型工具",
+        "description": "用于界面设计、原型制作和团队评审。",
+    },
+    {
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org",
+        "cat": 1,
+        "summary": "面向 Web 开发者的权威技术文档",
+        "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+    },
+    {
+        "name": "Stack Overflow",
+        "url": "https://stackoverflow.com",
+        "cat": 1,
+        "summary": "开发者问答与知识社区",
+        "description": "用于查找编程问题、实践经验和技术方案。",
+    },
+    {
+        "name": "Midjourney",
+        "url": "https://www.midjourney.com",
+        "cat": 1,
+        "summary": "AI 图像生成与创意工具",
+        "description": "用于视觉探索、概念设计和图像创作。",
+    },
+    {
+        "name": "Notion",
+        "url": "https://www.notion.so",
+        "cat": 1,
+        "summary": "笔记、知识库与团队协作工具",
+        "description": "用于知识管理、项目规划和团队文档协作。",
+    },
+]
+
 all_sites = [
     # ===== 分类 1：常用推荐 =====
+    *COMMON_RECOMMENDED_SITES,
     {"name": "哔哩哔哩", "url": "https://www.bilibili.com", "cat": 1},
     {"name": "知乎", "url": "https://www.zhihu.com", "cat": 1},
     {"name": "微博", "url": "https://weibo.com", "cat": 1},
@@ -485,10 +568,6 @@ all_sites = [
     {"name": "马蜂窝", "url": "https://www.mafengwo.cn", "cat": 1},
     {"name": "穷游网", "url": "https://www.qyer.com", "cat": 1},
     {"name": "丁香医生", "url": "https://dxy.com", "cat": 1},
-    {"name": "好大夫在线", "url": "https://www.haodf.com", "cat": 1},
-    {"name": "平安好医生", "url": "https://www.jk.cn", "cat": 1},
-    {"name": "学而思", "url": "https://www.xueersi.com", "cat": 1},
-
     # ===== 综合导航 - 分类 2：开发社区（第三批）=====
     {"name": "Kubernetes", "url": "https://kubernetes.io", "cat": 2},
     {"name": "Terraform", "url": "https://www.terraform.io", "cat": 2},
@@ -687,6 +766,7 @@ def run():
          存在则跳过，不存在则插入并自动生成 Logo URL。
       4. 提交事务并关闭连接，打印执行结果统计。
     """
+    validate_database_config(DB_CONFIG)
     conn = pymysql.connect(**DB_CONFIG)   # 建立数据库连接
     cursor = conn.cursor()
 
@@ -718,8 +798,15 @@ def run():
             continue
         logo = get_logo_url(site['url'])   # 根据 URL 生成 Google Favicon 地址
         cursor.execute(
-            "INSERT INTO websites (category_id, name, url, logo_url) VALUES (%s, %s, %s, %s)",
-            (site['cat'], site['name'], site['url'], logo)
+            "INSERT INTO websites (category_id, name, url, logo_url, summary, description) VALUES (%s, %s, %s, %s, %s, %s)",
+            (
+                site['cat'],
+                site['name'],
+                site['url'],
+                logo,
+                site.get('summary', ''),
+                site.get('description', ''),
+            )
         )
         inserted += 1
 

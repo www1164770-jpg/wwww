@@ -84,7 +84,7 @@ async function load() {
   try {
     const data = readData(await adminAPI.getSettings(), {});
     Object.assign(form, {
-      site_name: data.site_name || "智汇导航",
+      site_name: data.site_name || "知航屿",
       audit_mode: data.audit_mode || "manual",
       allow_registration: data.allow_registration !== false,
       comment_default_status: data.comment_default_status || "visible",

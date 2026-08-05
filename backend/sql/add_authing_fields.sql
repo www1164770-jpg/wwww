@@ -1,4 +1,5 @@
--- Authing login integration fields for users.
+-- DEPRECATED: historical Authing login fields retained for database compatibility.
+-- The application no longer uses this provider; do not add new runtime dependencies.
 -- Run this migration manually after backing up the database.
 -- It does not alter existing passwords, roles, questionnaire state, or local login data.
 

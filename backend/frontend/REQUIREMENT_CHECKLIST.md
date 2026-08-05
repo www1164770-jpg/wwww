@@ -4,10 +4,9 @@
 
 | 功能 | 当前状态 | 涉及文件 | 是否完成 | 需要修复的问题 |
 | --- | --- | --- | --- | --- |
-| 用户注册 | 已接入邮箱验证码注册，前端有防重复提交 | `backend/app.py`, `src/views/Register.vue`, `src/utils/api.js` | 是 | 继续保持密码哈希与验证码失败中文提示 |
+| 用户注册 | 本地账号直接注册，前端有防重复提交 | `backend/app.py`, `src/views/Register.vue`, `src/utils/api.js` | 是 | 继续保持密码哈希与中文错误提示 |
 | 用户登录 | 支持邮箱或用户名登录，保存 token 与用户信息 | `backend/app.py`, `src/views/Login.vue`, `src/router/index.js` | 是 | 旧组件仍有 `code === 0` 兼容逻辑，需长期统一 |
 | 用户退出 | 后端提供登出接口，前端清理本地登录态 | `backend/v1_routes.py`, `src/components/layout/AppHeader.vue` | 是 | 需人工验收顶部菜单清理 `questionnaire_completed` |
-| Authing 登录 | 后端回调生成本站 JWT，前端 callback 保存 token | `backend/app.py`, `backend/authing_service.py`, `src/views/AuthingCallback.vue` | 是 | 依赖真实 Authing 配置，本轮不修改 `.env` |
 | 首次登录问卷 | 登录后可进入问卷，提交写入用户画像 | `backend/v1_routes.py`, `src/views/Questionnaire.vue` | 是 | 后台问卷配置已补入口，需联调真实库 |
 | 问卷修改 | 个人中心可查看和修改问卷 | `backend/v1_routes.py`, `src/views/ProfileView.vue`, `src/views/Questionnaire.vue` | 是 | 修改后推荐变化需结合演示数据验收 |
 | 职业推荐网站 | `/api/sites/recommend` 支持职业推荐与兜底排序 | `backend/recommend_service.py`, `backend/v1_routes.py`, `src/views/Home.vue` | 是 | 推荐规则后台已补入口，算法可继续接入更多权重 |

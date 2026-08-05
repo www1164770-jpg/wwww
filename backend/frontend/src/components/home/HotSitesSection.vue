@@ -15,10 +15,8 @@
     </div>
     <SiteList
       :sites="sites"
-      :favorite-pending-ids="favoritePendingIds"
       empty-title="暂无 AI 资源"
       empty-description="请先在后台添加 AI 工具类网站"
-      @favorite="$emit('favorite', $event)"
       @visit="$emit('visit', $event)"
     />
   </section>
@@ -28,11 +26,10 @@
 import SiteList from "../site/SiteList.vue";
 defineProps({
   sites: { type: Array, default: () => [] },
-  favoritePendingIds: { type: Array, default: () => [] },
   refreshing: { type: Boolean, default: false },
   error: { type: String, default: "" },
 });
-defineEmits(["favorite", "visit", "refresh"]);
+defineEmits(["visit", "refresh"]);
 </script>
 
 <style scoped>
