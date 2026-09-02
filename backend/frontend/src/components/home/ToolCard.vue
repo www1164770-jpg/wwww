@@ -92,12 +92,13 @@ const handleIconError = () => {
   position: relative;
   display: grid;
   gap: 16px;
-  border: 1px solid #dbe4ef;
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   padding: 18px;
   padding-right: 68px;
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(31, 53, 84, 0.08);
+  background: var(--app-card-bg);
+  backdrop-filter: blur(var(--app-blur));
+  box-shadow: var(--app-card-shadow);
 }
 
 .tool-head {
@@ -120,14 +121,14 @@ p {
 }
 
 h3 {
-  color: #18212f;
+  color: var(--app-text-primary);
   font-size: 18px;
 }
 
 .tool-head p,
 .audience {
   margin-top: 6px;
-  color: #64748b;
+  color: var(--app-text-secondary);
   line-height: 1.55;
   font-size: 14px;
 }

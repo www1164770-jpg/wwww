@@ -8,6 +8,7 @@ from typing import Callable
 
 from backend.crawler.db import IconAsset, ReviewCase
 from backend.crawler.net.url import InvalidUrl, normalize_http_url
+from backend.description_language import unsupported_languages
 
 
 class MappingValidationError(ValueError):
@@ -48,6 +49,8 @@ def build_website_fields(case: ReviewCase, *, category_resolver: Callable[[str],
     title = _text(case.selected_title, field="selected_title", maximum=100, required=True)
     summary = _text(case.selected_summary, field="selected_summary", maximum=500)
     description = _text(case.selected_description, field="selected_description", maximum=65_535)
+    if description and unsupported_languages(description):
+        raise MappingValidationError("selected_description contains an unsupported language script")
     category = _text(case.selected_category, field="selected_category", maximum=64, required=True)
     region = _text(case.selected_region, field="selected_region", maximum=32)
     raw_url = _text(case.selected_url, field="selected_url", maximum=4096, required=True)
@@ -67,4 +70,3 @@ def build_website_fields(case: ReviewCase, *, category_resolver: Callable[[str],
         logo_url = (logo_url_builder or (lambda asset: asset.relative_path))(logo_asset)
         logo_url = _text(logo_url, field="logo_url", maximum=500)
     return WebsiteFields(title, url, logo_url, summary, description, category_id, region)
-

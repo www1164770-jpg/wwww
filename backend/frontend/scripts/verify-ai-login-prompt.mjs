@@ -8,7 +8,10 @@ const home = read("src/views/Home.vue");
 
 const careerStart = home.indexOf('id="career"');
 const gridStart = home.indexOf('class="career-site-grid"', careerStart);
-const promptStart = home.indexOf('class="ai-login-prompt"', careerStart);
+const promptStart = home.indexOf(
+  'class="ai-login-prompt career-section-cta"',
+  careerStart,
+);
 const careerEnd =
   promptStart >= 0 ? home.indexOf("</section>", promptStart) : -1;
 const reasonBindings = home.match(/:show-reason="true"/g) || [];
@@ -54,7 +57,8 @@ const checks = [
   ],
   [
     "recommendation reasons remain enabled only for career SiteCards",
-    home.includes('v-for="site in visibleCareerSites"') && reasonBindings.length === 1,
+    home.includes('v-for="site in visibleCareerSites"') &&
+      reasonBindings.length === 1,
   ],
 ];
 

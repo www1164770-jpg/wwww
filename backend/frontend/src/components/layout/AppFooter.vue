@@ -2,9 +2,9 @@
 const currentYear = new Date().getFullYear();
 
 const quickLinks = [
-  { label: "首页", to: "/" },
-  { label: "分类浏览", to: "/categories" },
-  { label: "搜索资源", to: "/search" },
+  { label: "首页", to: { path: "/", hash: "#home" } },
+  { label: "分类浏览", to: { path: "/", hash: "#tools" } },
+  { label: "搜索资源", to: { path: "/", hash: "#site-search" } },
   { label: "我的收藏", to: "/favorites" },
 ];
 
@@ -74,8 +74,8 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
 <style scoped>
 .app-footer {
   margin-top: 72px;
-  border-top: 1px solid var(--color-border-soft);
-  background: var(--color-soft);
+  border-top: 0;
+  background: transparent;
 }
 
 .app-footer__inner {
@@ -87,7 +87,12 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
   gap: clamp(28px, 6vw, 72px);
   width: min(var(--container), calc(100% - 40px));
   margin: 0 auto;
-  padding: 56px 0 42px;
+  padding: 48px clamp(24px, 4vw, 48px) 38px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-large) var(--radius-large) 0 0;
+  background: var(--app-container-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .app-footer__brand,
@@ -99,7 +104,7 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   text-decoration: none;
 }
 
@@ -111,7 +116,7 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
 }
 
 .app-footer__brand-name {
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 20px;
   font-weight: 850;
   line-height: 1.2;
@@ -120,14 +125,14 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
 .app-footer__description {
   max-width: 380px;
   margin: 16px 0 0;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   font-size: 14px;
   line-height: 1.8;
 }
 
 .app-footer__heading {
   margin: 0 0 12px;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 14px;
   font-weight: 850;
   line-height: 1.4;
@@ -146,7 +151,7 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   font-size: 14px;
   line-height: 1.5;
   text-decoration: none;
@@ -167,13 +172,18 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
 .app-footer__bottom {
   width: min(var(--container), calc(100% - 40px));
   margin: 0 auto;
-  padding: 20px 0 24px;
-  border-top: 1px solid var(--color-border-soft);
+  padding: 20px clamp(24px, 4vw, 48px) 24px;
+  border: 1px solid var(--app-border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-large) var(--radius-large);
+  background: var(--app-container-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .app-footer__bottom p {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--app-text-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -197,7 +207,7 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
     grid-template-columns: 1fr;
     gap: 30px;
     width: min(var(--container), calc(100% - 32px));
-    padding: 42px 0 32px;
+    padding: 38px 22px 30px;
   }
 
   .app-footer__brand {

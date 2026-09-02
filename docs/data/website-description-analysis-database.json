@@ -1,0 +1,175 @@
+{
+  "source": "database",
+  "valid_website_count": 949,
+  "empty_description_count": 294,
+  "exact_duplicate_description_count": 20,
+  "normalized_duplicate_description_count": 472,
+  "description_usage_top_20": [
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2
+    },
+    {
+      "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+      "count": 2
+    },
+    {
+      "description": "用于构建、预览和部署现代 Web 应用。",
+      "count": 2
+    },
+    {
+      "description": "用于知识管理、项目规划和团队文档协作。",
+      "count": 2
+    },
+    {
+      "description": "用于界面设计、原型制作和团队评审。",
+      "count": 2
+    },
+    {
+      "description": "用于问答、写作、编程与日常工作辅助。",
+      "count": 2
+    },
+    {
+      "description": "适合长文理解、内容创作和复杂任务分析。",
+      "count": 2
+    },
+    {
+      "description": "用于视觉探索、概念设计和图像创作。",
+      "count": 2
+    },
+    {
+      "description": "用于发现、使用和分享机器学习资源。",
+      "count": 2
+    },
+    {
+      "description": "视频、课程与兴趣内容社区。",
+      "count": 1
+    },
+    {
+      "description": "中文问答、知识分享与经验交流社区。",
+      "count": 1
+    },
+    {
+      "description": "中文网页搜索与信息发现。",
+      "count": 1
+    },
+    {
+      "description": "影视、纪录片与在线视频平台。",
+      "count": 1
+    },
+    {
+      "description": "书影音内容发现与兴趣交流社区。",
+      "count": 1
+    },
+    {
+      "description": "集成代码托管、CI/CD 与项目管理的平台。",
+      "count": 1
+    },
+    {
+      "description": "面向中文开发者的代码托管与开源平台。",
+      "count": 1
+    },
+    {
+      "description": "中文技术文章、课程与开发者社区。",
+      "count": 1
+    },
+    {
+      "description": "中文 IT 技术博客与开发者服务平台。",
+      "count": 1
+    },
+    {
+      "description": "开发者博客与技术交流社区。",
+      "count": 1
+    }
+  ],
+  "normalized_description_usage_top_20": [
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30
+    },
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 29
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 28
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28
+    },
+    {
+      "description": "用于竞品信息、市场趋势或产品技术栈调研。",
+      "count": 28
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 27
+    },
+    {
+      "description": "提供可视化、地图或三维图形开发能力。",
+      "count": 27
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 27
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 25
+    },
+    {
+      "description": "提供前端构建、代码质量或依赖管理能力。",
+      "count": 25
+    },
+    {
+      "description": "提供字体、色彩和无障碍视觉检查资源。",
+      "count": 24
+    },
+    {
+      "description": "提供开发调试、格式转换或性能检查工具。",
+      "count": 23
+    },
+    {
+      "description": "用于任务安排、时间管理或个人效率提升。",
+      "count": 12
+    },
+    {
+      "description": "提供产品原型、线框或交互协作能力。",
+      "count": 3
+    },
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2
+    }
+  ],
+  "generic_fallback_count": 0,
+  "name_prefix_count": 455,
+  "too_short_count": 2,
+  "too_long_count": 0
+}

@@ -1,0 +1,175 @@
+{
+  "source": "catalog",
+  "valid_website_count": 486,
+  "empty_description_count": 138,
+  "exact_duplicate_description_count": 318,
+  "normalized_duplicate_description_count": 318,
+  "description_usage_top_20": [
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30
+    },
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 30
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 30
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 28
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 28
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 28
+    },
+    {
+      "description": "强调隐私保护的搜索引擎，减少用户搜索行为追踪。",
+      "count": 1
+    },
+    {
+      "description": "注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。",
+      "count": 1
+    },
+    {
+      "description": "提供网页、图片、地图和邮箱等服务的综合互联网平台。",
+      "count": 1
+    },
+    {
+      "description": "Brave 推出的隐私搜索引擎，强调独立索引和减少追踪。",
+      "count": 1
+    },
+    {
+      "description": "将搜索广告收入用于植树和环保项目的公益型搜索引擎。",
+      "count": 1
+    },
+    {
+      "description": "非营利数字档案馆，收录历史网页、书籍、音视频和软件资源。",
+      "count": 1
+    },
+    {
+      "description": "开放式多语言词典，提供词义、发音、词源和翻译等语言信息。",
+      "count": 1
+    },
+    {
+      "description": "开放媒体资源库，提供可自由使用的图像、音频和视频素材。",
+      "count": 1
+    },
+    {
+      "description": "Google 新闻聚合服务，可集中浏览多家媒体的实时新闻与专题报道。",
+      "count": 1
+    }
+  ],
+  "normalized_description_usage_top_20": [
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30
+    },
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 30
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 30
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 28
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 28
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 28
+    },
+    {
+      "description": "强调隐私保护的搜索引擎，减少用户搜索行为追踪。",
+      "count": 1
+    },
+    {
+      "description": "注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。",
+      "count": 1
+    },
+    {
+      "description": "提供网页、图片、地图和邮箱等服务的综合互联网平台。",
+      "count": 1
+    },
+    {
+      "description": "Brave 推出的隐私搜索引擎，强调独立索引和减少追踪。",
+      "count": 1
+    },
+    {
+      "description": "将搜索广告收入用于植树和环保项目的公益型搜索引擎。",
+      "count": 1
+    },
+    {
+      "description": "非营利数字档案馆，收录历史网页、书籍、音视频和软件资源。",
+      "count": 1
+    },
+    {
+      "description": "开放式多语言词典，提供词义、发音、词源和翻译等语言信息。",
+      "count": 1
+    },
+    {
+      "description": "开放媒体资源库，提供可自由使用的图像、音频和视频素材。",
+      "count": 1
+    },
+    {
+      "description": "Google 新闻聚合服务，可集中浏览多家媒体的实时新闻与专题报道。",
+      "count": 1
+    }
+  ],
+  "generic_fallback_count": 0,
+  "name_prefix_count": 0,
+  "too_short_count": 0,
+  "too_long_count": 0
+}

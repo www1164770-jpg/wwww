@@ -6,7 +6,12 @@
     aria-labelledby="home-hero-title"
   >
     <div class="hero-copy">
-      <h1 id="home-hero-title">根据你的职业，推荐最适合的工具</h1>
+      <ParticleText
+        id="home-hero-title"
+        class="hero-particle-title"
+        :style="{ '--particle-title-color': particleTitleColor }"
+        text="根据你的职业，推荐最适合的工具"
+      />
       <p>
         收集、筛选和推荐高质量网站资源，让学习、工作、创作和项目开发更高效。
       </p>
@@ -32,7 +37,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { usePersonalizationStore } from "../../stores/personalization";
+import ParticleText from "./ParticleText.vue";
 import SearchBar from "../common/SearchBar.vue";
 
 defineProps({
@@ -45,30 +52,34 @@ defineProps({
 defineEmits(["update:modelValue", "search", "show-all", "show-favorites"]);
 
 const engineMenuOpen = ref(false);
+const personalizationStore = usePersonalizationStore();
+const particleTitleColor = computed(() => {
+  const settings = personalizationStore.settings;
+  const usesDefaultAppearance =
+    settings?.themeKey === "default" &&
+    settings?.background?.type === "default" &&
+    settings?.typography?.mode === "auto";
+
+  return usesDefaultAppearance
+    ? "#111827"
+    : "var(--heading-text-color, var(--app-text-primary))";
+});
 </script>
 
 <style scoped>
 .hero-search {
   display: grid;
   position: relative;
+  width: 100%;
+  height: 100%;
   min-height: clamp(380px, 46vh, 480px);
   place-items: center;
   align-content: center;
   gap: 28px;
-  padding: 100px 20px 48px;
+  box-sizing: border-box;
+  padding: 32px 20px 24px;
   overflow: visible;
-  background:
-    radial-gradient(
-      circle at 14% 18%,
-      rgba(191, 245, 237, 0.42),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 88% 28%,
-      rgba(255, 112, 88, 0.18),
-      transparent 32%
-    ),
-    linear-gradient(180deg, #ffffff 0%, #fffdfc 54%, #ffffff 100%);
+  background: var(--app-page-bg);
 }
 
 .hero-search.reveal-on-scroll {
@@ -82,24 +93,32 @@ const engineMenuOpen = ref(false);
 
 .hero-copy {
   display: grid;
+  width: min(var(--container), calc(100% - 40px));
   justify-items: center;
   gap: 18px;
-  max-width: 930px;
   text-align: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 h1 {
   margin: 0;
-  color: var(--color-heading);
-  font-size: clamp(40px, 7vw, 68px);
-  font-weight: 850;
-  line-height: 1.08;
+  color: var(--app-text-primary);
+  font-size: clamp(64px, 5.1vw, 88px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .hero-copy p {
   margin: 0;
   max-width: 700px;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   font-size: 18px;
   line-height: 1.75;
 }
@@ -117,7 +136,7 @@ h1 {
 
 .hero-stats {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--app-text-muted);
   font-size: 14px;
   font-weight: 750;
 }
@@ -125,7 +144,19 @@ h1 {
 @media (max-width: 640px) {
   .hero-search {
     min-height: auto;
-    padding: 80px 16px 36px;
+    gap: 22px;
+    padding: 24px 16px 20px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-copy {
+    width: 100%;
+  }
+
+  h1 {
+    font-size: clamp(34px, 10vw, 44px);
+    white-space: nowrap;
   }
 }
 </style>

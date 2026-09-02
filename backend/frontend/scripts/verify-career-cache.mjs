@@ -59,7 +59,7 @@ for (const [name, check] of checks) {
 
 const batches = (pool, index, size = 16) => {
   if (!pool.length) return [];
-  const count = Math.floor(pool.length / size);
+  const count = Math.ceil(pool.length / size);
   if (!count) return [];
   const safeIndex = (((Number(index) || 0) % count) + count) % count;
   return pool.slice(safeIndex * size, safeIndex * size + size);
@@ -77,7 +77,8 @@ assert.equal(
     Array.from({ length: 37 }, (_, index) => `site-${index}`),
     2,
   ).length,
-  16,
+  5,
 );
+assert.deepEqual(batches(["site-0"], 0), ["site-0"]);
 
 console.log(`PASS career cache and refresh flow (${checks.length} checks)`);

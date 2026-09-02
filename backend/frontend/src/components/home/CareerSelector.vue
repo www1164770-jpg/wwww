@@ -52,7 +52,9 @@
             :key="occupation.code"
             type="button"
             class="occupation-option"
-            :class="{ 'occupation-option--active': modelValue === occupation.code }"
+            :class="{
+              'occupation-option--active': modelValue === occupation.code,
+            }"
             :aria-pressed="modelValue === occupation.code"
             @click="selectOccupation(occupation.code)"
           >
@@ -112,7 +114,7 @@ function selectOccupation(occupation) {
   border-radius: 24px;
   background: #ffffff;
   padding: 24px;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.07);
+  box-shadow: var(--app-card-shadow);
 }
 
 .career-selector__header {

@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-08-13T16:53:41.515463+00:00",
+  "mode": "apply",
+  "candidate_count": 10,
+  "updated_count": 10,
+  "skipped_count": 0,
+  "updates": [
+    {
+      "website_id": 190,
+      "name": "Linear",
+      "old_description": "Purpose-built for planning and building products with AI agents.",
+      "new_description": "面向产品与研发团队的项目管理工具，可规划需求、跟踪问题和协调产品开发流程。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 192,
+      "name": "Monday.com",
+      "old_description": "Get more work done with AI agents that work side by side with your people.",
+      "new_description": "团队工作管理平台，可通过看板、自动化和仪表盘管理项目、任务和协作流程。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 345,
+      "name": "Airtable",
+      "old_description": "500,000+ brands use Airtable to enable real-time collaboration,",
+      "new_description": "结合表格与数据库的协作平台，可构建内容管理、项目跟踪和业务工作流。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 348,
+      "name": "Slab",
+      "old_description": "Discover why our easy creation, organization, and numerous integrations,",
+      "new_description": "团队知识库工具，支持文档编写、内容组织、全文搜索和常用协作工具集成。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 430,
+      "name": "Airtable",
+      "old_description": "融合表格、数据库与协作的工作平台。",
+      "new_description": "结合表格与数据库的协作平台，可构建内容管理、项目跟踪和业务工作流。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 501,
+      "name": "Tettra",
+      "old_description": "Tettra is an AI-powered knowledge base and knowledge management software.",
+      "new_description": "面向团队的 AI 知识库，可集中维护内部文档并通过问答快速获取信息。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 502,
+      "name": "Guru",
+      "old_description": "Stop running your business on confidently wrong AI.",
+      "new_description": "企业知识管理平台，可在团队工作流中沉淀、验证和调用内部知识。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 503,
+      "name": "Nuclino",
+      "old_description": "A modern, simple, and blazingly fast way to collaborate – bring knowledge, docs,",
+      "new_description": "轻量级团队知识库与协作工具，可通过文档、集合和图谱组织共享信息。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 504,
+      "name": "Almanac",
+      "old_description": "Consolidate your docs in a beautiful,",
+      "new_description": "协作文档平台，支持版本控制、多人编辑和团队知识内容的共享维护。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    },
+    {
+      "website_id": 505,
+      "name": "Outline",
+      "old_description": "A modern team knowledge base for your internal documentation, product specs,",
+      "new_description": "现代团队知识库工具，可编写内部文档、组织项目规范并进行权限协作。",
+      "source": "manual_verified_language_normalization",
+      "confidence": "high"
+    }
+  ],
+  "skipped": []
+}

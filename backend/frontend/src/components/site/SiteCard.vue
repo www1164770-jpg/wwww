@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div
     class="site-card-reveal"
     :class="{
@@ -11,7 +11,9 @@
       :class="{
         'website-card--career': isCareerVariant,
         'website-card--category': isCategoryVariant,
+        'website-card--category-compact': isCompactCategoryVariant,
         'website-card--category-static': isCategoryVariant && !selectable,
+        'website-card--actions-hidden': hideActions,
         'website-card--selectable': selectable,
         'website-card--selected': selectable && selected,
       }"
@@ -78,73 +80,110 @@
       </template>
 
       <div v-else class="site-card__inner">
-        <div class="card-head">
-          <div
-            v-if="isCategoryVariant && !selectable"
-            class="site-card__logo-button site-card__logo-static"
-            aria-hidden="true"
-          >
-            <SiteLogo
-              :name="site.name"
-              :url="normalizedSiteUrl"
-              :logo="site.logo_url || site.logo"
-              size="lg"
-              decorative
-            />
-          </div>
-          <button
-            v-else
-            type="button"
-            class="site-card__logo-button"
-            :aria-label="`访问 ${site.name || '网站'}`"
-            @click.stop="handleSitePrimaryClick"
-          >
-            <SiteLogo
-              :name="site.name"
-              :url="normalizedSiteUrl"
-              :logo="site.logo_url || site.logo"
-              size="lg"
-              decorative
-            />
-          </button>
-
-          <div>
-            <h3>
-              <span
-                v-if="isCategoryVariant && !selectable"
-                class="site-card__title"
-              >
-                {{ site.name }}
-              </span>
-              <button
-                v-else
-                type="button"
-                class="site-card__title-button"
-                :aria-label="`访问 ${site.name || '网站'}`"
-                @click.stop="handleSitePrimaryClick"
-              >
-                {{ site.name }}
-              </button>
-            </h3>
-            <AppTooltip
-              v-if="siteDescription"
-              :content="siteDescription"
-              :disabled="!siteDescription"
-              :show-on-overflow="true"
+        <div class="site-card__content">
+          <div class="site-card__info card-head">
+            <div
+              v-if="isCategoryVariant && !selectable"
+              class="site-card__logo-button site-card__logo-static"
+              aria-hidden="true"
             >
-              <p class="site-card__description" data-tooltip-overflow-target>
-                {{ siteDescription }}
-              </p>
-            </AppTooltip>
+              <SiteLogo
+                :name="site.name"
+                :url="normalizedSiteUrl"
+                :logo="site.logo_url || site.logo"
+                size="lg"
+                decorative
+              />
+            </div>
+            <button
+              v-else
+              type="button"
+              class="site-card__logo-button"
+              :aria-label="`访问 ${site.name || '网站'}`"
+              @click.stop="handleSitePrimaryClick"
+            >
+              <SiteLogo
+                :name="site.name"
+                :url="normalizedSiteUrl"
+                :logo="site.logo_url || site.logo"
+                size="lg"
+                decorative
+              />
+            </button>
+
+            <div class="site-card__copy">
+              <h3>
+                <span
+                  v-if="isCategoryVariant && !selectable"
+                  class="site-card__title"
+                >
+                  {{ site.name }}
+                </span>
+                <button
+                  v-else
+                  type="button"
+                  class="site-card__title-button"
+                  :aria-label="`访问 ${site.name || '网站'}`"
+                  @click.stop="handleSitePrimaryClick"
+                >
+                  {{ site.name }}
+                </button>
+              </h3>
+              <AppTooltip
+                v-if="cardDescription && !isCompactCategoryVariant"
+                :content="cardDescription"
+                :disabled="!cardDescription"
+                :show-on-overflow="true"
+                :floating="isCategoryVariant"
+                placement="top"
+                :offset="9"
+              >
+                <p class="site-card__description" data-tooltip-overflow-target>
+                  {{ cardDescription }}
+                </p>
+              </AppTooltip>
+            </div>
           </div>
+          <AppTooltip
+            v-if="categorySiteDescription && isCompactCategoryVariant"
+            :content="categorySiteDescription"
+            :disabled="!categorySiteDescription"
+            :show-on-overflow="true"
+            :floating="isCategoryVariant"
+            placement="top"
+            :offset="9"
+          >
+            <p
+              class="site-card__description site-card__description--category-compact"
+              data-tooltip-overflow-target
+            >
+              {{ categorySiteDescription }}
+            </p>
+          </AppTooltip>
+          <span
+            v-if="
+              isCategoryVariant && (!selectable || isCompactCategoryVariant)
+            "
+            class="website-card__category"
+          >
+            {{ categoryLabel }}
+          </span>
         </div>
 
         <div v-if="showReason" class="site-card__reason">
-          <span class="site-card__reason-label">推荐理由</span>
-          <span class="site-card__reason-text">{{ recommendationReason }}</span>
+          <span class="site-card__reason-label">
+            <span>推荐理由</span>
+            <b v-if="recommendationScore !== null">{{ recommendationScore }}</b>
+          </span>
+          <span class="site-card__reason-text">{{
+            recommendationReasons.join(" · ")
+          }}</span>
         </div>
 
-        <div v-if="!isCategoryVariant || selectable" class="meta">
+        <div
+          v-if="!isCategoryVariant || (selectable && !isCompactCategoryVariant)"
+          class="meta"
+        >
           <span>{{ categoryLabel }}</span>
           <span v-for="tag in visibleTags" :key="tag">{{ tag }}</span>
           <span v-if="hiddenTagCount" class="more-tag"
@@ -155,25 +194,7 @@
           </span>
         </div>
 
-        <div
-          v-if="isCategoryVariant && !selectable"
-          class="website-card__footer"
-        >
-          <span class="website-card__category">{{ categoryLabel }}</span>
-          <a
-            v-if="normalizedSiteUrl"
-            class="website-card__external"
-            :href="normalizedSiteUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            :aria-label="`访问 ${site.name || '网站'}`"
-            @click.stop
-          >
-            <ExternalLink aria-hidden="true" />
-          </a>
-        </div>
-
-        <div v-else-if="!hideActions" class="actions">
+        <div v-if="!hideActions" class="actions">
           <button type="button" class="visit" @click.stop="openSite">
             访问网站
           </button>
@@ -191,12 +212,12 @@
 </template>
 
 <script setup>
-import { ExternalLink } from "lucide-vue-next";
 import { computed } from "vue";
 import AppTooltip from "../common/AppTooltip.vue";
 import FavoriteStarButton from "./FavoriteStarButton.vue";
 import SiteLogo from "./SiteLogo.vue";
 import { getSiteDescription, normalizeUrl } from "../../utils/api";
+import { cleanSiteDescription } from "../../utils/siteText";
 
 const props = defineProps({
   site: { type: Object, required: true },
@@ -207,6 +228,7 @@ const props = defineProps({
   selectable: { type: Boolean, default: false },
   selected: { type: Boolean, default: false },
   hideActions: { type: Boolean, default: false },
+  compact: { type: Boolean, default: false },
 });
 const emit = defineEmits(["visit", "select"]);
 
@@ -217,7 +239,13 @@ const categoryLabel = computed(
   () => props.site.category_name || allTags.value[0] || "网站资源",
 );
 const isCareerVariant = computed(() => props.variant === "career");
-const isCategoryVariant = computed(() => props.variant === "category");
+const isCategoryVariant = computed(() => props.variant.startsWith("category"));
+const isCompactCategoryVariant = computed(
+  () =>
+    props.variant === "category-compact" ||
+    props.compact ||
+    (props.variant === "category" && props.selectable && props.hideActions),
+);
 const normalizedSiteUrl = computed(() => normalizeUrl(props.site?.url));
 const recommendationReason = computed(
   () =>
@@ -229,7 +257,27 @@ const recommendationReason = computed(
     props.site.description ||
     "该网站的功能与你当前选择的职业需求较为匹配。",
 );
+const recommendationReasons = computed(() => {
+  const reasons = Array.isArray(props.site.match_reasons)
+    ? props.site.match_reasons.filter(Boolean)
+    : [];
+  return reasons.length ? reasons.slice(0, 3) : [recommendationReason.value];
+});
+const recommendationScore = computed(() => {
+  const value = Number(
+    props.site.match_score ?? props.site.recommend_score ?? props.site.score,
+  );
+  return Number.isFinite(value) ? Math.round(value) : null;
+});
 const siteDescription = computed(() => getSiteDescription(props.site));
+const categorySiteDescription = computed(() =>
+  cleanSiteDescription(props.site?.name, siteDescription.value),
+);
+const cardDescription = computed(() =>
+  isCategoryVariant.value
+    ? categorySiteDescription.value
+    : siteDescription.value,
+);
 const visibleTags = computed(() => allTags.value.slice(0, 3));
 const hiddenTagCount = computed(() => Math.max(allTags.value.length - 3, 0));
 const visibleOccupations = computed(() =>
@@ -241,7 +289,7 @@ const canUseSiteActions = computed(
 
 function handleCardClick() {
   if (props.selectable) emit("select", props.site);
-  else if (isCareerVariant.value) openSite();
+  else if (isCareerVariant.value || isCompactCategoryVariant.value) openSite();
 }
 
 function handleSitePrimaryClick() {
@@ -267,33 +315,118 @@ function openSite() {
   display: block;
   height: 100%;
   min-width: 0;
-  border: 1px solid #dfe3e8 !important;
-  background: #ffffff !important;
+  border: 1px solid var(--app-border) !important;
+  background: var(--app-card-bg) !important;
   color: inherit;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04) !important;
+  box-shadow: var(--app-card-shadow) !important;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
     transform 180ms ease,
     background-color 180ms ease;
+  backdrop-filter: blur(var(--app-blur));
 }
 
 .website-card--selectable {
   cursor: pointer;
 }
 
-.website-card--category .site-card__inner {
-  min-height: 220px;
-}
-
 .website-card--category-static {
   cursor: default;
 }
 
-.website-card--category .meta {
-  margin-top: auto;
+.website-card--category-compact {
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
+  box-sizing: border-box;
+  aspect-ratio: unset;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.website-card--category-compact .site-card__inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 12px 18px;
+}
+
+.website-card--category-compact .site-card__info {
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  gap: 12px;
+  padding: 0 40px 0 0;
+}
+
+.website-card--category-compact .site-card__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.website-card--category-compact .site-card__logo-button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.website-card--category-compact .site-card__logo-button img,
+.website-card--category-compact .site-card__logo-button .site-logo,
+.website-card--category-compact .site-card__text-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.website-card--category-compact .site-card__copy {
+  min-width: 0;
+}
+
+.website-card--category-compact h3 {
+  margin: 0;
+}
+
+.website-card--category-compact .site-card__title,
+.website-card--category-compact .site-card__title-button {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.website-card--category-compact .site-card__description--category-compact {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 10px 0 4px;
+  color: #5f6b7c;
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.website-card--category-compact .website-card__category {
+  width: fit-content;
+  max-width: calc(100% - 36px);
+  align-self: flex-start;
+  margin: auto 0 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  line-height: 1;
 }
 
 .website-card--selected,
@@ -301,21 +434,24 @@ function openSite() {
 .website-card--selected:focus-visible {
   border-color: var(--color-primary) !important;
   box-shadow:
-    0 14px 30px rgba(15, 23, 42, 0.08),
+    var(--app-card-shadow),
     0 0 0 2px rgba(255, 112, 88, 0.13) !important;
 }
 
 .website-card--career {
   display: flex;
   flex-direction: column;
-  min-height: 180px;
-  padding: 22px;
-  padding-right: 58px;
+  box-sizing: border-box;
+  height: auto;
+  min-height: 190px;
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 16px 54px 16px 18px;
   overflow: visible;
   border-radius: 18px !important;
   color: #172033;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.035) !important;
+  box-shadow: var(--app-card-shadow) !important;
   transition: all 0.3s ease;
 }
 
@@ -327,39 +463,50 @@ function openSite() {
   padding: 22px;
 }
 
+.website-card--actions-hidden .site-card__inner {
+  min-height: 0;
+  padding-bottom: 20px;
+}
+
+.website-card--category-compact.website-card--actions-hidden .site-card__inner {
+  padding-bottom: 24px;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .website-card:hover {
     border-color: #111111 !important;
     transform: translateY(-2px);
-    box-shadow:
-      0 14px 30px rgba(15, 23, 42, 0.08),
-      0 4px 10px rgba(15, 23, 42, 0.05) !important;
+    box-shadow: var(--app-card-hover-shadow) !important;
   }
 
   .website-card--career:hover {
     border-color: rgba(240, 100, 80, 0.48) !important;
     transform: translateY(-4px);
-    box-shadow:
-      0 18px 34px rgba(15, 23, 42, 0.12),
-      0 6px 14px rgba(240, 100, 80, 0.1) !important;
+    box-shadow: var(--app-card-hover-shadow) !important;
   }
+
+  .website-card--category-compact:hover {
+    border-color: #aeb8c7 !important;
+    transform: translateY(-2px);
+  }
+}
+
+.website-card--category-compact:focus-visible,
+.website-card--category-compact:focus-within {
+  border-color: #aeb8c7 !important;
 }
 
 .website-card:focus-visible {
   border-color: #111111 !important;
   transform: translateY(-2px);
-  box-shadow:
-    0 14px 30px rgba(15, 23, 42, 0.08),
-    0 4px 10px rgba(15, 23, 42, 0.05) !important;
+  box-shadow: var(--app-card-hover-shadow) !important;
   outline: 3px solid rgba(17, 17, 17, 0.14);
   outline-offset: 3px;
 }
 
 .website-card:focus-within {
   border-color: #111111 !important;
-  box-shadow:
-    0 14px 30px rgba(15, 23, 42, 0.08),
-    0 4px 10px rgba(15, 23, 42, 0.05) !important;
+  box-shadow: var(--app-card-hover-shadow) !important;
 }
 
 .site-card-header {
@@ -440,14 +587,16 @@ function openSite() {
 
 .site-card-description {
   display: -webkit-box;
-  min-height: 48px;
-  margin: 18px 0 16px;
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
   overflow: hidden;
   color: #596579;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.55;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .site-card__description {
@@ -606,9 +755,17 @@ p {
 }
 
 .site-card__reason-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   color: var(--color-primary-dark);
   font-size: 12px;
   font-weight: 800;
+}
+
+.site-card__reason-label b {
+  font-size: 12px;
 }
 
 .site-card__reason-text {
@@ -632,8 +789,9 @@ p {
 .meta span {
   max-width: 100%;
   border-radius: var(--radius-pill);
-  background: var(--color-soft);
-  color: var(--color-text);
+  border: 1px solid var(--app-card-border);
+  background: var(--app-tag-bg);
+  color: var(--app-tag-text);
   padding: 6px 10px;
   overflow-wrap: anywhere;
   font-size: 12px;
@@ -641,20 +799,15 @@ p {
 }
 
 .meta .more-tag {
-  color: var(--color-primary-dark);
+  color: #9a3412;
   background: var(--color-soft-orange);
 }
 
-.website-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: auto;
-}
-
 .website-card__category {
-  max-width: calc(100% - 42px);
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
   overflow: hidden;
   border-radius: var(--radius-pill);
   background: var(--color-soft-orange);
@@ -664,38 +817,6 @@ p {
   white-space: nowrap;
   font-size: 12px;
   font-weight: 750;
-}
-
-.website-card__external {
-  display: grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 11px;
-  background: #ffffff;
-  color: var(--color-muted);
-  text-decoration: none;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    background-color 180ms ease;
-}
-
-.website-card__external :deep(svg) {
-  width: 16px;
-  height: 16px;
-}
-
-.website-card__external:hover,
-.website-card__external:focus-visible {
-  border-color: rgba(255, 112, 88, 0.42);
-  background: var(--color-soft-orange);
-  color: var(--color-primary);
-  outline: none;
-  transform: translateY(-1px);
 }
 
 .actions {
@@ -714,7 +835,7 @@ p {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: #ffffff;
-  color: var(--color-heading);
+  color: #0f172a;
   padding: 0 14px;
   text-decoration: none;
   font-size: 13px;
@@ -732,7 +853,7 @@ p {
 .actions button:focus-visible,
 .actions a:focus-visible {
   border-color: rgba(255, 112, 88, 0.38);
-  color: var(--color-primary);
+  color: #9a3412;
   transform: translateY(-1px);
   outline: none;
 }
@@ -775,9 +896,7 @@ p {
 
 @media (max-width: 640px) {
   .website-card--career {
-    min-height: 0;
-    padding: 18px;
-    padding-right: 54px;
+    padding: 16px 52px 16px 16px;
     border-radius: 16px !important;
   }
 }

@@ -17,7 +17,7 @@
           />
           <div class="hero-copy">
             <p>{{ site.category_name || "AI 资源" }}</p>
-            <h1>{{ site.name }}</h1>
+            <AnimatedPageTitle>{{ site.name }}</AnimatedPageTitle>
             <span v-if="siteDescription">{{ siteDescription }}</span>
             <div class="actions">
               <button
@@ -200,6 +200,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
@@ -216,6 +217,7 @@ import {
   unwrapResponse,
 } from "../utils/api";
 import { getAccessToken, isValidAuthToken } from "../utils/auth";
+import { visitSite as openVisitedSite } from "../utils/siteVisit";
 import { errorToast, successToast } from "../utils/toast";
 
 const route = useRoute();
@@ -313,13 +315,11 @@ function toggleFavorite() {
     errorToast(normalizedError.message || "收藏服务出现异常，请稍后重试");
   }
 }
-async function visit() {
-  await siteAPI.recordClick(site.value.id).catch(() => {});
-  window.open(site.value.url, "_blank", "noopener,noreferrer");
+function visit() {
+  openVisitedSite(site.value, { source: "site_detail" });
 }
-async function visitSimilar(item) {
-  await siteAPI.recordClick(item.id).catch(() => {});
-  window.open(item.url, "_blank", "noopener,noreferrer");
+function visitSimilar(item) {
+  openVisitedSite(item, { source: "site_detail" });
 }
 async function submitComment() {
   if (!loggedIn.value) return goLogin();

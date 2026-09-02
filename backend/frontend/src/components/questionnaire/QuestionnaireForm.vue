@@ -1,257 +1,76 @@
 <template>
-  <form class="questionnaire-form" @submit.prevent="$emit('submit', form)">
-    <section class="question-card">
-      <h2>基础画像</h2>
-      <div class="select-grid">
-        <label>
-          职业
-          <select v-model="form.occupation" required>
-            <option disabled value="">请选择职业</option>
-            <option v-for="item in occupations" :key="item" :value="item">
-              {{ occupationLabel(item) }}
-            </option>
-          </select>
-        </label>
-        <label>
-          能力水平
-          <select v-model="form.skill_level" required>
-            <option disabled value="">请选择能力水平</option>
-            <option v-for="item in skillLevels" :key="item" :value="item">
-              {{ labelText(item) }}
-            </option>
-          </select>
-        </label>
+  <section v-if="question" class="questionnaire-form" aria-live="polite">
+    <header class="progress-head">
+      <div><p class="eyebrow">{{ question.stage || '正在了解你的需求' }}</p><h2>帮助我们更懂你</h2></div>
+      <span>已完成 {{ progress }}%</span>
+    </header>
+    <div class="progress-track" aria-hidden="true"><span :style="{ width: `${progress}%` }"></span></div>
+    <p class="remaining">预计还需 {{ remainingCount }} 题</p>
+    <article class="question-card">
+      <p class="question-index">第 {{ questionHistory.length }} 题</p>
+      <h3>{{ question.title }}</h3>
+      <p v-if="question.description" class="description">{{ question.description }}</p>
+      <div class="option-grid" :role="question.type === 'multi' ? 'group' : 'radiogroup'" :aria-label="question.title">
+        <button v-for="option in question.options" :key="option.value" type="button" class="option"
+          :class="{ selected: isSelected(option.value) }" :role="question.type === 'multi' ? 'checkbox' : 'radio'"
+          :aria-checked="isSelected(option.value)" :disabled="submitting" @click="$emit('select', option)">
+          {{ option.label }}
+        </button>
       </div>
-    </section>
-
-    <fieldset class="question-card">
-      <legend>使用目的</legend>
-      <label v-for="item in purposes" :key="item" class="pill-option">
-        <input v-model="form.purposes" type="checkbox" :value="item" />
-        <span>{{ labelText(item) }}</span>
-      </label>
-    </fieldset>
-    <fieldset class="question-card">
-      <legend>兴趣方向</legend>
-      <label v-for="item in interests" :key="item" class="pill-option">
-        <input v-model="form.interests" type="checkbox" :value="item" />
-        <span>{{ labelText(item) }}</span>
-      </label>
-    </fieldset>
-    <fieldset class="question-card">
-      <legend>资源偏好</legend>
-      <label v-for="item in preferences" :key="item" class="pill-option">
-        <input v-model="form.preferences" type="checkbox" :value="item" />
-        <span>{{ labelText(item) }}</span>
-      </label>
-    </fieldset>
-    <div class="submit-bar">
-      <button type="submit" :disabled="submitting">
-        {{ submitting ? "处理中..." : "保存问卷" }}
-      </button>
-    </div>
-  </form>
+      <p v-if="question.type === 'multi'" class="multi-hint">
+        已选择 {{ selectedCount }} 项<span v-if="question.maxSelections">，最多 {{ question.maxSelections }} 项</span>
+      </p>
+    </article>
+    <footer class="actions">
+      <button type="button" class="back" :disabled="questionHistory.length <= 1 || submitting" @click="$emit('previous')">上一步</button>
+      <button v-if="question.type === 'multi' && !isLastQuestion" type="button" class="finish" :disabled="!canProceed || submitting" @click="$emit('next')">下一步</button>
+      <button v-else-if="isLastQuestion" type="button" class="finish" :disabled="!canProceed || submitting" @click="$emit('submit')">{{ submitting ? '正在生成推荐' : '完成并生成推荐' }}</button>
+    </footer>
+  </section>
 </template>
 
 <script setup>
-import { reactive } from "vue";
-import { getOccupationLabel } from "../../utils/occupation.js";
-
-defineProps({
-  occupations: { type: Array, default: () => [] },
-  purposes: { type: Array, default: () => [] },
-  interests: { type: Array, default: () => [] },
-  skillLevels: { type: Array, default: () => [] },
-  preferences: { type: Array, default: () => [] },
-  submitting: { type: Boolean, default: false },
+import { computed } from 'vue';
+import { nextQuestionId } from '../../data/questionnaireConfig';
+const props = defineProps({
+  question: { type: Object, default: null }, answer: { type: [String, Array], default: '' },
+  questionHistory: { type: Array, default: () => [] }, remainingCount: { type: Number, default: 1 },
+  submitting: { type: Boolean, default: false }, answers: { type: Object, default: () => ({}) },
 });
-defineEmits(["submit"]);
-
-const form = reactive({
-  occupation: "",
-  skill_level: "",
-  purposes: [],
-  interests: [],
-  preferences: [],
+defineEmits(['select', 'previous', 'submit', 'next']);
+const selectedCount = computed(() => Array.isArray(props.answer) ? props.answer.length : (props.answer ? 1 : 0));
+const canProceed = computed(() => selectedCount.value >= (props.question?.minSelections || 1));
+function isSelected(value) { return Array.isArray(props.answer) ? props.answer.includes(value) : props.answer === value; }
+const isLastQuestion = computed(() => {
+  if (!props.question || !canProceed.value) return false;
+  return !nextQuestionId({ questions: { [props.question.id]: props.question } }, props.question.id, props.answer, props.answers);
 });
-
-const labelMap = {
-  beginner: "入门",
-  junior: "初级",
-  intermediate: "中级",
-  senior: "高级",
-  efficiency: "提升效率",
-  learning: "学习成长",
-  ai_tools: "AI 工具探索",
-  project_development: "项目开发",
-  design_assets: "设计素材",
-  data_analysis: "数据分析",
-  content_creation: "内容创作",
-  industry_news: "行业资讯",
-  "AI tools": "AI 工具",
-  programming: "编程开发",
-  "design resources": "设计资源",
-  "product management": "产品管理",
-  growth: "增长运营",
-  "data analysis": "数据分析",
-  "office efficiency": "办公效率",
-  "learning platforms": "学习平台",
-  "startup resources": "创业资源",
-  assets: "素材资源",
-  "free first": "优先免费",
-  "professional first": "优先专业",
-  "domestic first": "优先国内",
-  "international first": "优先国外",
-  "tutorial first": "优先教程",
-  "efficiency first": "优先效率",
-};
-
-function labelText(value) {
-  return labelMap[value] || value;
-}
-
-function occupationLabel(value) {
-  return getOccupationLabel(value) || labelText(value);
-}
+const progress = computed(() => {
+  const answered = props.questionHistory.length - (canProceed.value ? 0 : 1);
+  return Math.max(8, Math.min(100, Math.round((answered / Math.max(answered + props.remainingCount, 1)) * 100)));
+});
 </script>
 
 <style scoped>
-.questionnaire-form {
-  display: grid;
-  gap: 18px;
-}
-
-.question-card {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  min-width: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: #ffffff;
-  padding: 22px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
-}
-
-.question-card h2,
-legend {
-  width: 100%;
-  margin: 0;
-  color: var(--color-heading);
-  font-size: 20px;
-  font-weight: 850;
-}
-
-fieldset {
-  margin: 0;
-}
-
-.select-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  width: 100%;
-}
-
-label {
-  display: grid;
-  gap: 8px;
-  color: var(--color-heading);
-  font-weight: 750;
-}
-
-select {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: #ffffff;
-  padding: 13px 14px;
-}
-
-.pill-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-}
-
-.pill-option input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.pill-option span {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  background: #ffffff;
-  color: var(--color-text);
-  padding: 10px 15px;
-  transition:
-    background var(--transition),
-    border-color var(--transition),
-    color var(--transition),
-    transform var(--transition),
-    box-shadow var(--transition);
-}
-
-.pill-option input:checked + span {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.16);
-}
-
-.pill-option:hover span,
-.pill-option input:focus-visible + span {
-  border-color: rgba(255, 112, 88, 0.48);
-  transform: translateY(-1px);
-}
-
-.submit-bar {
-  position: sticky;
-  bottom: 18px;
-  display: flex;
-  justify-content: flex-end;
-  border: 1px solid rgba(229, 231, 235, 0.82);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  padding: 12px;
-  backdrop-filter: blur(14px);
-}
-
-button {
-  min-width: 160px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  color: #ffffff;
-  padding: 15px 20px;
-  font-weight: 850;
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
-}
-
-button:hover,
-button:focus-visible {
-  background: var(--color-primary-dark);
-  transform: translateY(-1px);
-  outline: none;
-}
-
-button:disabled {
-  cursor: wait;
-  opacity: 0.72;
-  transform: none;
-}
-
-@media (max-width: 680px) {
-  .select-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .submit-bar,
-  button {
-    width: 100%;
-  }
-}
+.questionnaire-form { display: grid; gap: 18px; }
+.progress-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.progress-head h2, .question-card h3 { margin: 0; color: var(--color-heading); }
+.progress-head span, .remaining, .eyebrow, .question-index, .description, .multi-hint { color: #718096; }
+.eyebrow, .question-index { margin: 0 0 5px; font-size: 13px; font-weight: 800; letter-spacing: .05em; }
+.remaining { margin: -10px 0 0; font-size: 14px; }
+.progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: #edf2f7; }
+.progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--color-primary); transition: width .25s ease; }
+.question-card { display: grid; gap: 18px; padding: clamp(22px, 4vw, 34px); border: 1px solid var(--color-border); border-radius: 22px; background: #fff; box-shadow: 0 12px 28px rgba(15,23,42,.04); }
+.question-card h3 { font-size: clamp(23px, 3vw, 30px); line-height: 1.35; }
+.description { margin: -8px 0 0; }
+.option-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.option { min-height: 54px; border: 1px solid var(--color-border); border-radius: 15px; background: #fff; color: var(--color-heading); padding: 12px 15px; text-align: left; font-weight: 750; transition: .18s ease; }
+.option:hover, .option:focus-visible { border-color: var(--color-primary); background: var(--color-soft-orange); outline: none; transform: translateY(-1px); }
+.option.selected { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.actions { display: flex; justify-content: space-between; gap: 12px; }
+.actions button { border-radius: var(--radius-pill); padding: 12px 18px; font-weight: 800; }
+.back { border: 1px solid var(--color-border); background: #fff; color: #4a5568; }
+.finish { border: 0; background: var(--color-primary); color: #fff; }
+.finish:disabled, .back:disabled { cursor: not-allowed; opacity: .55; }
+@media (max-width: 580px) { .option-grid { grid-template-columns: 1fr; } .progress-head { align-items: start; flex-direction: column; gap: 4px; } }
 </style>

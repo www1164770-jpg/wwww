@@ -10,8 +10,61 @@
   --color-soft: #f8fafc;
   --color-soft-orange: #fff1ed;
   --color-white: #ffffff;
-  --shadow-card: 0 20px 50px rgba(15, 23, 42, 0.08);
-  --shadow-soft: 0 14px 34px rgba(15, 23, 42, 0.06);
+  --app-text-primary: #253044;
+  --app-text-secondary: #526070;
+  --app-text-muted: #64748b;
+  --heading-text-color: var(--app-text-primary);
+  --user-text-color: var(--app-text-primary);
+  --user-muted-text-color: var(--app-text-muted);
+  --app-chrome-text-primary: #253044;
+  --app-chrome-text-secondary: #526070;
+  --app-chrome-text-muted: #64748b;
+  --app-text-placeholder: rgba(82, 96, 112, 0.76);
+  --app-text-disabled: rgba(100, 116, 139, 0.66);
+  --app-text-inverse: #ffffff;
+  --app-tab-text: var(--app-text-muted);
+  --app-tab-text-active: var(--app-text-primary);
+  --app-tab-hover-bg: rgba(15, 23, 42, 0.04);
+  --app-tab-active-bg: rgba(15, 23, 42, 0.08);
+  --favorite-color: var(--color-primary);
+  --favorite-muted-color: rgba(30, 40, 60, 0.45);
+  --app-surface: rgba(255, 255, 255, 0.88);
+  --app-surface-safe: rgba(255, 255, 255, 0.92);
+  --app-surface-strong: rgba(255, 255, 255, 0.97);
+  --app-border: rgba(15, 23, 42, 0.16);
+  --app-input-bg: rgba(255, 255, 255, 0.97);
+  --app-input-text: #1f2937;
+  --app-control-muted: #64748b;
+  --app-readable-overlay: transparent;
+  --app-page-bg: transparent;
+  --app-background: var(--personalization-background, #f8fafc);
+  --app-container-bg: rgba(15, 23, 42, 0.04);
+  --app-card-bg: rgba(15, 23, 42, 0.06);
+  --app-card-hover-bg: rgba(15, 23, 42, 0.1);
+  --app-panel-bg: rgba(15, 23, 42, 0.06);
+  --app-panel-soft-bg: rgba(15, 23, 42, 0.04);
+  --app-control-bg: rgba(15, 23, 42, 0.1);
+  --background-overlay: transparent;
+  --app-overlay: var(--background-overlay);
+  --app-card-border: rgba(15, 23, 42, 0.16);
+  --app-tag-bg: rgba(255, 255, 255, 0.65);
+  --app-tag-text: #1f2937;
+  --app-safe-surface: rgba(255, 255, 255, 0.18);
+  --app-card-content-overlay: rgba(255, 255, 255, 0.18);
+  --app-blur: 20px;
+  --app-card-shadow-color: rgba(15, 23, 42, 0.08);
+  --app-card-shadow: 0 2px 8px var(--app-card-shadow-color);
+  --app-card-hover-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+  --app-control-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --app-button-bg: var(--app-control-bg);
+  --app-button-bg-hover: var(--app-card-hover-bg);
+  --app-button-border: var(--app-card-border);
+  --app-button-shadow: var(--app-control-shadow);
+  --app-button-primary-bg: rgba(255, 112, 88, 0.18);
+  --app-button-primary-border: rgba(255, 112, 88, 0.28);
+  --app-button-primary-shadow: 0 6px 16px rgba(255, 112, 88, 0.1);
+  --shadow-card: var(--app-card-hover-shadow);
+  --shadow-soft: var(--app-card-shadow);
   --radius-card: 22px;
   --radius-large: 24px;
   --radius-pill: 999px;
@@ -29,16 +82,24 @@ html {
   width: 100%;
   min-height: 100%;
   overflow-y: scroll;
-  background: transparent;
+  background: var(--app-background);
+  background-attachment: fixed;
+  background-position: var(
+    --personalization-background-position,
+    center center
+  );
+  background-repeat: no-repeat;
+  background-size: var(--personalization-background-size, cover);
   scroll-behavior: smooth;
   scroll-padding-top: 20px;
 }
 
 body {
+  position: relative;
   margin: 0;
   width: 100%;
   min-height: 100vh;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   background: transparent;
   font-family:
     Inter,
@@ -51,6 +112,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+body::before {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  background: var(--app-overlay);
+  content: "";
+  pointer-events: none;
 }
 
 button,
@@ -80,7 +150,24 @@ a {
 input,
 textarea,
 select {
-  color: var(--color-heading);
+  color: var(--app-input-text);
+  background-color: var(--app-input-bg);
+  border-color: var(--app-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--app-text-placeholder);
+  opacity: 1;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+  color: var(--app-text-disabled);
+  opacity: 0.66;
+  cursor: not-allowed;
 }
 
 input:focus,
@@ -96,13 +183,39 @@ select:focus {
   background: var(--color-primary);
 }
 
-#app {
+#app,
+#app-root {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
+  background: transparent;
 }
 
 .page {
   min-height: 100vh;
   background: transparent;
+}
+
+.app-header,
+.app-footer {
+  --color-heading: var(--app-chrome-text-primary);
+  --color-text: var(--app-chrome-text-secondary);
+  --app-text-primary: var(--app-chrome-text-primary);
+  --app-text-secondary: var(--app-chrome-text-secondary);
+  --app-text-muted: var(--app-chrome-text-muted);
+}
+
+html[data-personalization="on"] .block-shadow,
+html[data-personalization="on"] .site-card,
+html[data-personalization="on"] .sidebar-box,
+html[data-personalization="on"] .widget,
+html[data-personalization="on"] .info-card-box,
+html[data-personalization="on"] .auth-modal,
+html[data-personalization="on"] .cookie-banner {
+  background: var(--app-card-bg) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
+  box-shadow: var(--app-card-shadow) !important;
 }
 
 .home-section,
@@ -115,6 +228,218 @@ select:focus {
   scroll-margin-top: 96px;
 }
 
+.home-main,
+.home-content,
+.home-anchor-section,
+.career-recommendation-section,
+.category-section,
+.recommend-section {
+  background: var(--app-page-bg);
+}
+
+html[data-personalization="on"] .page,
+html[data-personalization="on"] .hero-search,
+html[data-personalization="on"] .career-section,
+html[data-personalization="on"] .career-recommendation-section,
+html[data-personalization="on"] .category-section,
+html[data-personalization="on"] .recommend-section {
+  background: transparent !important;
+}
+
+html[data-personalization="on"] .career-profile-panel,
+html[data-personalization="on"] .career-option,
+html[data-personalization="on"] .career-request-state,
+html[data-personalization="on"] .career-skeleton-card,
+html[data-personalization="on"] .career-card,
+html[data-personalization="on"] .website-card,
+html[data-personalization="on"] .tool-card,
+html[data-personalization="on"] .secondary-filters,
+html[data-personalization="on"] .website-detail-sidebar,
+html[data-personalization="on"] .website-detail-card,
+html[data-personalization="on"] .user-card,
+html[data-personalization="on"] .profile-menu nav,
+html[data-personalization="on"] .profile-menu + .content .panel {
+  background: var(--app-card-bg) !important;
+  border-color: var(--app-border) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
+}
+
+html[data-personalization="on"] .category-filter-bar,
+html[data-personalization="on"] .category-nav {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-personalization="on"] .app-header,
+html[data-personalization="on"] .app-header--compact {
+  background: var(--app-card-bg);
+  border-color: var(--app-card-border);
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
+  box-shadow: var(--app-card-shadow);
+}
+
+html[data-personalization="on"] .career-profile-panel {
+  background: var(--app-safe-surface) !important;
+}
+
+html[data-personalization="on"] .career-tag-group b,
+html[data-personalization="on"] .meta span,
+html[data-personalization="on"] .website-card__category,
+html[data-personalization="on"] .website-category,
+html[data-personalization="on"] .site-card-tag {
+  color: var(--app-tag-text) !important;
+  background: var(--app-tag-bg) !important;
+  border-color: var(--app-card-border) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+html[data-personalization="on"] .website-card,
+html[data-personalization="on"] .site-card,
+html[data-personalization="on"] .tool-card,
+html[data-personalization="on"] .career-card {
+  color: var(--app-text-primary);
+  border-color: var(--app-card-border) !important;
+  background: var(--app-card-bg) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+html[data-personalization="on"] .site-card__inner,
+html[data-personalization="on"] .website-card-link {
+  background: linear-gradient(
+    180deg,
+    transparent 42%,
+    var(--app-card-content-overlay)
+  );
+}
+
+html[data-personalization="on"] .site-card-name,
+html[data-personalization="on"] .site-card__title,
+html[data-personalization="on"] .site-card__title-button,
+html[data-personalization="on"] .website-name,
+html[data-personalization="on"] .tool-card h3,
+html[data-personalization="on"] .career-card strong {
+  color: var(--app-text-primary) !important;
+}
+
+html[data-personalization="on"] .site-card-description,
+html[data-personalization="on"] .site-card__description,
+html[data-personalization="on"] .website-description,
+html[data-personalization="on"] .tool-card p,
+html[data-personalization="on"] .career-card small {
+  color: var(--app-text-secondary) !important;
+}
+
+html[data-personalization="on"] .favorite-star {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.reveal-child {
+  --reveal-opacity-duration: 0.72s;
+  --reveal-transform-duration: 0.82s;
+  --reveal-filter-duration: 0.72s;
+
+  opacity: 0;
+  transform: translate3d(0, 34px, 0) scale(0.985);
+  filter: blur(5px);
+  transition:
+    opacity var(--reveal-opacity-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--reveal-transform-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    filter var(--reveal-filter-duration) cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, calc(var(--reveal-order, 0) * 75ms));
+  will-change: auto;
+}
+
+.reveal-title {
+  --reveal-opacity-duration: 0.78s;
+  --reveal-transform-duration: 0.85s;
+  --reveal-filter-duration: 0.78s;
+
+  transform: translate3d(0, 38px, 0) scale(0.99);
+}
+
+.reveal-description {
+  transform: translate3d(0, 28px, 0) scale(0.995);
+}
+
+.reveal-card {
+  transform: translate3d(0, 24px, 0) scale(0.98);
+}
+
+.reveal-section:not(.is-revealed) .reveal-child,
+.reveal-section.is-revealed .reveal-child:not(.reveal-complete) {
+  transition-property: opacity, transform, filter !important;
+  transition-duration:
+    var(--reveal-opacity-duration), var(--reveal-transform-duration),
+    var(--reveal-filter-duration) !important;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition-delay: var(
+    --reveal-delay,
+    calc(var(--reveal-order, 0) * 75ms)
+  ) !important;
+}
+
+.reveal-section.is-preparing-reveal .reveal-child,
+.reveal-section.is-revealed .reveal-child:not(.reveal-complete) {
+  will-change: opacity, transform, filter;
+}
+
+.reveal-section.is-resetting .reveal-child {
+  transition: none !important;
+  transition-delay: 0ms !important;
+  will-change: auto;
+}
+
+.reveal-section.is-revealed .reveal-child {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.reveal-section.is-revealed .reveal-child.reveal-late-child {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0) scale(0.99);
+  filter: blur(3px);
+}
+
+.reveal-section.is-revealed .reveal-child.reveal-late-child.is-late-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.reveal-section.is-revealed .reveal-child.reveal-complete {
+  transform: none;
+  filter: none;
+  will-change: auto;
+}
+
+.card-refresh-item {
+  animation: card-refresh-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: var(--refresh-delay, 0ms);
+}
+
+@keyframes card-refresh-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Retained for card reveals on non-home views that still manage visibility locally. */
 .reveal-on-scroll {
   opacity: 0;
   transform: translateY(32px) scale(0.98);
@@ -265,13 +590,29 @@ textarea,
   .page-section {
     width: min(100% - 28px, var(--container));
   }
+
+  .reveal-child {
+    transform: translate3d(0, 22px, 0) scale(0.99);
+  }
+
+  .reveal-description,
+  .reveal-card {
+    transform: translate3d(0, 18px, 0) scale(0.99);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal-child,
   .reveal-on-scroll {
     opacity: 1;
     transform: none;
+    filter: none;
     transition: none;
+    will-change: auto;
+  }
+
+  .card-refresh-item {
+    animation: none;
   }
 
   *,

@@ -1,6 +1,7 @@
 <template>
   <section
-    class="brand-marquee home-anchor-section"
+    class="brand-marquee home-anchor-section reveal-child reveal-description"
+    style="--reveal-delay: 520ms"
     aria-label="热门工具与平台"
   >
     <div class="brand-marquee__viewport">
@@ -14,7 +15,8 @@
             target="_blank"
             rel="noopener noreferrer"
             :aria-label="`访问 ${displayName(site)}`"
-            @click="recordVisit(site)"
+            @click="recordVisit(site, $event)"
+            @auxclick.middle="recordVisit(site, $event)"
           >
             <SiteLogo
               class="brand-marquee__logo"
@@ -37,6 +39,8 @@
             target="_blank"
             rel="noopener noreferrer"
             tabindex="-1"
+            @click="recordVisit(site, $event)"
+            @auxclick.middle="recordVisit(site, $event)"
           >
             <SiteLogo
               class="brand-marquee__logo"
@@ -61,8 +65,8 @@ import {
   normalizeSiteName,
   normalizeUrl,
   resolveSiteLogo,
-  siteAPI,
 } from "../../utils/api";
+import { visitSite } from "../../utils/siteVisit";
 
 const props = defineProps({
   sites: { type: Array, default: () => [] },
@@ -101,10 +105,8 @@ function displayName(site) {
   );
 }
 
-function recordVisit(site) {
-  if (site.id && !site.external_only) {
-    siteAPI.recordClick(site.id).catch(() => {});
-  }
+function recordVisit(site, event) {
+  visitSite({ ...site, url: site.href }, { source: "home_tool", event });
 }
 </script>
 
@@ -113,9 +115,9 @@ function recordVisit(site) {
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-top: 1px solid var(--color-border-soft);
-  border-bottom: 1px solid var(--color-border-soft);
-  background: rgba(255, 255, 255, 0.82);
+  border-top: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+  background: transparent;
 }
 
 .brand-marquee__viewport {
@@ -137,12 +139,12 @@ function recordVisit(site) {
 
 .brand-marquee__viewport::before {
   left: 0;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.98), transparent);
+  background: linear-gradient(to right, var(--app-overlay), transparent);
 }
 
 .brand-marquee__viewport::after {
   right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0.98), transparent);
+  background: linear-gradient(to left, var(--app-overlay), transparent);
 }
 
 .brand-marquee__track {
@@ -171,7 +173,7 @@ function recordVisit(site) {
   flex: 0 0 auto;
   align-items: center;
   gap: 10px;
-  color: var(--color-muted);
+  color: var(--app-text-secondary);
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
@@ -184,13 +186,13 @@ function recordVisit(site) {
 }
 
 .brand-marquee__item:hover {
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   transform: translateY(-2px);
 }
 
 .brand-marquee__item:focus-visible {
   border-radius: 10px;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   outline: 3px solid rgba(255, 112, 88, 0.28);
   outline-offset: 5px;
   transform: translateY(-2px);

@@ -80,6 +80,48 @@ CREATE TABLE IF NOT EXISTS user_behaviors (
   INDEX idx_user_behaviors_site_id (site_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Unified, explainable behavior events for recommendation feedback.
+-- user_id is nullable so anonymous sessions are never represented by a fake user.
+CREATE TABLE IF NOT EXISTS user_behavior_events (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  website_id INT NOT NULL,
+  event_type VARCHAR(32) NOT NULL,
+  source VARCHAR(64) NOT NULL DEFAULT 'other',
+  recommendation_batch_id VARCHAR(128) NULL,
+  questionnaire_version VARCHAR(64) NULL,
+  profile_version VARCHAR(64) NULL,
+  session_id VARCHAR(128) NULL,
+  metadata_json JSON NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_behavior_events_user_created (user_id, created_at),
+  INDEX idx_behavior_events_user_site_created (user_id, website_id, created_at),
+  INDEX idx_behavior_events_type_created (event_type, created_at),
+  INDEX idx_behavior_events_site_type (website_id, event_type),
+  INDEX idx_behavior_events_batch (recommendation_batch_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Immutable aggregate snapshots created by administrators during the Phase 2
+-- observation period. They never alter the underlying event fact table.
+CREATE TABLE IF NOT EXISTS recommendation_observation_snapshots (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  snapshot_id VARCHAR(64) NOT NULL UNIQUE,
+  algorithm_version VARCHAR(64) NOT NULL,
+  lookback_days VARCHAR(16) NOT NULL,
+  exclude_test_users TINYINT(1) NOT NULL DEFAULT 1,
+  captured_by_user_id INT NULL,
+  summary_json JSON NOT NULL,
+  data_quality_json JSON NOT NULL,
+  readiness_json JSON NOT NULL,
+  match_score_buckets_json JSON NOT NULL,
+  primary_need_metrics_json JSON NOT NULL,
+  tag_metrics_json JSON NOT NULL,
+  personalization_metrics_json JSON NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_observation_snapshots_created (created_at),
+  INDEX idx_observation_snapshots_algorithm_created (algorithm_version, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Recommendation trace logs for explainability and tuning.
 CREATE TABLE IF NOT EXISTS recommendation_logs (
   id INT AUTO_INCREMENT PRIMARY KEY,

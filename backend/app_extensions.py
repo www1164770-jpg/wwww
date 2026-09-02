@@ -5,14 +5,13 @@
   1. 生产级日志配置
   2. 全局异常处理器
   3. Redis 异步持久化定时任务
-  4. 密码找回（忘记密码）接口
-  5. JWT Token 刷新接口（标准路径）
-  6. 敏感词过滤集成
-  7. 通知中心接口
-  8. Redis ZSET 热榜接口
-  9. 用户管理接口（封禁/解封）
- 10. 内容审核流接口
- 11. ECharts 数据大盘接口
+  4. JWT Token 刷新接口（标准路径）
+  5. 敏感词过滤集成
+  6. 通知中心接口
+  7. Redis ZSET 热榜接口
+  8. 用户管理接口（封禁/解封）
+  9. 内容审核流接口
+ 10. ECharts 数据大盘接口
 """
 
 import os
@@ -22,8 +21,7 @@ import traceback
 from functools import wraps
 from datetime import datetime, timedelta
 from flask import jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, create_refresh_token, verify_jwt_in_request
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity, create_access_token, create_refresh_token, verify_jwt_in_request
 from models import db, User, Category, Website, ClickLog, Comment
 from sqlalchemy import func, text
 import pymysql
@@ -253,6 +251,8 @@ def register_redis_sync_scheduler(app, scheduler, redis_client):
         - 点赞计数：从 Redis Hash (hot:likes:today) 读取今日点赞数
         """
         with app.app_context():
+            conn = None
+            cursor = None
             try:
                 # 延迟导入避免循环依赖
                 from db_pool import get_connection as pool_conn
@@ -284,8 +284,6 @@ def register_redis_sync_scheduler(app, scheduler, redis_client):
                         synced_count += 1
 
                 conn.commit()
-                cursor.close()
-                conn.close()
 
                 # 同步完成后，清除 Redis 中的今日计数器
                 if click_data:
@@ -295,108 +293,25 @@ def register_redis_sync_scheduler(app, scheduler, redis_client):
 
                 app.logger.info(f'✅ Redis→MySQL 同步完成，共同步 {synced_count} 条记录')
             except Exception as e:
+                if conn is not None:
+                    try:
+                        conn.rollback()
+                    except Exception:
+                        pass
                 app.logger.error(f'❌ Redis→MySQL 同步失败: {str(e)}\n{traceback.format_exc()}')
+            finally:
+                if cursor is not None:
+                    try:
+                        cursor.close()
+                    except Exception:
+                        pass
+                if conn is not None:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
 
     app.logger.info('✅ Redis 异步持久化调度器注册完成（每 10 分钟同步一次）')
-
-
-# =====================================================================
-# 4. 密码找回接口
-# =====================================================================
-
-def register_password_reset_routes(app, redis_client):
-    """注册密码重置相关路由"""
-
-    @app.route('/api/auth/send-reset-code', methods=['POST'])
-    def send_reset_code():
-        """
-        发送密码重置验证码。
-
-        请求体：{ email: string }
-        返回：{ code: 0, msg: '验证码已发送' }
-        """
-        data = request.get_json(silent=True) or {}
-        email = data.get('email', '').strip()
-
-        if not email or '@' not in email:
-            return jsonify({'code': 400, 'msg': '请输入有效的邮箱地址'}), 400
-
-        # 检查邮箱是否已注册
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            # 出于安全考虑，不暴露该邮箱未注册，统一返回成功
-            return jsonify({'code': 0, 'msg': '如果该邮箱已注册，验证码已发送'})
-
-        import random
-        from email_service import send_verification_email
-
-        code = str(random.randint(100000, 999999))
-
-        # 存入 Redis，5 分钟有效，key 前缀区分注册验证码
-        redis_client.setex(f"reset_code:{email}", 300, code)
-
-        # 发送邮件
-        is_success, error_message = send_verification_email(email, code)
-        if is_success:
-            return jsonify({'code': 0, 'msg': '验证码已发送，请查收邮箱'})
-        else:
-            return jsonify({'code': 500, 'msg': '邮件发送失败，请联系管理员'}), 500
-
-    @app.route('/api/auth/verify-reset-code', methods=['POST'])
-    def verify_reset_code():
-        """
-        验证重置密码的验证码。
-
-        请求体：{ email: string, code: string }
-        返回：{ code: 0, msg: '验证通过' } 或 { code: 400, msg: '验证码错误' }
-        """
-        data = request.get_json(silent=True) or {}
-        email = data.get('email', '').strip()
-        code = data.get('code', '').strip()
-
-        saved_code = redis_client.get(f"reset_code:{email}")
-        if not saved_code or saved_code != code:
-            return jsonify({'code': 400, 'msg': '验证码错误或已过期'}), 400
-
-        # 验证通过，颁发一个临时 Token（用于重置密码一步）
-        # 这个 Token 有效期 5 分钟
-        temp_token = create_access_token(identity=email, expires_delta=timedelta(minutes=5))
-        return jsonify({'code': 0, 'msg': '验证通过', 'reset_token': temp_token})
-
-    @app.route('/api/auth/reset-password', methods=['POST'])
-    def reset_password():
-        """
-        使用验证码重置密码。
-
-        请求体：{ email: string, code: string, new_password: string }
-        返回：{ code: 0, msg: '密码重置成功' }
-        """
-        data = request.get_json(silent=True) or {}
-        email = data.get('email', '').strip()
-        code = data.get('code', '').strip()
-        new_password = data.get('new_password', '')
-
-        if not new_password or len(new_password) < 6:
-            return jsonify({'code': 400, 'msg': '新密码至少需要 6 位'}), 400
-
-        # 再次验证验证码
-        saved_code = redis_client.get(f"reset_code:{email}")
-        if not saved_code or saved_code != code:
-            return jsonify({'code': 400, 'msg': '验证码错误或已过期'}), 400
-
-        # 更新密码
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            return jsonify({'code': 404, 'msg': '用户不存在'}), 404
-
-        hashed_pw = generate_password_hash(new_password)
-        user.password_hash = hashed_pw
-        db.session.commit()
-
-        # 删除验证码
-        redis_client.delete(f"reset_code:{email}")
-
-        return jsonify({'code': 0, 'msg': '密码重置成功，请使用新密码登录'})
 
 
 # =====================================================================
@@ -417,7 +332,13 @@ def register_token_refresh_route(app):
         try:
             verify_jwt_in_request(refresh=True)
             current_user = get_jwt_identity()
-            new_access_token = create_access_token(identity=current_user)
+            current_claims = get_jwt()
+            new_access_token = create_access_token(
+                identity=current_user,
+                additional_claims={
+                    "session_version": int(current_claims.get("session_version") or 0)
+                },
+            )
             return jsonify({'access_token': new_access_token}), 200
         except Exception as e:
             return jsonify({'code': 401, 'msg': 'Refresh Token 无效或已过期'}), 401

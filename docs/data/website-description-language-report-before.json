@@ -1,0 +1,87 @@
+{
+  "total_websites": 946,
+  "chinese_descriptions": 312,
+  "mixed_zh_en_descriptions": 247,
+  "english_descriptions": 379,
+  "unsupported_language_descriptions": 8,
+  "unsupported_rows": [
+    {
+      "website_id": 44,
+      "name": "腾讯游戏",
+      "url": "https://game.qq.com",
+      "description": "��Ѷ��Ϸ������2003�꣬��ȫ�����ȵ���Ϸ�з�����Ӫ�̡���Ϊ���������ֳ���������ĳ����ߺ�ʵ���ߣ���Ѷ��Ϸ������Ϊ…",
+      "languages": [
+        "russian",
+        "other"
+      ]
+    },
+    {
+      "website_id": 401,
+      "name": "Xbox",
+      "url": "https://www.xbox.com",
+      "description": "PC やコンソールなどで XBOX をプレイ。Game Pass の詳細。数千に及ぶゲームを見る。コントローラー、携帯ゲーム機、コンソールを購入する。どこからでもプレイヤーとつながろう。",
+      "languages": [
+        "japanese"
+      ]
+    },
+    {
+      "website_id": 402,
+      "name": "PlayStation",
+      "url": "https://www.playstation.com",
+      "description": "PlayStation 5とPlayStation 4で広がるゲーム体験。大注目のシリーズからインディタイトルまで、プレイステーションでお楽しみください。",
+      "languages": [
+        "japanese"
+      ]
+    },
+    {
+      "website_id": 407,
+      "name": "LOL",
+      "url": "https://lol.qq.com",
+      "description": "Ӣ�����˹ٷ���վ�������������Ӣ�ۣ��ḻ����ݵ���Ʒ�ϳ�ϵͳ����Ϸ���õ�ƥ�䡢���к;���ϵͳ�������ġ��ٻ�ʦ��ϵͳ�����…",
+      "languages": [
+        "russian",
+        "arabic",
+        "other"
+      ]
+    },
+    {
+      "website_id": 734,
+      "name": "Google Sheets",
+      "url": "https://sheets.google.com",
+      "description": "Google スプレッドシートでは、オンライン スプレッドシートを作成できます。あらゆるデバイスからリアルタイムで共同編集できます。",
+      "languages": [
+        "japanese"
+      ]
+    },
+    {
+      "website_id": 735,
+      "name": "Google Slides",
+      "url": "https://slides.google.com",
+      "description": "Google スライドで魅力的なプレゼンテーションを作成しましょう。あらゆるユースケースに対応できるスライド テンプレートを備え、個性的な視覚効果を AI で生成することもできます。",
+      "languages": [
+        "japanese"
+      ]
+    },
+    {
+      "website_id": 746,
+      "name": "Slack",
+      "url": "https://slack.com",
+      "description": "生産性をアップさせて時間を節約。Slack はプロジェクトを管理し、ワークフローを自動化し、チームを安全につなげられる、AI を活用した仕事のためのプラットフォームです。",
+      "languages": [
+        "japanese"
+      ]
+    },
+    {
+      "website_id": 884,
+      "name": "AnswerThePublic",
+      "url": "https://answerthepublic.com",
+      "description": "AnswerThePublicを使って、人々がさまざまなプラットフォームで実際にどんな質問をしているのかを明らかにしましょう。",
+      "languages": [
+        "japanese",
+        "other"
+      ]
+    }
+  ],
+  "empty_descriptions": 0,
+  "other_descriptions": 0
+}

@@ -32,67 +32,14 @@ assert.match(home, /visibleCareerSites/);
 assert.match(home, /refreshCareerBatch/);
 assert.match(home, /normalizeCareerSiteList/);
 assert.match(api, /export function normalizeCareerSite\(/);
-assert.match(api, /export function generateFallbackSummary\(/);
 assert.match(api, /function isUsableSiteSummary\(/);
 assert.match(api, /!\/\^\(\?:https\?:\\\/\\\/\|www\\\.\)\/i\.test/);
-assert.match(api, /site\.slogan/);
-assert.doesNotMatch(api, /generateFallbackSummary[\s\S]{0,700}site\.url/);
 
-const { careerWebsiteMap } = await import("../src/data/careerWebsites.js");
+assert.doesNotMatch(home, /getCareerWebsites|careerWebsiteMap/);
+assert.match(home, /const apiSiteList = normalizeCareerSiteList\(apiSites\)/);
+assert.match(home, /return ensureCareerSitePool\(careerCode, apiSiteList\)/);
 
-const careerCodes = [
-  "frontend_developer",
-  "backend_developer",
-  "data_analyst",
-  "ai_app_developer",
-  "llm_engineer",
-  "product_manager",
-  "ui_ux_designer",
-  "student",
-  "operations",
-  "other",
-  "teacher",
-  "creator",
-  "technical_operations",
-];
-const careerSiteSets = careerCodes.map((code) => {
-  const sites = careerWebsiteMap[code] || [];
-  assert.ok(
-    sites.length >= 32 && sites.length <= 48,
-    `${code} source site pool must contain 32 to 48 sites`,
-  );
-  const urls = sites.map((site) => site.url);
-  assert.equal(
-    new Set(urls).size,
-    urls.length,
-    `${code} source site pool contains duplicates`,
-  );
-  for (const site of sites) {
-    assert.ok(
-      site.name && site.url && site.shortDescription,
-      `${code} site cards need name, URL and summary`,
-    );
-  }
-  return new Set(urls);
-});
-
-for (let index = 1; index < careerSiteSets.length; index += 1) {
-  assert.notDeepEqual(
-    [...careerSiteSets[0]],
-    [...careerSiteSets[index]],
-    `${careerCodes[0]} and ${careerCodes[index]} reuse the same sites`,
-  );
-}
-
-assert.match(
-  api,
-  /const values = \[[\s\S]*?site\.summary[\s\S]*?site\.description[\s\S]*?site\.slogan/,
-);
-assert.match(
-  api,
-  /const categorySummary = CAREER_CATEGORY_SUMMARY_FALLBACKS\[category\]/,
-);
-assert.match(api, /const tags = normalizeStringArray\(site\.tags\)/);
-assert.match(api, /提供适合当前职业方向的学习与实践资源/);
+assert.match(api, /const values = \[[\s\S]*?site\.summary[\s\S]*?site\.description/);
+assert.match(api, /!RETIRED_GENERIC_SITE_DESCRIPTIONS\.has\(text\)/);
 
 console.log("PASS career site quantity and summary adaptation");

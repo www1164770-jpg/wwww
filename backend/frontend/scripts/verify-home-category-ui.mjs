@@ -14,6 +14,12 @@ const siteCard = readFileSync(
 );
 const home = readFileSync(resolve(root, "src/views/Home.vue"), "utf8");
 
+assert.doesNotMatch(
+  categorySection,
+  /visibleWebsiteCount|个网站/,
+  "首页分类状态不应暴露数据库网站数量",
+);
+
 assert.match(
   categorySection,
   /from "lucide-vue-next"/,
@@ -51,8 +57,8 @@ assert.match(
 );
 assert.match(
   categorySection,
-  /const PAGE_SIZE = 25[\s\S]*?visibleLimit = ref\(PAGE_SIZE\)/,
-  "首页首屏应按 5 列网格显示完整首行",
+  /const PAGE_SIZE = 20[\s\S]*?visibleLimit = ref\(PAGE_SIZE\)/,
+  "首页分类首批应按 5 列网格显示 4 行，共 20 个网站",
 );
 assert.match(
   categorySection,
@@ -71,13 +77,23 @@ assert.match(
 );
 assert.match(
   siteCard,
-  /website-card--category-static[\s\S]*?class="website-card__external"[\s\S]*?target="_blank"[\s\S]*?rel="noopener noreferrer"/,
-  "分类卡片应只保留明确的安全外链入口",
+  /website-card--category-static[\s\S]*?function handleCardClick\(\)[\s\S]*?isCompactCategoryVariant\.value\) openSite\(\)[\s\S]*?emit\("visit", \{ \.\.\.props\.site, url: normalizedSiteUrl\.value \}\)/,
+  "分类卡片应保留当前统一的安全访问事件",
 );
 assert.match(
   categorySection,
-  /\.category-filter-bar[\s\S]*?backdrop-filter:\s*blur\(18px\)/,
-  "分类栏应使用透明毛玻璃样式",
+  /\.category-filter-bar\s*\{[\s\S]*?background:\s*transparent[\s\S]*?box-shadow:\s*none/,
+  "分类栏外层应透明且不制造阴影分层",
+);
+assert.match(
+  categorySection,
+  /\.category-tab\s*\{[\s\S]*?border:\s*0[\s\S]*?background:\s*transparent/,
+  "未选中分类按钮应保持透明无边框",
+);
+assert.match(
+  categorySection,
+  /\.category-tab--active,[\s\S]*?background:\s*var\(--app-tab-active-bg\)[\s\S]*?box-shadow:\s*none/,
+  "选中分类按钮应只使用轻量自适应高亮",
 );
 assert.match(
   categorySection,

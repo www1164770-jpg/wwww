@@ -35,6 +35,21 @@ for env_path in (BACKEND_DIR / ".env", PROJECT_DIR / ".env"):
     if env_path.exists():
         load_dotenv(env_path, override=False)
 
+from mysql_service import MySQLStartupError, ensure_mysql_ready, print_startup_failure
+
+# A direct development-server launch must prove database readiness before
+# importing and initializing the Flask application. This also runs in the
+# Werkzeug child, where it is idempotent because RUNNING services are not
+# started again. WSGI imports and utility subcommands remain side-effect free.
+if __name__ == "__main__" and not (
+    len(sys.argv) > 1 and sys.argv[1] == "smtp-check"
+):
+    try:
+        ensure_mysql_ready()
+    except (MySQLStartupError, RuntimeError) as error:
+        print_startup_failure(error)
+        raise SystemExit(1)
+
 from background_config import (
     BACKGROUND_MAX_FILE_BYTES,
     BACKGROUND_MAX_REQUEST_BYTES,
@@ -44,13 +59,13 @@ from flask import Flask, jsonify, request, redirect, url_for, g  # Flask 核心�
 from flask_cors import CORS  # 跨域资源共享扩展，允许前端跨域调用后端接口
 import requests  # HTTP 客户端库，用于调用第三方 API 和爬取外部数据
 import time  # 时间工具，用于时间戳记录和延迟控制
-from models import db, User, UserProfile, Category, Tag, Website, SiteTag, SiteOccupation, Favorite, Comment, UserBehavior, RecommendationLog, ClickLog  # 导入 SQLAlchemy 数据库实例及所有数据模型
+from models import db, User, UserProfile, Category, Tag, Website, SiteTag, SiteOccupation, Favorite, Comment, UserBehavior, UserBehaviorEvent, RecommendationObservationSnapshot, RecommendationLog, ClickLog  # 导入 SQLAlchemy 数据库实例及所有数据模型
 import questionnaire_models  # noqa: F401  Register foundation models on the shared metadata.
 from sqlalchemy import func  # SQLAlchemy 聚合函数（如 COUNT、SUM），用于统计查询
 import json  # JSON 序列化/反序列化，用于存储复杂配置字段
 import re  # 正则表达式，用于 URL 格式校验等文本处理
 from urllib.parse import quote_plus, urlparse  # URL 解析工具，用于验证 URL 合法性
-from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity, verify_jwt_in_request  # JWT 认证扩展：Token 管理器、创建/验证 Token 的工具函数
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt, get_jwt_identity, verify_jwt_in_request  # JWT 认证扩展：Token 管理器、创建/验证 Token 的工具函数
 from flask_bcrypt import Bcrypt  # 密码哈希扩展，使用 bcrypt 算法安全存储用户密码
 from authlib.integrations.flask_client import OAuth  # OAuth 2.0 客户端，用于 GitHub 第三方登录
 import meilisearch  # Meilisearch 搜索引擎客户端，提供毫秒级全文搜索能力
@@ -61,6 +76,7 @@ from sqlalchemy import text  # SQLAlchemy 原生 SQL 执行工具，用于执行
 import feedparser  # RSS/Atom Feed 解析库，用于抓取和解析行业资讯订阅源
 import redis
 import pymysql
+from dbutils.pooled_db import TooManyConnectionsError
 import random
 import hmac
 import secrets
@@ -76,12 +92,16 @@ from recommend_service import rank_sites
 from v1_routes import register_v1_routes
 from questionnaire_admin_read_routes import register_questionnaire_admin_read_routes
 from backend.crawler.review.routes import register_review_routes
+from password_reset import register_password_reset_routes
+from personalization import register_personalization_routes
 
 # 导入连接池模块
 from db_pool import (
+    DATABASE_RETRY_DELAYS,
     MYSQL_CHARSET,
     get_connection as pool_get_connection,
     get_database_config,
+    is_transient_mysql_error,
     validate_database_config,
 )
 
@@ -91,6 +111,7 @@ import app_extensions
 # ✨ 关键点：启动时加载 .env 文件中的机密信息
 
 app = Flask(__name__)  # 创建 Flask 应用实例，__name__ 用于确定资源文件的根路径
+app.json.ensure_ascii = False
 app.config["MAX_CONTENT_LENGTH"] = BACKGROUND_MAX_REQUEST_BYTES
 app.config["BACKGROUND_MAX_FILE_BYTES"] = BACKGROUND_MAX_FILE_BYTES
 app.config["BACKGROUND_UPLOAD_ROOT"] = BACKGROUND_UPLOAD_ROOT
@@ -140,7 +161,12 @@ REDIS_URL = (os.getenv("REDIS_URL") or "redis://localhost:6379/0").strip()
 
 def get_limiter_storage_uri():
     """Return limiter storage without connecting to Redis during import."""
-    return (os.getenv("RATELIMIT_STORAGE_URI") or REDIS_URL).strip()
+    configured = (os.getenv("RATELIMIT_STORAGE_URI") or "").strip()
+    if configured:
+        return configured
+    if not should_swallow_limiter_errors():
+        return REDIS_URL
+    return "memory://"
 
 
 def should_swallow_limiter_errors():
@@ -150,6 +176,13 @@ def should_swallow_limiter_errors():
         for name in ("APP_ENV", "FLASK_ENV", "ENV", "VERCEL_ENV")
     }
     return "production" not in environments
+
+
+def should_enable_limiter():
+    """Enable distributed limits in production or when explicitly configured."""
+    return not should_swallow_limiter_errors() or bool(
+        (os.getenv("RATELIMIT_STORAGE_URI") or "").strip()
+    )
 
 def table_columns(cursor, table_name):
     cursor.execute(f"SHOW COLUMNS FROM {table_name}")
@@ -217,6 +250,7 @@ limiter = Limiter(
     default_limits=["5000 per day", "1000 per hour"],
     storage_uri=get_limiter_storage_uri(),
     swallow_errors=should_swallow_limiter_errors(),
+    enabled=should_enable_limiter(),
 )
 
 redis_client = redis.StrictRedis.from_url(REDIS_URL, decode_responses=True)
@@ -228,6 +262,7 @@ LOGIN_FAILURE_LIMIT = 5
 LOGIN_LOCK_SECONDS = 60
 AUTH_EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 AUTH_USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]{4,50}$")
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 REGISTRATION_CODE_TTL_SECONDS = 300
 REGISTRATION_CODE_RESEND_SECONDS = 60
 REGISTRATION_CODE_HOURLY_LIMIT = 5
@@ -237,6 +272,55 @@ REGISTRATION_CODE_PURPOSE = "register"
 
 def normalize_auth_email(value):
     return str(value or "").strip().lower()
+
+
+def login_request_id():
+    """Return a safe correlation id without reflecting arbitrary headers."""
+    existing = getattr(g, "request_id", None)
+    if existing:
+        return existing
+    supplied = (request.headers.get("X-Request-ID") or "").strip()
+    g.request_id = supplied if REQUEST_ID_PATTERN.fullmatch(supplied) else secrets.token_hex(8)
+    return g.request_id
+
+
+@app.before_request
+def assign_request_id():
+    login_request_id()
+
+
+@app.after_request
+def add_request_id_header(response):
+    response.headers.setdefault("X-Request-ID", login_request_id())
+    return response
+
+
+def is_database_unavailable(error):
+    """Errors that mean MySQL cannot currently serve this request."""
+    return is_transient_mysql_error(error) or isinstance(
+        error,
+        (
+            pymysql.err.InterfaceError,
+            TooManyConnectionsError,
+            OSError,
+            TimeoutError,
+        ),
+    )
+
+
+def password_hash_is_valid(password_hash, password):
+    """Verify only supported hashes; never fall back to plaintext passwords."""
+    if not password_hash:
+        return False
+    try:
+        return check_password_hash(password_hash, password)
+    except (TypeError, ValueError):
+        # A small number of historical accounts used Flask-Bcrypt. Retain
+        # compatibility for its hashes while keeping registration on Werkzeug.
+        try:
+            return bcrypt.check_password_hash(password_hash, password)
+        except (TypeError, ValueError):
+            return False
 
 
 def is_valid_auth_email(value):
@@ -378,6 +462,7 @@ def health_check():
 
 @app.route("/api/health/db", methods=["GET"])
 def database_health_check():
+    request_id = login_request_id()
     conn = None
     try:
         conn = get_db_connection()
@@ -389,12 +474,17 @@ def database_health_check():
             "message": "database connected",
             "data": {"database": "ok"},
         }), 200
-    except Exception:
+    except Exception as error:
+        app.logger.exception(
+            "database health check unavailable request_id=%s error_type=%s",
+            request_id,
+            type(error).__name__,
+        )
         return jsonify({
-            "code": 500,
-            "message": "database connection failed",
-            "data": {"database": "error"},
-        }), 500
+            "code": "DATABASE_UNAVAILABLE",
+            "message": "database unavailable",
+            "data": {"database": "unavailable"},
+        }), 503
     finally:
         if conn is not None:
             try:
@@ -404,6 +494,31 @@ def database_health_check():
 
 
 
+
+
+@app.route("/api/health/database", methods=["GET"])
+def database_availability_check():
+    """Return only availability state; never expose database configuration."""
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        return jsonify({"ok": True, "database": "available"}), 200
+    except Exception as error:
+        app.logger.warning(
+            "database unavailable route=%s error_type=%s",
+            request.path,
+            type(error).__name__,
+        )
+        return jsonify({"ok": False, "database": "unavailable"}), 503
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def login_rate_key(account):
@@ -466,6 +581,87 @@ def async_save_click(item_id):
         connection.close()
     except Exception as e:
         print(f"写入点击日志失败: {e}")
+
+
+def record_unified_behavior_event(user_id, website_id, event_type, source="other", payload=None):
+    """Best-effort bridge for legacy app.py routes.
+
+    The v1 route owns the full validation API; this bridge keeps the legacy
+    favorite toggle on the same event stream without allowing telemetry to
+    break the user-facing mutation.
+    """
+    if not user_id or not website_id or event_type not in {"favorite"}:
+        return False
+    payload = payload if isinstance(payload, dict) else {}
+    source = source if source in {
+        "personalized_recommendation", "category", "search", "favorite", "history", "direct", "other",
+    } else "other"
+    metadata = payload.get("metadata") if isinstance(payload.get("metadata"), dict) else {}
+    safe_metadata = {
+        key: str(metadata[key])[:128]
+        for key in ("display_batch_index", "candidate_pool_id", "position", "surface", "personalization_type")
+        if metadata.get(key) is not None
+    }
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_behavior_events (
+                  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                  user_id INT NULL, website_id INT NOT NULL,
+                  event_type VARCHAR(32) NOT NULL, source VARCHAR(64) NOT NULL DEFAULT 'other',
+                  recommendation_batch_id VARCHAR(128) NULL, questionnaire_version VARCHAR(64) NULL,
+                  profile_version VARCHAR(64) NULL, session_id VARCHAR(128) NULL,
+                  metadata_json JSON NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                  INDEX idx_behavior_events_user_site_created (user_id, website_id, created_at),
+                  INDEX idx_behavior_events_batch (recommendation_batch_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                """
+            )
+            cursor.execute(
+                """
+                SELECT id FROM user_behavior_events
+                WHERE user_id=%s AND website_id=%s AND event_type='favorite'
+                LIMIT 1
+                """,
+                (user_id, website_id),
+            )
+            if cursor.fetchone():
+                return False
+            cursor.execute(
+                """
+                INSERT INTO user_behavior_events
+                  (user_id, website_id, event_type, source, recommendation_batch_id,
+                   questionnaire_version, profile_version, session_id, metadata_json)
+                VALUES (%s,%s,'favorite',%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    user_id, website_id, source,
+                    str(payload.get("recommendation_batch_id") or "")[:128] or None,
+                    str(payload.get("questionnaire_version") or "")[:64] or None,
+                    str(payload.get("profile_version") or "")[:64] or None,
+                    str(payload.get("session_id") or "")[:128] or None,
+                    json.dumps(safe_metadata, ensure_ascii=False) if safe_metadata else None,
+                ),
+            )
+        conn.commit()
+        return True
+    except Exception:
+        try:
+            if conn:
+                conn.rollback()
+        except Exception:
+            pass
+        app.logger.exception("legacy favorite behavior event failed")
+        return False
+    finally:
+        try:
+            if conn:
+                conn.close()
+        except Exception:
+            pass
 
 # ================= 修改密码接口 =================
 @app.route('/api/user/password', methods=['POST'])
@@ -722,6 +918,7 @@ def login():
     data = request.get_json(silent=True) or {}
     account = str(data.get('account') or data.get('email') or data.get('username') or '').strip()
     password = str(data.get('password') or '')
+    request_id = login_request_id()
     failure_key = login_rate_key(account)
     retry_after = get_login_retry_after(failure_key)
 
@@ -743,23 +940,60 @@ def login():
 
     conn = None
     try:
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """SELECT * FROM users
-                   WHERE (username = %s OR LOWER(email) = LOWER(%s))
-                     AND deleted_at IS NULL
-                   LIMIT 1""",
-                (account, account),
-            )
-            user = cursor.fetchone()
+        for database_attempt in range(4):
+            try:
+                conn = get_db_connection()
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        """SELECT * FROM users
+                           WHERE username = %s OR LOWER(email) = LOWER(%s)
+                           LIMIT 1""",
+                        (account, account),
+                    )
+                    user = cursor.fetchone()
+                break
+            except Exception as error:
+                if conn is not None:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+                    conn = None
+                if not is_transient_mysql_error(error) or database_attempt >= 3:
+                    raise
+                delay = DATABASE_RETRY_DELAYS[database_attempt]
+                app.logger.warning(
+                    "login transient database failure; reconnecting request_id=%s attempt=%s",
+                    request_id,
+                    database_attempt + 1,
+                )
+                if delay:
+                    time.sleep(delay)
     except Exception as error:
-        app.logger.exception("Local login failed reason=DATABASE_ERROR error_type=%s", type(error).__name__)
+        if is_database_unavailable(error):
+            app.logger.exception(
+                "login database unavailable request_id=%s route=%s error_type=%s",
+                request_id,
+                request.path,
+                type(error).__name__,
+            )
+            return jsonify({
+                'success': False,
+                'code': 'AUTH_DATABASE_UNAVAILABLE',
+                'message': '数据库服务暂时不可用，请稍后重试',
+                'msg': '数据库服务暂时不可用，请稍后重试',
+            }), 503
+        app.logger.exception(
+            "login unexpected failure request_id=%s route=%s error_type=%s",
+            request_id,
+            request.path,
+            type(error).__name__,
+        )
         return jsonify({
             'success': False,
             'code': 'AUTH_SERVICE_ERROR',
-            'message': '认证服务暂时不可用',
-            'msg': '认证服务暂时不可用',
+            'message': '登录服务发生内部错误',
+            'msg': '登录服务发生内部错误',
         }), 500
     finally:
         if conn is not None:
@@ -768,10 +1002,32 @@ def login():
             except Exception:
                 pass
 
-    if user and check_password_hash(user['password_hash'], password):
+
+    # Older installations may predate the soft-delete migration.  Checking
+    # the optional column after SELECT * keeps login compatible without
+    # turning a missing `deleted_at` column into an HTTP 500.
+    if user and user.get('deleted_at') is not None:
+        user = None
+
+    disabled_statuses = {'disabled', 'inactive', 'banned', 'blocked', 'deleted'}
+    if user and str(user.get('status') or 'active').lower() in disabled_statuses:
+        app.logger.info("Local login rejected reason=ACCOUNT_DISABLED request_id=%s", request_id)
+        return jsonify({
+            'success': False,
+            'code': 'ACCOUNT_DISABLED',
+            'message': '账号不可用',
+            'msg': '账号不可用',
+        }), 403
+
+    if user and password_hash_is_valid(user.get('password_hash'), password):
         clear_login_failures(failure_key)
-        access_token = create_access_token(identity=user['username'])
-        refresh_token = create_refresh_token(identity=user['username'])
+        session_claims = {"session_version": int(user.get("session_version") or 0)}
+        access_token = create_access_token(
+            identity=user['username'], additional_claims=session_claims
+        )
+        refresh_token = create_refresh_token(
+            identity=user['username'], additional_claims=session_claims
+        )
         session_data = auth_session_data(user, access_token, refresh_token)
         return jsonify({
             'code': 0,
@@ -1070,6 +1326,57 @@ def handle_expired_jwt(jwt_header, jwt_payload):
     ), 401
 
 
+@jwt.token_in_blocklist_loader
+def handle_session_version(jwt_header, jwt_payload):
+    """Reject access and refresh tokens issued before a password reset."""
+    # Tokens issued before this migration have no claim and are version zero.
+    # They remain valid until their owner resets a password and increments the
+    # persisted version.
+    token_version = int(jwt_payload.get("session_version") or 0)
+
+    identity = jwt_payload.get("sub")
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute("SHOW COLUMNS FROM users LIKE 'session_version'")
+            if not cursor.fetchone():
+                # Legacy databases predate session versioning. Tokens issued by
+                # those databases remain valid until the migration is applied.
+                return False
+            cursor.execute(
+                "SELECT session_version FROM users WHERE username=%s LIMIT 1",
+                (identity,),
+            )
+            user = cursor.fetchone()
+        return not user or int(user.get("session_version") or 0) != token_version
+    except Exception as error:
+        app.logger.error(
+            "JWT session validation failed error_type=%s", type(error).__name__
+        )
+        return True
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+
+@jwt.revoked_token_loader
+def handle_revoked_jwt(jwt_header, jwt_payload):
+    return jsonify(
+        {
+            "success": False,
+            "code": "AUTH_REVOKED",
+            "error_code": "AUTH_REVOKED",
+            "message": "登录状态已失效，请重新登录",
+            "msg": "登录状态已失效，请重新登录",
+            "data": {},
+        }
+    ), 401
+
+
 bcrypt = Bcrypt(app)    # 初始化 bcrypt 密码哈希工具，用于安全存储用户密码
 
 def is_valid_url(url):
@@ -1166,7 +1473,13 @@ def refresh():
     
     # 获取当前用户 ID，签发新的 access_token
     current_user = get_jwt_identity()  # 从 Refresh Token 中提取用户身份标识
-    new_token = create_access_token(identity=current_user)  # 签发新的 Access Token
+    current_claims = get_jwt()
+    new_token = create_access_token(
+        identity=current_user,
+        additional_claims={
+            "session_version": int(current_claims.get("session_version") or 0)
+        },
+    )  # 签发新的 Access Token
     
     return jsonify(access_token=new_token), 200
 
@@ -2310,59 +2623,176 @@ def get_user_contents():
 
 
 # =========================================================
-# 🚀 4. 获取互动足迹 (精细化：按日期进行折叠分组)
+# 4. 浏览历史（复用 user_behaviors 的 visit 事件）
 # =========================================================
-@app.route('/api/user/history', methods=['GET'])
-def get_user_history():
-    username = get_current_username()
+def get_history_user():
+    """Resolve the JWT identity to the real user row used by history queries."""
+    identity = get_jwt_identity()
+    identity_text = str(identity or "").strip()
+    if not identity_text:
+        return None
+
+    conn = get_db_connection()
     try:
-        conn = get_db_connection()
         with conn.cursor() as cursor:
-            cursor.execute("""
-                SELECT id, action, target_name, target_url, created_at 
-                FROM user_history 
-                WHERE username = %s 
-                ORDER BY created_at DESC LIMIT 50
-            """, (username,))
-            history_records = cursor.fetchall()
-            
+            cursor.execute(
+                "SELECT id, username FROM users WHERE username=%s OR email=%s LIMIT 1",
+                (identity_text, identity_text),
+            )
+            user = cursor.fetchone()
+            if not user and identity_text.isdigit():
+                cursor.execute(
+                    "SELECT id, username FROM users WHERE id=%s LIMIT 1",
+                    (int(identity_text),),
+                )
+                user = cursor.fetchone()
+            return user
+    finally:
         conn.close()
-        
-        # 💡 核心算法：用 Python 将平铺的数据按 "日期" 分组，满足前端 UI 的需求
-        grouped_history = {}
-        today_str = datetime.date.today().strftime('%Y-%m-%d')
-        yesterday_str = (datetime.date.today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
-        for row in history_records:
-            date_part = row['created_at'].strftime('%Y-%m-%d')
-            time_part = row['created_at'].strftime('%H:%M')
-            
-            # 人性化日期显示
-            if date_part == today_str:
-                display_date = "今天"
-            elif date_part == yesterday_str:
-                display_date = "昨天"
+
+def serialize_history_row(row):
+    visited_at = row.get('visited_at') or row.get('created_at')
+    if hasattr(visited_at, 'isoformat'):
+        visited_at = visited_at.isoformat()
+    return {
+        'id': row.get('id'),
+        'site_id': row.get('site_id'),
+        'name': row.get('name') or '未命名网站',
+        'url': row.get('url') or '',
+        'logo_url': row.get('logo_url') or '',
+        'description': row.get('summary') or row.get('description') or '',
+        'category': row.get('category_name') or '',
+        'source': row.get('source') or 'unknown',
+        'visited_at': visited_at,
+    }
+
+
+@app.route('/api/user/history', methods=['GET'])
+@jwt_required()
+def get_user_history():
+    user = get_history_user()
+    if not user:
+        return jsonify({'code': 404, 'msg': '用户不存在'}), 404
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT ub.id, ub.site_id, ub.keyword AS source,
+                       ub.created_at AS visited_at, w.name, w.url, w.logo_url,
+                       w.summary, w.description, c.name AS category_name
+                FROM user_behaviors ub
+                JOIN websites w ON w.id = ub.site_id
+                LEFT JOIN categories c ON c.id = w.category_id
+                WHERE ub.user_id = %s AND ub.behavior_type = 'visit'
+                ORDER BY ub.created_at DESC
+                LIMIT 100
+                """,
+                (user['id'],),
+            )
+            items = [serialize_history_row(row) for row in cursor.fetchall()]
+        if app.debug:
+            app.logger.info('Browsing history loaded user_id=%s count=%s', user['id'], len(items))
+        return jsonify({'code': 0, 'data': {'items': items, 'total': len(items)}})
+    except Exception:
+        app.logger.exception('Browsing history query failed user_id=%s', user['id'])
+        return jsonify({'code': 500, 'msg': '浏览历史加载失败'}), 500
+    finally:
+        conn.close()
+
+
+@app.route('/api/user/history', methods=['POST'])
+@jwt_required()
+def record_user_history():
+    user = get_history_user()
+    if not user:
+        return jsonify({'code': 404, 'msg': '用户不存在'}), 404
+
+    data = request.get_json(silent=True) or {}
+    raw_site_id = data.get('site_id') or data.get('siteId') or data.get('id')
+    site_id = int(raw_site_id) if str(raw_site_id or '').isdigit() else None
+    raw_url = str(data.get('url') or '').strip()
+    source = str(data.get('source') or 'unknown').strip()[:64] or 'unknown'
+
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            site = None
+            if site_id:
+                cursor.execute(
+                    "SELECT id FROM websites WHERE id=%s LIMIT 1",
+                    (site_id,),
+                )
+                site = cursor.fetchone()
+            if not site and raw_url:
+                normalized_url = raw_url.rstrip('/')
+                cursor.execute(
+                    """
+                    SELECT id FROM websites
+                    WHERE LOWER(TRIM(TRAILING '/' FROM url)) = LOWER(%s)
+                    LIMIT 1
+                    """,
+                    (normalized_url,),
+                )
+                site = cursor.fetchone()
+            if not site:
+                return jsonify({'code': 404, 'msg': '网站未收录'}), 404
+
+            site_id = site['id']
+            cursor.execute(
+                """
+                SELECT id FROM user_behaviors
+                WHERE user_id=%s AND site_id=%s AND behavior_type='visit'
+                  AND created_at >= DATE_SUB(NOW(), INTERVAL 30 SECOND)
+                ORDER BY created_at DESC LIMIT 1
+                """,
+                (user['id'], site_id),
+            )
+            duplicate = cursor.fetchone()
+            if duplicate:
+                history_id = duplicate['id']
+                cursor.execute(
+                    "UPDATE user_behaviors SET keyword=%s, created_at=NOW() WHERE id=%s",
+                    (source, history_id),
+                )
             else:
-                display_date = date_part
+                cursor.execute(
+                    """
+                    INSERT INTO user_behaviors (user_id, site_id, behavior_type, keyword, created_at)
+                    VALUES (%s, %s, 'visit', %s, NOW())
+                    """,
+                    (user['id'], site_id, source),
+                )
+                history_id = cursor.lastrowid
+            conn.commit()
 
-            if display_date not in grouped_history:
-                grouped_history[display_date] = []
-                
-            grouped_history[display_date].append({
-                'id': row['id'],
-                'time': time_part,
-                'action': row['action'],
-                'target_name': row['target_name'],
-                'url': row['target_url']
-            })
-
-        # 将字典转换为前端要求的大数组格式
-        final_data = [{'date': k, 'items': v} for k, v in grouped_history.items()]
-        
-        return jsonify({'code': 0, 'data': final_data})
-    except Exception as e:
-        print(f"足迹报错: {e}")
-        return jsonify({'code': 500, 'msg': str(e)}), 500
+            cursor.execute(
+                """
+                SELECT ub.id, ub.site_id, ub.keyword AS source,
+                       ub.created_at AS visited_at, w.name, w.url, w.logo_url,
+                       w.summary, w.description, c.name AS category_name
+                FROM user_behaviors ub
+                JOIN websites w ON w.id = ub.site_id
+                LEFT JOIN categories c ON c.id = w.category_id
+                WHERE ub.id=%s AND ub.user_id=%s
+                """,
+                (history_id, user['id']),
+            )
+            item = serialize_history_row(cursor.fetchone() or {})
+        if app.debug:
+            app.logger.info(
+                'Browsing history saved user_id=%s site_id=%s source=%s deduplicated=%s',
+                user['id'], site_id, source, bool(duplicate),
+            )
+        return jsonify({'code': 0, 'data': item})
+    except Exception:
+        conn.rollback()
+        app.logger.exception('Browsing history save failed user_id=%s site_id=%s', user['id'], site_id)
+        return jsonify({'code': 500, 'msg': '浏览历史保存失败'}), 500
+    finally:
+        conn.close()
 
 
 # =========================================================
@@ -2384,17 +2814,56 @@ def delete_user_content():
 
 
 @app.route('/api/user/history/clear', methods=['POST'])
+@jwt_required()
 def clear_user_history():
-    username = get_current_username()
+    user = get_history_user()
+    if not user:
+        return jsonify({'code': 404, 'msg': '用户不存在'}), 404
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM user_history WHERE username = %s", (username,))
+            cursor.execute(
+                "DELETE FROM user_behaviors WHERE user_id=%s AND behavior_type='visit'",
+                (user['id'],),
+            )
         conn.commit()
         conn.close()
-        return jsonify({'code': 0, 'msg': '足迹已清空'})
-    except Exception as e:
-        return jsonify({'code': 500, 'msg': str(e)}), 500
+        return jsonify({'code': 0, 'msg': '浏览历史已清空'})
+    except Exception:
+        app.logger.exception('Browsing history clear failed user_id=%s', user['id'])
+        return jsonify({'code': 500, 'msg': '清空浏览历史失败'}), 500
+
+
+@app.route('/api/user/history/<int:history_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user_history(history_id):
+    user = get_history_user()
+    if not user:
+        return jsonify({'code': 404, 'msg': '用户不存在'}), 404
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM user_behaviors
+                WHERE id=%s AND user_id=%s AND behavior_type='visit'
+                """,
+                (history_id, user['id']),
+            )
+            deleted = cursor.rowcount
+        conn.commit()
+        if not deleted:
+            return jsonify({'code': 404, 'msg': '记录不存在'}), 404
+        return jsonify({'code': 0, 'msg': '删除成功'})
+    except Exception:
+        conn.rollback()
+        app.logger.exception(
+            'Browsing history delete failed user_id=%s history_id=%s',
+            user['id'], history_id,
+        )
+        return jsonify({'code': 500, 'msg': '删除浏览历史失败'}), 500
+    finally:
+        conn.close()
 
 @app.route('/api/cache_logo', methods=['POST'])
 def cache_logo():
@@ -2492,6 +2961,13 @@ def toggle_favorite():
         new_fav = UserFavorite(user_id=user_id, website_id=website_id)  # 未收藏则创建新收藏记录
         db.session.add(new_fav)
         db.session.commit()
+        record_unified_behavior_event(
+            user_id,
+            website_id,
+            "favorite",
+            str(data.get("source") or "favorite").strip().lower(),
+            data,
+        )
         return jsonify({"status": "added", "message": "收藏成功"}), 201
 
 @app.route('/api/chat', methods=['POST'])
@@ -2521,16 +2997,6 @@ def chat():
         reply = "推荐多看 GitHub 的开源项目，遇到 Bug 直接上 StackOverflow 搜！"
     return jsonify({"reply": reply})
 
-
-# ================= 1. 接口防刷配置 (Rate Limiting) =================
-# 基于请求者的 IP 进行频率限制，防止恶意爆破
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["5000 per day", "1000 per hour"],
-    storage_uri=get_limiter_storage_uri(),
-    swallow_errors=should_swallow_limiter_errors(),
-)
 
 # ================= 2. 管理员权限校验装饰器 =================
 def admin_required():
@@ -2813,6 +3279,7 @@ def delete_website(id):
 # =====================================================================
 try:
     register_v1_routes(app, get_db_connection)
+    register_personalization_routes(app, get_db_connection)
     register_questionnaire_admin_read_routes(app, get_db_connection)
     register_review_routes(app, admin_required)
     print("V1 routes registered successfully")
@@ -2820,7 +3287,7 @@ except Exception as e:
     print(f"Failed to register v1 routes: {e}")
     raise
 app_extensions.register_redis_sync_scheduler(app, scheduler, redis_client)
-app_extensions.register_password_reset_routes(app, redis_client)
+register_password_reset_routes(app, limiter)
 app_extensions.register_token_refresh_route(app)
 app_extensions.register_content_filter_routes(app)
 app_extensions.register_notification_routes(app, db)
@@ -2929,7 +3396,7 @@ if __name__ == '__main__':
                 print(f"Startup data sync failed (continuing): {e}")
         scheduler.start()
 
-    print(f"Backend service listening on {bind_host}:{bind_port}")
+    print(f"[后端] Flask 服务启动（{bind_host}:{bind_port}）")
     app.run(
         host=bind_host,
         port=bind_port,

@@ -14,6 +14,15 @@ function prefersReducedMotion() {
   );
 }
 
+const profileQuestionnaireLocation = {
+  name: "Profile",
+  hash: "#questionnaire",
+};
+
+function openProfileQuestionnaire(to) {
+  return to.hash ? true : profileQuestionnaireLocation;
+}
+
 const routes = [
   { path: "/", name: "Home", component: () => import("../views/Home.vue") },
   {
@@ -26,6 +35,12 @@ const routes = [
     path: "/register",
     name: "Register",
     component: () => import("../views/Register.vue"),
+    meta: { public: true },
+  },
+  {
+    path: "/forgot-password",
+    name: "ForgotPassword",
+    component: () => import("../views/ForgotPassword.vue"),
     meta: { public: true },
   },
   {
@@ -53,6 +68,7 @@ const routes = [
     path: "/search",
     name: "SearchResults",
     component: () => import("../views/SearchResults.vue"),
+    meta: { title: "站内搜索｜知航屿" },
   },
   {
     path: "/favorites",
@@ -64,8 +80,26 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: () => import("../views/ProfileView.vue"),
+    beforeEnter: openProfileQuestionnaire,
     meta: { requiresAuth: true },
   },
+  {
+    path: "/personalization",
+    name: "Personalization",
+    component: () => import("../views/PersonalizationView.vue"),
+    meta: { public: true },
+  },
+  ...[
+    "/profile/recommend",
+    "/profile/recommendation",
+    "/profile/my-recommend",
+    "/user/recommend",
+    "/user/recommendation",
+  ].map((path) => ({
+    path,
+    redirect: profileQuestionnaireLocation,
+    meta: { requiresAuth: true },
+  })),
   {
     path: "/admin",
     name: "Admin",
@@ -77,6 +111,12 @@ const routes = [
         path: "dashboard",
         name: "AdminDashboard",
         component: () => import("../views/admin/AdminDashboard.vue"),
+        meta: { requiresAuth: true, requiresAdmin: true },
+      },
+      {
+        path: "recommendation-metrics",
+        name: "RecommendationMetrics",
+        component: () => import("../views/admin/RecommendationMetrics.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
       {
@@ -160,6 +200,14 @@ const router = createRouter({
     if (to.hash) {
       return new Promise((resolve) => {
         setTimeout(() => {
+          if (to.hash === "#home") {
+            resolve({
+              top: 0,
+              behavior: prefersReducedMotion() ? "auto" : "smooth",
+            });
+            return;
+          }
+
           resolve({
             el: to.hash,
             top: HEADER_OFFSET,

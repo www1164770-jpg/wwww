@@ -9,10 +9,22 @@ const detail = read("src/views/CategoryDetail.vue");
 const packageJson = JSON.parse(read("package.json"));
 
 const checks = [
+  ["分类详情不展示数据库网站数量", !/个网站/.test(detail)],
   [
-    "分类栏为透明毛玻璃且横向紧凑",
+    "分类栏透明、无阴影且保持横向滚动",
     /\.category-nav\s*\{[\s\S]*?overflow-x:\s*auto/.test(detail) &&
-      /\.category-nav,[\s\S]*?backdrop-filter:\s*blur\(18px\)/.test(detail),
+      /\.category-nav\s*\{[\s\S]*?background:\s*transparent[\s\S]*?box-shadow:\s*none/.test(
+        detail,
+      ),
+  ],
+  [
+    "分类详情按钮使用统一透明层级",
+    /\.category-tab\s*\{[\s\S]*?border:\s*0[\s\S]*?background:\s*transparent/.test(
+      detail,
+    ) &&
+      /\.category-tab--active\s*\{[\s\S]*?background:\s*var\(--app-tab-active-bg\)[\s\S]*?box-shadow:\s*none/.test(
+        detail,
+      ),
   ],
   [
     "详情页桌面端为左右两栏",

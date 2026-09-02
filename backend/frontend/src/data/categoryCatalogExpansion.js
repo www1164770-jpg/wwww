@@ -3,7 +3,7 @@ const groups = [
     id: "common",
     name: "常用推荐",
     description: "日常搜索、阅读与内容发现",
-    summary: "提供搜索、资讯、阅读或日常信息服务。",
+    summary: "提供网页、阅读与日常信息发现服务。",
     items: [
       ["DuckDuckGo", "https://duckduckgo.com"],
       ["Startpage", "https://www.startpage.com"],
@@ -537,6 +537,42 @@ const expandedGroups = groups.map((category) => ({
   items: [...category.items, ...(supplementalItems[category.id] || [])],
 }));
 
+// The common category intentionally uses site-level summaries.  A category
+// fallback remains available for other catalog groups, but a single generic
+// sentence must never be stamped onto unrelated common sites.
+const siteDescriptions = {
+  DuckDuckGo: "强调隐私保护的搜索引擎，减少用户搜索行为追踪。",
+  Startpage: "注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。",
+  Yandex: "提供网页、图片、地图和邮箱等服务的综合互联网平台。",
+  "Brave Search": "Brave 推出的隐私搜索引擎，强调独立索引和减少追踪。",
+  Ecosia: "将搜索广告收入用于植树和环保项目的公益型搜索引擎。",
+  "Internet Archive": "非营利数字档案馆，收录历史网页、书籍、音视频和软件资源。",
+  Wiktionary: "开放式多语言词典，提供词义、发音、词源和翻译等语言信息。",
+  "Wikimedia Commons": "开放媒体资源库，提供可自由使用的图像、音频和视频素材。",
+  "Google News": "Google 新闻聚合服务，可集中浏览多家媒体的实时新闻与专题报道。",
+  Reuters: "国际新闻通讯机构，提供全球政治、财经、商业和突发新闻报道。",
+  BBC: "英国广播公司旗下资讯平台，提供国际新闻、文化、科技和视听内容。",
+  "The Guardian": "英国综合新闻媒体，报道国际新闻、政治、文化、环境与社会议题。",
+  澎湃新闻: "中文时政与思想资讯平台，提供时事、财经、社会和文化新闻报道。",
+  界面新闻: "商业财经新闻平台，重点关注公司、产业、金融、消费和经济资讯。",
+  财新网: "财经新闻平台，重点报道金融、经济、商业、公司及公共政策。",
+  知乎盐选: "知乎推出的付费内容服务，提供电子书、专栏和精选知识内容。",
+  得到: "知识学习平台，提供课程、电子书、听书及个人成长类学习内容。",
+  喜马拉雅: "中文音频平台，提供有声书、播客、课程和知识类节目。",
+  荔枝: "音频内容平台，提供播客、声音节目、直播及音频创作服务。",
+  网易公开课: "在线学习平台，汇集国内外公开课程、知识视频及教育内容。",
+  腾讯新闻: "腾讯旗下新闻资讯平台，提供国内外时事、财经、科技和社会新闻。",
+  凤凰网: "综合资讯媒体平台，覆盖新闻、财经、文化、科技及社会热点内容。",
+  观察者网: "中文时政资讯平台，关注国际关系、社会热点、经济和公共议题。",
+  人民网: "人民日报旗下综合新闻平台，提供时政、国际、社会和财经等权威资讯。",
+  新华网: "新华社主办的综合新闻网站，提供国内外新闻及政务、财经等资讯。",
+  携程: "在线旅行服务平台，提供酒店、机票、火车票、度假及旅游预订服务。",
+  美团: "本地生活服务平台，提供餐饮外卖、到店消费、酒店和休闲娱乐服务。",
+  饿了么: "即时配送与外卖服务平台，可在线订餐并获取本地生活配送服务。",
+  大众点评: "本地生活消费平台，提供餐厅、酒店、休闲娱乐等商户信息和用户评价。",
+  国家政务服务平台: "国家级政务服务入口，提供政务事项查询、在线办理和便民服务。",
+};
+
 const slugify = (value) =>
   String(value)
     .toLowerCase()
@@ -550,18 +586,21 @@ export const expandedCategories = groups.map(({ id, name, description }) => ({
 }));
 
 export const expandedSites = expandedGroups.flatMap((category) =>
-  category.items.map(([name, url], index) => ({
+  category.items.map(([name, url], index) => {
+    const description = siteDescriptions[name] || category.summary;
+    return {
     id: `catalog-${category.id}-${slugify(name) || index + 1}`,
     name,
     url,
     logo_url: `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`,
-    summary: `${name}：${category.summary}`,
-    description: `${name}：${category.summary}`,
+    summary: description,
+    description,
     category_id: category.id,
     category_name: category.name,
     category_code: category.id,
     tags: [category.name],
     occupations: [],
     enabled: true,
-  })),
+    };
+  }),
 );

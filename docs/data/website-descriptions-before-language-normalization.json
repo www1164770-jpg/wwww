@@ -1,0 +1,72 @@
+[
+  {
+    "website_id": 190,
+    "name": "Linear",
+    "url": "https://linear.app",
+    "description": "Purpose-built for planning and building products with AI agents.",
+    "summary": "Purpose-built for planning and building products with AI agents."
+  },
+  {
+    "website_id": 192,
+    "name": "Monday.com",
+    "url": "https://monday.com",
+    "description": "Get more work done with AI agents that work side by side with your people.",
+    "summary": "Get more work done with AI agents that work side by side with your people."
+  },
+  {
+    "website_id": 345,
+    "name": "Airtable",
+    "url": "https://www.airtable.com",
+    "description": "500,000+ brands use Airtable to enable real-time collaboration,",
+    "summary": "500,000+ brands use Airtable to enable real-time collaboration,"
+  },
+  {
+    "website_id": 348,
+    "name": "Slab",
+    "url": "https://slab.com",
+    "description": "Discover why our easy creation, organization, and numerous integrations,",
+    "summary": "Discover why our easy creation, organization, and numerous integrations,"
+  },
+  {
+    "website_id": 430,
+    "name": "Airtable",
+    "url": "https://www.airtable.com",
+    "description": "融合表格、数据库与协作的工作平台。",
+    "summary": "融合表格、数据库与协作的工作平台。"
+  },
+  {
+    "website_id": 501,
+    "name": "Tettra",
+    "url": "https://tettra.com",
+    "description": "Tettra is an AI-powered knowledge base and knowledge management software.",
+    "summary": "Tettra is an AI-powered knowledge base and knowledge management software."
+  },
+  {
+    "website_id": 502,
+    "name": "Guru",
+    "url": "https://www.getguru.com",
+    "description": "Stop running your business on confidently wrong AI.",
+    "summary": "Stop running your business on confidently wrong AI."
+  },
+  {
+    "website_id": 503,
+    "name": "Nuclino",
+    "url": "https://www.nuclino.com",
+    "description": "A modern, simple, and blazingly fast way to collaborate – bring knowledge, docs,",
+    "summary": "A modern, simple, and blazingly fast way to collaborate – bring knowledge, docs,"
+  },
+  {
+    "website_id": 504,
+    "name": "Almanac",
+    "url": "https://almanac.io",
+    "description": "Consolidate your docs in a beautiful,",
+    "summary": "Consolidate your docs in a beautiful,"
+  },
+  {
+    "website_id": 505,
+    "name": "Outline",
+    "url": "https://www.getoutline.com",
+    "description": "A modern team knowledge base for your internal documentation, product specs,",
+    "summary": "A modern team knowledge base for your internal documentation, product specs,"
+  }
+]

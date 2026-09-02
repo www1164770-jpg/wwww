@@ -2,280 +2,373 @@
   <div class="page">
     <AppHeader />
 
-    <main class="home-main">
-      <HeroSearch v-model="keyword" @search="goSearch" />
-      <ToolMarquee
-        data-testid="popular-sites-marquee"
-        :sites="marqueeSites"
-        @visit="visitSite"
-      />
+    <main id="home" ref="homeMainRef" class="home-main">
+      <section
+        class="home-screen hero-screen home-first-screen"
+        aria-label="首页搜索"
+      >
+        <div class="hero-content">
+          <HeroSearch id="site-search" v-model="keyword" @search="goSearch" />
+        </div>
+        <p
+          class="home-scroll-hint"
+          :class="{ 'home-scroll-hint--hidden': !isScrollHintVisible }"
+          :aria-hidden="!isScrollHintVisible"
+        >
+          <span aria-hidden="true">↓</span>
+          向下滚动，发现为你的职业量身推荐的工具
+        </p>
+      </section>
 
       <div class="home-content">
         <section
+          v-reveal-section
           id="career"
-          class="home-anchor-section career-recommendation-section reveal-on-scroll"
+          class="home-screen career-screen home-anchor-section career-recommendation-section"
           data-testid="career-recommendations"
         >
-          <div class="career-recommendation-layout">
-            <section
-              class="career-profile-panel"
-              aria-labelledby="career-profile-title"
-            >
-              <header class="career-profile-panel__header">
-                <span class="eyebrow">问卷画像</span>
-                <h2 id="career-profile-title">
-                  {{
+          <GuestCareerRecommendation
+            v-if="!loggedIn"
+            @visit="visitGuestCareerSite"
+            @login="goToAiAssistantLogin"
+          />
+          <template v-else>
+            <div ref="careerLayoutRef" class="career-recommendation-layout">
+              <section
+                ref="careerLeftColumnRef"
+                class="career-profile-panel"
+                aria-labelledby="career-profile-title"
+              >
+                <header class="career-profile-panel__header">
+                  <span class="eyebrow reveal-child" style="--reveal-delay: 0ms"
+                    >问卷画像</span
+                  >
+                  <h2
+                    id="career-profile-title"
+                    class="reveal-child reveal-title"
+                    style="--reveal-delay: 80ms"
+                  >
+                    {{
+                      questionnaireCompleted
+                        ? "你的职业推荐"
+                        : loggedIn
+                          ? "完成问卷，获取专属推荐"
+                          : "登录后获取专属推荐"
+                    }}
+                  </h2>
+                  <p
+                    class="reveal-child reveal-description"
+                    style="--reveal-delay: 150ms"
+                  >
+                    推荐会综合你的职业、能力、兴趣、使用目的和资源偏好，并随问卷更新。
+                  </p>
+                </header>
+
+                <template
+                  v-if="
+                    loggedIn &&
+                    questionnaireStatus === 'ready' &&
                     questionnaireCompleted
-                      ? "你的职业推荐"
-                      : loggedIn
-                        ? "完成问卷，获取专属推荐"
-                        : "登录后获取专属推荐"
-                  }}
-                </h2>
-                <p>
-                  推荐会综合你的职业、能力、兴趣、使用目的和资源偏好，并随问卷更新。
-                </p>
-              </header>
-
-              <template
-                v-if="
-                  loggedIn &&
-                  questionnaireStatus === 'ready' &&
-                  questionnaireCompleted
-                "
-              >
-                <div class="career-tag-groups">
-                  <div v-if="careerAbilityTags.length" class="career-tag-group">
-                    <span>能力标签</span>
-                    <div>
-                      <b
-                        v-for="tag in careerAbilityTags"
-                        :key="`ability-${tag}`"
-                        >{{ tag }}</b
-                      >
-                    </div>
-                  </div>
+                  "
+                >
                   <div
-                    v-if="careerInterestTags.length"
-                    class="career-tag-group"
+                    v-if="careerAbilityTags.length"
+                    class="career-tag-groups reveal-child"
+                    style="--reveal-delay: 200ms"
                   >
-                    <span>兴趣与目标</span>
-                    <div>
-                      <b
-                        v-for="tag in careerInterestTags"
-                        :key="`interest-${tag}`"
-                        >{{ tag }}</b
-                      >
+                    <div class="career-tag-group">
+                      <span>能力标签</span>
+                      <div>
+                        <b
+                          v-for="tag in careerAbilityTags"
+                          :key="`ability-${tag}`"
+                          >{{ tag }}</b
+                        >
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="career-options" aria-label="职业推荐列表">
-                  <button
-                    v-for="career in careerRecommendations"
-                    :key="career.code"
-                    type="button"
-                    class="career-option"
-                    :class="{
-                      'career-option--active': activeCareerCode === career.code,
-                    }"
-                    :aria-pressed="activeCareerCode === career.code"
-                    @click="selectCareer(career)"
+                  <div
+                    class="career-selection reveal-child"
+                    style="--reveal-delay: 230ms"
                   >
-                    <span class="career-option__main">
-                      <strong>{{ career.label }}</strong>
-                      <small>{{ career.direction }}</small>
-                    </span>
-                    <b class="career-option__score"
-                      >{{ career.match_score }}%</b
+                    <h3 id="career-selection-title">选择职业</h3>
+                    <div
+                      class="career-options"
+                      aria-labelledby="career-selection-title"
                     >
-                    <span class="career-option__reason">{{
-                      career.reason
-                    }}</span>
-                  </button>
-                </div>
-
-                <RouterLink
-                  class="career-profile-panel__link"
-                  to="/questionnaire"
-                >
-                  更新问卷
-                </RouterLink>
-              </template>
-
-              <template v-else-if="loggedIn && questionnaireStatus === 'empty'">
-                <p class="career-profile-panel__empty">
-                  提交问卷后，这里会显示动态职业方向和匹配原因。
-                </p>
-                <RouterLink
-                  class="career-profile-panel__action"
-                  to="/questionnaire"
-                >
-                  去完成问卷
-                </RouterLink>
-              </template>
-
-              <template v-else-if="loggedIn && questionnaireStatus === 'error'">
-                <p class="career-profile-panel__empty">
-                  暂时无法确认问卷状态，请稍后重试。
-                </p>
-                <button
-                  type="button"
-                  class="career-profile-panel__action"
-                  @click="retryCareerSites"
-                >
-                  重新加载
-                </button>
-              </template>
-
-              <p
-                v-else-if="loggedIn"
-                class="career-profile-panel__empty career-profile-panel__empty--loading"
-              >
-                正在检查问卷状态…
-              </p>
-
-              <button
-                v-else
-                type="button"
-                class="career-profile-panel__action"
-                @click="goToAiAssistantLogin"
-              >
-                登录后开始问卷
-              </button>
-            </section>
-
-            <div class="career-results" aria-live="polite">
-              <header class="career-results__heading">
-                <span class="eyebrow">职业推荐</span>
-                <div class="career-results__title-row">
-                  <div>
-                    <h2 v-if="activeCareerCode">
-                      适合「{{ selectedOccupationLabel }}」的网站工具
-                    </h2>
-                    <h2 v-else>完成问卷后发现更合适的网站工具</h2>
+                      <button
+                        v-for="career in careerRecommendations"
+                        :key="career.code"
+                        type="button"
+                        class="career-option"
+                        :class="{
+                          'career-option--active':
+                            activeCareerCode === career.code,
+                        }"
+                        :aria-pressed="activeCareerCode === career.code"
+                        @click="selectCareer(career)"
+                      >
+                        <span class="career-option__main">
+                          <strong>{{ career.label }}</strong>
+                        </span>
+                        <b class="career-option__score"
+                          >{{ career.match_score }}%</b
+                        >
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    v-if="activeCareerCode"
-                    type="button"
-                    class="career-refresh-button"
-                    data-testid="career-refresh-batch"
-                    :disabled="!canRefreshCareerBatch"
-                    aria-label="换一批职业网站"
-                    @click.stop.prevent="refreshCareerBatch"
+
+                  <RouterLink
+                    class="career-profile-panel__link reveal-child"
+                    style="--reveal-delay: 650ms"
+                    to="/questionnaire"
                   >
-                    <RefreshCw :size="16" aria-hidden="true" />
-                    <span>换一批</span>
-                  </button>
-                </div>
-                <p>
-                  {{
-                    activeCareerCode
-                      ? "网站会按照当前问卷画像和所选职业实时排序。"
-                      : "提交问卷后，这里会展示与职业推荐对应的网站和工具。"
-                  }}
-                </p>
-              </header>
+                    更新问卷
+                  </RouterLink>
+                </template>
 
-              <div
-                v-if="careerStatus === 'idle'"
-                class="career-request-state career-request-state--idle"
-              >
-                <span aria-hidden="true">↗</span>
-                <strong>{{
-                  loggedIn ? "等待问卷推荐" : "登录后查看职业推荐"
-                }}</strong>
-                <p>
-                  {{
-                    loggedIn
-                      ? "提交问卷后，系统会生成你的职业和网站推荐。"
-                      : "登录并提交问卷后，系统会生成你的职业和网站推荐。"
-                  }}
-                </p>
-              </div>
-
-              <div
-                v-else-if="careerStatus === 'loading'"
-                class="career-skeleton-grid"
-                aria-label="正在加载职业推荐"
-              >
-                <article
-                  v-for="index in 16"
-                  :key="index"
-                  class="career-skeleton-card"
+                <template
+                  v-else-if="loggedIn && questionnaireStatus === 'empty'"
                 >
-                  <span></span>
-                  <b></b>
-                  <i></i>
-                </article>
-              </div>
+                  <p
+                    class="career-profile-panel__empty reveal-child reveal-description"
+                    style="--reveal-delay: 180ms"
+                  >
+                    提交问卷后，这里会显示动态职业方向和匹配原因。
+                  </p>
+                  <RouterLink
+                    class="career-profile-panel__action reveal-child"
+                    style="--reveal-delay: 230ms"
+                    to="/questionnaire"
+                  >
+                    去完成问卷
+                  </RouterLink>
+                </template>
 
-              <div
-                v-else-if="careerStatus === 'error'"
-                class="career-request-state career-request-state--error"
-                role="alert"
-              >
-                <strong>职业推荐加载失败</strong>
-                <p>{{ sitesError }}</p>
-                <button type="button" @click="retryCareerSites">
-                  重新加载
+                <template
+                  v-else-if="loggedIn && questionnaireStatus === 'error'"
+                >
+                  <p
+                    class="career-profile-panel__empty reveal-child reveal-description"
+                    style="--reveal-delay: 180ms"
+                  >
+                    暂时无法确认问卷状态，请稍后重试。
+                  </p>
+                  <button
+                    type="button"
+                    class="career-profile-panel__action reveal-child"
+                    style="--reveal-delay: 230ms"
+                    @click="retryCareerSites"
+                  >
+                    重新加载
+                  </button>
+                </template>
+
+                <p
+                  v-else-if="loggedIn"
+                  class="career-profile-panel__empty career-profile-panel__empty--loading reveal-child reveal-description"
+                  style="--reveal-delay: 180ms"
+                >
+                  正在检查问卷状态…
+                </p>
+
+                <button
+                  v-else
+                  type="button"
+                  class="career-profile-panel__action reveal-child"
+                  style="--reveal-delay: 230ms"
+                  @click="goToAiAssistantLogin"
+                >
+                  登录后开始问卷
                 </button>
-              </div>
+              </section>
 
-              <EmptyState
-                v-else-if="careerStatus === 'empty'"
-                title="暂无匹配的网站工具"
-                description="问卷已完成，但当前资源库还没有与推荐职业关联的网站。"
-              />
+              <div class="career-results" aria-live="polite">
+                <header class="career-results__heading">
+                  <span
+                    class="eyebrow reveal-child"
+                    style="--reveal-delay: 40ms"
+                    >职业推荐</span
+                  >
+                  <div class="career-results__title-row">
+                    <div>
+                      <AnimatedPageTitle
+                        v-if="activeCareerCode"
+                        class="reveal-child reveal-title"
+                        style="--reveal-delay: 100ms"
+                        as="h2"
+                        :animation="false"
+                      >
+                        适合「{{ selectedOccupationLabel }}」的网站工具
+                      </AnimatedPageTitle>
+                      <AnimatedPageTitle
+                        v-else
+                        class="reveal-child reveal-title"
+                        style="--reveal-delay: 100ms"
+                        as="h2"
+                        :animation="false"
+                      >
+                        完成问卷后发现更合适的网站工具
+                      </AnimatedPageTitle>
+                    </div>
+                    <button
+                      v-if="activeCareerCode"
+                      type="button"
+                      class="career-refresh-button reveal-child"
+                      style="--reveal-delay: 680ms"
+                      data-testid="career-refresh-batch"
+                      :disabled="!canRefreshCareerBatch"
+                      aria-label="换一批职业网站"
+                      @click.stop.prevent="refreshCareerBatch"
+                    >
+                      <RefreshCw :size="16" aria-hidden="true" />
+                      <span>换一批</span>
+                    </button>
+                  </div>
+                  <p
+                    class="reveal-child reveal-description"
+                    style="--reveal-delay: 170ms"
+                  >
+                    {{
+                      activeCareerCode
+                        ? "网站会按照当前问卷画像和所选职业实时排序。"
+                        : "提交问卷后，这里会展示与职业推荐对应的网站和工具。"
+                    }}
+                  </p>
+                </header>
 
-              <div v-else-if="careerStatus === 'success'">
-                <div class="career-site-grid" data-testid="career-site-batch">
-                  <SiteCard
-                    v-for="site in visibleCareerSites"
-                    :key="`${activeCareerCode}-${activeCareerBatchIndex}-${site.id || normalizeUrl(site.url) || site.name}`"
-                    :site="site"
-                    variant="career"
-                    :show-reason="true"
-                    @visit="visitSite"
-                  />
+                <div
+                  v-if="careerStatus === 'idle'"
+                  class="career-request-state career-request-state--idle reveal-child reveal-description"
+                  style="--reveal-delay: 240ms"
+                >
+                  <span aria-hidden="true">↗</span>
+                  <strong>{{
+                    loggedIn ? "等待问卷推荐" : "登录后查看职业推荐"
+                  }}</strong>
+                  <p>
+                    {{
+                      loggedIn
+                        ? "提交问卷后，系统会生成你的职业和网站推荐。"
+                        : "登录并提交问卷后，系统会生成你的职业和网站推荐。"
+                    }}
+                  </p>
                 </div>
 
                 <div
-                  class="ai-login-prompt"
-                  :class="{ 'ai-login-prompt--authenticated': loggedIn }"
+                  v-else-if="careerStatus === 'loading'"
+                  class="career-skeleton-grid"
+                  aria-label="正在加载职业推荐"
                 >
-                  <div class="ai-login-prompt__content">
-                    <p class="ai-login-prompt__title">
-                      {{
-                        loggedIn
-                          ? "还没有找到合适的网站？"
-                          : "没有找到合适的网站？"
-                      }}
-                    </p>
-                    <p class="ai-login-prompt__description">
-                      {{
-                        loggedIn
-                          ? "告诉知航AI你想完成什么，让它从平台已收录的网站中帮你筛选。"
-                          : "登录后描述你的具体需求，知航AI将为你推荐更适合的网站。"
-                      }}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    class="ai-login-prompt__button"
-                    @click="handleAiAssistantEntry"
+                  <article
+                    v-for="index in visibleCareerSiteCount"
+                    :key="index"
+                    class="career-skeleton-card reveal-child reveal-card"
+                    :style="revealCardStyle(index - 1, 240)"
                   >
-                    {{ loggedIn ? "询问知航AI助手" : "登录并使用知航AI助手" }}
+                    <span></span>
+                    <b></b>
+                    <i></i>
+                  </article>
+                </div>
+
+                <div
+                  v-else-if="careerStatus === 'error'"
+                  class="career-request-state career-request-state--error reveal-child reveal-description"
+                  style="--reveal-delay: 240ms"
+                  role="alert"
+                >
+                  <strong>职业推荐加载失败</strong>
+                  <p>{{ sitesError }}</p>
+                  <button type="button" @click="retryCareerSites">
+                    重新加载
                   </button>
+                </div>
+
+                <EmptyState
+                  v-else-if="careerStatus === 'empty'"
+                  class="reveal-child reveal-description"
+                  style="--reveal-delay: 240ms"
+                  title="暂无匹配的网站工具"
+                  description="问卷已完成，但当前资源库还没有与推荐职业关联的网站。"
+                />
+
+                <div v-else-if="careerStatus === 'success'">
+                  <div
+                    ref="careerRightGridRef"
+                    class="career-site-grid"
+                    data-testid="career-site-batch"
+                  >
+                    <SiteCard
+                      v-for="site in visibleCareerSites"
+                      :key="`${activeCareerCode}-${activeCareerBatchIndex}-${site.id || normalizeUrl(site.url) || site.name}`"
+                      class="reveal-child reveal-card"
+                      :class="{ 'card-refresh-item': careerBatchHasChanged }"
+                      :style="
+                        revealCardStyle(visibleCareerSites.indexOf(site), 240)
+                      "
+                      :site="site"
+                      variant="career"
+                      :show-reason="true"
+                      @visit="visitSite"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+
+            <div
+              v-if="careerStatus === 'success'"
+              class="ai-login-prompt career-section-cta reveal-child"
+              style="--reveal-delay: 720ms"
+              :class="{ 'ai-login-prompt--authenticated': loggedIn }"
+            >
+              <div class="ai-login-prompt__content">
+                <p class="ai-login-prompt__title">
+                  {{
+                    loggedIn ? "还没有找到合适的网站？" : "没有找到合适的网站？"
+                  }}
+                </p>
+                <p class="ai-login-prompt__description">
+                  {{
+                    loggedIn
+                      ? "告诉知航AI你想完成什么，让它从平台已收录的网站中帮你筛选。"
+                      : "登录后描述你的具体需求，知航AI将为你推荐更适合的网站。"
+                  }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="ai-login-prompt__button"
+                @click="handleAiAssistantEntry"
+              >
+                {{ loggedIn ? "询问知航AI助手" : "登录并使用知航AI助手" }}
+              </button>
+            </div>
+          </template>
         </section>
 
         <section
+          v-reveal-section
+          id="recommend-tools"
+          class="home-screen popular-screen home-anchor-section"
+          data-testid="featured-recommendations"
+        >
+          <RecommendSection :sites="featuredRecommendationSites" />
+          <ToolMarquee
+            v-if="!isCategoryScreenActive"
+            data-testid="popular-sites-marquee"
+            :sites="marqueeSites"
+            @visit="visitSite"
+          />
+        </section>
+
+        <section
+          v-reveal-section
           id="tools"
-          class="home-anchor-section reveal-on-scroll"
+          ref="categoryScreenRef"
+          class="home-screen category-screen home-anchor-section"
           data-testid="popular-categories"
         >
           <CategorySection
@@ -291,18 +384,14 @@
         </section>
 
         <section
-          id="recommend-tools"
-          class="home-anchor-section reveal-on-scroll"
-          data-testid="featured-recommendations"
-        >
-          <RecommendSection :sites="featuredRecommendationSites" />
-        </section>
-
-        <section
+          v-if="commonToolsCandidatePool.length"
+          v-reveal-section
           id="favorite-stack"
-          class="home-anchor-section reveal-on-scroll"
+          ref="commonToolsSectionRef"
+          class="home-screen favorite-screen home-anchor-section"
+          data-testid="common-tools-recommendations"
         >
-          <FavoriteStack :sites="favoriteStackSites" @visit="visitSite" />
+          <FavoriteStack :sites="currentCommonTools" @visit="visitSite" />
         </section>
       </div>
     </main>
@@ -324,19 +413,19 @@ import {
 } from "vue";
 import { RefreshCw } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
+import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import AiSiteAssistant from "../components/ai/AiSiteAssistant.vue";
 import CategorySection from "../components/home/CategorySection.vue";
 import FavoriteStack from "../components/home/FavoriteStack.vue";
+import GuestCareerRecommendation from "../components/home/GuestCareerRecommendation.vue";
 import HeroSearch from "../components/home/HeroSearch.vue";
 import RecommendSection from "../components/home/RecommendSection.vue";
 import ToolMarquee from "../components/home/ToolMarquee.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import SiteCard from "../components/site/SiteCard.vue";
-import { getCareerWebsites } from "../data/careerWebsites";
 import { featuredWebsites } from "../data/featuredWebsites";
-import { normalizeOccupation } from "../utils/occupation";
 import {
   websiteCatalog,
   websiteCatalogCategories,
@@ -354,11 +443,20 @@ import {
   normalizeWebsiteList,
   normalizeUrl,
   siteAPI,
+  unwrapCareerRecommendationResponse,
   unwrapList,
   unwrapResponse,
 } from "../utils/api";
 import { getAccessToken, isValidAuthToken } from "../utils/auth";
 import { runListRequest } from "../utils/listRequestState.js";
+import {
+  createCommonToolsQueue,
+  dedupeCommonTools,
+  isEligibleCommonTool,
+  takeNextCommonToolsBatch,
+} from "../utils/commonToolsRotation.js";
+import { visitSite as openVisitedSite } from "../utils/siteVisit";
+import { trackImpressions } from "../utils/behaviorTracker";
 import { errorToast, successToast } from "../utils/toast";
 
 const router = useRouter();
@@ -369,13 +467,27 @@ const favoriteStore = useFavoritesStore();
 // 分类接口需要聚合数据库数据；在本地环境的首次查询可能超过默认的 6 秒。
 // 与 API 客户端的默认请求超时保持一致，避免把可用的慢响应误判为加载失败。
 const HOME_RESOURCE_TIMEOUT_MS = 15_000;
-const WEBSITE_CACHE_KEY = "zhihui:website-catalog:v2";
+const WEBSITE_CACHE_KEY = "zhihui:website-catalog:v3";
+const WEBSITE_CACHE_VERSION = 3;
 const WEBSITE_CACHE_TTL_MS = 10 * 60 * 1000;
 const WEBSITE_PAGE_SIZE = 100;
 const CAREER_BATCH_SIZE = 16;
 const CAREER_SITE_POOL_MAX = 48;
 const CAREER_CACHE_NAMESPACE = "zhihui:career-recommendation";
-const CAREER_ALGORITHM_VERSION = "career-v3";
+const CAREER_ALGORITHM_VERSION = "career-v4";
+const HOME_DESKTOP_SCROLL_QUERY = "(min-width: 1024px)";
+const HOME_WHEEL_THRESHOLD = 10;
+const HOME_SCROLL_DURATION_MS = 600;
+const COMMON_TOOLS_BATCH_SIZE = 4;
+const COMMON_TOOLS_ENTER_RATIO = 0.65;
+const HOME_NATIVE_WHEEL_SELECTOR = [
+  '[role="dialog"]',
+  ".modal",
+  ".dropdown",
+  ".engine-menu",
+  ".search-suggestions",
+  ".ai-site-assistant",
+].join(", ");
 const builtinWebsites = normalizeWebsiteList(websiteCatalog);
 const builtinCategories = websiteCatalogCategories;
 const keyword = ref("");
@@ -391,7 +503,12 @@ const recommended = ref([]);
 const hotSites = ref([]);
 const marqueeSites = ref([]);
 const favoriteStackSites = ref([]);
+const shuffledCommonTools = ref([]);
+const commonToolsCursor = ref(0);
+const currentCommonTools = ref([]);
+const commonToolsSectionVisible = ref(false);
 const latestSites = ref([]);
+const isScrollHintVisible = ref(true);
 const loading = ref(false);
 const error = ref("");
 const hotError = ref("");
@@ -401,6 +518,7 @@ const sitesByCareer = ref({});
 const sitesLoading = ref(false);
 const sitesError = ref("");
 const careerBatchIndex = ref(0);
+const careerBatchHasChanged = ref(false);
 const batchIndexByCareer = ref({});
 const questionnaireVersion = ref("");
 const careerAbilityTags = ref([]);
@@ -409,7 +527,18 @@ const questionnaireCompleted = ref(false);
 const questionnaireStatus = ref("idle");
 const careerStatus = ref("idle");
 const careerRecommendations = recommendations;
-const reportedCareerPoolShortages = new Set();
+const homeMainRef = ref(null);
+const categoryScreenRef = ref(null);
+const currentSectionIndex = ref(0);
+const careerLayoutRef = ref(null);
+const careerLeftColumnRef = ref(null);
+const careerRightGridRef = ref(null);
+const commonToolsSectionRef = ref(null);
+const visibleCareerSiteCount = ref(CAREER_BATCH_SIZE);
+
+const commonToolsCandidatePool = computed(() =>
+  buildCommonToolsCandidatePool(),
+);
 
 const featuredRecommendationSites = computed(() => {
   const candidates = [
@@ -437,8 +566,15 @@ const featuredRecommendationSites = computed(() => {
   });
 });
 
+const isCategoryScreenActive = computed(() => {
+  const categoryScreen = categoryScreenRef.value;
+  if (!categoryScreen) return route.hash === "#tools";
+  const categoryIndex = getHomeScreens().indexOf(categoryScreen);
+  return categoryIndex >= 0 && currentSectionIndex.value === categoryIndex;
+});
+
 function getFullCareerBatchCount(sites = []) {
-  return Math.floor(sites.length / CAREER_BATCH_SIZE);
+  return Math.ceil(sites.length / CAREER_BATCH_SIZE);
 }
 
 const activeCareer = computed(
@@ -484,6 +620,7 @@ const activeCareerBatchIndex = computed(() => {
   return Number(careerBatchIndex.value) || 0;
 });
 const visibleCareerSites = computed(() => {
+  const careerCode = activeCareerCode.value;
   const pool = activeCareerSitesPool.value;
   if (!pool.length) return [];
 
@@ -492,8 +629,165 @@ const visibleCareerSites = computed(() => {
   const requestedIndex = Number(activeCareerBatchIndex.value) || 0;
   const safeIndex = ((requestedIndex % batchCount) + batchCount) % batchCount;
   const start = safeIndex * CAREER_BATCH_SIZE;
-  return pool.slice(start, start + CAREER_BATCH_SIZE);
+  const batchId = `${pool[0]?.recommendation_session_id || pool[0]?.batch_id || "career"}:${careerCode}:${safeIndex}`;
+  const orderedPool = [...pool.slice(start), ...pool.slice(0, start)];
+  return orderedPool.slice(0, visibleCareerSiteCount.value).map((site) => ({
+    ...site,
+    visit_source: "career_recommend",
+    recommendation_batch_id: batchId,
+  }));
 });
+
+let careerLayoutResizeObserver = null;
+let careerLayoutFrame = 0;
+let careerLayoutMeasureToken = 0;
+let lastCareerResponsiveLimit = 0;
+
+function getCareerResponsiveSiteLimit() {
+  if (typeof window === "undefined") return CAREER_BATCH_SIZE;
+  if (window.innerWidth < 768) return 8;
+  if (window.innerWidth < 1024) return 16;
+
+  const viewportHeight = window.innerHeight;
+  if (window.innerWidth < 1200) {
+    if (viewportHeight >= 1180) return 12;
+    if (viewportHeight >= 980) return 9;
+    return 6;
+  }
+
+  if (viewportHeight >= 1180) return 16;
+  if (viewportHeight >= 980) return 12;
+  return 8;
+}
+
+function getCareerGridColumnCount() {
+  const grid = careerRightGridRef.value;
+  if (!grid || typeof window === "undefined") return 1;
+  const columns = window
+    .getComputedStyle(grid)
+    .gridTemplateColumns.split(" ")
+    .filter(Boolean).length;
+  return Math.max(1, columns);
+}
+
+async function measureAndFillCareerSites() {
+  const token = ++careerLayoutMeasureToken;
+  const total = activeCareerSitesPool.value.length;
+  if (careerStatus.value !== "success" || !total) return;
+  await nextTick();
+  if (token !== careerLayoutMeasureToken) return;
+
+  const left = careerLeftColumnRef.value;
+  const grid = careerRightGridRef.value;
+  if (!left || !grid) return;
+
+  const maximum = Math.min(total, getCareerResponsiveSiteLimit());
+  const leftTargetHeight = left.getBoundingClientRect().height * 0.85;
+  const rightHeight = grid.getBoundingClientRect().height;
+  if (
+    rightHeight >= leftTargetHeight ||
+    visibleCareerSiteCount.value >= maximum
+  )
+    return;
+
+  const columns = getCareerGridColumnCount();
+  const firstCardHeight =
+    grid.firstElementChild?.getBoundingClientRect().height || 0;
+  const rowGap = Number.parseFloat(window.getComputedStyle(grid).rowGap) || 0;
+  const rowHeight = Math.max(1, firstCardHeight + rowGap);
+  const missingRows = Math.max(
+    1,
+    Math.ceil((leftTargetHeight - rightHeight) / rowHeight),
+  );
+  visibleCareerSiteCount.value = Math.min(
+    maximum,
+    visibleCareerSiteCount.value + missingRows * columns,
+  );
+}
+
+function scheduleCareerLayoutMeasurement({ reset = false } = {}) {
+  const responsiveLimit = getCareerResponsiveSiteLimit();
+  const breakpointChanged = responsiveLimit !== lastCareerResponsiveLimit;
+  lastCareerResponsiveLimit = responsiveLimit;
+  if (reset || breakpointChanged) {
+    visibleCareerSiteCount.value = Math.min(
+      CAREER_BATCH_SIZE,
+      responsiveLimit,
+      activeCareerSitesPool.value.length,
+    );
+  } else if (visibleCareerSiteCount.value > responsiveLimit) {
+    visibleCareerSiteCount.value = responsiveLimit;
+  }
+  if (typeof window === "undefined") return;
+  window.cancelAnimationFrame(careerLayoutFrame);
+  careerLayoutFrame = window.requestAnimationFrame(() => {
+    void measureAndFillCareerSites();
+  });
+}
+
+function observeCareerLayout() {
+  careerLayoutResizeObserver?.disconnect();
+  if (typeof ResizeObserver === "undefined") return;
+  careerLayoutResizeObserver = new ResizeObserver(() => {
+    scheduleCareerLayoutMeasurement();
+  });
+  if (careerLayoutRef.value)
+    careerLayoutResizeObserver.observe(careerLayoutRef.value);
+  if (careerLeftColumnRef.value)
+    careerLayoutResizeObserver.observe(careerLeftColumnRef.value);
+  if (careerRightGridRef.value)
+    careerLayoutResizeObserver.observe(careerRightGridRef.value);
+}
+
+watch(
+  [
+    activeCareerCode,
+    activeCareerBatchIndex,
+    activeCareerSitesPool,
+    careerStatus,
+  ],
+  async () => {
+    await nextTick();
+    observeCareerLayout();
+    scheduleCareerLayoutMeasurement({ reset: true });
+  },
+  { flush: "post" },
+);
+
+let lastImpressionBatchKey = "";
+watch(
+  [visibleCareerSites, activeCareerCode, activeCareerBatchIndex],
+  async ([sites, careerCode, batchIndex]) => {
+    if (
+      !loggedIn.value ||
+      !careerCode ||
+      !Array.isArray(sites) ||
+      !sites.length
+    )
+      return;
+    const first = sites[0] || {};
+    const session =
+      first.recommendation_session_id || first.batch_id || "career";
+    const batchId = `${session}:${careerCode}:${Number(batchIndex) || 0}`;
+    if (batchId === lastImpressionBatchKey) return;
+    lastImpressionBatchKey = batchId;
+    await nextTick();
+    void trackImpressions(sites, {
+      source: "personalized_recommendation",
+      recommendation_batch_id: batchId,
+      questionnaire_version: first.questionnaire_version,
+      profile_version: first.profile_version,
+      profile_schema_version:
+        first.profile_schema_version || first.profile_version,
+      metadata: {
+        display_batch_index: Number(batchIndex) || 0,
+        candidate_pool_id: first.candidate_pool_id,
+        surface: "home_career",
+      },
+    });
+  },
+  { deep: false },
+);
 let previousWatchedCareerCode = "";
 watch(
   activeCareerCode,
@@ -532,7 +826,16 @@ const careerAuthIdentity = computed(() => {
   if (!loggedIn.value) return "";
   return getCareerCacheUserId() || "authenticated";
 });
-let revealObserver = null;
+let homeScreenObserver = null;
+let commonToolsObserver = null;
+let observedCommonToolsSection = null;
+let homeScrollLocked = false;
+let homeScrollAnimationFrame = 0;
+let homeSnapRestoreFrame = 0;
+let homeSnapRestoreSecondFrame = 0;
+let homeSectionSyncFrame = 0;
+const observedHomeScreens = new Set();
+const homeScreenIntersectionRatios = new Map();
 let homeRequestController = null;
 let categoryRequestController = null;
 let categoryRequestId = 0;
@@ -717,6 +1020,7 @@ function clearCareerState() {
   questionnaireCompleted.value = false;
   questionnaireStatus.value = "idle";
   careerStatus.value = "idle";
+  lastImpressionBatchKey = "";
 }
 
 let careerInitializationPromise = null;
@@ -759,6 +1063,17 @@ watch(careerAuthIdentity, async (identity, previousIdentity) => {
   await loadFavoriteState();
   await initializeCareerRecommendations();
 });
+
+// A questionnaire submitted from the top-level modal invalidates the career
+// cache and immediately refreshes this page without a hard reload.
+watch(
+  () => userStore.questionnaireRevision,
+  async (revision, previousRevision) => {
+    if (!revision || revision === previousRevision || !loggedIn.value) return;
+    clearCareerCache();
+    await loadCareerRecommendations({ keepExistingData: false });
+  },
+);
 
 const aiKeywords = [
   "AI",
@@ -1274,6 +1589,72 @@ function mergeWebsiteLists(...lists) {
   return [...merged.values()];
 }
 
+function buildCommonToolsCandidatePool() {
+  const runtimeSites = mergeWebsiteLists(
+    flattenCategorySites(categorySitesMap.value),
+    latestSites.value,
+    recommended.value,
+    hotSites.value,
+    favoriteStackSites.value,
+  );
+  const runtimeByKey = new Map(
+    runtimeSites
+      .map((site) => [normalizeSiteKey(site), site])
+      .filter(([key]) => key),
+  );
+
+  const catalogSites = builtinWebsites.map((catalogSite) => {
+    const key = normalizeSiteKey(catalogSite);
+    const runtimeSite = runtimeByKey.get(key);
+    if (!runtimeSite) return catalogSite;
+    const description =
+      runtimeSite.shortDescription ||
+      runtimeSite.summary ||
+      catalogSite.shortDescription ||
+      catalogSite.summary ||
+      "";
+    return normalizeWebsite({
+      ...catalogSite,
+      ...runtimeSite,
+      summary: description,
+      shortDescription: description,
+      category_id: catalogSite.category_id,
+      category_name: catalogSite.category_name,
+      logo_url: runtimeSite.logo_url || catalogSite.logo_url,
+    });
+  });
+
+  return dedupeCommonTools(catalogSites).filter(isEligibleCommonTool);
+}
+
+function resetCommonToolsQueue(candidates) {
+  shuffledCommonTools.value = createCommonToolsQueue(
+    candidates,
+    currentCommonTools.value,
+  );
+  commonToolsCursor.value = 0;
+  if (!candidates.length) currentCommonTools.value = [];
+}
+
+function showNextCommonToolsBatch() {
+  const next = takeNextCommonToolsBatch({
+    candidates: commonToolsCandidatePool.value,
+    shuffled: shuffledCommonTools.value,
+    cursor: commonToolsCursor.value,
+    previousBatch: currentCommonTools.value,
+    batchSize: COMMON_TOOLS_BATCH_SIZE,
+  });
+  shuffledCommonTools.value = next.shuffled;
+  commonToolsCursor.value = next.cursor;
+  currentCommonTools.value = next.batch;
+}
+
+watch(
+  commonToolsCandidatePool,
+  (candidates) => resetCommonToolsQueue(candidates),
+  { immediate: true },
+);
+
 function mergeCategoryLists(...lists) {
   const merged = new Map();
   lists.flatMap(normalizeList).forEach((category) => {
@@ -1340,7 +1721,7 @@ function readWebsiteCache() {
     const parsed = raw ? JSON.parse(raw) : null;
     if (
       !parsed ||
-      parsed.version !== 2 ||
+      parsed.version !== WEBSITE_CACHE_VERSION ||
       !Array.isArray(parsed.websites) ||
       Date.now() - Number(parsed.timestamp || 0) > WEBSITE_CACHE_TTL_MS
     ) {
@@ -1358,7 +1739,7 @@ function writeWebsiteCache(websites) {
     window.localStorage.setItem(
       WEBSITE_CACHE_KEY,
       JSON.stringify({
-        version: 2,
+        version: WEBSITE_CACHE_VERSION,
         timestamp: Date.now(),
         websites: mergeWebsiteLists(websites),
       }),
@@ -1785,6 +2166,7 @@ function getHomeSiteCollections() {
     hotSites.value,
     marqueeSites.value,
     favoriteStackSites.value,
+    currentCommonTools.value,
     latestSites.value,
     ...Object.values(categorySitesMap.value),
   ];
@@ -1835,20 +2217,29 @@ async function loadFavoriteState() {
   syncAllFavoriteFlags();
 }
 
-async function visitSite(site) {
+function visitSite(site) {
   const url = normalizeUrl(site?.url);
   if (url) {
-    window.open(url, "_blank", "noopener,noreferrer");
+    openVisitedSite(
+      { ...site, url },
+      {
+        source:
+          site?.visit_source ||
+          (site?.recommend_reason ? "career_recommend" : "home_recommend"),
+      },
+    );
   } else if (site?.id) {
     router.push(`/site/${site.id}`);
   }
-  try {
-    if (site?.id) {
-      await siteAPI.recordClick(site.id);
-    }
-  } catch {
-    // Click logging should never block opening the website.
-  }
+}
+
+function visitGuestCareerSite(site, event) {
+  const url = normalizeUrl(site?.url);
+  if (!url) return;
+  openVisitedSite(
+    { ...site, url, external_only: true },
+    { source: "guest_career_preview", event },
+  );
 }
 
 async function requestHotSites({
@@ -1897,25 +2288,12 @@ function getCareerCode(career = {}) {
   ).trim();
 }
 
-function getCanonicalCareerCode(careerCode) {
-  return normalizeOccupation(careerCode) || String(careerCode || "").trim();
-}
-
 function ensureCareerSitePool(careerCode, sites = []) {
   const normalizedSites = normalizeCareerSiteList(sites);
-  if (normalizedSites.length >= CAREER_SITE_POOL_MAX) {
-    return syncFavoriteFlags(normalizedSites);
-  }
-
-  const canonicalCareerCode = getCanonicalCareerCode(careerCode);
-  const fallbackSites = normalizeCareerSiteList(
-    getCareerWebsites(canonicalCareerCode),
-  );
-  const candidates = [...normalizedSites, ...fallbackSites];
   const uniqueSites = [];
   const seenKeys = new Set();
 
-  for (const site of candidates) {
+  for (const site of normalizedSites) {
     const key = normalizeSiteKey(site) || `name:${site.name}`;
     if (seenKeys.has(key)) continue;
     seenKeys.add(key);
@@ -1928,16 +2306,11 @@ function ensureCareerSitePool(careerCode, sites = []) {
     if (uniqueSites.length >= CAREER_SITE_POOL_MAX) break;
   }
 
-  if (
-    uniqueSites.length < CAREER_BATCH_SIZE &&
-    !reportedCareerPoolShortages.has(careerCode)
-  ) {
-    reportedCareerPoolShortages.add(careerCode);
-    console.warn("[career] site pool below 16", {
+  if (import.meta.env.DEV && uniqueSites.length < CAREER_BATCH_SIZE) {
+    console.debug("[recommendation] candidate pool is shorter than one batch", {
       careerCode,
-      canonicalCareerCode,
-      available: uniqueSites.length,
-      required: CAREER_BATCH_SIZE,
+      candidate_pool_size: uniqueSites.length,
+      batch_size: CAREER_BATCH_SIZE,
     });
   }
 
@@ -1945,47 +2318,10 @@ function ensureCareerSitePool(careerCode, sites = []) {
 }
 
 function mergeCareerSites(careerCode, apiSites = []) {
-  const canonicalCareerCode = getCanonicalCareerCode(careerCode);
-  const preferredSites = normalizeCareerSiteList(
-    getCareerWebsites(canonicalCareerCode),
-  );
   const apiSiteList = normalizeCareerSiteList(apiSites);
-  const preferredByKey = new Map(
-    preferredSites.map((site) => [normalizeSiteKey(site), site]),
-  );
-  const candidates = preferredSites.map((site) => {
-    const apiSite = apiSiteList.find(
-      (item) => normalizeSiteKey(item) === normalizeSiteKey(site),
-    );
-    return apiSite
-      ? normalizeCareerSite({
-          ...site,
-          ...apiSite,
-          careerCodes: [careerCode],
-        })
-      : site;
-  });
-  candidates.push(
-    ...apiSiteList.filter(
-      (site) => !preferredByKey.has(normalizeSiteKey(site)),
-    ),
-  );
-
-  const uniqueSites = [];
-  const seenKeys = new Set();
-  for (const site of candidates) {
-    const key = normalizeSiteKey(site) || `name:${site.name}`;
-    if (seenKeys.has(key)) continue;
-    seenKeys.add(key);
-    uniqueSites.push(
-      normalizeCareerSite({
-        ...site,
-        careerCodes: site.careerCodes?.length ? site.careerCodes : [careerCode],
-      }),
-    );
-    if (uniqueSites.length >= CAREER_SITE_POOL_MAX) break;
-  }
-  return ensureCareerSitePool(careerCode, uniqueSites);
+  // Personalised recommendation cards must always be sourced from the API's
+  // database-backed candidate pool.  The backend owns all fallback stages.
+  return ensureCareerSitePool(careerCode, apiSiteList);
 }
 
 function refreshCareerBatch(event) {
@@ -1994,6 +2330,7 @@ function refreshCareerBatch(event) {
 
   const careerCode = activeCareerCode.value;
   if (!careerCode || !canRefreshCareerBatch.value) return;
+  careerBatchHasChanged.value = true;
   if (careerBatchCount.value <= 1) {
     careerBatchIndex.value = 0;
     batchIndexByCareer.value = {
@@ -2010,6 +2347,14 @@ function refreshCareerBatch(event) {
     [careerCode]: nextIndex,
   };
   persistCareerCache();
+}
+
+function revealCardStyle(index, startDelay = 230) {
+  const normalizedIndex = Math.max(Number(index) || 0, 0);
+  return {
+    "--reveal-delay": `${startDelay + Math.min(normalizedIndex * 35, 350)}ms`,
+    "--refresh-delay": `${Math.min(normalizedIndex * 22, 220)}ms`,
+  };
 }
 
 function normalizeRecommendations(payload = {}) {
@@ -2094,7 +2439,7 @@ async function loadCareerRecommendations({ keepExistingData = false } = {}) {
   try {
     const response = await careerAPI.getRecommendations({ timeout: 10000 });
     if (requestId !== latestCareerRequestId) return;
-    const payload = unwrapResponse(response) || {};
+    const payload = unwrapCareerRecommendationResponse(response);
     const normalized = normalizeRecommendations(payload);
     const hasQuestionnaireStatus = Object.prototype.hasOwnProperty.call(
       payload,
@@ -2154,6 +2499,49 @@ async function loadCareerRecommendations({ keepExistingData = false } = {}) {
       ? "ready"
       : "empty";
     careerStatus.value = activeSites.value.length ? "success" : "empty";
+    if (import.meta.env.DEV) {
+      const activePool = normalized.sitesByCareer[nextCareerCode] || [];
+      const activeBatchIndex =
+        Number(batchIndexByCareer.value[nextCareerCode]) || 0;
+      console.debug("[recommendation] profile:", {
+        occupation:
+          payload.recommendation_profile?.occupation ||
+          payload.profile?.occupation ||
+          "",
+        career_code:
+          payload.recommendation_profile?.career_code || nextCareerCode,
+        direction: payload.recommendation_profile?.direction || "",
+        primary_need: payload.recommendation_profile?.primary_need || "",
+      });
+      console.debug("[recommendation] API items:", {
+        items: Number(
+          payload.candidate_pool_size ??
+            payload.items?.length ??
+            payload.websites?.length ??
+            0,
+        ),
+        candidate_pool_size: Number(
+          payload.candidate_pool_size ?? activePool.length,
+        ),
+        batch_id: payload.batch_id || "",
+        recommendation_session_id: payload.recommendation_session_id || "",
+        profile_version: payload.profile_version || "",
+        profile_schema_version:
+          payload.profile_schema_version || payload.profile_version || "",
+      });
+      console.debug("[recommendation] candidate pool:", activePool.length);
+      console.debug("[recommendation] batch index:", activeBatchIndex);
+      console.debug(
+        "[recommendation] visible items:",
+        Math.max(
+          0,
+          Math.min(
+            CAREER_BATCH_SIZE,
+            activePool.length - activeBatchIndex * CAREER_BATCH_SIZE,
+          ),
+        ),
+      );
+    }
     persistCareerCache();
   } catch (requestError) {
     if (requestId !== latestCareerRequestId) return;
@@ -2237,8 +2625,6 @@ async function selectCareer(career) {
   sitesLoading.value = false;
   careerStatus.value = activeSites.value.length ? "success" : "empty";
   persistCareerCache();
-  await nextTick();
-  observeRevealElements();
 }
 
 async function loadMarqueeSites(excludeIds = [], signal) {
@@ -2336,77 +2722,348 @@ async function loadHome() {
   }
 }
 
-function observeRevealElements() {
-  const elements = Array.from(document.querySelectorAll(".reveal-on-scroll"));
-  const reduceMotion = window.matchMedia?.(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
+function getHomeScreens() {
+  if (!homeMainRef.value) return [];
+  return Array.from(homeMainRef.value.querySelectorAll(".home-screen"));
+}
 
-  if (reduceMotion || !("IntersectionObserver" in window)) {
-    elements.forEach((element) => element.classList.add("is-visible"));
+function getHomeHeaderOffset() {
+  if (!homeMainRef.value) return 0;
+  const value = Number.parseFloat(
+    window
+      .getComputedStyle(homeMainRef.value)
+      .getPropertyValue("--home-header-offset"),
+  );
+  return Number.isFinite(value) ? value : 0;
+}
+
+function syncCurrentSectionIndex() {
+  const sections = getHomeScreens();
+  if (!sections.length) {
+    currentSectionIndex.value = 0;
     return;
   }
 
-  if (!revealObserver) {
-    revealObserver = new IntersectionObserver(
+  const anchorTop = window.scrollY <= 10 ? 0 : getHomeHeaderOffset();
+  let closestIndex = 0;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  sections.forEach((section, index) => {
+    const distance = Math.abs(section.getBoundingClientRect().top - anchorTop);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+  currentSectionIndex.value = closestIndex;
+}
+
+function updateCurrentSectionFromIntersections() {
+  const sections = getHomeScreens();
+  let nextIndex = -1;
+  let largestRatio = 0;
+  sections.forEach((section, index) => {
+    const ratio = homeScreenIntersectionRatios.get(section) || 0;
+    if (ratio > largestRatio) {
+      largestRatio = ratio;
+      nextIndex = index;
+    }
+  });
+
+  if (nextIndex >= 0 && largestRatio >= 0.5) {
+    currentSectionIndex.value = nextIndex;
+  }
+}
+
+function observeHomeScreens() {
+  const sections = getHomeScreens();
+  if (!("IntersectionObserver" in window)) {
+    syncCurrentSectionIndex();
+    return;
+  }
+
+  if (!homeScreenObserver) {
+    homeScreenObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-          } else {
-            entry.target.classList.remove("is-visible");
-          }
+          homeScreenIntersectionRatios.set(
+            entry.target,
+            entry.isIntersecting ? entry.intersectionRatio : 0,
+          );
         });
+        updateCurrentSectionFromIntersections();
       },
-      {
-        threshold: 0.16,
-        rootMargin: "0px 0px -40px 0px",
-      },
+      { threshold: [0.5, 0.6, 0.75] },
     );
   }
 
-  elements.forEach((element, index) => {
-    if (element.dataset.revealBound === "1") return;
-    element.style.setProperty(
-      "--reveal-delay",
-      `${Math.min(index * 35, 220)}ms`,
-    );
-    element.dataset.revealBound = "1";
-    revealObserver.observe(element);
+  observedHomeScreens.forEach((section) => {
+    if (sections.includes(section)) return;
+    homeScreenObserver.unobserve(section);
+    observedHomeScreens.delete(section);
+    homeScreenIntersectionRatios.delete(section);
+  });
+
+  sections.forEach((section) => {
+    if (observedHomeScreens.has(section)) return;
+    observedHomeScreens.add(section);
+    homeScreenObserver.observe(section);
   });
 }
 
+function observeCommonToolsSection() {
+  const section = commonToolsSectionRef.value;
+  if (!section) {
+    commonToolsObserver?.disconnect();
+    commonToolsObserver = null;
+    observedCommonToolsSection = null;
+    commonToolsSectionVisible.value = false;
+    return;
+  }
+  if (section === observedCommonToolsSection) return;
+
+  commonToolsObserver?.disconnect();
+  observedCommonToolsSection = section;
+  commonToolsSectionVisible.value = false;
+
+  if (!("IntersectionObserver" in window)) {
+    if (!currentCommonTools.value.length) showNextCommonToolsBatch();
+    return;
+  }
+
+  commonToolsObserver = new IntersectionObserver(
+    ([entry]) => {
+      const isVisible = Boolean(
+        entry?.isIntersecting &&
+        entry.intersectionRatio >= COMMON_TOOLS_ENTER_RATIO,
+      );
+      if (isVisible === commonToolsSectionVisible.value) return;
+      commonToolsSectionVisible.value = isVisible;
+      if (isVisible) showNextCommonToolsBatch();
+    },
+    { threshold: [0, COMMON_TOOLS_ENTER_RATIO] },
+  );
+  commonToolsObserver.observe(section);
+}
+
+function normalizeWheelDelta(event) {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 16;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE)
+    return event.deltaY * window.innerHeight;
+  return event.deltaY;
+}
+
+function isNativeWheelOverlay(target) {
+  return (
+    target instanceof Element && !!target.closest(HOME_NATIVE_WHEEL_SELECTOR)
+  );
+}
+
+function canNestedScrollerConsumeWheel(target, deltaY) {
+  let element =
+    target instanceof HTMLElement ? target : target?.parentElement || null;
+  while (
+    element &&
+    element !== homeMainRef.value &&
+    element !== document.body
+  ) {
+    const style = window.getComputedStyle(element);
+    const scrollable =
+      /(auto|scroll|overlay)/.test(style.overflowY) &&
+      element.scrollHeight > element.clientHeight + 1;
+    if (scrollable) {
+      if (deltaY > 0) {
+        return (
+          element.scrollTop + element.clientHeight < element.scrollHeight - 1
+        );
+      }
+      return element.scrollTop > 1;
+    }
+    element = element.parentElement;
+  }
+  return false;
+}
+
+function easeInOutCubic(progress) {
+  return progress < 0.5
+    ? 4 * progress * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+}
+
+function cancelHomePageScroll() {
+  window.cancelAnimationFrame(homeScrollAnimationFrame);
+  window.cancelAnimationFrame(homeSnapRestoreFrame);
+  window.cancelAnimationFrame(homeSnapRestoreSecondFrame);
+  homeScrollAnimationFrame = 0;
+  homeSnapRestoreFrame = 0;
+  homeSnapRestoreSecondFrame = 0;
+  document.documentElement.classList.remove("home-page-scrolling");
+  homeScrollLocked = false;
+}
+
+function finishHomePageScroll(targetIndex, targetY) {
+  homeScrollAnimationFrame = 0;
+  window.scrollTo(0, targetY);
+  currentSectionIndex.value = targetIndex;
+
+  // Let the exact final scroll position paint before restoring mandatory snap.
+  homeSnapRestoreFrame = window.requestAnimationFrame(() => {
+    homeSnapRestoreFrame = 0;
+    homeSnapRestoreSecondFrame = window.requestAnimationFrame(() => {
+      homeSnapRestoreSecondFrame = 0;
+      document.documentElement.classList.remove("home-page-scrolling");
+      homeScrollLocked = false;
+      syncCurrentSectionIndex();
+    });
+  });
+}
+
+function animateHomePageScroll(targetSection, targetIndex) {
+  homeScrollLocked = true;
+  document.documentElement.classList.add("home-page-scrolling");
+
+  const startY = window.scrollY;
+  const headerOffset = getHomeHeaderOffset();
+  const documentTargetY =
+    targetSection.getBoundingClientRect().top + startY - headerOffset;
+  const maxScrollY = Math.max(
+    0,
+    document.documentElement.scrollHeight - window.innerHeight,
+  );
+  const targetY = Math.min(maxScrollY, Math.max(0, documentTargetY));
+  const distance = targetY - startY;
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (reducedMotion || Math.abs(distance) < 1) {
+    finishHomePageScroll(targetIndex, targetY);
+    return;
+  }
+
+  const startTime = window.performance.now();
+  const animate = (now) => {
+    const progress = Math.min((now - startTime) / HOME_SCROLL_DURATION_MS, 1);
+    const nextY = startY + distance * easeInOutCubic(progress);
+    window.scrollTo(0, nextY);
+
+    if (progress < 1) {
+      homeScrollAnimationFrame = window.requestAnimationFrame(animate);
+      return;
+    }
+
+    finishHomePageScroll(targetIndex, targetY);
+  };
+
+  homeScrollAnimationFrame = window.requestAnimationFrame(animate);
+}
+
+function handleHomeWheel(event) {
+  if (!window.matchMedia(HOME_DESKTOP_SCROLL_QUERY).matches) return;
+  if (event.defaultPrevented || event.ctrlKey || event.shiftKey) return;
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+
+  const deltaY = normalizeWheelDelta(event);
+  if (isNativeWheelOverlay(event.target)) return;
+
+  if (homeScrollLocked) {
+    event.preventDefault();
+    return;
+  }
+
+  if (canNestedScrollerConsumeWheel(event.target, deltaY)) return;
+
+  event.preventDefault();
+  if (Math.abs(deltaY) < HOME_WHEEL_THRESHOLD) return;
+
+  const sections = getHomeScreens();
+  if (!sections.length) return;
+  syncCurrentSectionIndex();
+  const direction = deltaY > 0 ? 1 : -1;
+  const nextIndex = Math.min(
+    sections.length - 1,
+    Math.max(0, currentSectionIndex.value + direction),
+  );
+  if (nextIndex === currentSectionIndex.value) return;
+
+  animateHomePageScroll(sections[nextIndex], nextIndex);
+}
+
+function scheduleHomeSectionSync() {
+  window.cancelAnimationFrame(homeSectionSyncFrame);
+  homeSectionSyncFrame = window.requestAnimationFrame(() => {
+    observeHomeScreens();
+    syncCurrentSectionIndex();
+  });
+}
+
+function handleHomeViewportResize() {
+  cancelHomePageScroll();
+  scheduleHomeSectionSync();
+}
+
+function updateScrollHintVisibility() {
+  isScrollHintVisible.value = window.scrollY <= 10;
+}
+
 onMounted(async () => {
+  document.documentElement.classList.add("home-scroll-snap");
+  updateScrollHintVisibility();
+  window.addEventListener("scroll", updateScrollHintVisibility, {
+    passive: true,
+  });
+  window.addEventListener("wheel", handleHomeWheel, { passive: false });
+  window.addEventListener("resize", handleHomeViewportResize, {
+    passive: true,
+  });
   restoreImmediateData();
   restoreCareerCache();
   const careerInitialization = initializeCareerRecommendations();
-  // Initialize scroll-reveal before any remote work.  The local catalog/cache
-  // can already render the category cards while the background requests are
-  // still pending; waiting for those requests would leave #tools at opacity 0.
   await nextTick();
-  observeRevealElements();
+  observeHomeScreens();
+  observeCommonToolsSection();
+  syncCurrentSectionIndex();
 
   await loadHome();
   await loadFavoriteState();
   await careerInitialization;
   if (!careerInitializationIdentity) await initializeCareerRecommendations();
   await nextTick();
-  observeRevealElements();
+  observeHomeScreens();
+  observeCommonToolsSection();
+  syncCurrentSectionIndex();
+  observeCareerLayout();
+  scheduleCareerLayoutMeasurement({ reset: true });
 });
 
 onUpdated(async () => {
   await nextTick();
-  observeRevealElements();
+  observeCommonToolsSection();
+  scheduleHomeSectionSync();
 });
 
 onBeforeUnmount(() => {
+  cancelHomePageScroll();
+  document.documentElement.classList.remove("home-scroll-snap");
+  window.removeEventListener("scroll", updateScrollHintVisibility);
+  window.removeEventListener("wheel", handleHomeWheel);
+  window.removeEventListener("resize", handleHomeViewportResize);
+  window.cancelAnimationFrame(homeSectionSyncFrame);
+  homeScreenObserver?.disconnect();
+  homeScreenObserver = null;
+  commonToolsObserver?.disconnect();
+  commonToolsObserver = null;
+  observedCommonToolsSection = null;
+  observedHomeScreens.clear();
+  homeScreenIntersectionRatios.clear();
   homeRequestController?.abort();
   homeRequestController = null;
   categoryRequestController?.abort();
   categoryRequestController = null;
   categoryRequestId += 1;
-  revealObserver?.disconnect();
-  revealObserver = null;
+  careerLayoutResizeObserver?.disconnect();
+  careerLayoutResizeObserver = null;
+  window.cancelAnimationFrame(careerLayoutFrame);
+  careerLayoutMeasureToken += 1;
 });
 </script>
 
@@ -2417,9 +3074,66 @@ onBeforeUnmount(() => {
 }
 
 .home-main {
+  --home-header-offset: 56px;
+
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
+}
+
+.home-screen {
+  position: relative;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+:global(html.home-scroll-snap) {
+  scroll-behavior: auto;
+  scroll-snap-type: y proximity;
+}
+
+.home-first-screen {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  grid-template-rows: minmax(0, 1fr) auto;
+  box-sizing: border-box;
+  padding: 96px 0 28px;
+}
+
+.hero-content {
+  min-width: 0;
+  min-height: 0;
+}
+
+.home-scroll-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  opacity: 1;
+  text-align: center;
+  visibility: visible;
+  transition:
+    opacity 250ms ease,
+    visibility 0s linear;
+}
+
+.home-scroll-hint--hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition-delay: 0ms, 250ms;
+}
+
+.home-scroll-hint span {
+  font-size: 16px;
+  line-height: 1;
 }
 
 .home-state {
@@ -2429,6 +3143,7 @@ onBeforeUnmount(() => {
 
 .career-recommendation-section {
   padding: 42px 0 38px;
+  background: var(--app-page-bg);
 }
 
 .career-recommendation-layout {
@@ -2444,11 +3159,12 @@ onBeforeUnmount(() => {
   display: grid;
   min-width: 0;
   gap: 18px;
-  border: 1px solid #e6e8ec;
+  border: 1px solid var(--app-border);
   border-radius: 24px;
-  background: #ffffff;
+  background: var(--app-card-bg);
+  backdrop-filter: blur(var(--app-blur));
   padding: 24px;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.07);
+  box-shadow: var(--app-card-shadow);
 }
 
 .career-profile-panel__header {
@@ -2501,62 +3217,81 @@ onBeforeUnmount(() => {
   font-weight: 750;
 }
 
+.career-selection {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.career-selection h3 {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .career-options {
   display: grid;
-  gap: 9px;
+  min-height: 0;
+  align-content: start;
+  gap: 8px;
 }
 
 .career-option {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 5px 10px;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   border: 1px solid #e3e6ea;
   border-radius: 14px;
-  background: #ffffff;
-  padding: 12px;
+  background: var(--app-card-bg);
+  padding: 10px 12px;
   color: var(--color-heading);
   text-align: left;
   cursor: pointer;
   font: inherit;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .career-option:hover,
-.career-option:focus-visible,
-.career-option--active {
-  border-color: var(--color-primary);
-  background: var(--color-soft-orange);
+.career-option:focus-visible {
+  border-color: rgba(17, 24, 39, 0.35);
+  background: var(--app-card-hover-bg);
+}
+
+.career-option:focus-visible {
+  outline: 2px solid rgba(17, 24, 39, 0.18);
+  outline-offset: 2px;
+}
+
+.career-option.career-option--active,
+.career-option.career-option--active:hover,
+.career-option.career-option--active:focus-visible {
+  border-color: #111827;
+  background: var(--app-card-bg);
+  box-shadow: inset 0 0 0 1px #111827;
   outline: none;
 }
 
 .career-option__main {
-  display: grid;
-  gap: 3px;
   min-width: 0;
 }
 
 .career-option__main strong {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.career-option__main small {
-  color: var(--color-muted);
 }
 
 .career-option__score {
   color: var(--color-primary-dark);
-  white-space: nowrap;
-}
-
-.career-option__reason {
-  grid-column: 1 / -1;
-  overflow: hidden;
-  color: var(--color-text);
-  font-size: 12px;
-  line-height: 1.5;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -2665,12 +3400,16 @@ onBeforeUnmount(() => {
 .career-site-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: auto;
   align-items: stretch;
   gap: 20px;
 }
 
 .career-site-grid :deep(.site-card-reveal) {
   height: 100%;
+}
+
+.career-site-grid :deep(.site-card-reveal:not(.reveal-child)) {
   opacity: 1;
   visibility: visible;
   transform: none;
@@ -2686,7 +3425,7 @@ onBeforeUnmount(() => {
   gap: 10px;
   border: 1px dashed var(--color-border);
   border-radius: 22px;
-  background: #ffffff;
+  background: var(--app-card-bg);
   padding: 30px;
   color: var(--color-text);
   text-align: center;
@@ -2728,7 +3467,7 @@ onBeforeUnmount(() => {
   gap: 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--app-card-bg);
   padding: 20px;
 }
 
@@ -2769,10 +3508,18 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 24px;
   margin: 28px 0 0;
-  border: 1px solid rgba(255, 112, 88, 0.18);
+  border: 1px solid var(--app-card-border);
   border-radius: 16px;
-  background: var(--color-soft-orange);
+  background: var(--app-card-bg);
+  box-shadow: var(--app-card-shadow);
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
   padding: 20px 24px;
+}
+
+.career-section-cta {
+  width: min(var(--container), calc(100% - 40px));
+  margin: 28px auto 0;
 }
 
 .ai-login-prompt__content {
@@ -2781,14 +3528,14 @@ onBeforeUnmount(() => {
 
 .ai-login-prompt__title {
   margin: 0 0 6px;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 16px;
   font-weight: 850;
 }
 
 .ai-login-prompt__description {
   margin: 0;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   line-height: 1.6;
 }
 
@@ -2812,6 +3559,15 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  .home-first-screen {
+    padding: 88px 0 22px;
+  }
+
+  .home-scroll-hint {
+    max-width: calc(100% - 32px);
+    font-size: 12px;
+  }
+
   .home-state {
     width: min(100% - 28px, var(--container));
     margin: 56px auto;
@@ -2858,8 +3614,179 @@ onBeforeUnmount(() => {
     padding: 18px;
   }
 
+  .career-section-cta {
+    width: min(100% - 28px, var(--container));
+  }
+
   .ai-login-prompt__button {
     width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  :global(html.home-scroll-snap) {
+    --home-header-offset: 56px;
+
+    scroll-behavior: auto;
+    scroll-padding-top: var(--home-header-offset);
+    scroll-snap-type: y mandatory;
+  }
+
+  :global(html.home-scroll-snap.home-page-scrolling) {
+    scroll-snap-type: none;
+  }
+
+  .home-screen {
+    min-height: calc(100vh - var(--home-header-offset));
+    min-height: calc(100svh - var(--home-header-offset));
+    box-sizing: border-box;
+    scroll-margin-top: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .hero-screen {
+    min-height: 100vh;
+    min-height: 100svh;
+    scroll-margin-top: 0;
+  }
+
+  .hero-content {
+    transform: translateY(-50px);
+  }
+
+  .career-screen {
+    display: grid;
+    align-content: center;
+    padding: 22px 0 18px;
+  }
+
+  .career-recommendation-layout {
+    max-height: calc(100svh - var(--home-header-offset) - 154px);
+    grid-template-columns: minmax(260px, 28%) minmax(0, 1fr);
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .career-profile-panel,
+  .career-results {
+    max-height: calc(100svh - var(--home-header-offset) - 154px);
+  }
+
+  .career-profile-panel {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .career-selection {
+    min-height: 0;
+    flex: 1 1 auto;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .career-options {
+    max-height: clamp(220px, 39svh, 340px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+    scrollbar-gutter: stable;
+    scrollbar-color: rgba(100, 116, 139, 0.28) transparent;
+    scrollbar-width: thin;
+  }
+
+  .career-options::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .career-options::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .career-options::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(100, 116, 139, 0.24);
+  }
+
+  .career-options:hover::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.4);
+  }
+
+  .career-results {
+    min-height: 0;
+    align-content: start;
+    gap: 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+    scrollbar-gutter: stable;
+  }
+
+  .career-site-grid,
+  .career-skeleton-grid {
+    gap: 16px;
+  }
+
+  .career-section-cta {
+    margin-top: 16px;
+  }
+
+  .popular-screen {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: stretch;
+  }
+
+  .popular-screen :deep(.recommend-section) {
+    align-self: center;
+    padding: 20px 0 24px;
+  }
+
+  .popular-screen :deep(.recommend-heading) {
+    margin-bottom: 18px;
+  }
+
+  .popular-screen :deep(.recommend-grid) {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .popular-screen :deep(.brand-marquee__viewport) {
+    padding: 14px 0;
+  }
+
+  .category-screen {
+    display: grid;
+    height: calc(100vh - var(--home-header-offset));
+    height: calc(100svh - var(--home-header-offset));
+    align-items: center;
+    overflow: hidden;
+    padding: 4px 0 44px;
+  }
+
+  .category-screen :deep(.category-section) {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .favorite-screen {
+    display: grid;
+    place-items: center;
+  }
+
+  .favorite-screen :deep(.favorite-band) {
+    width: 100%;
+    margin-top: 0;
+    padding: 32px 0;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .career-site-grid,
+  .career-skeleton-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

@@ -1,9 +1,12 @@
 import os
 import sys
+import time
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
+
+import pymysql
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -389,6 +392,74 @@ class RegistrationVerificationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 401)
 
+    def test_database_unavailable_returns_503_with_request_id(self):
+        with patch.object(
+            self.app_module,
+            "get_db_connection",
+            side_effect=pymysql.err.OperationalError(2003, "connection refused"),
+        ):
+            response = self.client.post(
+                "/api/auth/login",
+                json={"account": "db-down-user", "password": "secret"},
+                headers={
+                    "Origin": "http://localhost:5173",
+                    "X-Request-ID": "login-db-down-test",
+                },
+            )
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.get_json()["code"], "AUTH_DATABASE_UNAVAILABLE")
+        self.assertEqual(response.headers["X-Request-ID"], "login-db-down-test")
+        self.assertEqual(
+            response.headers.get("Access-Control-Allow-Origin"),
+            "http://localhost:5173",
+        )
+
+    def test_disabled_account_returns_403(self):
+        user = {
+            "id": 1,
+            "username": "disabled-user",
+            "email": "disabled@example.com",
+            "password_hash": "hash",
+            "role": "user",
+            "status": "disabled",
+        }
+        with patch.object(
+            self.app_module,
+            "get_db_connection",
+            return_value=FakeConnection(FakeCursor(fetchone_value=user)),
+        ):
+            response = self.client.post(
+                "/api/auth/login", json={"account": "disabled-user", "password": "secret"}
+            )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.get_json()["code"], "ACCOUNT_DISABLED")
+
+    def test_bcrypt_hash_remains_compatible(self):
+        password_hash = self.app_module.bcrypt.generate_password_hash("secret").decode("utf-8")
+        user = {
+            "id": 1,
+            "username": "bcrypt-user",
+            "email": "bcrypt@example.com",
+            "password_hash": password_hash,
+            "role": "user",
+        }
+        with patch.object(
+            self.app_module,
+            "get_db_connection",
+            return_value=FakeConnection(FakeCursor(fetchone_value=user)),
+        ), patch.object(
+            self.app_module, "create_access_token", return_value="access-token"
+        ), patch.object(
+            self.app_module, "create_refresh_token", return_value="refresh-token"
+        ):
+            response = self.client.post(
+                "/api/auth/login", json={"account": "bcrypt-user", "password": "secret"}
+            )
+
+        self.assertEqual(response.status_code, 200)
+
     def test_successful_login_returns_common_auth_session_data(self):
         user = {
             "id": 1,
@@ -417,6 +488,59 @@ class RegistrationVerificationTests(unittest.TestCase):
         self.assertEqual(data["user_info"]["username"], "alice")
         self.assertEqual(data["user_role"], "user")
         self.assertFalse(data["questionnaire_completed"])
+
+    def test_login_cors_headers_cover_all_local_vite_origins(self):
+        for origin in (
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://[::1]:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://[::1]:5174",
+        ):
+            with self.subTest(origin=origin), patch.object(
+                self.app_module,
+                "get_db_connection",
+                side_effect=pymysql.err.OperationalError(2003, "connection refused"),
+            ):
+                response = self.client.post(
+                    "/api/auth/login",
+                    json={"account": f"cors-{origin}", "password": "secret"},
+                    headers={"Origin": origin},
+                )
+            self.assertEqual(response.status_code, 503)
+            self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), origin)
+
+    def test_thirty_successful_logins_release_every_connection(self):
+        user = {
+            "id": 1,
+            "username": "repeat-user",
+            "email": "repeat@example.com",
+            "password_hash": "hash",
+            "role": "user",
+        }
+        connections = []
+
+        def get_connection():
+            connection = FakeConnection(FakeCursor(fetchone_value=user.copy()))
+            connections.append(connection)
+            return connection
+
+        started = time.perf_counter()
+        with patch.object(self.app_module, "get_db_connection", side_effect=get_connection), patch.object(
+            self.app_module, "check_password_hash", return_value=True
+        ):
+            responses = [
+                self.client.post(
+                    "/api/auth/login", json={"account": "repeat-user", "password": "secret"}
+                )
+                for _ in range(30)
+            ]
+        elapsed = time.perf_counter() - started
+
+        self.assertTrue(all(response.status_code == 200 for response in responses))
+        self.assertTrue(all(connection.closed for connection in connections))
+        self.assertLess(elapsed, 5)
 
     def test_current_user_endpoint_requires_jwt(self):
         response = self.client.get("/api/auth/me")
@@ -450,14 +574,24 @@ class RegistrationVerificationTests(unittest.TestCase):
             access_token = self.app_module.create_access_token(identity="alice")
             refresh_token = self.app_module.create_refresh_token(identity="alice")
 
-        access_response = self.client.post(
-            "/api/auth/refresh",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
-        refresh_response = self.client.post(
-            "/api/auth/refresh",
-            headers={"Authorization": f"Bearer {refresh_token}"},
-        )
+        def session_connection():
+            return FakeConnection(
+                ScriptedCursor(
+                    [{"Field": "session_version"}, {"session_version": 0}]
+                )
+            )
+
+        with patch.object(
+            self.app_module, "get_db_connection", side_effect=session_connection
+        ):
+            access_response = self.client.post(
+                "/api/auth/refresh",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            refresh_response = self.client.post(
+                "/api/auth/refresh",
+                headers={"Authorization": f"Bearer {refresh_token}"},
+            )
 
         self.assertEqual(access_response.status_code, 401)
         self.assertEqual(refresh_response.status_code, 200)

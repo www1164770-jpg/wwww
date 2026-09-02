@@ -7,6 +7,7 @@ import {
   normalizeFavoriteError as normalizeFavoriteErrorMessage,
 } from "../utils/favoriteError";
 import { normalizeSite } from "../utils/normalizeSite";
+import { trackFavorite } from "../utils/behaviorTracker";
 import { useUserStore } from "./user";
 
 export { getFavoriteErrorDetails } from "../utils/favoriteError";
@@ -511,6 +512,13 @@ export const useFavoritesStore = defineStore("favorites", () => {
     try {
       const response = await favoriteAPI.addFavorite(site, note);
       reconcileFavoriteResponse(site, response);
+      void trackFavorite(site, {
+        source: site?.visit_source === "career_recommend" ? "personalized_recommendation" : "favorite",
+        recommendation_batch_id: site?.recommendation_batch_id,
+        questionnaire_version: site?.questionnaire_version,
+        profile_version: site?.profile_version,
+        metadata: { surface: "favorite_toggle" },
+      });
       persistCache(userId);
       return true;
     } catch (requestError) {

@@ -110,6 +110,13 @@ class PhaseFourReviewTests(unittest.TestCase):
             with self.assertRaises(MappingValidationError):
                 build_website_fields(review, category_resolver=lambda _: 7)
 
+    def test_mapping_rejects_unsupported_description_scripts(self):
+        with sqlite_session() as session:
+            review = case(session)
+            review.selected_description = "Google スプレッドシートの説明です。"
+            with self.assertRaises(MappingValidationError):
+                build_website_fields(review, category_resolver=lambda _: 7)
+
 
 class PhaseFourPreviewAndPublishTests(unittest.TestCase):
     def test_preview_classifies_all_duplicate_forms_without_writes(self):

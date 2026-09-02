@@ -1,0 +1,1392 @@
+{
+  "generated_at": "2026-08-13T15:08:18.738034+00:00",
+  "source": "catalog",
+  "write_policy": "review_only_no_database_writes",
+  "counts": {
+    "high": 4,
+    "medium": 70,
+    "needs_review": 64
+  },
+  "candidates": [
+    {
+      "website_id": "catalog-baidu",
+      "name": "百度",
+      "url": "https://www.baidu.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-google",
+      "name": "Google",
+      "url": "https://www.google.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-bing",
+      "name": "Bing",
+      "url": "https://www.bing.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-wikipedia",
+      "name": "Wikipedia",
+      "url": "https://www.wikipedia.org",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-zhihu",
+      "name": "知乎",
+      "url": "https://www.zhihu.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-bilibili",
+      "name": "哔哩哔哩",
+      "url": "https://www.bilibili.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-douban",
+      "name": "豆瓣",
+      "url": "https://www.douban.com",
+      "current_description": "",
+      "suggested_description": "以书籍、电影、音乐评分和兴趣社区为核心的文化内容平台。",
+      "category": "常用推荐",
+      "reason": "reviewed_site_profile",
+      "confidence": "high"
+    },
+    {
+      "website_id": "catalog-weread",
+      "name": "微信读书",
+      "url": "https://weread.qq.com",
+      "current_description": "",
+      "suggested_description": "腾讯推出的数字阅读平台，提供电子书、听书和阅读笔记功能。",
+      "category": "常用推荐",
+      "reason": "reviewed_site_profile",
+      "confidence": "high"
+    },
+    {
+      "website_id": "catalog-sspai",
+      "name": "少数派",
+      "url": "https://sspai.com",
+      "current_description": "",
+      "suggested_description": "关注数字工具、效率方法和科技生活方式的内容社区。",
+      "category": "常用推荐",
+      "reason": "reviewed_site_profile",
+      "confidence": "high"
+    },
+    {
+      "website_id": "catalog-huxiu",
+      "name": "虎嗅",
+      "url": "https://www.huxiu.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-36kr",
+      "name": "36氪",
+      "url": "https://36kr.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "常用推荐",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-tencent-video",
+      "name": "腾讯视频",
+      "url": "https://v.qq.com",
+      "current_description": "",
+      "suggested_description": "腾讯旗下在线视频平台，提供剧集、电影、综艺和纪录片内容。",
+      "category": "常用推荐",
+      "reason": "reviewed_site_profile",
+      "confidence": "high"
+    },
+    {
+      "website_id": "catalog-vue",
+      "name": "Vue.js",
+      "url": "https://vuejs.org",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-react",
+      "name": "React",
+      "url": "https://react.dev",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-angular",
+      "name": "Angular",
+      "url": "https://angular.dev",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-svelte",
+      "name": "Svelte",
+      "url": "https://svelte.dev",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-nuxt",
+      "name": "Nuxt",
+      "url": "https://nuxt.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-nextjs",
+      "name": "Next.js",
+      "url": "https://nextjs.org",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-vite",
+      "name": "Vite",
+      "url": "https://vite.dev",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-webpack",
+      "name": "webpack",
+      "url": "https://webpack.js.org",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-typescript",
+      "name": "TypeScript",
+      "url": "https://www.typescriptlang.org",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-nodejs",
+      "name": "Node.js",
+      "url": "https://nodejs.org/docs/latest/api",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-mdn",
+      "name": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-python",
+      "name": "Python 文档",
+      "url": "https://docs.python.org/3",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "框架文档",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-chatgpt",
+      "name": "ChatGPT",
+      "url": "https://chatgpt.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-claude",
+      "name": "Claude",
+      "url": "https://claude.ai",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-gemini",
+      "name": "Gemini",
+      "url": "https://gemini.google.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-perplexity",
+      "name": "Perplexity",
+      "url": "https://www.perplexity.ai",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-deepseek",
+      "name": "DeepSeek",
+      "url": "https://www.deepseek.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-kimi",
+      "name": "Kimi",
+      "url": "https://kimi.moonshot.cn",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-qwen",
+      "name": "通义千问",
+      "url": "https://tongyi.aliyun.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-doubao",
+      "name": "豆包",
+      "url": "https://www.doubao.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-huggingface",
+      "name": "Hugging Face",
+      "url": "https://huggingface.co",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-midjourney",
+      "name": "Midjourney",
+      "url": "https://www.midjourney.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-runway",
+      "name": "Runway",
+      "url": "https://runwayml.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-cursor",
+      "name": "Cursor",
+      "url": "https://www.cursor.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "AI 工具",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-dribbble",
+      "name": "Dribbble",
+      "url": "https://dribbble.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-behance",
+      "name": "Behance",
+      "url": "https://www.behance.net",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-awwwards",
+      "name": "Awwwards",
+      "url": "https://www.awwwards.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-pinterest",
+      "name": "Pinterest",
+      "url": "https://www.pinterest.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-muzli",
+      "name": "Muzli",
+      "url": "https://muz.li",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-land-book",
+      "name": "Land-book",
+      "url": "https://land-book.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-designspiration",
+      "name": "Designspiration",
+      "url": "https://www.designspiration.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-arena",
+      "name": "Are.na",
+      "url": "https://www.are.na",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-mobbin",
+      "name": "Mobbin",
+      "url": "https://mobbin.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-onepagelove",
+      "name": "One Page Love",
+      "url": "https://onepagelove.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "灵感采集",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-figma",
+      "name": "Figma",
+      "url": "https://www.figma.com",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-sketch",
+      "name": "Sketch",
+      "url": "https://www.sketch.com",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-framer",
+      "name": "Framer",
+      "url": "https://www.framer.com",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-penpot",
+      "name": "Penpot",
+      "url": "https://penpot.app",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-axure",
+      "name": "Axure",
+      "url": "https://www.axure.com",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-mockplus",
+      "name": "摹客",
+      "url": "https://www.mockplus.cn",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-modao",
+      "name": "墨刀",
+      "url": "https://modao.cc",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-protopie",
+      "name": "ProtoPie",
+      "url": "https://www.protopie.io",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-justinmind",
+      "name": "Justinmind",
+      "url": "https://www.justinmind.com",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-whimsical",
+      "name": "Whimsical",
+      "url": "https://whimsical.com",
+      "current_description": "",
+      "suggested_description": "提供设计创作及相关工作辅助功能。",
+      "category": "原型设计",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-github",
+      "name": "GitHub",
+      "url": "https://github.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-gitlab",
+      "name": "GitLab",
+      "url": "https://gitlab.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-gitee",
+      "name": "Gitee",
+      "url": "https://gitee.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-stackoverflow",
+      "name": "Stack Overflow",
+      "url": "https://stackoverflow.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-v2ex",
+      "name": "V2EX",
+      "url": "https://www.v2ex.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-segmentfault",
+      "name": "SegmentFault",
+      "url": "https://segmentfault.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-juejin",
+      "name": "掘金",
+      "url": "https://juejin.cn",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-csdn",
+      "name": "CSDN",
+      "url": "https://www.csdn.net",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-cnblogs",
+      "name": "博客园",
+      "url": "https://www.cnblogs.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-reddit-programming",
+      "name": "Reddit Programming",
+      "url": "https://www.reddit.com/r/programming",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-devto",
+      "name": "DEV Community",
+      "url": "https://dev.to",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-codepen",
+      "name": "CodePen",
+      "url": "https://codepen.io",
+      "current_description": "",
+      "suggested_description": "面向开发者提供编程、文档或协作工具。",
+      "category": "开发社区",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-ant-design",
+      "name": "Ant Design",
+      "url": "https://ant.design",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-element-plus",
+      "name": "Element Plus",
+      "url": "https://element-plus.org",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-naive-ui",
+      "name": "Naive UI",
+      "url": "https://www.naiveui.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-vuetify",
+      "name": "Vuetify",
+      "url": "https://vuetifyjs.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-quasar",
+      "name": "Quasar",
+      "url": "https://quasar.dev",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-bootstrap",
+      "name": "Bootstrap",
+      "url": "https://getbootstrap.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-tailwind",
+      "name": "Tailwind CSS",
+      "url": "https://tailwindcss.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-radix",
+      "name": "Radix UI",
+      "url": "https://www.radix-ui.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-shadcn",
+      "name": "shadcn/ui",
+      "url": "https://ui.shadcn.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-mui",
+      "name": "MUI",
+      "url": "https://mui.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-chakra",
+      "name": "Chakra UI",
+      "url": "https://chakra-ui.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-headless-ui",
+      "name": "Headless UI",
+      "url": "https://headlessui.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "UI 组件库",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-unsplash",
+      "name": "Unsplash",
+      "url": "https://unsplash.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-pexels",
+      "name": "Pexels",
+      "url": "https://www.pexels.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-pixabay",
+      "name": "Pixabay",
+      "url": "https://pixabay.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-iconfont",
+      "name": "Iconfont",
+      "url": "https://www.iconfont.cn",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-icons8",
+      "name": "Icons8",
+      "url": "https://icons8.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-flaticon",
+      "name": "Flaticon",
+      "url": "https://www.flaticon.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-fontawesome",
+      "name": "Font Awesome",
+      "url": "https://fontawesome.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-google-fonts",
+      "name": "Google Fonts",
+      "url": "https://fonts.google.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-dafont",
+      "name": "DaFont",
+      "url": "https://www.dafont.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-coolors",
+      "name": "Coolors",
+      "url": "https://coolors.co",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-carbon",
+      "name": "Carbon",
+      "url": "https://carbon.now.sh",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-undraw",
+      "name": "unDraw",
+      "url": "https://undraw.co/illustrations",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "素材资源",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-notion",
+      "name": "Notion",
+      "url": "https://www.notion.so",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-feishu",
+      "name": "飞书",
+      "url": "https://www.feishu.cn",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-tencent-docs",
+      "name": "腾讯文档",
+      "url": "https://docs.qq.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-shimo",
+      "name": "石墨文档",
+      "url": "https://shimo.im",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-google-docs",
+      "name": "Google Docs",
+      "url": "https://docs.google.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-microsoft-365",
+      "name": "Microsoft 365",
+      "url": "https://www.microsoft.com/microsoft-365",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-airtable",
+      "name": "Airtable",
+      "url": "https://www.airtable.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-trello",
+      "name": "Trello",
+      "url": "https://trello.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-asana",
+      "name": "Asana",
+      "url": "https://asana.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-processon",
+      "name": "ProcessOn",
+      "url": "https://www.processon.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-dropbox",
+      "name": "Dropbox",
+      "url": "https://www.dropbox.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-onedrive",
+      "name": "OneDrive",
+      "url": "https://onedrive.live.com",
+      "current_description": "",
+      "suggested_description": "面向开发者提供技术文档和参考资料。",
+      "category": "文档办公",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-coursera",
+      "name": "Coursera",
+      "url": "https://www.coursera.org",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-edx",
+      "name": "edX",
+      "url": "https://www.edx.org",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-khan",
+      "name": "Khan Academy",
+      "url": "https://www.khanacademy.org",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-icourse163",
+      "name": "中国大学 MOOC",
+      "url": "https://www.icourse163.org",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-xuetangx",
+      "name": "学堂在线",
+      "url": "https://www.xuetangx.com",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-mit-ocw",
+      "name": "MIT OpenCourseWare",
+      "url": "https://ocw.mit.edu",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-freecodecamp",
+      "name": "freeCodeCamp",
+      "url": "https://www.freecodecamp.org",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-codecademy",
+      "name": "Codecademy",
+      "url": "https://www.codecademy.com",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-leetcode",
+      "name": "LeetCode",
+      "url": "https://leetcode.com",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-nowcoder",
+      "name": "牛客网",
+      "url": "https://www.nowcoder.com",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-gutenberg",
+      "name": "Project Gutenberg",
+      "url": "https://www.gutenberg.org",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-ted",
+      "name": "TED",
+      "url": "https://www.ted.com",
+      "current_description": "",
+      "suggested_description": "提供课程、知识内容和学习资源。",
+      "category": "学习资源",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-todoist",
+      "name": "Todoist",
+      "url": "https://todoist.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-ticktick",
+      "name": "滴答清单",
+      "url": "https://dida365.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-pomofocus",
+      "name": "Pomofocus",
+      "url": "https://pomofocus.io",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-forest",
+      "name": "Forest",
+      "url": "https://www.forestapp.cc",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-rescuetime",
+      "name": "RescueTime",
+      "url": "https://www.rescuetime.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-zapier",
+      "name": "Zapier",
+      "url": "https://zapier.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-ifttt",
+      "name": "IFTTT",
+      "url": "https://ifttt.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-calendly",
+      "name": "Calendly",
+      "url": "https://calendly.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-loom",
+      "name": "Loom",
+      "url": "https://www.loom.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-grammarly",
+      "name": "Grammarly",
+      "url": "https://www.grammarly.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-deepl",
+      "name": "DeepL",
+      "url": "https://www.deepl.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-ilovepdf",
+      "name": "iLovePDF",
+      "url": "https://www.ilovepdf.com",
+      "current_description": "",
+      "suggested_description": "用于任务管理、协作或个人效率提升。",
+      "category": "效率工具",
+      "reason": "category_fallback",
+      "confidence": "medium"
+    },
+    {
+      "website_id": "catalog-kaggle",
+      "name": "Kaggle",
+      "url": "https://www.kaggle.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-tableau",
+      "name": "Tableau",
+      "url": "https://www.tableau.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-powerbi",
+      "name": "Power BI",
+      "url": "https://powerbi.microsoft.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-observable",
+      "name": "Observable",
+      "url": "https://observablehq.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-datawrapper",
+      "name": "Datawrapper",
+      "url": "https://www.datawrapper.de",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-jupyter",
+      "name": "Jupyter",
+      "url": "https://jupyter.org",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-colab",
+      "name": "Google Colab",
+      "url": "https://colab.research.google.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-looker",
+      "name": "Looker Studio",
+      "url": "https://lookerstudio.google.com",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-flourish",
+      "name": "Flourish",
+      "url": "https://flourish.studio",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    },
+    {
+      "website_id": "catalog-our-world-in-data",
+      "name": "Our World in Data",
+      "url": "https://ourworldindata.org",
+      "current_description": "",
+      "suggested_description": null,
+      "category": "数据分析",
+      "reason": "empty",
+      "confidence": "needs_review"
+    }
+  ]
+}

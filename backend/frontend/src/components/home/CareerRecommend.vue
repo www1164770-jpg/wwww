@@ -61,7 +61,7 @@ function selectCareer(career) {
   gap: 28px;
   margin-top: 28px;
   border-radius: var(--radius-large);
-  background: linear-gradient(180deg, #ffffff 0%, #fff8f6 100%);
+  background: var(--app-page-bg);
   padding: 54px 34px 42px;
 }
 
@@ -75,12 +75,13 @@ function selectCareer(career) {
   display: grid;
   gap: 14px;
   min-height: 238px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-border);
   border-radius: var(--radius-card);
   padding: 22px;
   text-align: left;
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  background: var(--app-card-bg);
+  backdrop-filter: blur(var(--app-blur));
+  box-shadow: var(--app-card-shadow);
   transition:
     border-color var(--transition),
     transform var(--transition),
@@ -91,13 +92,13 @@ function selectCareer(career) {
 .career-card:hover,
 .career-card.active {
   border-color: #ff7058;
-  background: #fffaf8;
+  background: var(--app-card-hover-bg);
   transform: translateY(-5px);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--app-card-hover-shadow);
 }
 
 .career-card.active {
-  box-shadow: 0 16px 38px rgba(255, 112, 88, 0.18);
+  box-shadow: var(--app-card-hover-shadow);
 }
 
 .career-icon {

@@ -1,0 +1,152 @@
+[
+  {
+    "website_id": 16,
+    "name": "微信读书",
+    "url": "https://weread.qq.com",
+    "description": ""
+  },
+  {
+    "website_id": 222,
+    "name": "百度地图",
+    "url": "https://map.baidu.com",
+    "description": ""
+  },
+  {
+    "website_id": 223,
+    "name": "腾讯地图",
+    "url": "https://map.qq.com",
+    "description": ""
+  },
+  {
+    "website_id": 224,
+    "name": "滴滴出行",
+    "url": "https://www.didiglobal.com",
+    "description": ""
+  },
+  {
+    "website_id": 225,
+    "name": "支付宝",
+    "url": "https://www.alipay.com",
+    "description": ""
+  },
+  {
+    "website_id": 226,
+    "name": "微信",
+    "url": "https://weixin.qq.com",
+    "description": ""
+  },
+  {
+    "website_id": 227,
+    "name": "钉钉",
+    "url": "https://www.dingtalk.com",
+    "description": ""
+  },
+  {
+    "website_id": 228,
+    "name": "网易邮箱",
+    "url": "https://mail.163.com",
+    "description": ""
+  },
+  {
+    "website_id": 229,
+    "name": "QQ邮箱",
+    "url": "https://mail.qq.com",
+    "description": ""
+  },
+  {
+    "website_id": 230,
+    "name": "百度网盘",
+    "url": "https://pan.baidu.com",
+    "description": ""
+  },
+  {
+    "website_id": 231,
+    "name": "阿里云盘",
+    "url": "https://www.aliyundrive.com",
+    "description": ""
+  },
+  {
+    "website_id": 232,
+    "name": "夸克网盘",
+    "url": "https://pan.quark.cn",
+    "description": ""
+  },
+  {
+    "website_id": 233,
+    "name": "哔哩哔哩直播",
+    "url": "https://live.bilibili.com",
+    "description": ""
+  },
+  {
+    "website_id": 359,
+    "name": "虎牙直播",
+    "url": "https://www.huya.com",
+    "description": ""
+  },
+  {
+    "website_id": 360,
+    "name": "斗鱼直播",
+    "url": "https://www.douyu.com",
+    "description": ""
+  },
+  {
+    "website_id": 361,
+    "name": "网易严选",
+    "url": "https://you.163.com",
+    "description": ""
+  },
+  {
+    "website_id": 362,
+    "name": "苏宁易购",
+    "url": "https://www.suning.com",
+    "description": ""
+  },
+  {
+    "website_id": 363,
+    "name": "唯品会",
+    "url": "https://www.vip.com",
+    "description": ""
+  },
+  {
+    "website_id": 364,
+    "name": "当当网",
+    "url": "https://www.dangdang.com",
+    "description": ""
+  },
+  {
+    "website_id": 365,
+    "name": "亚马逊中国",
+    "url": "https://www.amazon.cn",
+    "description": ""
+  },
+  {
+    "website_id": 366,
+    "name": "得物",
+    "url": "https://www.dewu.com",
+    "description": ""
+  },
+  {
+    "website_id": 367,
+    "name": "小米商城",
+    "url": "https://www.mi.com",
+    "description": ""
+  },
+  {
+    "website_id": 368,
+    "name": "华为商城",
+    "url": "https://www.vmall.com",
+    "description": ""
+  },
+  {
+    "website_id": 370,
+    "name": "去哪儿旅行",
+    "url": "https://www.qunar.com",
+    "description": ""
+  },
+  {
+    "website_id": 371,
+    "name": "飞猪旅行",
+    "url": "https://www.fliggy.com",
+    "description": ""
+  }
+]

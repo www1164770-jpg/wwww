@@ -14,16 +14,24 @@
       <slot />
     </div>
 
-    <Transition name="app-tooltip-fade">
+    <Teleport to="body" :disabled="!floating">
+      <Transition name="app-tooltip-fade">
       <div
         v-if="visible && canInteract"
+        ref="tooltipElement"
         :id="tooltipId"
         class="app-tooltip__content"
+        :class="{
+          'app-tooltip__content--floating': floating,
+          'app-tooltip__content--bottom': resolvedPlacement === 'bottom',
+        }"
+        :style="floatingStyle"
         role="tooltip"
       >
         {{ normalizedContent }}
       </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
   <slot v-else />
 </template>
@@ -37,11 +45,20 @@ const props = defineProps({
   content: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
   showOnOverflow: { type: Boolean, default: false },
+  // Category cards opt into a body-level overlay so a clipped card cannot
+  // position the complete description over its own header.
+  floating: { type: Boolean, default: false },
+  placement: { type: String, default: "top" },
+  offset: { type: Number, default: 9 },
 });
 
 const triggerElement = ref(null);
+const tooltipElement = ref(null);
 const visible = ref(false);
 const isOverflowing = ref(false);
+const resolvedPlacement = ref("top");
+const isPositioned = ref(false);
+const floatingPosition = ref({ top: "0px", left: "0px" });
 const tooltipId = `app-tooltip-${++nextTooltipId}`;
 
 const normalizedContent = computed(() => props.content.trim());
@@ -52,15 +69,29 @@ const canInteract = computed(
     !props.disabled &&
     (!props.showOnOverflow || isOverflowing.value),
 );
+const floatingStyle = computed(() =>
+  props.floating
+    ? {
+        ...floatingPosition.value,
+        visibility: isPositioned.value ? "visible" : "hidden",
+      }
+    : undefined,
+);
 
-function showTooltip() {
+async function showTooltip() {
   if (canInteract.value) {
     visible.value = true;
+    if (props.floating) {
+      isPositioned.value = false;
+      await nextTick();
+      updateFloatingPosition();
+    }
   }
 }
 
 function hideTooltip() {
   visible.value = false;
+  isPositioned.value = false;
 }
 
 function handleFocusout(event) {
@@ -111,6 +142,47 @@ function updateOverflow() {
   }
 }
 
+function updateFloatingPosition() {
+  if (!props.floating || !visible.value || !triggerElement.value || !tooltipElement.value) {
+    return;
+  }
+
+  const triggerRect = triggerElement.value.getBoundingClientRect();
+  const categoryCard = triggerElement.value.closest(".website-card--category");
+  // Keep the hover target narrow (the description), while anchoring a category
+  // tooltip outside the whole card so it can never cover its logo or title.
+  const anchorRect = categoryCard?.getBoundingClientRect() || triggerRect;
+  const tooltipRect = tooltipElement.value.getBoundingClientRect();
+  const viewportPadding = 8;
+  const offset = Math.max(8, Number(props.offset) || 9);
+  const prefersTop = props.placement !== "bottom";
+  const topSpace = anchorRect.top - offset;
+  const shouldPlaceTop = prefersTop && topSpace >= tooltipRect.height;
+  const placement = shouldPlaceTop ? "top" : "bottom";
+  const rawTop =
+    placement === "top"
+      ? anchorRect.top - tooltipRect.height - offset
+      : anchorRect.bottom + offset;
+  const left = Math.min(
+    Math.max(
+      viewportPadding,
+      anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2,
+    ),
+    Math.max(viewportPadding, window.innerWidth - tooltipRect.width - viewportPadding),
+  );
+
+  resolvedPlacement.value = placement;
+  floatingPosition.value = {
+    top: `${Math.max(viewportPadding, rawTop)}px`,
+    left: `${left}px`,
+  };
+  isPositioned.value = true;
+}
+
+function handleViewportChange() {
+  updateFloatingPosition();
+}
+
 let resizeObserver;
 
 function observeOverflow() {
@@ -122,7 +194,10 @@ function observeOverflow() {
 
   const target = getOverflowTarget();
   if (target) {
-    resizeObserver = new ResizeObserver(updateOverflow);
+    resizeObserver = new ResizeObserver(() => {
+      updateOverflow();
+      updateFloatingPosition();
+    });
     resizeObserver.observe(target);
   }
   updateOverflow();
@@ -131,6 +206,8 @@ function observeOverflow() {
 onMounted(async () => {
   await nextTick();
   observeOverflow();
+  window.addEventListener("resize", handleViewportChange);
+  window.addEventListener("scroll", handleViewportChange, true);
 });
 
 watch(
@@ -145,6 +222,8 @@ watch(
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   resizeObserver = null;
+  window.removeEventListener("resize", handleViewportChange);
+  window.removeEventListener("scroll", handleViewportChange, true);
 });
 </script>
 
@@ -188,6 +267,35 @@ onBeforeUnmount(() => {
   white-space: normal;
   overflow-wrap: anywhere;
   transform: translateX(-50%);
+}
+
+.app-tooltip__content--floating {
+  position: fixed;
+  bottom: auto;
+  z-index: 1000;
+  min-width: min(180px, calc(100vw - 16px));
+  max-width: min(260px, calc(100vw - 16px));
+  padding: 8px 10px;
+  line-height: 1.5;
+  transform: none;
+}
+
+.app-tooltip__content--floating::after {
+  top: 100%;
+  border-top-color: rgba(15, 23, 42, 0.94);
+  border-bottom-color: transparent;
+}
+
+.app-tooltip__content--floating.app-tooltip__content--bottom::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: rgba(15, 23, 42, 0.94);
+}
+
+.app-tooltip__content--floating.app-tooltip-fade-enter-from,
+.app-tooltip__content--floating.app-tooltip-fade-leave-to {
+  transform: none;
 }
 
 .app-tooltip__content::after {

@@ -8,6 +8,7 @@ const read = (relativePath) =>
 
 const home = read("src/views/Home.vue");
 const api = read("src/utils/api.js");
+const homeTemplate = home.slice(0, home.indexOf("<script setup>"));
 
 assert.match(api, /export const careerAPI\s*=\s*\{/);
 assert.match(api, /api\.get\("\/career\/recommend"/);
@@ -20,11 +21,31 @@ assert.match(home, /career\.match_score/);
 assert.match(home, /career\.reason/);
 assert.match(home, /careerAbilityTags/);
 assert.match(home, /careerInterestTags/);
+assert.match(homeTemplate, /<h3 id="career-selection-title">选择职业<\/h3>/);
+assert.match(
+  homeTemplate,
+  /v-if="careerAbilityTags\.length"[\s\S]*?>能力标签</,
+);
+assert.doesNotMatch(homeTemplate, /兴趣与目标/);
+assert.doesNotMatch(homeTemplate, /v-for="tag in careerInterestTags"/);
+assert.match(
+  home,
+  /careerInterestTags\.value = Array\.isArray\(payload\.interest_tags\)/,
+);
+assert.match(
+  home,
+  /\.career-options\s*\{[\s\S]*?overflow-y:\s*auto;[\s\S]*?scrollbar-width:\s*thin;/,
+);
+assert.match(
+  home,
+  /function canNestedScrollerConsumeWheel[\s\S]*?element\.scrollTop \+ element\.clientHeight < element\.scrollHeight/,
+);
 assert.match(home, /questionnaireCompleted/);
 assert.match(home, /to="\/questionnaire"/);
 assert.match(home, /career\.websites/);
-assert.match(home, /getCareerWebsites\(canonicalCareerCode\)/);
 assert.match(home, /mergeCareerSites\(code, rawSites\)/);
+assert.match(api, /export function unwrapCareerRecommendationResponse/);
+assert.doesNotMatch(home, /getCareerWebsites/);
 assert.doesNotMatch(home, /const selectedCareer\s*=\s*["']frontend_developer/);
 assert.doesNotMatch(home, /OCCUPATION_STORAGE_KEY/);
 

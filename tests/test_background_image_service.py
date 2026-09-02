@@ -155,8 +155,15 @@ class BackgroundImageServiceTests(unittest.TestCase):
         self.assertIsInstance(raised.exception.__cause__, OSError)
 
     def test_rejects_empty_input(self):
-        with self.assertRaises(InvalidBackgroundImage):
+        with self.assertRaises(InvalidBackgroundImage) as raised:
             process_background_upload(io.BytesIO(), "empty.png")
+        self.assertEqual(raised.exception.error_code, "UPLOAD_FILE_EMPTY")
+
+    def test_accepts_chinese_jpeg_filename_without_using_it_for_processing(self):
+        source = image_bytes(Image.new("RGB", (96, 64), "purple"), "JPEG")
+        result = process_background_upload(io.BytesIO(source), "【哲风壁纸】个性-冷酷-创意.jpg")
+        self.assertEqual((result.width, result.height), (96, 64))
+        self.assertEqual(result.mime_type, "image/webp")
 
     def test_applies_exif_orientation(self):
         image = Image.new("RGB", (40, 80), "purple")

@@ -2,16 +2,30 @@
   <section v-if="displaySites.length" class="favorite-band">
     <div class="favorite-stack">
       <div class="favorite-copy">
-        <p>常用工具推荐</p>
-        <h2>精选高频使用的网站资源</h2>
-        <span>适合日常学习、工作和创作的高质量工具。</span>
+        <p class="reveal-child" style="--reveal-delay: 0ms">常用工具推荐</p>
+        <AnimatedPageTitle
+          class="reveal-child reveal-title"
+          style="--reveal-delay: 80ms"
+          as="h2"
+          :animation="false"
+        >
+          精选高频使用的网站资源
+        </AnimatedPageTitle>
+        <span
+          class="reveal-child reveal-description"
+          style="--reveal-delay: 150ms"
+          >适合日常学习、工作和创作的高质量工具。</span
+        >
       </div>
 
-      <div class="favorite-list">
+      <div :key="displaySitesKey" class="favorite-list">
         <article
-          v-for="site in displaySites"
+          v-for="(site, index) in displaySites"
           :key="site.id || site.url || site.name"
-          class="compact-tool-card"
+          class="compact-tool-card reveal-child reveal-card"
+          :style="{
+            '--reveal-delay': `${230 + Math.min(index * 35, 350)}ms`,
+          }"
         >
           <a
             class="compact-tool-card__link"
@@ -60,6 +74,7 @@
 <script setup>
 import { computed } from "vue";
 import { ExternalLink } from "lucide-vue-next";
+import AnimatedPageTitle from "../common/AnimatedPageTitle.vue";
 import AppTooltip from "../common/AppTooltip.vue";
 import FavoriteStarButton from "../site/FavoriteStarButton.vue";
 import SiteLogo from "../site/SiteLogo.vue";
@@ -73,7 +88,12 @@ const emit = defineEmits(["visit"]);
 const displaySites = computed(() =>
   props.sites
     .filter((site) => site?.name && normalizeUrl(site?.url))
-    .slice(0, 6),
+    .slice(0, 4),
+);
+const displaySitesKey = computed(() =>
+  displaySites.value
+    .map((site) => site.id || normalizeUrl(site.url) || site.name)
+    .join("|"),
 );
 
 function siteDescription(site) {
@@ -81,7 +101,11 @@ function siteDescription(site) {
 }
 
 function visitSite(site) {
-  emit("visit", { ...site, url: normalizeUrl(site.url) });
+  emit("visit", {
+    ...site,
+    url: normalizeUrl(site.url),
+    visit_source: "home_tool",
+  });
 }
 </script>
 
@@ -89,7 +113,7 @@ function visitSite(site) {
 .favorite-band {
   margin-top: 54px;
   padding: 96px 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  background: transparent;
 }
 
 .favorite-stack {
@@ -108,13 +132,13 @@ function visitSite(site) {
 
 .favorite-copy h2 {
   margin: 0 0 14px;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: clamp(32px, 4vw, 46px);
   line-height: 1.14;
 }
 
 .favorite-copy span {
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   line-height: 1.75;
 }
 
@@ -122,15 +146,28 @@ function visitSite(site) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  animation: common-tools-fade-in 180ms ease-out both;
+}
+
+@keyframes common-tools-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .compact-tool-card {
   position: relative;
   min-width: 0;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-card-border);
   border-radius: var(--radius-card);
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  background: var(--app-card-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--app-card-shadow);
   transition:
     transform var(--transition),
     box-shadow var(--transition),
@@ -140,7 +177,7 @@ function visitSite(site) {
 .compact-tool-card:hover {
   border-color: rgba(255, 112, 88, 0.34);
   transform: translateY(-4px);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--app-card-hover-shadow);
 }
 
 .compact-tool-card__link {
@@ -175,12 +212,12 @@ function visitSite(site) {
 }
 
 .compact-tool-card__title {
-  color: var(--color-heading);
+  color: var(--app-text-primary);
 }
 
 .compact-tool-card__description {
   margin-top: 4px;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   font-size: 12px;
 }
 
@@ -206,6 +243,10 @@ function visitSite(site) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .favorite-list {
+    animation: none;
+  }
+
   .compact-tool-card {
     transition: none;
   }

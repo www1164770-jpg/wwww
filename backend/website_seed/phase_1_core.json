@@ -1,0 +1,6357 @@
+{
+  "version": 1,
+  "sites": [
+    {
+      "name": "百度",
+      "url": "https://www.baidu.com",
+      "description": "中文网页搜索与信息发现。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.baidu.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Google",
+      "url": "https://www.google.com",
+      "description": "全球搜索、地图、邮箱与在线服务入口。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.google.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Bing",
+      "url": "https://www.bing.com",
+      "description": "微软提供的网页搜索与图片搜索服务。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.bing.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Wikipedia",
+      "url": "https://www.wikipedia.org",
+      "description": "开放协作的在线百科全书。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.wikipedia.org&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "知乎",
+      "url": "https://www.zhihu.com",
+      "description": "中文问答、知识分享与经验交流社区。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.zhihu.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "哔哩哔哩",
+      "url": "https://www.bilibili.com",
+      "description": "视频、课程与兴趣内容社区。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.bilibili.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "豆瓣",
+      "url": "https://www.douban.com",
+      "description": "书影音内容发现与兴趣交流社区。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.douban.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "微信读书",
+      "url": "https://weread.qq.com",
+      "description": "在线阅读、书籍推荐与读书交流平台。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=weread.qq.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "少数派",
+      "url": "https://sspai.com",
+      "description": "数字产品、效率方法与应用评测内容。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=sspai.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "虎嗅",
+      "url": "https://www.huxiu.com",
+      "description": "科技、商业与创业领域的资讯平台。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.huxiu.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "36氪",
+      "url": "https://36kr.com",
+      "description": "创业、科技与新经济资讯平台。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=36kr.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "腾讯视频",
+      "url": "https://v.qq.com",
+      "description": "影视、纪录片与在线视频平台。",
+      "category": "common",
+      "tags": [
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=v.qq.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Vue.js",
+      "url": "https://vuejs.org",
+      "description": "渐进式 JavaScript 框架官方文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vuejs.org&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "React",
+      "url": "https://react.dev",
+      "description": "构建用户界面的 React 官方文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=react.dev&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Angular",
+      "url": "https://angular.dev",
+      "description": "Google 维护的 Web 应用框架文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=angular.dev&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Svelte",
+      "url": "https://svelte.dev",
+      "description": "编译型前端框架与组件开发文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=svelte.dev&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Nuxt",
+      "url": "https://nuxt.com",
+      "description": "基于 Vue 的全栈 Web 框架文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=nuxt.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Next.js",
+      "url": "https://nextjs.org",
+      "description": "React 全栈应用框架官方文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=nextjs.org&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Vite",
+      "url": "https://vite.dev",
+      "description": "快速前端构建工具与开发服务器文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vite.dev&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "webpack",
+      "url": "https://webpack.js.org",
+      "description": "JavaScript 模块打包工具官方文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=webpack.js.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "TypeScript",
+      "url": "https://www.typescriptlang.org",
+      "description": "JavaScript 的静态类型扩展与官方手册。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.typescriptlang.org&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Node.js",
+      "url": "https://nodejs.org/docs/latest/api",
+      "description": "Node.js 运行时 API 与开发指南。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=nodejs.org&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "description": "HTML、CSS、JavaScript 与 Web API 权威文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Python 文档",
+      "url": "https://docs.python.org/3",
+      "description": "Python 语言与标准库官方文档。",
+      "category": "docs",
+      "tags": [
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=docs.python.org&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "ChatGPT",
+      "url": "https://chatgpt.com",
+      "description": "通用对话、写作、分析与编程 AI 助手。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=chatgpt.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Claude",
+      "url": "https://claude.ai",
+      "description": "适合长文本理解、分析与编程协作的 AI 助手。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=claude.ai&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Gemini",
+      "url": "https://gemini.google.com",
+      "description": "Google 的多模态 AI 助手与创作工具。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Perplexity",
+      "url": "https://www.perplexity.ai",
+      "description": "带来源检索的 AI 搜索与问答工具。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.perplexity.ai&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "DeepSeek",
+      "url": "https://www.deepseek.com",
+      "description": "面向推理、对话与代码场景的 AI 平台。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.deepseek.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Kimi",
+      "url": "https://kimi.moonshot.cn",
+      "description": "支持长文本阅读与资料整理的 AI 助手。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=kimi.moonshot.cn&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "通义千问",
+      "url": "https://tongyi.aliyun.com",
+      "description": "阿里云提供的中文对话与内容创作助手。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=tongyi.aliyun.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "豆包",
+      "url": "https://www.doubao.com",
+      "description": "面向日常问答、写作与创作的 AI 助手。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.doubao.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Hugging Face",
+      "url": "https://huggingface.co",
+      "description": "开源模型、数据集与机器学习社区。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=huggingface.co&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Midjourney",
+      "url": "https://www.midjourney.com",
+      "description": "AI 图像生成与视觉创作平台。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.midjourney.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Runway",
+      "url": "https://runwayml.com",
+      "description": "AI 视频生成与视觉创作工具。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=runwayml.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Cursor",
+      "url": "https://www.cursor.com",
+      "description": "面向开发者的 AI 编程编辑器。",
+      "category": "ai",
+      "tags": [
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.cursor.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Dribbble",
+      "url": "https://dribbble.com",
+      "description": "设计师作品展示与视觉灵感社区。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dribbble.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Behance",
+      "url": "https://www.behance.net",
+      "description": "Adobe 旗下的创意作品展示平台。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.behance.net&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Awwwards",
+      "url": "https://www.awwwards.com",
+      "description": "优秀网站设计与数字体验案例平台。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.awwwards.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Pinterest",
+      "url": "https://www.pinterest.com",
+      "description": "图片收藏、主题灵感与视觉发现平台。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.pinterest.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Muzli",
+      "url": "https://muz.li",
+      "description": "面向设计师的每日视觉灵感聚合。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=muz.li&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Land-book",
+      "url": "https://land-book.com",
+      "description": "精选落地页与网站设计案例。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=land-book.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Designspiration",
+      "url": "https://www.designspiration.com",
+      "description": "设计、摄影与配色灵感收藏工具。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.designspiration.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Are.na",
+      "url": "https://www.are.na",
+      "description": "适合长期整理研究与视觉资料的收藏社区。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.are.na&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Mobbin",
+      "url": "https://mobbin.com",
+      "description": "移动端产品界面与交互案例库。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mobbin.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "One Page Love",
+      "url": "https://onepagelove.com",
+      "description": "单页网站与落地页设计灵感库。",
+      "category": "inspiration",
+      "tags": [
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=onepagelove.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Figma",
+      "url": "https://www.figma.com",
+      "description": "实时协作的 UI 设计与原型工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.figma.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Sketch",
+      "url": "https://www.sketch.com",
+      "description": "面向产品团队的界面设计与协作工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.sketch.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Framer",
+      "url": "https://www.framer.com",
+      "description": "设计、发布与维护网站的视觉化工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.framer.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Penpot",
+      "url": "https://penpot.app",
+      "description": "开源的 UI 设计与原型协作平台。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=penpot.app&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Axure",
+      "url": "https://www.axure.com",
+      "description": "复杂交互与产品原型设计工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.axure.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "摹客",
+      "url": "https://www.mockplus.cn",
+      "description": "中文界面原型、协作与交付平台。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.mockplus.cn&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "墨刀",
+      "url": "https://modao.cc",
+      "description": "在线原型设计与团队协作工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=modao.cc&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "ProtoPie",
+      "url": "https://www.protopie.io",
+      "description": "高保真交互原型与传感器交互工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.protopie.io&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Justinmind",
+      "url": "https://www.justinmind.com",
+      "description": "Web 与移动产品原型设计工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.justinmind.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Whimsical",
+      "url": "https://whimsical.com",
+      "description": "流程图、线框图与协作白板工具。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=whimsical.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com",
+      "description": "代码托管、开源协作与项目管理平台。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=github.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "GitLab",
+      "url": "https://gitlab.com",
+      "description": "集成代码托管、CI/CD 与项目管理的平台。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=gitlab.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Gitee",
+      "url": "https://gitee.com",
+      "description": "面向中文开发者的代码托管与开源平台。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=gitee.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Stack Overflow",
+      "url": "https://stackoverflow.com",
+      "description": "开发者技术问答与解决方案社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=stackoverflow.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "V2EX",
+      "url": "https://www.v2ex.com",
+      "description": "面向创意工作者与开发者的交流社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.v2ex.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "SegmentFault",
+      "url": "https://segmentfault.com",
+      "description": "中文开发者问答与技术文章社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=segmentfault.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "掘金",
+      "url": "https://juejin.cn",
+      "description": "中文技术文章、课程与开发者社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=juejin.cn&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "CSDN",
+      "url": "https://www.csdn.net",
+      "description": "中文 IT 技术博客与开发者服务平台。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.csdn.net&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "博客园",
+      "url": "https://www.cnblogs.com",
+      "description": "开发者博客与技术交流社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.cnblogs.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Reddit Programming",
+      "url": "https://www.reddit.com/r/programming",
+      "description": "全球开发者讨论与技术资讯社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.reddit.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "DEV Community",
+      "url": "https://dev.to",
+      "description": "面向软件开发者的文章与交流社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dev.to&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "CodePen",
+      "url": "https://codepen.io",
+      "description": "前端代码实验、作品展示与社区。",
+      "category": "community",
+      "tags": [
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=codepen.io&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Ant Design",
+      "url": "https://ant.design",
+      "description": "企业级 React UI 组件库与设计规范。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ant.design&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Element Plus",
+      "url": "https://element-plus.org",
+      "description": "Vue 3 桌面端组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=element-plus.org&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Naive UI",
+      "url": "https://www.naiveui.com",
+      "description": "Vue 3 TypeScript 组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.naiveui.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Vuetify",
+      "url": "https://vuetifyjs.com",
+      "description": "基于 Material Design 的 Vue 组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vuetifyjs.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Quasar",
+      "url": "https://quasar.dev",
+      "description": "跨平台 Vue 应用框架与组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=quasar.dev&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Bootstrap",
+      "url": "https://getbootstrap.com",
+      "description": "经典的响应式前端 CSS 组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=getbootstrap.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Tailwind CSS",
+      "url": "https://tailwindcss.com",
+      "description": "实用优先的 CSS 框架与设计工具。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=tailwindcss.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Radix UI",
+      "url": "https://www.radix-ui.com",
+      "description": "无样式、可访问的 React 原语组件。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.radix-ui.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "shadcn/ui",
+      "url": "https://ui.shadcn.com",
+      "description": "基于 Tailwind 的可组合 React 组件集合。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ui.shadcn.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "MUI",
+      "url": "https://mui.com",
+      "description": "React Material Design 组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mui.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Chakra UI",
+      "url": "https://chakra-ui.com",
+      "description": "简单、模块化且可访问的 React 组件库。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=chakra-ui.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Headless UI",
+      "url": "https://headlessui.com",
+      "description": "无样式且可访问的 UI 组件。",
+      "category": "ui",
+      "tags": [
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=headlessui.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Unsplash",
+      "url": "https://unsplash.com",
+      "description": "高质量免费图片素材库。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=unsplash.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Pexels",
+      "url": "https://www.pexels.com",
+      "description": "免费图片与视频素材平台。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.pexels.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Pixabay",
+      "url": "https://pixabay.com",
+      "description": "图片、插画、视频与音乐素材库。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=pixabay.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Iconfont",
+      "url": "https://www.iconfont.cn",
+      "description": "阿里巴巴矢量图标与素材库。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.iconfont.cn&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Icons8",
+      "url": "https://icons8.com",
+      "description": "图标、插画、照片与设计工具集合。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=icons8.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Flaticon",
+      "url": "https://www.flaticon.com",
+      "description": "图标与贴图素材平台。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.flaticon.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Font Awesome",
+      "url": "https://fontawesome.com",
+      "description": "常用图标字体与 SVG 图标库。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fontawesome.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Google Fonts",
+      "url": "https://fonts.google.com",
+      "description": "开放字体与 Web 字体资源库。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fonts.google.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "DaFont",
+      "url": "https://www.dafont.com",
+      "description": "丰富的字体下载与分类目录。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.dafont.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Coolors",
+      "url": "https://coolors.co",
+      "description": "快速生成与探索配色方案的工具。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=coolors.co&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Carbon",
+      "url": "https://carbon.now.sh",
+      "description": "把代码生成精美图片的工具。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=carbon.now.sh&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "unDraw",
+      "url": "https://undraw.co/illustrations",
+      "description": "可自定义颜色的开源插画库。",
+      "category": "assets",
+      "tags": [
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=undraw.co&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Notion",
+      "url": "https://www.notion.so",
+      "description": "笔记、知识库、数据库与团队协作工作空间。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.notion.so&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "飞书",
+      "url": "https://www.feishu.cn",
+      "description": "文档、会议、通讯与团队协作平台。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.feishu.cn&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "腾讯文档",
+      "url": "https://docs.qq.com",
+      "description": "在线文档、表格与多人协作工具。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=docs.qq.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "石墨文档",
+      "url": "https://shimo.im",
+      "description": "在线文档、表格与团队协作空间。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=shimo.im&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Google Docs",
+      "url": "https://docs.google.com",
+      "description": "在线文档编辑与实时协作工具。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=docs.google.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Microsoft 365",
+      "url": "https://www.microsoft.com/microsoft-365",
+      "description": "Office 文档、邮箱与云端办公服务。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.microsoft.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Airtable",
+      "url": "https://www.airtable.com",
+      "description": "融合表格、数据库与协作的工作平台。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.airtable.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Trello",
+      "url": "https://trello.com",
+      "description": "基于看板的任务与项目管理工具。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=trello.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Asana",
+      "url": "https://asana.com",
+      "description": "团队任务、项目与工作流管理平台。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=asana.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "ProcessOn",
+      "url": "https://www.processon.com",
+      "description": "流程图、思维导图与协作绘图工具。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.processon.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Dropbox",
+      "url": "https://www.dropbox.com",
+      "description": "文件同步、共享与团队协作服务。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.dropbox.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "OneDrive",
+      "url": "https://onedrive.live.com",
+      "description": "微软云存储与文件协作服务。",
+      "category": "office",
+      "tags": [
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=onedrive.live.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Coursera",
+      "url": "https://www.coursera.org",
+      "description": "高校与企业课程、证书与在线学习平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.coursera.org&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "edX",
+      "url": "https://www.edx.org",
+      "description": "大学公开课与职业技能学习平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.edx.org&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Khan Academy",
+      "url": "https://www.khanacademy.org",
+      "description": "免费的基础教育与技能学习平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.khanacademy.org&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "中国大学 MOOC",
+      "url": "https://www.icourse163.org",
+      "description": "中文高校课程与在线学习平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.icourse163.org&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "学堂在线",
+      "url": "https://www.xuetangx.com",
+      "description": "清华大学等高校在线课程平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.xuetangx.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "MIT OpenCourseWare",
+      "url": "https://ocw.mit.edu",
+      "description": "麻省理工学院开放课程资料库。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ocw.mit.edu&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "freeCodeCamp",
+      "url": "https://www.freecodecamp.org",
+      "description": "免费编程课程、练习与认证平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.freecodecamp.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Codecademy",
+      "url": "https://www.codecademy.com",
+      "description": "交互式编程与技术课程平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.codecademy.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "LeetCode",
+      "url": "https://leetcode.com",
+      "description": "算法练习、竞赛与面试准备平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=leetcode.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "牛客网",
+      "url": "https://www.nowcoder.com",
+      "description": "编程练习、面试题与求职学习平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.nowcoder.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Project Gutenberg",
+      "url": "https://www.gutenberg.org",
+      "description": "免费电子书与公共领域文本库。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.gutenberg.org&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "TED",
+      "url": "https://www.ted.com",
+      "description": "演讲、观点与跨学科知识内容平台。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ted.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Todoist",
+      "url": "https://todoist.com",
+      "description": "跨平台任务管理与个人计划工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=todoist.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "滴答清单",
+      "url": "https://dida365.com",
+      "description": "任务、日历与习惯管理工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dida365.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Pomofocus",
+      "url": "https://pomofocus.io",
+      "description": "基于番茄工作法的专注计时器。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=pomofocus.io&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Forest",
+      "url": "https://www.forestapp.cc",
+      "description": "通过种树机制帮助保持专注的工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.forestapp.cc&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "RescueTime",
+      "url": "https://www.rescuetime.com",
+      "description": "自动记录与分析数字设备使用时间。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.rescuetime.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Zapier",
+      "url": "https://zapier.com",
+      "description": "连接不同应用并自动化重复工作。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=zapier.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "IFTTT",
+      "url": "https://ifttt.com",
+      "description": "通过条件规则连接服务与智能设备。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ifttt.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Calendly",
+      "url": "https://calendly.com",
+      "description": "在线预约、日程安排与会议协调工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=calendly.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Loom",
+      "url": "https://www.loom.com",
+      "description": "录制屏幕与摄像头视频进行异步沟通。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.loom.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Grammarly",
+      "url": "https://www.grammarly.com",
+      "description": "英文写作检查、改写与表达建议工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.grammarly.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "DeepL",
+      "url": "https://www.deepl.com",
+      "description": "高质量机器翻译与写作辅助工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.deepl.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "iLovePDF",
+      "url": "https://www.ilovepdf.com",
+      "description": "在线 PDF 合并、转换与压缩工具。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ilovepdf.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Kaggle",
+      "url": "https://www.kaggle.com",
+      "description": "数据科学竞赛、数据集与 Notebook 平台。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.kaggle.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Tableau",
+      "url": "https://www.tableau.com",
+      "description": "商业智能与数据可视化平台。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.tableau.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Power BI",
+      "url": "https://powerbi.microsoft.com",
+      "description": "微软数据分析与商业报表平台。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=powerbi.microsoft.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Observable",
+      "url": "https://observablehq.com",
+      "description": "基于 JavaScript 的数据探索与可视化平台。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=observablehq.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Datawrapper",
+      "url": "https://www.datawrapper.de",
+      "description": "无需编码制作图表与地图的工具。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.datawrapper.de&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Jupyter",
+      "url": "https://jupyter.org",
+      "description": "交互式数据分析与代码 Notebook 工具。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=jupyter.org&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Google Colab",
+      "url": "https://colab.research.google.com",
+      "description": "基于云端 Notebook 的 Python 数据分析环境。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=colab.research.google.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Looker Studio",
+      "url": "https://lookerstudio.google.com",
+      "description": "连接数据源并制作在线报表的平台。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=lookerstudio.google.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Flourish",
+      "url": "https://flourish.studio",
+      "description": "制作交互式图表与数据故事的工具。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=flourish.studio&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Our World in Data",
+      "url": "https://ourworldindata.org",
+      "description": "全球问题相关的公开数据与可视化研究。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ourworldindata.org&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "DuckDuckGo",
+      "url": "https://duckduckgo.com",
+      "description": "强调隐私保护的搜索引擎，减少用户搜索行为追踪。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=duckduckgo.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Startpage",
+      "url": "https://www.startpage.com",
+      "description": "注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.startpage.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Yandex",
+      "url": "https://yandex.com",
+      "description": "提供网页、图片、地图和邮箱等服务的综合互联网平台。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=yandex.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Brave Search",
+      "url": "https://search.brave.com",
+      "description": "Brave 推出的隐私搜索引擎，强调独立索引和减少追踪。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=search.brave.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Ecosia",
+      "url": "https://www.ecosia.org",
+      "description": "将搜索广告收入用于植树和环保项目的公益型搜索引擎。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ecosia.org&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Internet Archive",
+      "url": "https://archive.org",
+      "description": "非营利数字档案馆，收录历史网页、书籍、音视频和软件资源。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=archive.org&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Wiktionary",
+      "url": "https://www.wiktionary.org",
+      "description": "开放式多语言词典，提供词义、发音、词源和翻译等语言信息。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.wiktionary.org&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org",
+      "description": "开放媒体资源库，提供可自由使用的图像、音频和视频素材。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=commons.wikimedia.org&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Google News",
+      "url": "https://news.google.com",
+      "description": "Google 新闻聚合服务，可集中浏览多家媒体的实时新闻与专题报道。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=news.google.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Reuters",
+      "url": "https://www.reuters.com",
+      "description": "国际新闻通讯机构，提供全球政治、财经、商业和突发新闻报道。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.reuters.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "BBC",
+      "url": "https://www.bbc.com",
+      "description": "英国广播公司旗下资讯平台，提供国际新闻、文化、科技和视听内容。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.bbc.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "The Guardian",
+      "url": "https://www.theguardian.com",
+      "description": "英国综合新闻媒体，报道国际新闻、政治、文化、环境与社会议题。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.theguardian.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "澎湃新闻",
+      "url": "https://www.thepaper.cn",
+      "description": "中文时政与思想资讯平台，提供时事、财经、社会和文化新闻报道。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.thepaper.cn&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "界面新闻",
+      "url": "https://www.jiemian.com",
+      "description": "商业财经新闻平台，重点关注公司、产业、金融、消费和经济资讯。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.jiemian.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "财新网",
+      "url": "https://www.caixin.com",
+      "description": "财经新闻平台，重点报道金融、经济、商业、公司及公共政策。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.caixin.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "知乎盐选",
+      "url": "https://www.zhihu.com/xen/market",
+      "description": "知乎推出的付费内容服务，提供电子书、专栏和精选知识内容。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.zhihu.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "得到",
+      "url": "https://www.dedao.cn",
+      "description": "知识学习平台，提供课程、电子书、听书及个人成长类学习内容。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.dedao.cn&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "喜马拉雅",
+      "url": "https://www.ximalaya.com",
+      "description": "中文音频平台，提供有声书、播客、课程和知识类节目。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ximalaya.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "荔枝",
+      "url": "https://www.lizhi.fm",
+      "description": "音频内容平台，提供播客、声音节目、直播及音频创作服务。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.lizhi.fm&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "网易公开课",
+      "url": "https://open.163.com",
+      "description": "在线学习平台，汇集国内外公开课程、知识视频及教育内容。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=open.163.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "腾讯新闻",
+      "url": "https://news.qq.com",
+      "description": "腾讯旗下新闻资讯平台，提供国内外时事、财经、科技和社会新闻。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=news.qq.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "凤凰网",
+      "url": "https://www.ifeng.com",
+      "description": "综合资讯媒体平台，覆盖新闻、财经、文化、科技及社会热点内容。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ifeng.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "观察者网",
+      "url": "https://www.guancha.cn",
+      "description": "中文时政资讯平台，关注国际关系、社会热点、经济和公共议题。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.guancha.cn&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "人民网",
+      "url": "https://www.people.com.cn",
+      "description": "人民日报旗下综合新闻平台，提供时政、国际、社会和财经等权威资讯。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.people.com.cn&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "新华网",
+      "url": "https://www.news.cn",
+      "description": "新华社主办的综合新闻网站，提供国内外新闻及政务、财经等资讯。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.news.cn&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "携程",
+      "url": "https://www.ctrip.com",
+      "description": "在线旅行服务平台，提供酒店、机票、火车票、度假及旅游预订服务。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ctrip.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "美团",
+      "url": "https://www.meituan.com",
+      "description": "本地生活服务平台，提供餐饮外卖、到店消费、酒店和休闲娱乐服务。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.meituan.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "饿了么",
+      "url": "https://www.ele.me",
+      "description": "即时配送与外卖服务平台，可在线订餐并获取本地生活配送服务。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ele.me&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "大众点评",
+      "url": "https://www.dianping.com",
+      "description": "本地生活消费平台，提供餐厅、酒店、休闲娱乐等商户信息和用户评价。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.dianping.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "国家政务服务平台",
+      "url": "https://gjzwfw.www.gov.cn",
+      "description": "国家级政务服务入口，提供政务事项查询、在线办理和便民服务。",
+      "category": "common",
+      "tags": [
+        "常用推荐",
+        "常用工具",
+        "信息检索"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=gjzwfw.www.gov.cn&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Astro",
+      "url": "https://astro.build",
+      "description": "Astro 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=astro.build&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Remix",
+      "url": "https://remix.run",
+      "description": "Remix 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=remix.run&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "SolidJS",
+      "url": "https://www.solidjs.com",
+      "description": "SolidJS 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.solidjs.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Qwik",
+      "url": "https://qwik.dev",
+      "description": "Qwik 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=qwik.dev&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Ember.js",
+      "url": "https://emberjs.com",
+      "description": "Ember.js 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=emberjs.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Deno",
+      "url": "https://deno.com",
+      "description": "Deno 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=deno.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Bun",
+      "url": "https://bun.sh",
+      "description": "Bun 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=bun.sh&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Ruby",
+      "url": "https://www.ruby-lang.org/en/documentation",
+      "description": "Ruby 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ruby-lang.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Rails",
+      "url": "https://guides.rubyonrails.org",
+      "description": "Rails 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=guides.rubyonrails.org&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Django",
+      "url": "https://docs.djangoproject.com",
+      "description": "Django 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=docs.djangoproject.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "FastAPI",
+      "url": "https://fastapi.tiangolo.com",
+      "description": "FastAPI 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fastapi.tiangolo.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Flask",
+      "url": "https://flask.palletsprojects.com",
+      "description": "Flask 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=flask.palletsprojects.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Go",
+      "url": "https://go.dev/doc",
+      "description": "Go 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=go.dev&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Rust",
+      "url": "https://www.rust-lang.org/learn",
+      "description": "Rust 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.rust-lang.org&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Kotlin",
+      "url": "https://kotlinlang.org/docs/home.html",
+      "description": "Kotlin 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=kotlinlang.org&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Java",
+      "url": "https://dev.java/learn",
+      "description": "Java 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dev.java&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "C#",
+      "url": "https://learn.microsoft.com/dotnet/csharp",
+      "description": "C# 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": ".NET",
+      "url": "https://learn.microsoft.com/dotnet",
+      "description": ".NET 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Flutter",
+      "url": "https://docs.flutter.dev",
+      "description": "Flutter 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=docs.flutter.dev&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Dart",
+      "url": "https://dart.dev/guides",
+      "description": "Dart 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dart.dev&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Swift",
+      "url": "https://www.swift.org/documentation",
+      "description": "Swift 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.swift.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Android Developers",
+      "url": "https://developer.android.com",
+      "description": "Android Developers 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=developer.android.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Electron",
+      "url": "https://www.electronjs.org/docs/latest",
+      "description": "Electron 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.electronjs.org&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Tauri",
+      "url": "https://tauri.app",
+      "description": "Tauri 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=tauri.app&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Tailwind CSS",
+      "url": "https://tailwindcss.com/docs",
+      "description": "Tailwind CSS 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=tailwindcss.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Bootstrap",
+      "url": "https://getbootstrap.com/docs",
+      "description": "Bootstrap 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=getbootstrap.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "PostCSS",
+      "url": "https://postcss.org",
+      "description": "PostCSS 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=postcss.org&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Storybook",
+      "url": "https://storybook.js.org/docs",
+      "description": "Storybook 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=storybook.js.org&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Rollup",
+      "url": "https://rollupjs.org",
+      "description": "Rollup 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=rollupjs.org&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Parcel",
+      "url": "https://parceljs.org",
+      "description": "Parcel 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。",
+      "category": "docs",
+      "tags": [
+        "框架文档",
+        "开发文档",
+        "编程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=parceljs.org&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Poe",
+      "url": "https://poe.com",
+      "description": "Poe 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=poe.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Character.AI",
+      "url": "https://character.ai",
+      "description": "Character.AI 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=character.ai&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "You.com",
+      "url": "https://you.com",
+      "description": "You.com 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=you.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Phind",
+      "url": "https://www.phind.com",
+      "description": "Phind 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.phind.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Mistral Le Chat",
+      "url": "https://chat.mistral.ai",
+      "description": "Mistral Le Chat 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=chat.mistral.ai&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Cohere",
+      "url": "https://cohere.com",
+      "description": "Cohere 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=cohere.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "AI21 Labs",
+      "url": "https://www.ai21.com",
+      "description": "AI21 Labs 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ai21.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Replicate",
+      "url": "https://replicate.com",
+      "description": "Replicate 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=replicate.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Together AI",
+      "url": "https://www.together.ai",
+      "description": "Together AI 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.together.ai&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Groq",
+      "url": "https://groq.com",
+      "description": "Groq 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=groq.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Ollama",
+      "url": "https://ollama.com",
+      "description": "Ollama 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ollama.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "LM Studio",
+      "url": "https://lmstudio.ai",
+      "description": "LM Studio 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=lmstudio.ai&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "OpenRouter",
+      "url": "https://openrouter.ai",
+      "description": "OpenRouter 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=openrouter.ai&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "LangChain",
+      "url": "https://www.langchain.com",
+      "description": "LangChain 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.langchain.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "LlamaIndex",
+      "url": "https://www.llamaindex.ai",
+      "description": "LlamaIndex 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.llamaindex.ai&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Weights & Biases",
+      "url": "https://wandb.ai",
+      "description": "Weights & Biases 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=wandb.ai&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "MLflow",
+      "url": "https://mlflow.org",
+      "description": "MLflow 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mlflow.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "ComfyUI",
+      "url": "https://github.com/comfyanonymous/ComfyUI",
+      "description": "ComfyUI 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=github.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Leonardo AI",
+      "url": "https://leonardo.ai",
+      "description": "Leonardo AI 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=leonardo.ai&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Ideogram",
+      "url": "https://ideogram.ai",
+      "description": "Ideogram 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ideogram.ai&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Adobe Firefly",
+      "url": "https://firefly.adobe.com",
+      "description": "Adobe Firefly 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=firefly.adobe.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Playground AI",
+      "url": "https://playground.com",
+      "description": "Playground AI 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=playground.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Canva Magic Studio",
+      "url": "https://www.canva.com/magic-studio",
+      "description": "Canva Magic Studio 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.canva.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Pika",
+      "url": "https://pika.art",
+      "description": "Pika 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=pika.art&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Luma Dream Machine",
+      "url": "https://lumalabs.ai/dream-machine",
+      "description": "Luma Dream Machine 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=lumalabs.ai&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "HeyGen",
+      "url": "https://www.heygen.com",
+      "description": "HeyGen 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.heygen.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "ElevenLabs",
+      "url": "https://elevenlabs.io",
+      "description": "ElevenLabs 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=elevenlabs.io&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Suno",
+      "url": "https://suno.com",
+      "description": "Suno 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=suno.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Gamma",
+      "url": "https://gamma.app",
+      "description": "Gamma 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=gamma.app&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "NotebookLM",
+      "url": "https://notebooklm.google.com",
+      "description": "NotebookLM 的核心资源入口，聚焦对话、生成式创作、模型调用或 AI 开发服务。",
+      "category": "ai",
+      "tags": [
+        "AI 工具",
+        "AI工具",
+        "生成式AI"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=notebooklm.google.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "SiteInspire",
+      "url": "https://www.siteinspire.com",
+      "description": "SiteInspire 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.siteinspire.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Collect UI",
+      "url": "https://collectui.com",
+      "description": "Collect UI 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=collectui.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "UI Garage",
+      "url": "https://uigarage.net",
+      "description": "UI Garage 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=uigarage.net&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Lapa Ninja",
+      "url": "https://www.lapa.ninja",
+      "description": "Lapa Ninja 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.lapa.ninja&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Httpster",
+      "url": "https://httpster.net",
+      "description": "Httpster 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=httpster.net&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Minimal Gallery",
+      "url": "https://minimal.gallery",
+      "description": "Minimal Gallery 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=minimal.gallery&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "CSS Design Awards",
+      "url": "https://www.cssdesignawards.com",
+      "description": "CSS Design Awards 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.cssdesignawards.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "CSS Winner",
+      "url": "https://www.csswinner.com",
+      "description": "CSS Winner 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.csswinner.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Godly",
+      "url": "https://godly.website",
+      "description": "Godly 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=godly.website&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Dark Mode Design",
+      "url": "https://www.darkmodedesign.com",
+      "description": "Dark Mode Design 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.darkmodedesign.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "UIJar",
+      "url": "https://uijar.com",
+      "description": "UIJar 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=uijar.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Really Good UX",
+      "url": "https://www.reallygoodux.io",
+      "description": "Really Good UX 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.reallygoodux.io&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Page Flows",
+      "url": "https://pageflows.com",
+      "description": "Page Flows 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=pageflows.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Refero",
+      "url": "https://refero.design",
+      "description": "Refero 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=refero.design&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "SaaSFrame",
+      "url": "https://www.saasframe.io",
+      "description": "SaaSFrame 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.saasframe.io&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Screenlane",
+      "url": "https://screenlane.com",
+      "description": "Screenlane 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=screenlane.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Nicely Done",
+      "url": "https://nicelydone.club",
+      "description": "Nicely Done 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=nicelydone.club&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Fresh Folk",
+      "url": "https://fresh-folk.com",
+      "description": "Fresh Folk 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fresh-folk.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Brand New",
+      "url": "https://www.underconsideration.com/brandnew",
+      "description": "Brand New 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.underconsideration.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "LogoLounge",
+      "url": "https://www.logolounge.com",
+      "description": "LogoLounge 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.logolounge.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Dribbble Shots",
+      "url": "https://dribbble.com/shots",
+      "description": "Dribbble Shots 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dribbble.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Pinterest Design",
+      "url": "https://www.pinterest.com/categories/design",
+      "description": "Pinterest Design 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.pinterest.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Landingfolio",
+      "url": "https://www.landingfolio.com",
+      "description": "Landingfolio 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.landingfolio.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Design Better",
+      "url": "https://www.designbetter.co",
+      "description": "Design Better 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.designbetter.co&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Design Systems",
+      "url": "https://www.designsystems.com",
+      "description": "Design Systems 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.designsystems.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Uplabs",
+      "url": "https://www.uplabs.com",
+      "description": "Uplabs 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.uplabs.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "UI Patterns",
+      "url": "https://www.ui-patterns.com",
+      "description": "UI Patterns 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.ui-patterns.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Mobile Patterns",
+      "url": "https://www.mobile-patterns.com",
+      "description": "Mobile Patterns 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.mobile-patterns.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Web Design Inspiration",
+      "url": "https://www.webdesign-inspiration.com",
+      "description": "Web Design Inspiration 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.webdesign-inspiration.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Design Notes",
+      "url": "https://www.designnotes.co",
+      "description": "Design Notes 的核心资源入口，展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "category": "inspiration",
+      "tags": [
+        "灵感采集",
+        "设计灵感",
+        "视觉设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.designnotes.co&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Marvel",
+      "url": "https://marvelapp.com",
+      "description": "Marvel 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=marvelapp.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "MockFlow",
+      "url": "https://mockflow.com",
+      "description": "MockFlow 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mockflow.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Balsamiq",
+      "url": "https://balsamiq.com",
+      "description": "Balsamiq 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=balsamiq.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Origami Studio",
+      "url": "https://origami.design",
+      "description": "Origami Studio 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=origami.design&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Miro",
+      "url": "https://miro.com",
+      "description": "Miro 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=miro.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Lucidchart",
+      "url": "https://www.lucidchart.com",
+      "description": "Lucidchart 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.lucidchart.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "diagrams.net",
+      "url": "https://app.diagrams.net",
+      "description": "diagrams.net 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=app.diagrams.net&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Mockplus",
+      "url": "https://www.mockplus.com",
+      "description": "Mockplus 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.mockplus.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "UXPin",
+      "url": "https://www.uxpin.com",
+      "description": "UXPin 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.uxpin.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Milanote",
+      "url": "https://milanote.com",
+      "description": "Milanote 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=milanote.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Overflow",
+      "url": "https://overflow.io",
+      "description": "Overflow 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=overflow.io&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "FlowMapp",
+      "url": "https://flowmapp.com",
+      "description": "FlowMapp 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=flowmapp.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "FigJam",
+      "url": "https://www.figma.com/figjam",
+      "description": "FigJam 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.figma.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Figma Slides",
+      "url": "https://www.figma.com/slides",
+      "description": "Figma Slides 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.figma.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Uizard",
+      "url": "https://uizard.io",
+      "description": "Uizard 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=uizard.io&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Visily",
+      "url": "https://www.visily.ai",
+      "description": "Visily 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.visily.ai&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Relume",
+      "url": "https://www.relume.io",
+      "description": "Relume 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.relume.io&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Siter.io",
+      "url": "https://siter.io",
+      "description": "Siter.io 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=siter.io&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Webflow",
+      "url": "https://webflow.com",
+      "description": "Webflow 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=webflow.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Bubble",
+      "url": "https://bubble.io",
+      "description": "Bubble 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=bubble.io&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Wix Studio",
+      "url": "https://www.wix.com/studio",
+      "description": "Wix Studio 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.wix.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Framer Templates",
+      "url": "https://www.framer.com/marketplace",
+      "description": "Framer Templates 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.framer.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "UI8",
+      "url": "https://ui8.net",
+      "description": "UI8 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ui8.net&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Wireframe.cc",
+      "url": "https://wireframe.cc",
+      "description": "Wireframe.cc 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=wireframe.cc&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "InVision",
+      "url": "https://www.invisionapp.com",
+      "description": "InVision 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.invisionapp.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "InVision Studio",
+      "url": "https://www.invisionapp.com/studio",
+      "description": "InVision Studio 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.invisionapp.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Flowchart Fun",
+      "url": "https://flowchart.fun",
+      "description": "Flowchart Fun 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=flowchart.fun&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Figma Community",
+      "url": "https://www.figma.com/community",
+      "description": "Figma Community 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.figma.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Mockuuups Studio",
+      "url": "https://www.mockuuups.com",
+      "description": "Mockuuups Studio 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.mockuuups.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Productboard",
+      "url": "https://www.productboard.com",
+      "description": "Productboard 的核心资源入口，聚焦页面结构、交互流程、线框或高保真原型制作。",
+      "category": "prototype",
+      "tags": [
+        "原型设计",
+        "产品设计"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.productboard.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Codeberg",
+      "url": "https://codeberg.org",
+      "description": "Codeberg 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=codeberg.org&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "SourceForge",
+      "url": "https://sourceforge.net",
+      "description": "SourceForge 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=sourceforge.net&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Bitbucket",
+      "url": "https://bitbucket.org",
+      "description": "Bitbucket 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=bitbucket.org&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Gerrit",
+      "url": "https://www.gerritcodereview.com",
+      "description": "Gerrit 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.gerritcodereview.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "JSFiddle",
+      "url": "https://jsfiddle.net",
+      "description": "JSFiddle 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=jsfiddle.net&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Replit",
+      "url": "https://replit.com",
+      "description": "Replit 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=replit.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Stack Exchange",
+      "url": "https://stackexchange.com",
+      "description": "Stack Exchange 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=stackexchange.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Super User",
+      "url": "https://superuser.com",
+      "description": "Super User 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=superuser.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Server Fault",
+      "url": "https://serverfault.com",
+      "description": "Server Fault 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=serverfault.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Ask Ubuntu",
+      "url": "https://askubuntu.com",
+      "description": "Ask Ubuntu 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=askubuntu.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Hashnode",
+      "url": "https://hashnode.com",
+      "description": "Hashnode 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=hashnode.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "DZone",
+      "url": "https://dzone.com",
+      "description": "DZone 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dzone.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "InfoQ",
+      "url": "https://www.infoq.com",
+      "description": "InfoQ 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.infoq.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com",
+      "description": "Hacker News 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Lobsters",
+      "url": "https://lobste.rs",
+      "description": "Lobsters 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=lobste.rs&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "HackerNoon",
+      "url": "https://hackernoon.com",
+      "description": "HackerNoon 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=hackernoon.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "OpenSource.com",
+      "url": "https://opensource.com",
+      "description": "OpenSource.com 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=opensource.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Linux 中国",
+      "url": "https://linux.cn",
+      "description": "Linux 中国 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=linux.cn&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "开源中国",
+      "url": "https://www.oschina.net",
+      "description": "开源中国 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.oschina.net&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "博客园精选",
+      "url": "https://www.cnblogs.com/pick",
+      "description": "博客园精选 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.cnblogs.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "V2EX 技术区",
+      "url": "https://www.v2ex.com/go/programmer",
+      "description": "V2EX 技术区 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.v2ex.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "CodeProject",
+      "url": "https://www.codeproject.com",
+      "description": "CodeProject 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.codeproject.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Codeforces",
+      "url": "https://codeforces.com",
+      "description": "Codeforces 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=codeforces.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "HackerRank",
+      "url": "https://www.hackerrank.com",
+      "description": "HackerRank 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.hackerrank.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Exercism",
+      "url": "https://exercism.org",
+      "description": "Exercism 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=exercism.org&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Gitter",
+      "url": "https://gitter.im",
+      "description": "Gitter 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=gitter.im&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Matrix",
+      "url": "https://matrix.org",
+      "description": "Matrix 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=matrix.org&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Zulip",
+      "url": "https://zulip.com",
+      "description": "Zulip 的核心资源入口，聚焦代码协作、技术问答、开源项目或开发者交流。",
+      "category": "community",
+      "tags": [
+        "开发社区",
+        "技术社区",
+        "开发者"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=zulip.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Arco Design",
+      "url": "https://arco.design",
+      "description": "Arco Design 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=arco.design&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "DaisyUI",
+      "url": "https://daisyui.com",
+      "description": "DaisyUI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=daisyui.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "PrimeVue",
+      "url": "https://primevue.org",
+      "description": "PrimeVue 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=primevue.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "PrimeReact",
+      "url": "https://primereact.org",
+      "description": "PrimeReact 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=primereact.org&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "TDesign",
+      "url": "https://tdesign.tencent.com",
+      "description": "TDesign 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=tdesign.tencent.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Vant",
+      "url": "https://vant-ui.github.io/vant",
+      "description": "Vant 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vant-ui.github.io&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "NutUI",
+      "url": "https://nutui.jd.com",
+      "description": "NutUI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=nutui.jd.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Ionic",
+      "url": "https://ionicframework.com",
+      "description": "Ionic 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ionicframework.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Mantine",
+      "url": "https://mantine.dev",
+      "description": "Mantine 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mantine.dev&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Ant Design Vue",
+      "url": "https://www.antdv.com",
+      "description": "Ant Design Vue 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.antdv.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "React Aria",
+      "url": "https://react-spectrum.adobe.com/react-aria",
+      "description": "React Aria 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=react-spectrum.adobe.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "React Bootstrap",
+      "url": "https://react-bootstrap.github.io",
+      "description": "React Bootstrap 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=react-bootstrap.github.io&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "React Hook Form",
+      "url": "https://react-hook-form.com",
+      "description": "React Hook Form 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=react-hook-form.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "VueUse",
+      "url": "https://vueuse.org",
+      "description": "VueUse 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vueuse.org&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Floating UI",
+      "url": "https://floating-ui.com",
+      "description": "Floating UI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=floating-ui.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Lucide",
+      "url": "https://lucide.dev",
+      "description": "Lucide 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=lucide.dev&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Heroicons",
+      "url": "https://heroicons.com",
+      "description": "Heroicons 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=heroicons.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Iconify",
+      "url": "https://iconify.design",
+      "description": "Iconify 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=iconify.design&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Motion",
+      "url": "https://motion.dev",
+      "description": "Motion 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=motion.dev&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Aceternity UI",
+      "url": "https://ui.aceternity.com",
+      "description": "Aceternity UI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ui.aceternity.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "HeroUI",
+      "url": "https://www.heroui.com",
+      "description": "HeroUI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.heroui.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "NextUI",
+      "url": "https://nextui.org",
+      "description": "NextUI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=nextui.org&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "dnd kit",
+      "url": "https://www.dndkit.com",
+      "description": "dnd kit 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.dndkit.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Solid UI",
+      "url": "https://www.solid-ui.com",
+      "description": "Solid UI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.solid-ui.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Kobalte",
+      "url": "https://www.kobalte.dev",
+      "description": "Kobalte 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.kobalte.dev&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Ark UI",
+      "url": "https://ark-ui.com",
+      "description": "Ark UI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ark-ui.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Ariakit",
+      "url": "https://ariakit.org",
+      "description": "Ariakit 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ariakit.org&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Reach UI",
+      "url": "https://reach.tech",
+      "description": "Reach UI 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。",
+      "category": "ui",
+      "tags": [
+        "UI 组件库",
+        "UI组件",
+        "UI设计",
+        "前端"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=reach.tech&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Unsplash Source",
+      "url": "https://source.unsplash.com",
+      "description": "Unsplash Source 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=source.unsplash.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Burst",
+      "url": "https://burst.shopify.com",
+      "description": "Burst 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=burst.shopify.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Kaboompics",
+      "url": "https://kaboompics.com",
+      "description": "Kaboompics 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=kaboompics.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "StockSnap",
+      "url": "https://stocksnap.io",
+      "description": "StockSnap 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=stocksnap.io&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Reshot",
+      "url": "https://www.reshot.com",
+      "description": "Reshot 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.reshot.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Freepik",
+      "url": "https://www.freepik.com",
+      "description": "Freepik 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.freepik.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "unDraw",
+      "url": "https://undraw.co",
+      "description": "unDraw 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=undraw.co&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Storyset",
+      "url": "https://storyset.com",
+      "description": "Storyset 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=storyset.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Blush",
+      "url": "https://blush.design",
+      "description": "Blush 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=blush.design&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "DrawKit",
+      "url": "https://www.drawkit.com",
+      "description": "DrawKit 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.drawkit.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "ManyPixels",
+      "url": "https://www.manypixels.co",
+      "description": "ManyPixels 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.manypixels.co&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Open Doodles",
+      "url": "https://www.opendoodles.com",
+      "description": "Open Doodles 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.opendoodles.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Humaaans",
+      "url": "https://www.humaaans.com",
+      "description": "Humaaans 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.humaaans.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Fontsource",
+      "url": "https://fontsource.org",
+      "description": "Fontsource 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fontsource.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "1001 Fonts",
+      "url": "https://www.1001fonts.com",
+      "description": "1001 Fonts 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.1001fonts.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Adobe Color",
+      "url": "https://color.adobe.com",
+      "description": "Adobe Color 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=color.adobe.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Color Hunt",
+      "url": "https://colorhunt.co",
+      "description": "Color Hunt 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=colorhunt.co&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Huemint",
+      "url": "https://huemint.com",
+      "description": "Huemint 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=huemint.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Realtime Colors",
+      "url": "https://www.realtimecolors.com",
+      "description": "Realtime Colors 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.realtimecolors.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "TinyPNG",
+      "url": "https://tinypng.com",
+      "description": "TinyPNG 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=tinypng.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Squoosh",
+      "url": "https://squoosh.app",
+      "description": "Squoosh 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=squoosh.app&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "SVG Repo",
+      "url": "https://www.svgrepo.com",
+      "description": "SVG Repo 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.svgrepo.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Simple Icons",
+      "url": "https://simpleicons.org",
+      "description": "Simple Icons 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=simpleicons.org&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "The Noun Project",
+      "url": "https://thenounproject.com",
+      "description": "The Noun Project 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=thenounproject.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Rawpixel",
+      "url": "https://www.rawpixel.com",
+      "description": "Rawpixel 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.rawpixel.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Vecteezy",
+      "url": "https://www.vecteezy.com",
+      "description": "Vecteezy 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.vecteezy.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "VectorStock",
+      "url": "https://www.vectorstock.com",
+      "description": "VectorStock 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.vectorstock.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Iconscout",
+      "url": "https://iconscout.com",
+      "description": "Iconscout 的核心资源入口，聚焦图片、插画、图标、字体或颜色等设计素材。",
+      "category": "assets",
+      "tags": [
+        "素材资源",
+        "设计素材",
+        "创作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=iconscout.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Microsoft 365",
+      "url": "https://www.microsoft365.com",
+      "description": "Microsoft 365 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.microsoft365.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Google Drive",
+      "url": "https://drive.google.com",
+      "description": "Google Drive 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=drive.google.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Google Sheets",
+      "url": "https://sheets.google.com",
+      "description": "Google Sheets 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=sheets.google.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Google Slides",
+      "url": "https://slides.google.com",
+      "description": "Google Slides 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=slides.google.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Box",
+      "url": "https://www.box.com",
+      "description": "Box 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.box.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Evernote",
+      "url": "https://evernote.com",
+      "description": "Evernote 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=evernote.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Obsidian",
+      "url": "https://obsidian.md",
+      "description": "Obsidian 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=obsidian.md&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Logseq",
+      "url": "https://logseq.com",
+      "description": "Logseq 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=logseq.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Heptabase",
+      "url": "https://heptabase.com",
+      "description": "Heptabase 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=heptabase.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Slite",
+      "url": "https://slite.com",
+      "description": "Slite 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=slite.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Confluence",
+      "url": "https://www.atlassian.com/software/confluence",
+      "description": "Confluence 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.atlassian.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Coda",
+      "url": "https://coda.io",
+      "description": "Coda 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=coda.io&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Craft",
+      "url": "https://www.craft.do",
+      "description": "Craft 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.craft.do&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Quip",
+      "url": "https://quip.com",
+      "description": "Quip 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=quip.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Zoho Writer",
+      "url": "https://www.zoho.com/writer",
+      "description": "Zoho Writer 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.zoho.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "WPS",
+      "url": "https://www.wps.cn",
+      "description": "WPS 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.wps.cn&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "腾讯会议",
+      "url": "https://meeting.tencent.com",
+      "description": "腾讯会议 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=meeting.tencent.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Zoom",
+      "url": "https://zoom.us",
+      "description": "Zoom 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=zoom.us&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Microsoft Teams",
+      "url": "https://www.microsoft.com/microsoft-teams",
+      "description": "Microsoft Teams 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.microsoft.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Slack",
+      "url": "https://slack.com",
+      "description": "Slack 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=slack.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Discord",
+      "url": "https://discord.com",
+      "description": "Discord 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=discord.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Lark",
+      "url": "https://www.larksuite.com",
+      "description": "Lark 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.larksuite.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "飞书多维表格",
+      "url": "https://www.feishu.cn/product/base",
+      "description": "飞书多维表格 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.feishu.cn&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "语雀",
+      "url": "https://www.yuque.com",
+      "description": "语雀 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.yuque.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "幕布",
+      "url": "https://mubu.com",
+      "description": "幕布 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mubu.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "ONLYOFFICE",
+      "url": "https://www.onlyoffice.com",
+      "description": "ONLYOFFICE 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.onlyoffice.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Collabora Online",
+      "url": "https://www.collaboraonline.com",
+      "description": "Collabora Online 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.collaboraonline.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Fellow",
+      "url": "https://www.fellow.app",
+      "description": "Fellow 的核心资源入口，聚焦文档编辑、知识管理、会议协作或团队沟通。",
+      "category": "office",
+      "tags": [
+        "文档办公",
+        "办公效率",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.fellow.app&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Udemy",
+      "url": "https://www.udemy.com",
+      "description": "Udemy 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.udemy.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "FutureLearn",
+      "url": "https://www.futurelearn.com",
+      "description": "FutureLearn 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.futurelearn.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "OpenLearn",
+      "url": "https://www.open.edu/openlearn",
+      "description": "OpenLearn 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.open.edu&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Frontend Mentor",
+      "url": "https://www.frontendmentor.io",
+      "description": "Frontend Mentor 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.frontendmentor.io&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Frontend Masters",
+      "url": "https://frontendmasters.com",
+      "description": "Frontend Masters 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=frontendmasters.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "CSS-Tricks",
+      "url": "https://css-tricks.com",
+      "description": "CSS-Tricks 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=css-tricks.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "JavaScript.info",
+      "url": "https://javascript.info",
+      "description": "JavaScript.info 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=javascript.info&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "W3Schools",
+      "url": "https://www.w3schools.com",
+      "description": "W3Schools 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.w3schools.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Roadmap.sh",
+      "url": "https://roadmap.sh",
+      "description": "Roadmap.sh 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=roadmap.sh&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Exercism Learning",
+      "url": "https://exercism.org/tracks",
+      "description": "Exercism Learning 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=exercism.org&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Codewars",
+      "url": "https://www.codewars.com",
+      "description": "Codewars 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.codewars.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "HackerRank Skills",
+      "url": "https://www.hackerrank.com/skills-directory",
+      "description": "HackerRank Skills 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.hackerrank.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Project Euler",
+      "url": "https://projecteuler.net",
+      "description": "Project Euler 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=projecteuler.net&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "The Odin Project",
+      "url": "https://www.theodinproject.com",
+      "description": "The Odin Project 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.theodinproject.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "MDN Learn",
+      "url": "https://developer.mozilla.org/docs/Learn",
+      "description": "MDN Learn 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Google Codelabs",
+      "url": "https://codelabs.developers.google.com",
+      "description": "Google Codelabs 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=codelabs.developers.google.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Microsoft Learn",
+      "url": "https://learn.microsoft.com/training",
+      "description": "Microsoft Learn 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=learn.microsoft.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "AWS Skill Builder",
+      "url": "https://skillbuilder.aws",
+      "description": "AWS Skill Builder 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=skillbuilder.aws&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Linux Journey",
+      "url": "https://linuxjourney.com",
+      "description": "Linux Journey 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=linuxjourney.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "慕课网",
+      "url": "https://www.imooc.com",
+      "description": "慕课网 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.imooc.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "实验楼",
+      "url": "https://www.lanqiao.cn",
+      "description": "实验楼 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.lanqiao.cn&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Pluralsight",
+      "url": "https://www.pluralsight.com",
+      "description": "Pluralsight 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.pluralsight.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "LinkedIn Learning",
+      "url": "https://www.linkedin.com/learning",
+      "description": "LinkedIn Learning 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.linkedin.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Brilliant",
+      "url": "https://brilliant.org",
+      "description": "Brilliant 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=brilliant.org&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "SoloLearn",
+      "url": "https://www.sololearn.com",
+      "description": "SoloLearn 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.sololearn.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Scrimba",
+      "url": "https://scrimba.com",
+      "description": "Scrimba 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=scrimba.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "egghead",
+      "url": "https://egghead.io",
+      "description": "egghead 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=egghead.io&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Turing College",
+      "url": "https://www.turingcollege.com",
+      "description": "Turing College 的核心资源入口，聚焦课程、公开课、编程练习或专业学习资料。",
+      "category": "learning",
+      "tags": [
+        "学习资源",
+        "在线课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.turingcollege.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "TickTick",
+      "url": "https://ticktick.com",
+      "description": "TickTick 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=ticktick.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Microsoft To Do",
+      "url": "https://to-do.office.com",
+      "description": "Microsoft To Do 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=to-do.office.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Any.do",
+      "url": "https://www.any.do",
+      "description": "Any.do 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.any.do&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Things",
+      "url": "https://culturedcode.com/things",
+      "description": "Things 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=culturedcode.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Jira",
+      "url": "https://www.atlassian.com/software/jira",
+      "description": "Jira 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.atlassian.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Linear",
+      "url": "https://linear.app",
+      "description": "Linear 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=linear.app&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Height",
+      "url": "https://height.app",
+      "description": "Height 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=height.app&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Monday.com",
+      "url": "https://monday.com",
+      "description": "Monday.com 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=monday.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "ClickUp",
+      "url": "https://clickup.com",
+      "description": "ClickUp 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=clickup.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Basecamp",
+      "url": "https://basecamp.com",
+      "description": "Basecamp 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=basecamp.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Toggl Track",
+      "url": "https://toggl.com/track",
+      "description": "Toggl Track 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=toggl.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Clockify",
+      "url": "https://clockify.me",
+      "description": "Clockify 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=clockify.me&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Make",
+      "url": "https://www.make.com",
+      "description": "Make 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.make.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "n8n",
+      "url": "https://n8n.io",
+      "description": "n8n 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=n8n.io&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Baserow",
+      "url": "https://baserow.io",
+      "description": "Baserow 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=baserow.io&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "AppFlowy",
+      "url": "https://appflowy.io",
+      "description": "AppFlowy 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=appflowy.io&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Habitica",
+      "url": "https://habitica.com",
+      "description": "Habitica 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=habitica.com&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Toggl Plan",
+      "url": "https://toggl.com/plan",
+      "description": "Toggl Plan 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=toggl.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Cron",
+      "url": "https://cron.com",
+      "description": "Cron 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=cron.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Reclaim AI",
+      "url": "https://reclaim.ai",
+      "description": "Reclaim AI 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=reclaim.ai&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Motion Calendar",
+      "url": "https://www.usemotion.com",
+      "description": "Motion Calendar 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.usemotion.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "SavvyCal",
+      "url": "https://savvycal.com",
+      "description": "SavvyCal 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=savvycal.com&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Workflowy",
+      "url": "https://workflowy.com",
+      "description": "Workflowy 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=workflowy.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Dynalist",
+      "url": "https://dynalist.io",
+      "description": "Dynalist 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dynalist.io&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "Remember The Milk",
+      "url": "https://www.rememberthemilk.com",
+      "description": "Remember The Milk 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.rememberthemilk.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Focusmate",
+      "url": "https://www.focusmate.com",
+      "description": "Focusmate 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.focusmate.com&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Productive",
+      "url": "https://productive.io",
+      "description": "Productive 的核心资源入口，聚焦管理任务、流程、时间或个人工作效率。",
+      "category": "productivity",
+      "tags": [
+        "效率工具",
+        "工作流"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=productive.io&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Metabase",
+      "url": "https://www.metabase.com",
+      "description": "Metabase 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.metabase.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Apache Superset",
+      "url": "https://superset.apache.org",
+      "description": "Apache Superset 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=superset.apache.org&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Redash",
+      "url": "https://redash.io",
+      "description": "Redash 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=redash.io&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "Grafana",
+      "url": "https://grafana.com",
+      "description": "Grafana 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=grafana.com&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Qlik",
+      "url": "https://www.qlik.com",
+      "description": "Qlik 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.qlik.com&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "Sisense",
+      "url": "https://www.sisense.com",
+      "description": "Sisense 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.sisense.com&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "Domo",
+      "url": "https://www.domo.com",
+      "description": "Domo 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.domo.com&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "Hex",
+      "url": "https://hex.tech",
+      "description": "Hex 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=hex.tech&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Deepnote",
+      "url": "https://deepnote.com",
+      "description": "Deepnote 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=deepnote.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Mode",
+      "url": "https://mode.com",
+      "description": "Mode 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=mode.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "DataCamp",
+      "url": "https://www.datacamp.com",
+      "description": "DataCamp 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.datacamp.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Dataquest",
+      "url": "https://www.dataquest.io",
+      "description": "Dataquest 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.dataquest.io&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Statista",
+      "url": "https://www.statista.com",
+      "description": "Statista 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.statista.com&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Gapminder",
+      "url": "https://www.gapminder.org",
+      "description": "Gapminder 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.gapminder.org&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Google Dataset Search",
+      "url": "https://datasetsearch.research.google.com",
+      "description": "Google Dataset Search 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=datasetsearch.research.google.com&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "Data.gov",
+      "url": "https://data.gov",
+      "description": "Data.gov 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=data.gov&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "国家数据",
+      "url": "https://data.stats.gov.cn",
+      "description": "国家数据 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=data.stats.gov.cn&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "World Bank Data",
+      "url": "https://data.worldbank.org",
+      "description": "World Bank Data 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=data.worldbank.org&sz=128",
+      "quality_score": 86
+    },
+    {
+      "name": "UN Data",
+      "url": "https://data.un.org",
+      "description": "UN Data 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=data.un.org&sz=128",
+      "quality_score": 87
+    },
+    {
+      "name": "dbdiagram.io",
+      "url": "https://dbdiagram.io",
+      "description": "dbdiagram.io 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=dbdiagram.io&sz=128",
+      "quality_score": 88
+    },
+    {
+      "name": "SQLPad",
+      "url": "https://rickbergfalk.github.io/sqlpad",
+      "description": "SQLPad 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=rickbergfalk.github.io&sz=128",
+      "quality_score": 89
+    },
+    {
+      "name": "Vega",
+      "url": "https://vega.github.io/vega",
+      "description": "Vega 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vega.github.io&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Plotly",
+      "url": "https://plotly.com",
+      "description": "Plotly 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=plotly.com&sz=128",
+      "quality_score": 91
+    },
+    {
+      "name": "From Data to Viz",
+      "url": "https://www.data-to-viz.com",
+      "description": "From Data to Viz 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.data-to-viz.com&sz=128",
+      "quality_score": 92
+    },
+    {
+      "name": "Chart.js",
+      "url": "https://www.chartjs.org",
+      "description": "Chart.js 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.chartjs.org&sz=128",
+      "quality_score": 93
+    },
+    {
+      "name": "Apache ECharts",
+      "url": "https://echarts.apache.org",
+      "description": "Apache ECharts 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=echarts.apache.org&sz=128",
+      "quality_score": 94
+    },
+    {
+      "name": "Highcharts",
+      "url": "https://www.highcharts.com",
+      "description": "Highcharts 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.highcharts.com&sz=128",
+      "quality_score": 82
+    },
+    {
+      "name": "Vega Voyager",
+      "url": "https://vega.github.io/voyager",
+      "description": "Vega Voyager 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vega.github.io&sz=128",
+      "quality_score": 83
+    },
+    {
+      "name": "中国数据开放平台",
+      "url": "https://www.data.gov.cn",
+      "description": "中国数据开放平台 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.data.gov.cn&sz=128",
+      "quality_score": 84
+    },
+    {
+      "name": "European Data Portal",
+      "url": "https://data.europa.eu",
+      "description": "European Data Portal 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。",
+      "category": "data",
+      "tags": [
+        "数据分析",
+        "可视化"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=data.europa.eu&sz=128",
+      "quality_score": 85
+    },
+    {
+      "name": "Windsurf",
+      "url": "https://windsurf.com",
+      "description": "支持跨文件理解、代理式修改和命令执行的 AI 开发环境。",
+      "category": "ai",
+      "tags": [
+        "AI开发",
+        "IDE",
+        "代码生成"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=windsurf.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Bolt.new",
+      "url": "https://bolt.new",
+      "description": "在浏览器中通过自然语言生成、运行和部署全栈 Web 应用。",
+      "category": "ai",
+      "tags": [
+        "AI开发",
+        "在线IDE",
+        "部署"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=bolt.new&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Lovable",
+      "url": "https://lovable.dev",
+      "description": "将产品描述转换为可编辑 Web 应用，并支持数据库与部署集成。",
+      "category": "ai",
+      "tags": [
+        "AI开发",
+        "原型",
+        "Web应用"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=lovable.dev&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "StackBlitz",
+      "url": "https://stackblitz.com",
+      "description": "基于浏览器运行 Node.js 开发环境，适合创建和分享前端项目。",
+      "category": "build_tools",
+      "tags": [
+        "在线IDE",
+        "前端",
+        "代码演示"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=stackblitz.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "CodeSandbox",
+      "url": "https://codesandbox.io",
+      "description": "用于创建、预览和协作开发 Web 项目的云端沙箱。",
+      "category": "build_tools",
+      "tags": [
+        "在线IDE",
+        "前端",
+        "协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=codesandbox.io&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Railway",
+      "url": "https://railway.app",
+      "description": "连接代码仓库后快速部署应用、数据库和后台服务的云平台。",
+      "category": "build_tools",
+      "tags": [
+        "部署",
+        "数据库",
+        "DevOps"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=railway.app&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Render",
+      "url": "https://render.com",
+      "description": "提供静态站点、Web 服务、定时任务和托管数据库部署。",
+      "category": "build_tools",
+      "tags": [
+        "部署",
+        "云服务",
+        "数据库"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=render.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Fly.io",
+      "url": "https://fly.io",
+      "description": "将容器化应用部署到靠近用户的全球边缘运行环境。",
+      "category": "build_tools",
+      "tags": [
+        "部署",
+        "容器",
+        "边缘计算"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fly.io&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Neon",
+      "url": "https://neon.tech",
+      "description": "提供可分支、按需伸缩的 Serverless PostgreSQL 数据库。",
+      "category": "build_tools",
+      "tags": [
+        "数据库",
+        "PostgreSQL",
+        "Serverless"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=neon.tech&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "PlanetScale",
+      "url": "https://planetscale.com",
+      "description": "面向高并发应用的托管关系型数据库与无阻塞 schema 工作流。",
+      "category": "build_tools",
+      "tags": [
+        "数据库",
+        "MySQL",
+        "云服务"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=planetscale.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Turso",
+      "url": "https://turso.tech",
+      "description": "基于 libSQL 的边缘数据库平台，支持多区域副本和嵌入式场景。",
+      "category": "build_tools",
+      "tags": [
+        "数据库",
+        "SQLite",
+        "边缘计算"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=turso.tech&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Bruno",
+      "url": "https://www.usebruno.com",
+      "description": "将 API 请求以文本文件保存在代码仓库中的开源 API 客户端。",
+      "category": "build_tools",
+      "tags": [
+        "API工具",
+        "测试",
+        "开源"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.usebruno.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Playwright",
+      "url": "https://playwright.dev",
+      "description": "支持 Chromium、Firefox 和 WebKit 的跨浏览器端到端测试框架。",
+      "category": "build_tools",
+      "tags": [
+        "测试工具",
+        "自动化",
+        "浏览器"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=playwright.dev&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Vitest",
+      "url": "https://vitest.dev",
+      "description": "与 Vite 配套的快速单元测试框架，兼容常见 Jest API。",
+      "category": "build_tools",
+      "tags": [
+        "测试工具",
+        "前端",
+        "单元测试"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=vitest.dev&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Full Stack Open",
+      "url": "https://fullstackopen.com",
+      "description": "围绕 React、Node.js、GraphQL 与 TypeScript 的现代全栈开发课程。",
+      "category": "learning",
+      "tags": [
+        "编程学习",
+        "全栈",
+        "课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=fullstackopen.com&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "DeepLearning.AI",
+      "url": "https://www.deeplearning.ai",
+      "description": "提供机器学习、生成式 AI 和深度学习专项课程与教学内容。",
+      "category": "learning",
+      "tags": [
+        "AI学习",
+        "机器学习",
+        "课程"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=www.deeplearning.ai&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Anytype",
+      "url": "https://anytype.io",
+      "description": "本地优先、端到端加密的知识管理和对象化笔记工具。",
+      "category": "productivity",
+      "tags": [
+        "知识管理",
+        "笔记",
+        "隐私"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=anytype.io&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "AFFiNE",
+      "url": "https://affine.pro",
+      "description": "融合文档、白板和数据库能力的开源知识协作工作空间。",
+      "category": "productivity",
+      "tags": [
+        "知识管理",
+        "白板",
+        "开源"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=affine.pro&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Plane",
+      "url": "https://plane.so",
+      "description": "面向产品团队的开源项目管理、周期规划和问题跟踪工具。",
+      "category": "productivity",
+      "tags": [
+        "项目管理",
+        "开源",
+        "团队协作"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=plane.so&sz=128",
+      "quality_score": 90
+    },
+    {
+      "name": "Cal.com",
+      "url": "https://cal.com",
+      "description": "支持团队排期、工作流和多日历连接的开源预约平台。",
+      "category": "productivity",
+      "tags": [
+        "日程",
+        "团队协作",
+        "开源"
+      ],
+      "icon": "https://www.google.com/s2/favicons?domain=cal.com&sz=128",
+      "quality_score": 90
+    }
+  ]
+}

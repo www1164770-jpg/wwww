@@ -1,0 +1,47 @@
+﻿signal,website_id,website,url,suggested_tags,confidence,reason
+api_debugging,849,Insomnia,https://insomnia.rest,"testing,developer_tools",high,exact_domain:insomnia.rest
+api_debugging,244,Postman,https://www.postman.com,"testing,developer_tools",high,exact_domain:postman.com
+api_debugging,245,Swagger,https://swagger.io,"testing,developer_tools",high,exact_domain:swagger.io
+code_generation,80,Cursor,https://www.cursor.com,developer_tools,high,exact_domain:cursor.com
+code_generation,79,GitHub Copilot,https://github.com/features/copilot,developer_tools,high,explicit_name:github copilot
+code_generation,274,Replit,https://replit.com,developer_tools,high,explicit_name:replit
+database,247,MongoDB,https://www.mongodb.com,developer_tools,high,exact_domain:mongodb.com
+database,248,PostgreSQL,https://www.postgresql.org,developer_tools,high,exact_domain:postgresql.org
+database,246,Redis,https://redis.io,developer_tools,high,exact_domain:redis.io
+database,235,Supabase,https://supabase.com,"backend,developer_tools",high,exact_domain:supabase.com
+debugging,386,Sentry,https://sentry.io,"debugging,code_analysis,developer_tools",high,exact_domain:sentry.io
+deployment,35,Netlify,https://www.netlify.com,"deployment,developer_tools",high,exact_domain:netlify.com
+deployment,36,Railway,https://railway.app,"deployment,devops,developer_tools",high,exact_domain:railway.app
+deployment,238,Render,https://render.com,"deployment,devops,developer_tools",high,exact_domain:render.com
+deployment,34,Vercel,https://vercel.com,"deployment,developer_tools",high,exact_domain:vercel.com
+deployment,520,Vercel,https://vercel.com,"deployment,developer_tools",high,exact_domain:vercel.com
+documentation,767,MDN Learn,https://developer.mozilla.org/docs/Learn,developer_tools,high,exact_domain:developer.mozilla.org
+documentation,27,MDN Web Docs,https://developer.mozilla.org,developer_tools,high,exact_domain:developer.mozilla.org
+documentation,522,MDN Web Docs,https://developer.mozilla.org,developer_tools,high,exact_domain:developer.mozilla.org
+git_project_management,678,Bitbucket,https://bitbucket.org,"collaboration,developer_tools",high,exact_domain:bitbucket.org
+git_project_management,316,Changesets,https://github.com/changesets/changesets,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,629,ComfyUI,https://github.com/comfyanonymous/ComfyUI,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,20,GitHub,https://github.com,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,518,GitHub,https://github.com,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,383,GitHub Actions,https://github.com/features/actions,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,79,GitHub Copilot,https://github.com/features/copilot,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,21,GitLab,https://gitlab.com,"collaboration,developer_tools",high,exact_domain:gitlab.com
+git_project_management,190,Linear,https://linear.app,"collaboration,developer_tools",high,exact_domain:linear.app
+git_project_management,844,Release Please,https://github.com/googleapis/release-please,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,843,lint-staged,https://github.com/lint-staged/lint-staged,"collaboration,developer_tools",high,exact_domain:github.com
+git_project_management,846,nvm,https://github.com/nvm-sh/nvm,"collaboration,developer_tools",high,exact_domain:github.com
+go,601,Go,https://go.dev/doc,"go,backend,programming",high,exact_domain:go.dev
+java,604,Java,https://dev.java/learn,"java,backend,programming",high,exact_domain:dev.java
+javascript,767,MDN Learn,https://developer.mozilla.org/docs/Learn,javascript,high,exact_domain:developer.mozilla.org
+javascript,27,MDN Web Docs,https://developer.mozilla.org,javascript,high,exact_domain:developer.mozilla.org
+javascript,522,MDN Web Docs,https://developer.mozilla.org,javascript,high,exact_domain:developer.mozilla.org
+node,847,Corepack,https://nodejs.org/api/corepack.html,"node,javascript",high,exact_domain:nodejs.org
+node,92,Node.js,https://nodejs.org,"node,javascript",high,exact_domain:nodejs.org
+node,532,Node.js,https://nodejs.org/docs/latest/api,"node,javascript",high,exact_domain:nodejs.org
+python,533,Python 文档,https://docs.python.org/3,"python,backend,programming",high,exact_domain:python.org
+react,85,React,https://react.dev,react,high,exact_domain:react.dev
+testing,313,Cypress,https://www.cypress.io,"testing,developer_tools",high,exact_domain:cypress.io
+testing,125,Playwright,https://playwright.dev,"testing,developer_tools",high,exact_domain:playwright.dev
+typescript,94,TypeScript,https://www.typescriptlang.org,"typescript,frontend",high,exact_domain:typescriptlang.org
+vue,84,Vue.js,https://cn.vuejs.org,vue,high,exact_domain:vuejs.org
+vue,530,Vue.js,https://vuejs.org,vue,high,exact_domain:vuejs.org

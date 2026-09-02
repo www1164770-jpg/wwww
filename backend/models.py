@@ -20,6 +20,7 @@ class User(db.Model):
     role = db.Column(db.String(32), default="user")
     questionnaire_completed = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(32), default="active")
+    session_version = db.Column(db.Integer, nullable=False, default=0)
     dark_mode = db.Column(db.Boolean, default=False)
     custom_wallpaper = db.Column(db.Text)
     current_engine = db.Column(db.String(20), default="bing")
@@ -242,6 +243,49 @@ class UserBehavior(db.Model):
     site_id = db.Column(db.Integer, db.ForeignKey("websites.id"))
     behavior_type = db.Column(db.String(32), nullable=False)
     keyword = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class UserBehaviorEvent(db.Model):
+    """Normalized recommendation feedback event.
+
+    This table intentionally keeps context fields together instead of adding a
+    new nullable column for every future experiment.
+    """
+
+    __tablename__ = "user_behavior_events"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    website_id = db.Column(db.Integer, db.ForeignKey("websites.id"), nullable=False)
+    event_type = db.Column(db.String(32), nullable=False)
+    source = db.Column(db.String(64), nullable=False, default="other")
+    recommendation_batch_id = db.Column(db.String(128))
+    questionnaire_version = db.Column(db.String(64))
+    profile_version = db.Column(db.String(64))
+    session_id = db.Column(db.String(128))
+    metadata_json = db.Column(db.JSON)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class RecommendationObservationSnapshot(db.Model):
+    """Immutable aggregate captured by an administrator during observation."""
+
+    __tablename__ = "recommendation_observation_snapshots"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    snapshot_id = db.Column(db.String(64), nullable=False, unique=True)
+    algorithm_version = db.Column(db.String(64), nullable=False)
+    lookback_days = db.Column(db.String(16), nullable=False)
+    exclude_test_users = db.Column(db.Boolean, nullable=False, default=True)
+    captured_by_user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    summary_json = db.Column(db.JSON, nullable=False)
+    data_quality_json = db.Column(db.JSON, nullable=False)
+    readiness_json = db.Column(db.JSON, nullable=False)
+    match_score_buckets_json = db.Column(db.JSON, nullable=False)
+    primary_need_metrics_json = db.Column(db.JSON, nullable=False)
+    tag_metrics_json = db.Column(db.JSON, nullable=False)
+    personalization_metrics_json = db.Column(db.JSON, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 

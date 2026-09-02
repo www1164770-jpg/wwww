@@ -1,0 +1,176 @@
+[
+  {
+    "website_id": 215,
+    "name": "美团",
+    "url": "https://www.meituan.com",
+    "description": "美团：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 216,
+    "name": "饿了么",
+    "url": "https://www.ele.me",
+    "description": "饿了么：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 217,
+    "name": "大众点评",
+    "url": "https://www.dianping.com",
+    "description": "大众点评：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 411,
+    "name": "喜马拉雅",
+    "url": "https://www.ximalaya.com",
+    "description": "喜马拉雅：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 570,
+    "name": "DuckDuckGo",
+    "url": "https://duckduckgo.com",
+    "description": "DuckDuckGo：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 571,
+    "name": "Startpage",
+    "url": "https://www.startpage.com",
+    "description": "Startpage：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 572,
+    "name": "Yandex",
+    "url": "https://yandex.com",
+    "description": "Yandex：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 573,
+    "name": "Brave Search",
+    "url": "https://search.brave.com",
+    "description": "Brave Search：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 574,
+    "name": "Ecosia",
+    "url": "https://www.ecosia.org",
+    "description": "Ecosia：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 575,
+    "name": "Internet Archive",
+    "url": "https://archive.org",
+    "description": "Internet Archive：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 576,
+    "name": "Wiktionary",
+    "url": "https://www.wiktionary.org",
+    "description": "Wiktionary：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 577,
+    "name": "Wikimedia Commons",
+    "url": "https://commons.wikimedia.org",
+    "description": "Wikimedia Commons：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 578,
+    "name": "Google News",
+    "url": "https://news.google.com",
+    "description": "Google News：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 579,
+    "name": "Reuters",
+    "url": "https://www.reuters.com",
+    "description": "Reuters：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 580,
+    "name": "BBC",
+    "url": "https://www.bbc.com",
+    "description": "BBC：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 581,
+    "name": "The Guardian",
+    "url": "https://www.theguardian.com",
+    "description": "The Guardian：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 582,
+    "name": "澎湃新闻",
+    "url": "https://www.thepaper.cn",
+    "description": "澎湃新闻：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 583,
+    "name": "界面新闻",
+    "url": "https://www.jiemian.com",
+    "description": "界面新闻：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 584,
+    "name": "财新网",
+    "url": "https://www.caixin.com",
+    "description": "财新网：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 585,
+    "name": "知乎盐选",
+    "url": "https://www.zhihu.com/xen/market",
+    "description": "知乎盐选：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 586,
+    "name": "得到",
+    "url": "https://www.dedao.cn",
+    "description": "得到：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 587,
+    "name": "荔枝",
+    "url": "https://www.lizhi.fm",
+    "description": "荔枝：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 588,
+    "name": "网易公开课",
+    "url": "https://open.163.com",
+    "description": "网易公开课：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 589,
+    "name": "腾讯新闻",
+    "url": "https://news.qq.com",
+    "description": "腾讯新闻：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 590,
+    "name": "凤凰网",
+    "url": "https://www.ifeng.com",
+    "description": "凤凰网：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 591,
+    "name": "观察者网",
+    "url": "https://www.guancha.cn",
+    "description": "观察者网：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 592,
+    "name": "人民网",
+    "url": "https://www.people.com.cn",
+    "description": "人民网：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 593,
+    "name": "新华网",
+    "url": "https://www.news.cn",
+    "description": "新华网：提供搜索、资讯、阅读或日常信息服务"
+  },
+  {
+    "website_id": 594,
+    "name": "国家政务服务平台",
+    "url": "https://gjzwfw.www.gov.cn",
+    "description": "国家政务服务平台：提供搜索、资讯、阅读或日常信息服务"
+  }
+]

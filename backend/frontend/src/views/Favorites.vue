@@ -4,7 +4,7 @@
     <main>
       <section class="hero">
         <div>
-          <h1>我的收藏</h1>
+          <AnimatedPageTitle>我的收藏</AnimatedPageTitle>
           <p>这里保存了你常用和感兴趣的网站资源。</p>
         </div>
         <label class="filter">
@@ -73,12 +73,13 @@ import {
   watch,
 } from "vue";
 import { useRouter } from "vue-router";
+import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { useFavoritesStore } from "../stores/favorites";
 import { useUserStore } from "../stores/user";
-import { siteAPI } from "../utils/api";
+import { visitSite } from "../utils/siteVisit";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -194,9 +195,8 @@ async function retryFavorites() {
   }
 }
 
-async function visit(site) {
-  await siteAPI.recordClick(site.id).catch(() => {});
-  window.open(site.url, "_blank", "noopener,noreferrer");
+function visit(site) {
+  visitSite(site, { source: "favorite" });
 }
 
 onMounted(initializeFavoritesPage);

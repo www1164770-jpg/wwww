@@ -91,7 +91,7 @@ const checks = [
         "build_career_recommendations(",
         "SELECT * FROM user_profiles WHERE user_id=%s",
         '"careers": careers',
-        '"websites": selected_career.get("websites", [])',
+        '"websites": selected_sites',
       ]) {
         if (
           !api.includes(snippet) &&

@@ -279,12 +279,12 @@ onBeforeUnmount(() => {
   max-width: calc(100vw - 24px);
   height: 68px;
   padding: 0 28px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--app-card-border);
   border-radius: 34px;
-  background-color: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: var(--app-card-bg);
+  box-shadow: var(--app-card-shadow);
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
   transform: translateX(-50%);
   transition:
     top 220ms ease,
@@ -301,8 +301,8 @@ onBeforeUnmount(() => {
   height: 48px;
   padding: 0 14px;
   border-radius: 24px;
-  background-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  background-color: var(--app-card-bg);
+  box-shadow: var(--app-card-shadow);
 }
 
 .app-header-spacer {
@@ -363,7 +363,7 @@ onBeforeUnmount(() => {
 
 .brand-name {
   overflow: hidden;
-  color: #0b2f75;
+  color: var(--app-text-primary);
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -446,7 +446,7 @@ onBeforeUnmount(() => {
 .nav-item:hover,
 .nav-item:focus-visible,
 .nav-item.is-active {
-  color: #0f172a;
+  color: var(--app-text-primary);
   opacity: 1;
   outline: none;
 }
@@ -514,7 +514,7 @@ onBeforeUnmount(() => {
   height: 42px;
   min-height: 42px;
   place-items: center;
-  border: 1px solid rgba(15, 23, 42, 0.22);
+  border: 1px solid var(--app-border);
   border-radius: 21px;
   background: transparent;
   color: var(--color-heading);
@@ -535,7 +535,7 @@ onBeforeUnmount(() => {
 
 .login-link:hover,
 .login-link:focus-visible {
-  border-color: rgba(15, 23, 42, 0.48);
+  border-color: var(--app-text-primary);
   opacity: 0.76;
   outline: none;
 }
@@ -565,7 +565,7 @@ onBeforeUnmount(() => {
   height: 42px;
   min-height: 42px;
   place-items: center;
-  border: 1px solid rgba(15, 23, 42, 0.22);
+  border: 1px solid var(--app-border);
   border-radius: 50%;
   background: transparent;
   color: var(--color-heading);
@@ -582,7 +582,7 @@ onBeforeUnmount(() => {
 
 .user-trigger:hover,
 .user-trigger:focus-visible {
-  border-color: rgba(15, 23, 42, 0.48);
+  border-color: var(--app-text-primary);
   opacity: 0.76;
   outline: none;
 }
@@ -622,9 +622,9 @@ onBeforeUnmount(() => {
   max-height: min(520px, calc(100vh - 96px));
   overflow-x: hidden;
   overflow-y: auto;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--app-border);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--app-surface-strong);
   box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -657,13 +657,13 @@ onBeforeUnmount(() => {
 }
 
 .user-identity span {
-  color: var(--color-muted);
+  color: var(--app-text-muted);
   font-size: 13px;
 }
 
 .user-summary small {
   justify-self: start;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--app-border);
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-text);
@@ -699,8 +699,8 @@ onBeforeUnmount(() => {
 .dropdown a:focus-visible,
 .dropdown button:hover,
 .dropdown button:focus-visible {
-  background: rgba(15, 23, 42, 0.05);
-  color: var(--color-heading);
+  background: var(--app-surface);
+  color: var(--app-text-primary);
   outline: none;
 }
 

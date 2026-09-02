@@ -37,6 +37,27 @@ export function unwrapResponse(response) {
   return payload;
 }
 
+// The career endpoint has gained observability fields over time, while older
+// deployments may still wrap the payload one level differently.  Keep the
+// response object intact here: the caller needs both the career cards and the
+// associated website pools, not just a generic `items` array.
+export function unwrapCareerRecommendationResponse(response) {
+  const payload = response?.data ?? response ?? {};
+  const candidates = [payload?.data, payload]
+    .filter((candidate) => candidate && typeof candidate === "object")
+    .filter((candidate) => !Array.isArray(candidate));
+
+  return (
+    candidates.find(
+      (candidate) =>
+        Array.isArray(candidate.careers) ||
+        Array.isArray(candidate.recommendations) ||
+        Array.isArray(candidate.websites) ||
+        Array.isArray(candidate.items),
+    ) || {}
+  );
+}
+
 export function unwrapList(response) {
   const payload = response?.data ?? response;
   const candidates = [
@@ -54,6 +75,28 @@ export function unwrapList(response) {
     payload?.data?.rows,
   ];
   return candidates.find(Array.isArray) || [];
+}
+
+export function normalizeHistoryResponse(response) {
+  const payload = response?.data ?? response ?? {};
+  const data = payload?.data ?? payload;
+  const candidates = [
+    data?.items,
+    data?.history,
+    data?.records,
+    payload?.items,
+    payload?.history,
+    payload?.records,
+    data,
+  ];
+  const source = candidates.find(Array.isArray) || [];
+  const items = source.flatMap((entry) =>
+    Array.isArray(entry?.items) ? entry.items : [entry],
+  );
+  return {
+    items: items.filter(Boolean),
+    total: Number(data?.total ?? payload?.total ?? items.length) || items.length,
+  };
 }
 
 export function normalizeStringArray(value) {
@@ -74,9 +117,41 @@ export function normalizeStringArray(value) {
   return [];
 }
 
-function isUsableSiteSummary(value) {
+const RETIRED_GENERIC_SITE_DESCRIPTIONS = new Set([
+  "提供适合当前职业方向的学习与实践资源。",
+  "提供适合当前职业方向的工具与资源。",
+  "提供搜索、资讯、阅读或日常信息服务。",
+  "提供相关资源与服务。",
+  "提供实用工具。",
+  "适合当前职业方向使用。",
+  "提供编程语言、框架或工程工具的官方文档。",
+  "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+  "提供对话、生成式创作、模型调用或 AI 开发服务。",
+  "用于数据集探索、统计分析、报表或交互式可视化。",
+  "支持页面结构、交互流程、线框或高保真原型制作。",
+  "用于文档编辑、知识管理、会议协作或团队沟通。",
+  "提供代码协作、技术问答、开源项目或开发者交流。",
+  "用于竞品信息、市场趋势或产品技术栈调研。",
+  "提供课程、公开课、编程练习或专业学习资料。",
+  "提供可复用的 UI 组件、设计系统或前端样式资源。",
+  "提供可视化、地图或三维图形开发能力。",
+  "帮助管理任务、流程、时间或个人工作效率。",
+  "提供图片、插画、图标、字体或颜色等设计素材。",
+  "提供前端构建、代码质量或依赖管理能力。",
+  "提供字体、色彩和无障碍视觉检查资源。",
+  "提供开发调试、格式转换或性能检查工具。",
+  "提供产品原型、线框或交互协作能力。",
+  "用于任务安排、时间管理或个人效率提升。",
+]);
+
+export function isUsableSiteSummary(value) {
   const text = String(value || "").trim();
-  return Boolean(text) && !/^(?:https?:\/\/|www\.)/i.test(text);
+  return (
+    Boolean(text) &&
+    !/^(?:https?:\/\/|www\.)/i.test(text) &&
+    !RETIRED_GENERIC_SITE_DESCRIPTIONS.has(text) &&
+    !/(?:当前职业方向|推荐给你|学习与实践资源)/.test(text)
+  );
 }
 
 export function normalizeWebsite(site = {}) {
@@ -123,65 +198,23 @@ export function normalizeWebsite(site = {}) {
     occupations: normalizeStringArray(site.occupations),
     logo_url: site.logo_url ?? site.logo ?? site.icon ?? site.favicon ?? "",
     logoUrl:
-      site.logoUrl ?? site.logo_url ?? site.logo ?? site.icon ?? site.favicon ?? "",
+      site.logoUrl ??
+      site.logo_url ??
+      site.logo ??
+      site.icon ??
+      site.favicon ??
+      "",
   };
 }
-
-const CAREER_SITE_SUMMARY_FALLBACKS = Object.freeze({
-  github: "代码托管、开源协作与项目交付平台。",
-  "mdn web docs": "面向 Web 开发者的权威技术文档网站。",
-  mdn: "面向 Web 开发者的权威技术文档网站。",
-  "stack overflow": "开发者常用的技术问答与问题检索社区。",
-  kaggle: "提供数据集、竞赛和练习项目的数据科学平台。",
-  "hugging face": "聚合模型、数据集与 AI 开发资源的平台。",
-  figma: "支持协作设计与原型制作的产品设计工具。",
-  coursera: "提供系统课程学习与职业提升内容的在线教育平台。",
-  "power bi": "用于数据分析、报表制作与可视化展示的工具平台。",
-  leetcode: "用于算法练习、面试准备和编程能力提升的平台。",
-  behance: "设计作品展示与创意灵感发现平台。",
-});
-
-const CAREER_CATEGORY_SUMMARY_FALLBACKS = Object.freeze({
-  前端开发: "面向前端开发学习与项目实践的工具和资源。",
-  后端开发: "面向后端服务、API 开发与工程实践的资源。",
-  数据分析: "用于数据处理、分析建模和可视化实践的资源。",
-  技术研发: "面向技术研发、代码实践与项目协作的资源。",
-  教育与内容: "用于学习、知识整理和内容创作的资源。",
-  产品与设计: "支持产品规划、界面设计和协作交付的资源。",
-  设计资源: "用于视觉设计、灵感收集和素材制作的资源。",
-  学习资源: "帮助学习、练习和查找专业资料的资源。",
-});
 
 export function normalizeWebsiteList(response) {
   return unwrapList(response).filter(Boolean).map(normalizeWebsite);
 }
 
-export function generateFallbackSummary(site = {}) {
-  const name = normalizeSiteName(site.name);
-  const knownSummary = CAREER_SITE_SUMMARY_FALLBACKS[name];
-  if (knownSummary) return knownSummary;
-
-  const category = String(
-    site.category_name || site.categoryName || site.category || "",
-  ).trim();
-  const categorySummary = CAREER_CATEGORY_SUMMARY_FALLBACKS[category];
-  if (categorySummary) return `${site.name || "该网站"}：${categorySummary}`;
-
-  const tags = normalizeStringArray(site.tags).slice(0, 2);
-  if (tags.length) {
-    return `${site.name || "该网站"}：围绕${tags.join("、")}提供实用工具与参考资源。`;
-  }
-
-  return `${site.name || "该网站"}：提供适合当前职业方向的学习与实践资源。`;
-}
-
 export function normalizeCareerSite(site = {}) {
   const sourceSummary = getSiteSummary(site);
   const normalized = normalizeWebsite(site);
-  const summary =
-    sourceSummary ||
-    getSiteSummary(normalized) ||
-    generateFallbackSummary(normalized);
+  const summary = sourceSummary || getSiteSummary(normalized);
   const careerCodes = normalizeStringArray(
     site.careerCodes ||
       site.career_codes ||
@@ -270,20 +303,6 @@ export function getFaviconUrl(site = {}) {
   return resolveSiteLogo(site);
 }
 
-export const SITE_DESCRIPTION_FALLBACKS = Object.freeze({
-  github: "代码托管与协作开发平台",
-  "mdn web docs": "面向 Web 开发者的权威技术文档",
-  mdn: "面向 Web 开发者的权威技术文档",
-  "stack overflow": "开发者问答与知识社区",
-  figma: "协作式界面设计与原型工具",
-  vercel: "面向前端团队的云端部署平台",
-  chatgpt: "通用型 AI 助手",
-  midjourney: "AI 图像生成与创意工具",
-  "hugging face": "开源模型、数据集与机器学习社区",
-  notion: "笔记、知识库与团队协作工具",
-  claude: "面向分析、写作与编程的 AI 助手",
-});
-
 export function normalizeSiteName(name) {
   return String(name || "")
     .trim()
@@ -306,11 +325,7 @@ export function getSiteSummary(site = {}) {
     isUsableSiteSummary(value),
   );
 
-  return (
-    providedDescription?.trim() ||
-    SITE_DESCRIPTION_FALLBACKS[normalizeSiteName(site.name)] ||
-    generateFallbackSummary(site)
-  );
+  return providedDescription?.trim() || "";
 }
 
 export function getSiteDescription(site = {}) {
@@ -532,9 +547,8 @@ function isAuthEndpoint(config = {}) {
     "/auth/login",
     "/auth/register",
     "/auth/send-register-code",
-    "/auth/send-reset-code",
-    "/auth/verify-reset-code",
-    "/auth/reset-password",
+    "/auth/forgot-password/send-code",
+    "/auth/forgot-password/reset",
     "/auth/refresh",
     "/auth/logout",
   ].some((path) => url.includes(path));
@@ -610,9 +624,11 @@ api.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 429) {
       const retryAfter = error.response.data?.retry_after;
-      const message = retryAfter
-        ? `请求过于频繁，请 ${retryAfter} 秒后再试`
-        : "请求过于频繁，请稍后再试";
+      const message =
+        error.response.data?.message ||
+        (retryAfter
+          ? `请求过于频繁，请 ${retryAfter} 秒后再试`
+          : "请求过于频繁，请稍后再试");
       error.response.data = {
         ...error.response.data,
         message,
@@ -688,19 +704,15 @@ export const authAPI = {
     );
   },
   me: () => api.get("/auth/me"),
-  sendResetCode: (email) =>
+  sendPasswordResetCode: (email) =>
     api.post(
-      "/auth/send-reset-code",
+      "/auth/forgot-password/send-code",
       { email: email.trim().toLowerCase() },
       { timeout: VERIFICATION_REQUEST_TIMEOUT_MS },
     ),
-  verifyResetCode: (email, code) =>
-    api.post("/auth/verify-reset-code", { email, code }),
-  resetPassword: (email, code, newPassword) =>
-    api.post("/auth/reset-password", {
-      email,
-      code,
-      new_password: newPassword,
+  resetPassword: (data) =>
+    api.post("/auth/forgot-password/reset", data, {
+      timeout: AUTH_REQUEST_TIMEOUT_MS,
     }),
   githubLoginUrl: `${API_BASE_URL}/login/github`,
 };
@@ -728,8 +740,39 @@ export const userAPI = {
   submitSurvey: (interests) => api.post("/user/survey", { interests }),
 };
 
+export const personalizationAPI = {
+  get: () => api.get("/personalization"),
+  save: (settings) => api.put("/personalization", settings),
+  uploadBackground: (file) => {
+    const body = new FormData();
+    body.append("file", file);
+    return api.post("/personalization/backgrounds", body, { headers: { "Content-Type": "multipart/form-data" }, timeout: 30_000 });
+  },
+  getBackgroundImage: (id) => api.get(`/personalization/backgrounds/${id}/file`, { responseType: "blob" }),
+  getBackgroundThumbnail: (id) => api.get(`/personalization/backgrounds/${id}/thumbnail`, { responseType: "blob" }),
+  getBackgrounds: () => api.get("/personalization/backgrounds"),
+  deleteBackground: (id) => api.delete(`/personalization/backgrounds/${id}`),
+  updateBackgroundPrivacy: (id, privacy) => api.patch(`/personalization/backgrounds/${id}/privacy`, { privacy }),
+  createTheme: (theme) => api.post("/personalization/themes", theme),
+  getThemes: () => api.get("/personalization/themes"),
+  updateTheme: (key, theme) => api.patch(`/personalization/themes/${key}`, theme),
+  deleteTheme: (key) => api.delete(`/personalization/themes/${key}`),
+  favoriteTheme: (key) => api.post(`/personalization/theme-favorites/${key}`),
+  unfavoriteTheme: (key) => api.delete(`/personalization/theme-favorites/${key}`),
+};
+
+export const historyAPI = {
+  getHistory: (config = {}) =>
+    api.get("/user/history", config).then(normalizeHistoryResponse),
+  recordHistory: (data, config = {}) =>
+    api.post("/user/history", data, config),
+  deleteHistory: (id) => api.delete(`/user/history/${id}`),
+  clearHistory: () => api.post("/user/history/clear"),
+};
+
 export const questionnaireAPI = {
   get: () => api.get("/questionnaire"),
+  status: () => api.get("/questionnaire/status"),
   submit: (data) => api.post("/questionnaire/submit", data),
   getMyQuestionnaire: () => api.get("/questionnaire/my"),
   getProfileTags: () => api.get("/user/profile-tags"),
@@ -737,6 +780,29 @@ export const questionnaireAPI = {
 
 export const careerAPI = {
   getRecommendations: (config = {}) => api.get("/career/recommend", config),
+};
+
+export const recommendationMetricsAPI = {
+  getSummary: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/summary", { ...config, params }),
+  getBatches: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/batches", { ...config, params }),
+  getProfileOverlap: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/profile-overlap", { ...config, params }),
+  getWebsites: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/websites", { ...config, params }),
+  getDataQuality: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/data-quality", { ...config, params }),
+  getPhase23Readiness: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/phase-2-3-readiness", { ...config, params }),
+  createObservationSnapshot: (params = {}, config = {}) =>
+    api.post("/recommendation/metrics/observation-snapshots", null, { ...config, params }),
+  getObservationSnapshots: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/observation-snapshots", { ...config, params }),
+  compareObservationSnapshots: (params = {}, config = {}) =>
+    api.get("/recommendation/metrics/observation-snapshots/compare", { ...config, params }),
+  getMyBehaviorSummary: (params = {}, config = {}) =>
+    api.get("/me/behavior-summary", { ...config, params }),
 };
 
 export const siteAPI = {
@@ -751,7 +817,7 @@ export const siteAPI = {
     api.get("/sites/latest", { ...config, params }),
   getRecommend: (params = {}, config = {}) =>
     api.get("/sites/recommend", { ...config, params }),
-  recordClick: (id) => api.post(`/sites/${id}/click`),
+  recordClick: (id, payload = {}) => api.post(`/sites/${id}/click`, payload),
   getSimilar: (id) => api.get(`/sites/${id}/similar`),
 };
 
@@ -761,15 +827,12 @@ export const aiAPI = {
 
 function getFavoriteTarget(siteOrId) {
   if (siteOrId && typeof siteOrId === "object") {
-    const rawSiteId =
-      siteOrId.siteId ?? siteOrId.site_id ?? siteOrId.id ?? "";
+    const rawSiteId = siteOrId.siteId ?? siteOrId.site_id ?? siteOrId.id ?? "";
     const siteId = /^\d+$/.test(String(rawSiteId).trim())
       ? String(rawSiteId).trim()
       : "";
-    const rawUrl =
-      siteOrId.url ?? siteOrId.website_url ?? siteOrId.link ?? "";
-    const rawFavoriteId =
-      siteOrId.favoriteId ?? siteOrId.favorite_id ?? "";
+    const rawUrl = siteOrId.url ?? siteOrId.website_url ?? siteOrId.link ?? "";
+    const rawFavoriteId = siteOrId.favoriteId ?? siteOrId.favorite_id ?? "";
     const favoriteId = /^\d+$/.test(String(rawFavoriteId).trim())
       ? String(rawFavoriteId).trim()
       : "";
@@ -784,7 +847,13 @@ function getFavoriteTarget(siteOrId) {
   };
 }
 
-function favoriteMutationDiagnostic(operation, target, requestConfig, response, error) {
+function favoriteMutationDiagnostic(
+  operation,
+  target,
+  requestConfig,
+  response,
+  error,
+) {
   const startedAt = requestConfig.startedAt;
   const responsePayload = response?.data;
   const errorPayload = error?.response?.data;
@@ -820,7 +889,10 @@ async function runFavoriteMutation(operation, target, requestConfig, request) {
     return response;
   } catch (error) {
     if (import.meta.env.DEV) {
-      console.error("[Favorite sync failed]", favoriteMutationDiagnostic(operation, target, config, null, error));
+      console.error(
+        "[Favorite sync failed]",
+        favoriteMutationDiagnostic(operation, target, config, null, error),
+      );
     }
     throw error;
   }
@@ -848,9 +920,7 @@ export const favoriteAPI = {
     const url = target.siteId
       ? `/sites/${target.siteId}/favorite`
       : "/favorites";
-    const payload = target.siteId
-      ? { note }
-      : { url: target.url, note };
+    const payload = target.siteId ? { note } : { url: target.url, note };
     const response = await runFavoriteMutation(
       "add",
       target,
@@ -862,7 +932,9 @@ export const favoriteAPI = {
   },
   removeFavorite: async (siteOrId) => {
     const target = getFavoriteTarget(siteOrId);
-    const url = target.siteId ? `/sites/${target.siteId}/favorite` : "/favorites";
+    const url = target.siteId
+      ? `/sites/${target.siteId}/favorite`
+      : "/favorites";
     const payload = target.siteId ? undefined : { url: target.url };
     const response = await runFavoriteMutation(
       "remove",
@@ -887,8 +959,10 @@ export const favoriteAPI = {
 };
 
 export const searchAPI = {
-  search: (params = {}) => api.get("/search", { params }),
-  suggest: (q) => api.get("/search/suggest", { params: { q } }),
+  search: (params = {}, config = {}) =>
+    api.get("/sites/search", { ...config, params }),
+  suggest: (q, config = {}) =>
+    api.get("/sites/search/suggest", { ...config, params: { q } }),
   hotKeywords: () => api.get("/search/hot-keywords"),
 };
 

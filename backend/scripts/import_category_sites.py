@@ -1,14 +1,14 @@
-"""Idempotently import the expanded category catalog into the navigation DB.
+"""Idempotently import reviewable JSON website seeds into the navigation DB.
 
-The frontend catalog is the reviewable source of truth for this batch.  The
-importer deliberately matches sites by normalized URL before inserting, so a
-site already present in the database is never duplicated.
+Files under ``backend/website_seed`` are the source of truth. The importer
+matches normalized URLs before inserting, so reruns are safe and duplicates
+are reported as updates instead of being counted as new resources.
 """
 
 from __future__ import annotations
 
 import json
-import subprocess
+import argparse
 import sys
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -16,7 +16,10 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 PROJECT_DIR = BACKEND_DIR.parent
-FRONTEND_DIR = BACKEND_DIR / "frontend"
+SEED_DIR = BACKEND_DIR / "website_seed"
+REQUIRED_SITE_FIELDS = {
+    "name", "url", "description", "category", "tags", "icon", "quality_score"
+}
 
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
@@ -165,8 +168,10 @@ def legacy_sites() -> list[dict]:
             "name": name,
             "url": url,
             "category_code": code,
-            "summary": f"{name}：{summaries[code]}",
-            "description": f"{name}：{summaries[code]}",
+            # Keep the stored description independent from the card title.
+            # The category fallback is only used when no site profile exists.
+            "summary": summaries[code],
+            "description": summaries[code],
             "logo_url": f"https://www.google.com/s2/favicons?domain={urlsplit(url).hostname}&sz=128",
         }
         for code, sites in LEGACY_SITE_GROUPS.items()
@@ -189,24 +194,35 @@ def normalized_url(value: str) -> str:
 
 
 def load_catalog() -> list[dict]:
-    module_path = (FRONTEND_DIR / "src" / "data" / "websiteCatalog.js").as_uri()
-    script = (
-        "import("
-        + json.dumps(module_path)
-        + ").then((module) => process.stdout.write(JSON.stringify(module.websiteCatalog)))"
-    )
-    result = subprocess.run(
-        ["node", "--input-type=module", "-e", script],
-        cwd=PROJECT_DIR,
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-    )
-    payload = json.loads(result.stdout)
-    if not isinstance(payload, list):
-        raise RuntimeError("website catalog must be an array")
-    return payload
+    catalog: list[dict] = []
+    seed_files = sorted(SEED_DIR.glob("*.json"))
+    if not seed_files:
+        raise RuntimeError(f"no website seed files found under {SEED_DIR}")
+    for seed_file in seed_files:
+        payload = json.loads(seed_file.read_text(encoding="utf-8"))
+        sites = payload.get("sites") if isinstance(payload, dict) else payload
+        if not isinstance(sites, list):
+            raise RuntimeError(f"{seed_file.name}: sites must be an array")
+        for index, site in enumerate(sites, start=1):
+            if not isinstance(site, dict):
+                raise RuntimeError(f"{seed_file.name}:{index}: site must be an object")
+            missing = REQUIRED_SITE_FIELDS.difference(site)
+            if missing:
+                raise RuntimeError(
+                    f"{seed_file.name}:{index}: missing {', '.join(sorted(missing))}"
+                )
+            if not isinstance(site["tags"], list) or not site["tags"]:
+                raise RuntimeError(f"{seed_file.name}:{index}: tags must not be empty")
+            score = float(site["quality_score"])
+            if not 0 <= score <= 100:
+                raise RuntimeError(f"{seed_file.name}:{index}: invalid quality_score")
+            catalog.append(site)
+    normalized = [normalized_url(site["url"]) for site in catalog]
+    if any(not value for value in normalized):
+        raise RuntimeError("seed contains an invalid HTTP(S) URL")
+    if len(set(normalized)) != len(normalized):
+        raise RuntimeError("seed contains duplicate normalized URLs")
+    return catalog
 
 
 def columns(cursor, table: str) -> set[str]:
@@ -219,7 +235,13 @@ def value_columns(available: set[str], values: dict) -> tuple[str, ...]:
 
 
 def main() -> int:
-    catalog = load_catalog() + legacy_sites()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--validate-only", action="store_true")
+    args = parser.parse_args()
+    catalog = load_catalog()
+    if args.validate_only:
+        print(json.dumps({"catalog": len(catalog), "valid": True}, ensure_ascii=False))
+        return 0
     validate_database_config()
     conn = get_connection()
     counts = {"inserted": 0, "updated": 0, "skipped": 0, "failed": 0}
@@ -228,6 +250,7 @@ def main() -> int:
         with conn.cursor() as cursor:
             category_columns = columns(cursor, "categories")
             website_columns = columns(cursor, "websites")
+            tag_columns = columns(cursor, "tags")
 
             if "code" not in category_columns:
                 try:
@@ -275,7 +298,7 @@ def main() -> int:
             }
 
             for site in catalog:
-                code = str(site.get("category_code") or site.get("category_id") or "").strip()
+                code = str(site.get("category") or "").strip()
                 if code not in category_ids:
                     counts["skipped"] += 1
                     continue
@@ -290,14 +313,16 @@ def main() -> int:
                 existing_id = known_urls.get(normalized)
                 if existing_id:
                     updates = {}
-                    if "logo_url" in website_columns and site.get("logo_url"):
-                        updates["logo_url"] = site["logo_url"]
+                    if "logo_url" in website_columns and site.get("icon"):
+                        updates["logo_url"] = site["icon"]
                     if "summary" in website_columns:
                         updates["summary"] = summary
                     if "description" in website_columns:
                         updates["description"] = site.get("description") or summary
                     if "status" in website_columns:
                         updates["status"] = "approved"
+                    if "quality_score" in website_columns:
+                        updates["quality_score"] = float(site["quality_score"])
                     if updates:
                         assignments = ",".join(f"{field}=COALESCE(NULLIF({field},''),%s)" for field in updates)
                         cursor.execute(
@@ -305,26 +330,62 @@ def main() -> int:
                             (*updates.values(), existing_id),
                         )
                     counts["updated"] += 1
-                    continue
+                    site_id = existing_id
+                else:
+                    values = {
+                        "category_id": category_ids[code],
+                        "name": name,
+                        "url": url,
+                        "logo_url": site.get("icon") or "",
+                        "summary": summary,
+                        "description": site.get("description") or summary,
+                        "quality_score": float(site["quality_score"]),
+                        "status": "approved",
+                        "source": "website_seed",
+                    }
+                    fields = value_columns(website_columns, values)
+                    placeholders = ",".join(["%s"] * len(fields))
+                    cursor.execute(
+                        f"INSERT INTO websites ({','.join(fields)}) VALUES ({placeholders})",
+                        tuple(values[field] for field in fields),
+                    )
+                    cursor.execute("SELECT id FROM websites WHERE url=%s LIMIT 1", (url,))
+                    created_site = cursor.fetchone()
+                    if not created_site:
+                        raise RuntimeError(f"website insert did not persist: {url}")
+                    site_id = created_site["id"]
+                    known_urls[normalized] = site_id
+                    counts["inserted"] += 1
 
-                values = {
-                    "category_id": category_ids[code],
-                    "name": name,
-                    "url": url,
-                    "logo_url": site.get("logo_url") or "",
-                    "summary": summary,
-                    "description": site.get("description") or summary,
-                    "status": "approved",
-                    "source": "category_seed",
-                }
-                fields = value_columns(website_columns, values)
-                placeholders = ",".join(["%s"] * len(fields))
-                cursor.execute(
-                    f"INSERT INTO websites ({','.join(fields)}) VALUES ({placeholders})",
-                    tuple(values[field] for field in fields),
-                )
-                known_urls[normalized] = cursor.lastrowid
-                counts["inserted"] += 1
+                if tag_columns:
+                    for tag_name in dict.fromkeys(str(tag).strip() for tag in site["tags"]):
+                        if not tag_name:
+                            continue
+                        cursor.execute("SELECT id FROM tags WHERE name=%s LIMIT 1", (tag_name,))
+                        tag_row = cursor.fetchone()
+                        if tag_row:
+                            pass
+                        else:
+                            cursor.execute("INSERT INTO tags (name,type) VALUES (%s,%s)", (tag_name, "seed"))
+                            cursor.execute("SELECT id FROM tags WHERE name=%s LIMIT 1", (tag_name,))
+                            created_tag = cursor.fetchone()
+                            if not created_tag:
+                                raise RuntimeError(f"tag insert did not persist: {tag_name}")
+                        cursor.execute(
+                            """INSERT INTO site_tags (site_id,tag_id)
+                               SELECT w.id,t.id FROM websites w JOIN tags t
+                               WHERE w.id=%s AND t.name=%s
+                                 AND NOT EXISTS (
+                                   SELECT 1 FROM site_tags st
+                                   WHERE st.site_id=w.id AND st.tag_id=t.id
+                                 )""",
+                            (site_id, tag_name),
+                        )
+
+                # The shared DBUtils pool recycles a physical connection after
+                # maxusage statements. Keep each website as its own transaction
+                # so a recycle can never discard hundreds of earlier inserts.
+                conn.commit()
 
         conn.commit()
     except Exception:

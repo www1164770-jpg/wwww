@@ -9,8 +9,8 @@
           <small>{{ roleText(profile.user?.role) }}</small>
         </div>
         <nav aria-label="个人中心菜单">
+          <RouterLink to="/personalization">个性化设置</RouterLink>
           <a href="#questionnaire">我的问卷</a>
-          <a href="#recommendations">我的推荐</a>
           <a href="#favorites">我的收藏</a>
           <a href="#history">浏览历史</a>
           <a href="#password">修改密码</a>
@@ -27,8 +27,8 @@
         <template v-else>
           <section id="questionnaire" class="panel">
             <div class="section-head">
-              <h1>个人中心</h1>
-              <p>管理你的职业画像、推荐资源和账号安全。</p>
+              <AnimatedPageTitle>个人中心</AnimatedPageTitle>
+              <p>管理你的职业画像、收藏记录和账号安全。</p>
             </div>
             <h2>我的问卷</h2>
             <div v-if="hasQuestionnaire" class="questionnaire-summary">
@@ -52,18 +52,6 @@
             >
           </section>
 
-          <section id="recommendations" class="panel">
-            <h2>我的推荐</h2>
-            <SiteList
-              :sites="profile.recommendations || []"
-              empty-title="暂无推荐"
-              empty-description="完成问卷后会在这里展示个性化推荐。"
-              empty-action-text="完善问卷"
-              empty-action-to="/questionnaire"
-              @visit="visit"
-            />
-          </section>
-
           <section id="favorites" class="panel">
             <h2>我的收藏</h2>
             <EmptyState
@@ -75,11 +63,79 @@
           </section>
 
           <section id="history" class="panel">
-            <h2>浏览历史</h2>
+            <div class="history-heading">
+              <h2>浏览历史</h2>
+              <button
+                v-if="historyItems.length"
+                type="button"
+                class="history-clear"
+                :disabled="historyMutating"
+                @click="clearHistory"
+              >
+                <Trash2 aria-hidden="true" />
+                清空历史
+              </button>
+            </div>
+            <LoadingState v-if="historyLoading" text="正在加载浏览历史..." />
+            <div v-else-if="historyError" class="history-error" role="alert">
+              <span>{{ historyError }}</span>
+              <button type="button" @click="loadHistory">
+                <RotateCw aria-hidden="true" />
+                重新加载
+              </button>
+            </div>
             <EmptyState
+              v-if="!historyLoading && !historyItems.length"
               title="暂无浏览历史"
               description="访问过的网站后续会在这里展示。"
             />
+            <div v-else-if="!historyLoading" class="history-list">
+              <article
+                v-for="item in historyItems"
+                :key="item.local_id || item.server_id || item.id"
+                class="history-item"
+              >
+                <button
+                  type="button"
+                  class="history-visit"
+                  :aria-label="`再次访问 ${item.name}`"
+                  @click="visitHistoryItem(item)"
+                >
+                  <SiteLogo
+                    :name="item.name"
+                    :url="item.url"
+                    :logo="item.logo_url"
+                    size="md"
+                    decorative
+                  />
+                  <span class="history-copy">
+                    <span class="history-title-row">
+                      <strong>{{ item.name }}</strong>
+                      <ExternalLink aria-hidden="true" />
+                    </span>
+                    <span v-if="item.description" class="history-description">
+                      {{ item.description }}
+                    </span>
+                    <span class="history-meta">
+                      <b v-if="item.category">{{ item.category }}</b>
+                      <time :datetime="item.visited_at">
+                        {{ formatVisitedAt(item.visited_at) }}
+                      </time>
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="history-delete"
+                  :disabled="historyMutating"
+                  :aria-label="`删除 ${item.name} 的浏览记录`"
+                  title="删除记录"
+                  @click="removeHistoryItem(item)"
+                >
+                  <Trash2 aria-hidden="true" />
+                </button>
+              </article>
+            </div>
           </section>
 
           <section id="password" class="panel">
@@ -117,12 +173,20 @@
 </template>
 
 <script setup>
+import { ExternalLink, RotateCw, Trash2 } from "lucide-vue-next";
 import { computed, onMounted, ref } from "vue";
+import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
-import SiteList from "../components/site/SiteList.vue";
-import { siteAPI, userAPI } from "../utils/api";
+import SiteLogo from "../components/site/SiteLogo.vue";
+import { userAPI } from "../utils/api";
+import {
+  clearBrowsingHistory,
+  deleteBrowsingHistory,
+  loadBrowsingHistory,
+  visitSite,
+} from "../utils/siteVisit";
 import { errorToast, successToast } from "../utils/toast";
 
 const profile = ref({});
@@ -131,6 +195,10 @@ const newPassword = ref("");
 const loading = ref(false);
 const error = ref("");
 const passwordLoading = ref(false);
+const historyItems = ref([]);
+const historyLoading = ref(false);
+const historyError = ref("");
+const historyMutating = ref(false);
 const hasQuestionnaire = computed(() => Boolean(profile.value.profile));
 
 const labelMap = {
@@ -192,9 +260,72 @@ async function load() {
     loading.value = false;
   }
 }
-async function visit(site) {
-  await siteAPI.recordClick(site.id).catch(() => {});
-  window.open(site.url, "_blank", "noopener,noreferrer");
+async function loadHistory() {
+  historyLoading.value = true;
+  historyError.value = "";
+  try {
+    const result = await loadBrowsingHistory();
+    historyItems.value = result.items;
+    if (result.syncError) {
+      historyError.value = "服务器历史暂时无法同步，当前展示本地记录。";
+    }
+  } catch (err) {
+    historyItems.value = [];
+    historyError.value =
+      err?.response?.data?.msg || "浏览历史加载失败，请稍后重试。";
+  } finally {
+    historyLoading.value = false;
+  }
+}
+
+function visitHistoryItem(item) {
+  visitSite(item, { source: "site_detail" });
+  void loadHistory();
+}
+
+async function removeHistoryItem(item) {
+  if (!window.confirm(`确定删除“${item.name}”的浏览记录吗？`)) return;
+  historyMutating.value = true;
+  try {
+    await deleteBrowsingHistory(item);
+    historyItems.value = historyItems.value.filter(
+      (entry) =>
+        (entry.local_id || entry.server_id || entry.id) !==
+        (item.local_id || item.server_id || item.id),
+    );
+    successToast("浏览记录已删除");
+  } catch (err) {
+    errorToast(err?.response?.data?.msg || "删除失败，请稍后重试");
+    await loadHistory();
+  } finally {
+    historyMutating.value = false;
+  }
+}
+
+async function clearHistory() {
+  if (!window.confirm("确定清空全部浏览历史吗？此操作无法撤销。")) return;
+  historyMutating.value = true;
+  try {
+    await clearBrowsingHistory();
+    historyItems.value = [];
+    successToast("浏览历史已清空");
+  } catch (err) {
+    errorToast(err?.response?.data?.msg || "清空失败，请稍后重试");
+    await loadHistory();
+  } finally {
+    historyMutating.value = false;
+  }
+}
+
+function formatVisitedAt(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 async function changePassword() {
   if (passwordLoading.value) return;
@@ -214,13 +345,16 @@ async function changePassword() {
     passwordLoading.value = false;
   }
 }
-onMounted(load);
+onMounted(() => {
+  void load();
+  void loadHistory();
+});
 </script>
 
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: transparent;
 }
 
 main {
@@ -241,11 +375,13 @@ main {
 
 .user-card,
 .panel {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-card-border);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--app-panel-bg);
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
   padding: 22px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--app-card-shadow);
 }
 
 .user-card {
@@ -254,31 +390,33 @@ main {
 }
 
 .user-card strong {
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 22px;
 }
 
 .user-card span,
 .user-card small,
 .section-head p {
-  color: #718096;
+  color: var(--app-text-secondary);
   line-height: 1.6;
 }
 
 nav {
   display: grid;
   gap: 8px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-card-border);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--app-panel-bg);
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
   padding: 12px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--app-card-shadow);
 }
 
 nav a,
 .text-action {
   border-radius: var(--radius-pill);
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   padding: 11px 14px;
   text-decoration: none;
   font-weight: 800;
@@ -292,7 +430,7 @@ nav a:hover,
 nav a:focus-visible,
 .text-action:hover,
 .text-action:focus-visible {
-  background: var(--color-soft-orange);
+  background: var(--app-card-hover-bg);
   color: var(--color-primary);
   transform: translateY(-1px);
   outline: none;
@@ -313,7 +451,7 @@ nav a:focus-visible,
 h1,
 h2 {
   margin: 0;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
 }
 
 h1 {
@@ -331,9 +469,12 @@ h2 {
 }
 
 .questionnaire-summary span {
+  border: 1px solid var(--app-card-border);
   border-radius: 16px;
-  background: var(--color-soft);
-  color: var(--color-text);
+  background: var(--app-control-bg);
+  color: var(--app-text-secondary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 12px;
   line-height: 1.5;
 }
@@ -345,18 +486,161 @@ h2 {
   align-items: end;
 }
 
+.history-heading,
+.history-title-row,
+.history-meta {
+  display: flex;
+  align-items: center;
+}
+
+.history-heading {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.history-clear,
+.history-error button {
+  display: inline-flex;
+  width: auto;
+  min-height: 38px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--app-card-border);
+  border-radius: 6px;
+  background: var(--app-control-bg);
+  color: var(--app-text-primary);
+  padding: 0 12px;
+  box-shadow: none;
+}
+
+.history-clear svg,
+.history-error svg,
+.history-delete svg {
+  width: 17px;
+  height: 17px;
+}
+
+.history-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-left: 3px solid #d69e2e;
+  background: var(--app-control-bg);
+  color: var(--app-text-primary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 11px 14px;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--app-card-border);
+  border-radius: 8px;
+  background: var(--app-control-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px;
+}
+
+.history-visit {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: left;
+  box-shadow: none;
+}
+
+.history-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 5px;
+}
+
+.history-title-row {
+  min-width: 0;
+  gap: 7px;
+}
+
+.history-title-row strong {
+  overflow: hidden;
+  color: var(--app-text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-title-row svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--color-primary);
+}
+
+.history-description {
+  overflow: hidden;
+  color: var(--app-text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-meta {
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.history-meta b {
+  color: var(--color-primary-dark);
+}
+
+.history-delete {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--app-text-muted);
+  padding: 0;
+  box-shadow: none;
+}
+
+.history-delete:hover,
+.history-delete:focus-visible {
+  background: var(--app-card-hover-bg);
+  color: #c53030;
+}
+
 label {
   display: grid;
   gap: 8px;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-weight: 750;
 }
 
 input {
   min-width: 0;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--app-card-border);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--app-input-bg);
+  color: var(--app-input-text);
   padding: 12px;
 }
 
@@ -393,7 +677,7 @@ button:disabled {
   }
 
   nav {
-    grid-template-columns: repeat(5, max-content);
+    grid-template-columns: repeat(4, max-content);
     overflow-x: auto;
   }
 }

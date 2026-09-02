@@ -40,30 +40,38 @@ MAIL_ERROR_MESSAGES = {
 }
 
 
-def _as_bool(value: str | None, default: bool = False) -> bool:
+def parse_env_bool(value: str | None, default: bool = False) -> bool:
+    """Parse common environment booleans without truth-testing raw strings."""
     if value is None:
         return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return default
 
 
 def get_mail_config() -> dict:
-    server = (os.getenv("MAIL_SERVER") or "smtp.qq.com").strip()
-    port_text = (os.getenv("MAIL_PORT") or "465").strip()
+    server = (os.getenv("MAIL_SERVER") or "").strip()
+    port_text = (os.getenv("MAIL_PORT") or "").strip()
     try:
         port = int(port_text)
     except ValueError:
-        port = 465
+        port = 0
+    if not 1 <= port <= 65535:
+        port = 0
 
     username = (os.getenv("MAIL_USERNAME") or "").strip()
     password = os.getenv("MAIL_PASSWORD") or ""
     default_sender = (os.getenv("MAIL_DEFAULT_SENDER") or username).strip()
-    use_ssl = _as_bool(os.getenv("MAIL_USE_SSL"), default=port == 465)
-    use_tls = _as_bool(os.getenv("MAIL_USE_TLS"), default=port == 587)
-    timeout_text = (os.getenv("MAIL_TIMEOUT") or "15").strip()
+    use_ssl = parse_env_bool(os.getenv("MAIL_USE_SSL"), default=port == 465)
+    use_tls = parse_env_bool(os.getenv("MAIL_USE_TLS"), default=port == 587)
+    timeout_text = (os.getenv("MAIL_TIMEOUT") or "10").strip()
     try:
-        timeout = max(1, int(timeout_text))
+        timeout = min(30, max(1, int(timeout_text)))
     except ValueError:
-        timeout = 15
+        timeout = 10
 
     return {
         "server": server,
@@ -123,6 +131,92 @@ def _message_html(code: str) -> str:
     """
 
 
+def _password_reset_message_html(code: str) -> str:
+    return f"""
+    <div style="background:#f8fafc;padding:40px 20px;font-family:sans-serif">
+      <div style="max-width:500px;margin:0 auto;background:#fff;border-radius:12px;padding:30px">
+        <h2 style="color:#1e293b;margin-top:0">知航屿密码重置验证码</h2>
+        <p style="color:#64748b;font-size:15px;line-height:1.6">你正在重置知航屿账号密码，验证码是：</p>
+        <div style="background:#fff3ef;padding:15px;border-radius:10px;text-align:center;margin:25px 0">
+          <span style="font-size:32px;font-weight:bold;color:#ef6548;letter-spacing:4px">{code}</span>
+        </div>
+        <p style="color:#64748b;font-size:14px;line-height:1.6">验证码 10 分钟内有效，请勿转发给他人。</p>
+        <p style="color:#94a3b8;font-size:13px;margin-bottom:0">如果不是你本人操作，请忽略此邮件，你的密码不会被更改。</p>
+      </div>
+    </div>
+    """
+
+
+def _smtp_error_code(error: BaseException) -> str:
+    if isinstance(error, smtplib.SMTPSenderRefused):
+        return "SMTP_SENDER_REJECTED"
+    if isinstance(error, smtplib.SMTPRecipientsRefused):
+        return "SMTP_RECIPIENT_REJECTED"
+    if isinstance(error, smtplib.SMTPAuthenticationError):
+        return "SMTP_AUTH_FAILED"
+    if isinstance(error, socket.gaierror):
+        return "SMTP_DNS_FAILED"
+    if isinstance(error, (socket.timeout, TimeoutError)):
+        return "SMTP_CONNECTION_TIMEOUT"
+    if isinstance(error, ssl.SSLError):
+        return "SMTP_SSL_FAILED"
+    if isinstance(
+        error,
+        (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, ConnectionError),
+    ):
+        return "SMTP_CONNECTION_FAILED"
+    if isinstance(error, smtplib.SMTPException):
+        return "SMTP_SEND_FAILED"
+    return "SMTP_CONNECTION_FAILED"
+
+
+def _open_authenticated_server(config: dict):
+    server = None
+    try:
+        if config["use_ssl"]:
+            server = smtplib.SMTP_SSL(
+                config["server"], config["port"], timeout=config["timeout"]
+            )
+        else:
+            server = smtplib.SMTP(
+                config["server"], config["port"], timeout=config["timeout"]
+            )
+            server.ehlo()
+            if config["use_tls"]:
+                server.starttls()
+                server.ehlo()
+        server.login(config["username"], config["password"])
+        return server
+    except Exception:
+        _close_server(server)
+        raise
+
+
+def _close_server(server) -> None:
+    if server is None:
+        return
+    try:
+        server.quit()
+    except (OSError, smtplib.SMTPException):
+        pass
+
+
+def check_mail_connection() -> tuple[bool, str]:
+    """Verify SMTP connectivity and authentication without sending a message."""
+    config = get_mail_config()
+    if validate_mail_config(config):
+        return False, "MAIL_CONFIG_MISSING"
+
+    server = None
+    try:
+        server = _open_authenticated_server(config)
+        return True, "OK"
+    except (OSError, smtplib.SMTPException, ssl.SSLError) as error:
+        return False, _smtp_error_code(error)
+    finally:
+        _close_server(server)
+
+
 def _send_message(target_email: str, subject: str, html: str) -> tuple[bool, str]:
     config = get_mail_config()
     missing = validate_mail_config(config)
@@ -136,46 +230,27 @@ def _send_message(target_email: str, subject: str, html: str) -> tuple[bool, str
 
     server = None
     try:
-        if config["use_ssl"]:
-            server = smtplib.SMTP_SSL(config["server"], config["port"], timeout=config["timeout"])
-        else:
-            server = smtplib.SMTP(config["server"], config["port"], timeout=config["timeout"])
-            server.ehlo()
-            if config["use_tls"]:
-                server.starttls()
-                server.ehlo()
-        server.login(config["username"], config["password"])
+        server = _open_authenticated_server(config)
         server.sendmail(config["default_sender"], [target_email], msg.as_string())
         return True, "OK"
-    except smtplib.SMTPSenderRefused:
-        return False, "SMTP_SENDER_REJECTED"
-    except smtplib.SMTPRecipientsRefused:
-        return False, "SMTP_RECIPIENT_REJECTED"
-    except smtplib.SMTPAuthenticationError:
-        return False, "SMTP_AUTH_FAILED"
-    except socket.gaierror:
-        return False, "SMTP_DNS_FAILED"
-    except (socket.timeout, TimeoutError):
-        return False, "SMTP_CONNECTION_TIMEOUT"
-    except ssl.SSLError:
-        return False, "SMTP_SSL_FAILED"
-    except (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, ConnectionError):
-        return False, "SMTP_CONNECTION_FAILED"
-    except smtplib.SMTPException:
-        return False, "SMTP_SEND_FAILED"
-    except OSError:
-        return False, "SMTP_CONNECTION_FAILED"
+    except (OSError, smtplib.SMTPException, ssl.SSLError) as error:
+        return False, _smtp_error_code(error)
     finally:
-        if server is not None:
-            try:
-                server.quit()
-            except (OSError, smtplib.SMTPException):
-                pass
+        _close_server(server)
 
 
 def send_verification_email(target_email: str, code: str) -> tuple[bool, str]:
     """Send a verification code without exposing credentials or raw errors."""
     return _send_message(target_email, "知航屿注册验证码", _message_html(code))
+
+
+def send_password_reset_email(target_email: str, code: str) -> tuple[bool, str]:
+    """Send the dedicated ten-minute password reset message."""
+    return _send_message(
+        target_email,
+        "知航屿密码重置验证码",
+        _password_reset_message_html(code),
+    )
 
 
 def send_test_email(target_email: str) -> tuple[bool, str]:

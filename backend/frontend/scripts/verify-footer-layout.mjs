@@ -28,12 +28,6 @@ const appFooterRule =
 const routePaths = new Set(
   [...router.matchAll(/path:\s*["']([^"']+)["']/g)].map((match) => match[1]),
 );
-const footerTargets = [
-  ...footer.matchAll(
-    /\{\s*label:\s*["'][^"']+["'],\s*to:\s*["']([^"']+)["']\s*\}/g,
-  ),
-].map((match) => match[1]);
-
 const checks = [
   ["使用语义化 footer 元素", /<footer\b/.test(footer)],
   [
@@ -55,9 +49,17 @@ const checks = [
       !footer.includes('href="#"'),
   ],
   [
-    "所有 Footer 链接目标均来自真实路由",
-    footerTargets.length === 5 &&
-      footerTargets.every((target) => routePaths.has(target)),
+    "快速链接通过首页锚点导航，收藏入口保持原路由",
+    footer.includes('{ label: "首页", to: { path: "/", hash: "#home" } }') &&
+      footer.includes(
+        '{ label: "分类浏览", to: { path: "/", hash: "#tools" } }',
+      ) &&
+      footer.includes(
+        '{ label: "搜索资源", to: { path: "/", hash: "#site-search" } }',
+      ) &&
+      footer.includes('{ label: "我的收藏", to: "/favorites" }') &&
+      routePaths.has("/") &&
+      routePaths.has("/favorites"),
   ],
   [
     "相关信息仅展示真实存在的版权申诉入口",
@@ -77,10 +79,20 @@ const checks = [
     ),
   ],
   [
-    "Footer 使用浅色背景和顶部边界",
-    /\.app-footer\s*\{[\s\S]*?border-top:[\s\S]*?background: var\(--color-soft\)/.test(
-      footer,
-    ),
+    "Footer 外层透明且内容层使用自适应玻璃保护",
+    /\.app-footer\s*\{[^}]*background:\s*transparent/.test(footer) &&
+      /\.app-footer__inner\s*\{[\s\S]*?background:\s*var\(--app-container-bg\)[\s\S]*?backdrop-filter:\s*blur\(20px\)/.test(
+        footer,
+      ) &&
+      !/background:\s*(?:#fff(?:fff)?|white|var\(--color-soft\))/.test(
+        appFooterRule,
+      ),
+  ],
+  [
+    "Footer 文本使用背景自适应颜色变量",
+    footer.includes("var(--app-text-primary)") &&
+      footer.includes("var(--app-text-secondary)") &&
+      footer.includes("var(--app-text-muted)"),
   ],
   [
     "链接和品牌入口提供可见焦点样式",
@@ -96,10 +108,19 @@ const checks = [
     !/(备案信息占位|ICP备案号|待补充|TODO|XXX占位|占位)/.test(footer),
   ],
   [
-    "不新增 #tools 依赖，且不使用固定高度或隐藏溢出",
-    !footer.includes("#tools") &&
+    "首页锚点唯一且 Footer 不使用固定高度或隐藏溢出",
+    (home.match(/id=["']home["']/g) || []).length === 1 &&
+      (home.match(/id=["']site-search["']/g) || []).length === 1 &&
+      (home.match(/id=["']tools["']/g) || []).length === 1 &&
       !/\b(?:min-)?height\s*:/.test(appFooterRule) &&
       !/overflow\s*:\s*hidden/.test(footerStyles),
+  ],
+  [
+    "锚点滚动复用 Router 且尊重 Header 偏移与减少动画偏好",
+    router.includes('to.hash === "#home"') &&
+      router.includes("el: to.hash") &&
+      router.includes("top: HEADER_OFFSET") &&
+      router.includes("prefersReducedMotion()"),
   ],
   [
     "首页与公开内容页复用同一个 Footer，未创建第二个组件",

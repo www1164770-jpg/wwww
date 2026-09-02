@@ -1,0 +1,2442 @@
+{
+  "questionnaire_version": 3,
+  "profile_schema_version": 3,
+  "algorithm_version": "phase1-v1",
+  "website_count": 946,
+  "signal_count": 161,
+  "signals": [
+    {
+      "group": "A_direct_recommendation",
+      "source": "content_platforms",
+      "signal": "bilibili",
+      "tokens": [
+        "bilibili"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "content_platforms",
+      "signal": "douyin",
+      "tokens": [
+        "douyin"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "content_platforms",
+      "signal": "wechat",
+      "tokens": [
+        "wechat"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "content_platforms",
+      "signal": "xiaohongshu",
+      "tokens": [
+        "xiaohongshu"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "content_platforms",
+      "signal": "youtube",
+      "tokens": [
+        "youtube"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "content_platforms",
+      "signal": "zhihu",
+      "tokens": [
+        "zhihu"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "designer_direction",
+      "signal": "3d",
+      "tokens": [
+        "3d"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "designer_direction",
+      "signal": "branding",
+      "tokens": [
+        "branding"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "designer_direction",
+      "signal": "graphic",
+      "tokens": [
+        "graphic"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "designer_direction",
+      "signal": "illustration",
+      "tokens": [
+        "illustration"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "designer_direction",
+      "signal": "motion",
+      "tokens": [
+        "motion"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "embedded",
+      "tokens": [
+        "embedded"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "game",
+      "tokens": [
+        "game"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "mobile",
+      "tokens": [
+        "mobile"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ai_assistant",
+      "tokens": [
+        "ai_assistant"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ai_learning",
+      "tokens": [
+        "ai_learning"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ai_office",
+      "tokens": [
+        "ai_office"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ai_video",
+      "tokens": [
+        "ai_video"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "analytics",
+      "tokens": [
+        "analytics"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "automation",
+      "tokens": [
+        "automation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "content",
+      "tokens": [
+        "content"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "content_creation",
+      "tokens": [
+        "content_creation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "copywriting",
+      "tokens": [
+        "copywriting"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "data_processing",
+      "tokens": [
+        "data_processing"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "debugging",
+      "tokens": [
+        "debugging"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "editing",
+      "tokens": [
+        "editing"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "grading",
+      "tokens": [
+        "grading"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "homework",
+      "tokens": [
+        "homework"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "image_generation",
+      "tokens": [
+        "image_generation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "learning",
+      "tokens": [
+        "learning"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "lesson_plan",
+      "tokens": [
+        "lesson_plan"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "product_design",
+      "tokens": [
+        "product_design"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "programming",
+      "tokens": [
+        "programming"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "question_generation",
+      "tokens": [
+        "question_generation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "research",
+      "tokens": [
+        "research"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "script",
+      "tokens": [
+        "script"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "seo",
+      "tokens": [
+        "seo"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "subtitle",
+      "tokens": [
+        "subtitle"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ui_design",
+      "tokens": [
+        "ui_design"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "content_operation",
+      "tokens": [
+        "content_operation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "ecommerce",
+      "tokens": [
+        "ecommerce"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "growth",
+      "tokens": [
+        "growth"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "marketing",
+      "tokens": [
+        "marketing"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "product_manager",
+      "tokens": [
+        "product_manager"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "product_operation",
+      "tokens": [
+        "product_operation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "seo",
+      "tokens": [
+        "seo"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "product_role",
+      "signal": "user_operation",
+      "tokens": [
+        "user_operation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "business",
+      "tokens": [
+        "business"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "computer_science",
+      "tokens": [
+        "computer_science"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "design",
+      "tokens": [
+        "design"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "education",
+      "tokens": [
+        "education"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "engineering",
+      "tokens": [
+        "engineering"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "humanities",
+      "tokens": [
+        "humanities"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "language",
+      "tokens": [
+        "language"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "law",
+      "tokens": [
+        "law"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "medicine",
+      "tokens": [
+        "medicine"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "study_field",
+      "signal": "science",
+      "tokens": [
+        "science"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "analytics",
+      "tokens": [
+        "analytics"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "automation",
+      "tokens": [
+        "automation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "code_review",
+      "tokens": [
+        "code_review"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "content",
+      "tokens": [
+        "content"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "copywriting",
+      "tokens": [
+        "copywriting"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "data_analysis",
+      "tokens": [
+        "data_analysis"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "debugging",
+      "tokens": [
+        "debugging"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "deployment",
+      "tokens": [
+        "deployment"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "documents",
+      "tokens": [
+        "documents"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "editing",
+      "tokens": [
+        "editing"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "homework",
+      "tokens": [
+        "homework"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "lesson_plan",
+      "tokens": [
+        "lesson_plan"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "maintenance",
+      "tokens": [
+        "maintenance"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "new_features",
+      "tokens": [
+        "new_features"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "paper",
+      "tokens": [
+        "paper"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "production",
+      "tokens": [
+        "production"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "programming",
+      "tokens": [
+        "programming"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "research",
+      "tokens": [
+        "research"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "resource_search",
+      "tokens": [
+        "resource_search"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "seo",
+      "tokens": [
+        "seo"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "spreadsheets",
+      "tokens": [
+        "spreadsheets"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "subtitle",
+      "tokens": [
+        "subtitle"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "testing",
+      "tokens": [
+        "testing"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "user_research",
+      "tokens": [
+        "user_research"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "angular",
+      "tokens": [
+        "angular"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "cpp",
+      "tokens": [
+        "cpp"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "csharp",
+      "tokens": [
+        "csharp"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "data_science",
+      "tokens": [
+        "data_science"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "docker",
+      "tokens": [
+        "docker"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "go",
+      "tokens": [
+        "go"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "html_css",
+      "tokens": [
+        "html_css"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "java",
+      "tokens": [
+        "java"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "javascript",
+      "tokens": [
+        "javascript"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "kubernetes",
+      "tokens": [
+        "kubernetes"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "llm",
+      "tokens": [
+        "llm"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "node",
+      "tokens": [
+        "node"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "php",
+      "tokens": [
+        "php"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "python",
+      "tokens": [
+        "python"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "pytorch",
+      "tokens": [
+        "pytorch"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "react",
+      "tokens": [
+        "react"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "tensorflow",
+      "tokens": [
+        "tensorflow"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "typescript",
+      "tokens": [
+        "typescript"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tech_stack",
+      "signal": "vue",
+      "tokens": [
+        "vue"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "budget_preference",
+      "signal": "free_first",
+      "tokens": [
+        "free_first"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "budget_preference",
+      "signal": "free_only",
+      "tokens": [
+        "free_only"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "budget_preference",
+      "signal": "price_not_important",
+      "tokens": [
+        "price_not_important"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "budget_preference",
+      "signal": "subscription_ok",
+      "tokens": [
+        "subscription_ok"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "platforms",
+      "signal": "android",
+      "tokens": [
+        "android"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "platforms",
+      "signal": "ios",
+      "tokens": [
+        "ios"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "platforms",
+      "signal": "linux",
+      "tokens": [
+        "linux"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "platforms",
+      "signal": "macos",
+      "tokens": [
+        "macos"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "platforms",
+      "signal": "web",
+      "tokens": [
+        "web"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "platforms",
+      "signal": "windows",
+      "tokens": [
+        "windows"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "chinese_support",
+      "tokens": [
+        "chinese_support"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "collaboration",
+      "tokens": [
+        "collaboration"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "cross_platform",
+      "tokens": [
+        "cross_platform"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "easy_to_use",
+      "tokens": [
+        "easy_to_use"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "no_signup",
+      "tokens": [
+        "no_signup"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "privacy",
+      "tokens": [
+        "privacy"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "speed",
+      "tokens": [
+        "speed"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "experience_level",
+      "signal": "basic",
+      "tokens": [
+        "learning"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "experience_level",
+      "signal": "beginner",
+      "tokens": [
+        "beginner",
+        "learning"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "automation",
+      "tokens": [
+        "automation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "collaboration",
+      "tokens": [
+        "collaboration"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "content_creation",
+      "tokens": [
+        "content_creation"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "learning",
+      "tokens": [
+        "learning"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "project_management",
+      "tokens": [
+        "project_management"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "research",
+      "tokens": [
+        "research"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "hard_debugging",
+      "tokens": [
+        "debugging",
+        "code_analysis"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "learning_curve",
+      "tokens": [
+        "learning"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "project_management",
+      "tokens": [
+        "project_management",
+        "collaboration"
+      ],
+      "matched_sites": 0,
+      "matched_by_tags": 0,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.0,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "none"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "api_debugging",
+      "tokens": [
+        "api_debugging"
+      ],
+      "matched_sites": 4,
+      "matched_by_tags": 4,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.42,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "api",
+      "tokens": [
+        "api"
+      ],
+      "matched_sites": 4,
+      "matched_by_tags": 4,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.42,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "ai_code_quality",
+      "tokens": [
+        "ai_coding",
+        "code_analysis"
+      ],
+      "matched_sites": 4,
+      "matched_by_tags": 4,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.42,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "api_debugging",
+      "tokens": [
+        "api_debugging",
+        "api"
+      ],
+      "matched_sites": 4,
+      "matched_by_tags": 4,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.42,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "code_generation",
+      "tokens": [
+        "code_generation"
+      ],
+      "matched_sites": 6,
+      "matched_by_tags": 6,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.63,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "slow_coding",
+      "tokens": [
+        "code_generation",
+        "ai_coding"
+      ],
+      "matched_sites": 6,
+      "matched_by_tags": 6,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.63,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "testing",
+      "tokens": [
+        "testing",
+        "code_generation"
+      ],
+      "matched_sites": 6,
+      "matched_by_tags": 6,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.63,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "free_value",
+      "tokens": [
+        "free_value"
+      ],
+      "matched_sites": 7,
+      "matched_by_tags": 7,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.74,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "low"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "professional",
+      "tokens": [
+        "professional"
+      ],
+      "matched_sites": 7,
+      "matched_by_tags": 7,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.74,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "experience_level",
+      "signal": "advanced",
+      "tokens": [
+        "professional"
+      ],
+      "matched_sites": 7,
+      "matched_by_tags": 7,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.74,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "experience_level",
+      "signal": "intermediate",
+      "tokens": [
+        "professional"
+      ],
+      "matched_sites": 7,
+      "matched_by_tags": 7,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.74,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "professional_work",
+      "tokens": [
+        "professional"
+      ],
+      "matched_sites": 7,
+      "matched_by_tags": 7,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.74,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ui_generation",
+      "tokens": [
+        "ui_generation"
+      ],
+      "matched_sites": 8,
+      "matched_by_tags": 8,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.85,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "database",
+      "tokens": [
+        "database"
+      ],
+      "matched_sites": 8,
+      "matched_by_tags": 8,
+      "matched_by_occupations": 0,
+      "coverage_percent": 0.85,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "designer_direction",
+      "signal": "ui_ux",
+      "tokens": [
+        "ui_ux"
+      ],
+      "matched_sites": 12,
+      "matched_by_tags": 12,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.27,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "prototype",
+      "tokens": [
+        "prototype"
+      ],
+      "matched_sites": 12,
+      "matched_by_tags": 12,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.27,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "tasks",
+      "signal": "prototype",
+      "tokens": [
+        "prototype"
+      ],
+      "matched_sites": 12,
+      "matched_by_tags": 12,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.27,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "data",
+      "tokens": [
+        "data"
+      ],
+      "matched_sites": 13,
+      "matched_by_tags": 13,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.37,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "devops",
+      "tokens": [
+        "devops"
+      ],
+      "matched_sites": 13,
+      "matched_by_tags": 13,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.37,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "efficiency",
+      "tokens": [
+        "efficiency"
+      ],
+      "matched_sites": 13,
+      "matched_by_tags": 13,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.37,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "data_processing",
+      "tokens": [
+        "data",
+        "analytics"
+      ],
+      "matched_sites": 13,
+      "matched_by_tags": 13,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.37,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "efficiency",
+      "tokens": [
+        "efficiency"
+      ],
+      "matched_sites": 13,
+      "matched_by_tags": 13,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.37,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "deployment",
+      "tokens": [
+        "deployment",
+        "devops"
+      ],
+      "matched_sites": 13,
+      "matched_by_tags": 13,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.37,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "backend",
+      "tokens": [
+        "backend"
+      ],
+      "matched_sites": 18,
+      "matched_by_tags": 18,
+      "matched_by_occupations": 0,
+      "coverage_percent": 1.9,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "documentation",
+      "tokens": [
+        "documentation"
+      ],
+      "matched_sites": 19,
+      "matched_by_tags": 19,
+      "matched_by_occupations": 0,
+      "coverage_percent": 2.01,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "pain_points",
+      "signal": "documentation",
+      "tokens": [
+        "documentation"
+      ],
+      "matched_sites": 19,
+      "matched_by_tags": 19,
+      "matched_by_occupations": 0,
+      "coverage_percent": 2.01,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "git_project_management",
+      "tokens": [
+        "git_project_management"
+      ],
+      "matched_sites": 27,
+      "matched_by_tags": 27,
+      "matched_by_occupations": 0,
+      "coverage_percent": 2.85,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "low"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "frontend",
+      "tokens": [
+        "frontend"
+      ],
+      "matched_sites": 58,
+      "matched_by_tags": 58,
+      "matched_by_occupations": 0,
+      "coverage_percent": 6.13,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "good"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "primary_need",
+      "signal": "ai",
+      "tokens": [
+        "ai"
+      ],
+      "matched_sites": 65,
+      "matched_by_tags": 65,
+      "matched_by_occupations": 0,
+      "coverage_percent": 6.87,
+      "recommendation_importance": "critical",
+      "importance_weight": 4,
+      "status": "good"
+    },
+    {
+      "group": "B_tool_preferences",
+      "source": "priorities",
+      "signal": "ai",
+      "tokens": [
+        "ai"
+      ],
+      "matched_sites": 65,
+      "matched_by_tags": 65,
+      "matched_by_occupations": 0,
+      "coverage_percent": 6.87,
+      "recommendation_importance": "low",
+      "importance_weight": 1,
+      "status": "good"
+    },
+    {
+      "group": "C_explanatory_mappings",
+      "source": "goals",
+      "signal": "ai_assistance",
+      "tokens": [
+        "ai"
+      ],
+      "matched_sites": 65,
+      "matched_by_tags": 65,
+      "matched_by_occupations": 0,
+      "coverage_percent": 6.87,
+      "recommendation_importance": "medium",
+      "importance_weight": 2,
+      "status": "good"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "ai_ml",
+      "tokens": [
+        "ai_ml",
+        "ai"
+      ],
+      "matched_sites": 66,
+      "matched_by_tags": 66,
+      "matched_by_occupations": 0,
+      "coverage_percent": 6.98,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "good"
+    },
+    {
+      "group": "A_direct_recommendation",
+      "source": "developer_direction",
+      "signal": "fullstack",
+      "tokens": [
+        "fullstack",
+        "frontend",
+        "backend"
+      ],
+      "matched_sites": 76,
+      "matched_by_tags": 76,
+      "matched_by_occupations": 0,
+      "coverage_percent": 8.03,
+      "recommendation_importance": "high",
+      "importance_weight": 3,
+      "status": "good"
+    }
+  ],
+  "summary": {
+    "none": 128,
+    "low": 27,
+    "good": 6,
+    "importance_weighted_coverage_percent": 0.47
+  }
+}

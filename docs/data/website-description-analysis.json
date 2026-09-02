@@ -1,0 +1,143 @@
+{
+  "source": "catalog",
+  "valid_website_count": 486,
+  "empty_description_count": 138,
+  "exact_duplicate_description_count": 0,
+  "normalized_duplicate_description_count": 348,
+  "description_usage_top_20": [
+    {
+      "description": "DuckDuckGo：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Startpage：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Yandex：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Brave Search：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Ecosia：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Internet Archive：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Wiktionary：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Wikimedia Commons：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Google News：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "Reuters：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "BBC：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "The Guardian：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "澎湃新闻：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "界面新闻：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "财新网：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "知乎盐选：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "得到：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "喜马拉雅：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "荔枝：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    },
+    {
+      "description": "网易公开课：提供搜索、资讯、阅读或日常信息服务。",
+      "count": 1
+    }
+  ],
+  "normalized_description_usage_top_20": [
+    {
+      "description": "提供搜索、资讯、阅读或日常信息服务。",
+      "count": 30
+    },
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30
+    },
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 30
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 30
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 28
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 28
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 28
+    }
+  ],
+  "generic_fallback_count": 30,
+  "name_prefix_count": 318,
+  "too_short_count": 0,
+  "too_long_count": 0
+}

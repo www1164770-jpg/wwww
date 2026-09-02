@@ -8,6 +8,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { userAPI } from "../utils/api";
+import { questionnaireAPI, unwrapResponse } from "../utils/api";
 import {
   addAuthStateListener,
   clearAuthSession,
@@ -38,6 +39,12 @@ export const useUserStore = defineStore("user", () => {
   const questionnaireCompleted = ref(false);
   const userInfo = ref({ ...DEFAULT_USER_INFO });
   const isHydrated = ref(false);
+  const questionnaireStatus = ref(null);
+  const questionnaireStatusLoaded = ref(false);
+  const statusLoadedForUserId = ref("");
+  const questionnaireModalVisible = ref(false);
+  const questionnaireRevision = ref(0);
+  let questionnaireStatusRequest = null;
 
   const username = computed(() => userInfo.value.username);
   const avatar = computed(
@@ -94,6 +101,58 @@ export const useUserStore = defineStore("user", () => {
     userRole.value = "user";
     questionnaireCompleted.value = false;
     userInfo.value = { ...DEFAULT_USER_INFO };
+    resetQuestionnaireState();
+  }
+
+  function resetQuestionnaireState() {
+    questionnaireStatus.value = null;
+    questionnaireStatusLoaded.value = false;
+    statusLoadedForUserId.value = "";
+    questionnaireModalVisible.value = false;
+    questionnaireStatusRequest = null;
+  }
+
+  function getQuestionnaireUserId() {
+    return String(
+      userInfo.value?.id || userInfo.value?.user_id || userInfo.value?.username || "",
+    ).trim();
+  }
+
+  async function checkQuestionnaireStatus({ open = true, force = false } = {}) {
+    if (!isLoggedIn.value || !getAccessToken()) {
+      resetQuestionnaireState();
+      return null;
+    }
+    const userId = getQuestionnaireUserId();
+    if (!userId) return null;
+    if (!force && statusLoadedForUserId.value === userId && questionnaireStatusLoaded.value) {
+      return questionnaireStatus.value;
+    }
+    if (questionnaireStatusRequest && !force) return questionnaireStatusRequest;
+    statusLoadedForUserId.value = userId;
+    questionnaireStatusRequest = questionnaireAPI
+      .status()
+      .then((response) => {
+        const payload = unwrapResponse(response) || {};
+        questionnaireStatus.value = payload;
+        questionnaireStatusLoaded.value = true;
+        updateQuestionnaireCompleted(Boolean(payload.completed), { silentStatus: true });
+        if (open && !payload.completed) questionnaireModalVisible.value = true;
+        return payload;
+      })
+      .catch((requestError) => {
+        questionnaireStatusLoaded.value = true;
+        console.error("[questionnaire] status request failed", requestError);
+        return null;
+      })
+      .finally(() => {
+        questionnaireStatusRequest = null;
+      });
+    return questionnaireStatusRequest;
+  }
+
+  function dismissQuestionnaireModal() {
+    questionnaireModalVisible.value = false;
   }
 
   function logout() {
@@ -123,10 +182,21 @@ export const useUserStore = defineStore("user", () => {
     syncFromStorage();
   }
 
-  function updateQuestionnaireCompleted(value) {
+  function updateQuestionnaireCompleted(value, { silentStatus = false } = {}) {
     persistQuestionnaireCompleted(value);
     questionnaireCompleted.value =
       value === true || value === "true" || value === 1;
+    if (questionnaireCompleted.value) questionnaireModalVisible.value = false;
+    if (!silentStatus) {
+      questionnaireStatus.value = {
+        ...(questionnaireStatus.value || {}),
+        completed: questionnaireCompleted.value,
+        questionnaire_version: 3,
+        latest_completed_version: questionnaireCompleted.value ? 3 : null,
+      };
+      questionnaireStatusLoaded.value = true;
+      questionnaireRevision.value += 1;
+    }
   }
 
   async function syncProfileFromServer() {
@@ -178,6 +248,14 @@ export const useUserStore = defineStore("user", () => {
     setLoginSuccess,
     updateAccessToken,
     updateQuestionnaireCompleted,
+    questionnaireStatus,
+    questionnaireStatusLoaded,
+    statusLoadedForUserId,
+    questionnaireModalVisible,
+    questionnaireRevision,
+    checkQuestionnaireStatus,
+    dismissQuestionnaireModal,
+    resetQuestionnaireState,
     syncProfileFromServer,
   };
 });

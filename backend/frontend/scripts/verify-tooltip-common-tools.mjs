@@ -14,6 +14,7 @@ const favoriteStack = read("src/components/home/FavoriteStack.vue");
 const toolMarquee = read("src/components/home/ToolMarquee.vue");
 const siteLogo = read("src/components/site/SiteLogo.vue");
 const api = read("src/utils/api.js");
+const siteText = read("src/utils/siteText.js");
 const packageJson = JSON.parse(read("package.json"));
 const cardSources = [
   siteCard,
@@ -52,8 +53,15 @@ const checks = [
   [
     "Empty descriptions do not create an empty Tooltip",
     appTooltip.includes("<slot v-else />") &&
-      /v-if="siteDescription"/.test(siteCard) &&
+      /v-if="cardDescription\b/.test(siteCard) &&
       /v-if="siteDescription\(site\)"/.test(favoriteStack),
+  ],
+  [
+    "Category and hot cards share safe title-prefix cleanup",
+    siteText.includes("export function cleanSiteDescription") &&
+      siteText.includes("escapeRegExp") &&
+      siteCard.includes('import { cleanSiteDescription } from "../../utils/siteText"') &&
+      recommendSection.includes('import { cleanSiteDescription } from "../../utils/siteText"'),
   ],
   [
     "Tooltip only appears for truncated descriptions",
@@ -100,9 +108,11 @@ const checks = [
       /@media \(max-width:\s*820px\)/.test(favoriteStack),
   ],
   [
-    "The shared P0 description mapping remains available",
-    api.includes("SITE_DESCRIPTION_FALLBACKS") &&
-      api.includes("export function getSiteDescription"),
+    "Shared descriptions use provided data without a generic fallback",
+    api.includes("export function getSiteDescription") &&
+      api.includes("RETIRED_GENERIC_SITE_DESCRIPTIONS") &&
+      !api.includes("SITE_DESCRIPTION_FALLBACKS") &&
+      api.includes("!RETIRED_GENERIC_SITE_DESCRIPTIONS.has(text)"),
   ],
   [
     "ToolMarquee still uses the shared SiteLogo",

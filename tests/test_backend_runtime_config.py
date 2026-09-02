@@ -195,8 +195,8 @@ class BackendRuntimeConfigTests(unittest.TestCase):
         self.assertEqual(probe["database_ok_status"], 200)
         self.assertEqual(probe["database_ok_payload"]["data"]["database"], "ok")
         self.assertTrue(probe["connection_closed"])
-        self.assertEqual(probe["database_error_status"], 500)
-        self.assertEqual(probe["database_error_payload"]["data"]["database"], "error")
+        self.assertEqual(probe["database_error_status"], 503)
+        self.assertEqual(probe["database_error_payload"]["data"]["database"], "unavailable")
         self.assertFalse(probe["private_error_exposed"])
 
     def test_cors_uses_explicit_origins_and_rejects_wildcards_with_credentials(self):

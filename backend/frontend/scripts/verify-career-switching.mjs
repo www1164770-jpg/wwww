@@ -58,16 +58,12 @@ const checks = [
   ["career batches reset on selection", /careerBatchIndex\.value = 0/],
   ["batch size is sixteen", /const CAREER_BATCH_SIZE = 16/],
   [
-    "active pools are filled from the career-specific fallback pool",
-    /function ensureCareerSitePool[\s\S]*?getCareerWebsites\(canonicalCareerCode\)/,
+    "active pools use the server-ranked payload",
+    /function mergeCareerSites[\s\S]*?apiSiteList/,
   ],
   [
-    "short career pools produce an explicit warning",
-    /site pool below 16[\s\S]*?required: CAREER_BATCH_SIZE/,
-  ],
-  [
-    "career aliases resolve to the canonical website pool",
-    /function getCanonicalCareerCode[\s\S]*?normalizeOccupation\(careerCode\)/,
+    "short career pools retain their available real sites",
+    /candidate pool is shorter than one batch/,
   ],
   [
     "career pool supports multiple sixteen-site batches",
@@ -84,6 +80,30 @@ const checks = [
   [
     "batch indexes are normalized before slicing",
     /const safeIndex = \(\(requestedIndex % batchCount\) \+ batchCount\) % batchCount/,
+  ],
+  [
+    "visible batches define the active career code before creating a batch id",
+    /const visibleCareerSites = computed\(\(\) => \{\s*const careerCode = activeCareerCode\.value;/,
+  ],
+  [
+    "visible batches can expand from the selected career batch",
+    /const orderedPool = \[\.\.\.pool\.slice\(start\), \.\.\.pool\.slice\(0, start\)\];[\s\S]*?visibleCareerSiteCount\.value/,
+  ],
+  [
+    "career layout fills complete rows without a repeated measurement loop",
+    /function measureAndFillCareerSites[\s\S]*?missingRows \* columns/,
+  ],
+  [
+    "career layout reacts to element size changes",
+    /new ResizeObserver[\s\S]*?scheduleCareerLayoutMeasurement/,
+  ],
+  [
+    "career layout stops once it reaches eighty-five percent of the left height",
+    /left\.getBoundingClientRect\(\)\.height \* 0\.85/,
+  ],
+  [
+    "career layout caps results by breakpoint and desktop viewport height",
+    /window\.innerWidth < 768\) return 8;[\s\S]*?window\.innerWidth < 1024\) return 16;[\s\S]*?const viewportHeight = window\.innerHeight;[\s\S]*?viewportHeight >= 1180[\s\S]*?viewportHeight >= 980/,
   ],
   [
     "refresh is disabled while loading or when only one batch exists",
@@ -117,10 +137,13 @@ const checks = [
   ["backend returns questionnaire version", /questionnaire_version/],
   ["backend filters sites before ranking", /filter_sites_for_career\(/],
   ["career filter checks occupation relation", /normalize_occupation\(value\)/],
-  ["career filter checks career keywords", /keyword_match/],
   [
-    "home supplements API results with career-specific website data",
-    /getCareerWebsites\(canonicalCareerCode\)/.test(home),
+    "career filter uses stable catalog keywords",
+    /career_site_keywords\(canonical_occupation\)/,
+  ],
+  [
+    "home does not add hard-coded career websites",
+    !/getCareerWebsites/.test(home),
   ],
   [
     "home does not render the old single career list",
@@ -132,14 +155,15 @@ for (const [name, check] of checks) {
   assert.ok(typeof check === "boolean" ? check : check.test(source), name);
 }
 
-const visibleBatch = (pool, index, batchSize = 16) => {
+const visibleBatch = (pool, index, visibleCount = 16, batchSize = 16) => {
   if (!pool.length) return [];
-  const batchCount = Math.floor(pool.length / batchSize);
+  const batchCount = Math.ceil(pool.length / batchSize);
   if (!batchCount) return [];
   const requestedIndex = Number(index) || 0;
   const safeIndex = ((requestedIndex % batchCount) + batchCount) % batchCount;
   const start = safeIndex * batchSize;
-  return pool.slice(start, start + batchSize);
+  const orderedPool = [...pool.slice(start), ...pool.slice(0, start)];
+  return orderedPool.slice(0, visibleCount);
 };
 
 const sixteenSites = Array.from({ length: 16 }, (_, index) => `site-${index}`);
@@ -151,11 +175,13 @@ const fortyEightSites = Array.from(
   { length: 48 },
   (_, index) => `site-${index}`,
 );
+const sixtySites = Array.from({ length: 60 }, (_, index) => `site-${index}`);
 const thirtySevenSites = Array.from(
   { length: 37 },
   (_, index) => `site-${index}`,
 );
 assert.deepEqual(visibleBatch([], 1), []);
+assert.deepEqual(visibleBatch(["site-0"], 0), ["site-0"]);
 assert.deepEqual(visibleBatch(sixteenSites, 1), sixteenSites);
 assert.equal(visibleBatch(thirtyTwoSites, 0).length, 16);
 assert.equal(visibleBatch(thirtyTwoSites, 1).length, 16);
@@ -167,9 +193,35 @@ assert.deepEqual(
 );
 assert.equal(visibleBatch(thirtySevenSites, 0).length, 16);
 assert.equal(visibleBatch(thirtySevenSites, 1).length, 16);
-assert.deepEqual(
-  visibleBatch(thirtySevenSites, 2),
-  thirtySevenSites.slice(0, 16),
+assert.equal(visibleBatch(thirtySevenSites, 2).length, 16);
+assert.deepEqual(visibleBatch(fortyEightSites, 1, 24), [
+  ...fortyEightSites.slice(16, 40),
+]);
+
+// Regression contract for the real recommendation flow:
+// API returns 60 ranked sites, Home keeps the current career's Top 48, and
+// each full page (including after a refresh) renders exactly 16 cards.
+const currentCareerTop48 = sixtySites.slice(0, 48);
+assert.equal(sixtySites.length, 60, "API fixture must represent 60 items");
+assert.equal(currentCareerTop48.length, 48, "Home must retain only Top 48");
+assert.equal(visibleBatch(currentCareerTop48, 0).length, 16);
+assert.equal(visibleBatch(currentCareerTop48, 1).length, 16);
+assert.equal(visibleBatch(currentCareerTop48, 2).length, 16);
+assert.notDeepEqual(
+  visibleBatch(currentCareerTop48, 0),
+  visibleBatch(currentCareerTop48, 1),
+  "refreshing a multi-page career must advance to a different batch",
+);
+
+// Changing careers always obtains a non-empty first page when the selected
+// career has real API candidates; this catches state leakage across careers.
+const switchedCareerSites = Array.from(
+  { length: 24 },
+  (_, index) => `switched-career-site-${index}`,
+);
+assert.ok(
+  visibleBatch(switchedCareerSites, 0).length > 0,
+  "switching careers must render available candidates",
 );
 
 console.log(`PASS career switching data flow (${checks.length} checks)`);

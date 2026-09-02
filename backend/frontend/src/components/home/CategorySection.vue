@@ -1,12 +1,28 @@
 <template>
   <section class="home-section category-section">
-    <header class="category-heading reveal-on-scroll">
-      <p>热门分类</p>
-      <h2>按分类浏览网站资源</h2>
-      <span>从学习、设计、开发到效率办公，快速找到适合你的网站工具。</span>
+    <header class="category-heading">
+      <p class="reveal-child" style="--reveal-delay: 0ms">热门分类</p>
+      <AnimatedPageTitle
+        class="reveal-child reveal-title"
+        style="--reveal-delay: 80ms"
+        as="h2"
+        :animation="false"
+      >
+        按分类浏览网站资源
+      </AnimatedPageTitle>
+      <span
+        class="reveal-child reveal-description"
+        style="--reveal-delay: 150ms"
+      >
+        从学习、设计、开发到效率办公，快速找到适合你的网站工具。
+      </span>
     </header>
 
-    <div class="category-filter-bar" aria-label="网站分类栏">
+    <div
+      class="category-filter-bar reveal-child"
+      style="--reveal-delay: 210ms"
+      aria-label="网站分类栏"
+    >
       <div class="category-filter-bar__label">
         <span class="category-filter-bar__icon" aria-hidden="true">
           <Layers />
@@ -38,7 +54,12 @@
       class="website-skeleton-grid"
       aria-label="正在加载网站资源"
     >
-      <article v-for="index in 8" :key="index" class="website-skeleton-card">
+      <article
+        v-for="index in 8"
+        :key="index"
+        class="website-skeleton-card reveal-child reveal-card"
+        :style="revealCardStyle(index - 1)"
+      >
         <span></span>
         <b></b>
         <i></i>
@@ -47,7 +68,8 @@
 
     <div
       v-else-if="status === 'error' && !allWebsites.length"
-      class="category-request-state category-request-state--error"
+      class="category-request-state category-request-state--error reveal-child reveal-description"
+      style="--reveal-delay: 250ms"
       role="alert"
     >
       <strong>网站分类加载失败</strong>
@@ -57,6 +79,8 @@
 
     <EmptyState
       v-else-if="status === 'empty' && !allWebsites.length"
+      class="reveal-child reveal-description"
+      style="--reveal-delay: 250ms"
       title="暂无分类"
       description="分类请求成功，但当前没有可展示的网站资源。"
     />
@@ -67,57 +91,67 @@
         class="website-skeleton-grid"
         aria-label="正在加载分类网站"
       >
-        <article v-for="index in 8" :key="index" class="website-skeleton-card">
+        <article
+          v-for="index in 8"
+          :key="index"
+          class="website-skeleton-card reveal-child reveal-card"
+          :style="revealCardStyle(index - 1)"
+        >
           <span></span>
           <b></b>
           <i></i>
         </article>
       </div>
 
-      <div v-else>
+      <div v-else class="category-results-scroll">
         <div
-          v-if="refreshing || loadingCategorySites"
-          class="category-request-note"
-          role="status"
-        >
-          正在更新分类网站资源…
-        </div>
-
-        <div
-          v-if="error && allWebsites.length"
+          v-if="visibleCategoryError && allWebsites.length"
           class="category-request-note category-request-note--error"
-          role="status"
+          role="alert"
         >
-          {{ error }}
+          {{ visibleCategoryError }}
         </div>
 
         <div class="website-grid-state">
           <div class="website-grid-toolbar">
-            <p>{{ activeCategory }} · {{ visibleWebsiteCount }} 个网站</p>
+            <p
+              class="reveal-child reveal-description"
+              style="--reveal-delay: 245ms"
+            >
+              {{ activeCategory === "全部" ? "全部资源" : activeCategory }}
+            </p>
+
+            <button
+              v-if="totalBatches > 1"
+              type="button"
+              class="website-change-batch reveal-child"
+              style="--reveal-delay: 680ms"
+              @click="changeWebsiteBatch"
+            >
+              <RotateCw aria-hidden="true" />
+              <span>换一批</span>
+            </button>
           </div>
 
           <div v-if="filteredWebsites.length" class="website-card-grid">
             <SiteCard
-              v-for="website in renderedWebsites"
+              v-for="(website, index) in renderedWebsites"
               :key="websiteKey(website)"
+              class="reveal-child reveal-card"
+              :class="{ 'card-refresh-item': contentHasChanged }"
+              :style="revealCardStyle(index)"
               :site="website"
               variant="category"
+              compact
               hide-actions
+              @visit="visitCategorySite"
             />
           </div>
 
-          <button
-            v-if="renderedWebsites.length < filteredWebsites.length"
-            type="button"
-            class="website-load-more"
-            @click="loadMoreWebsites"
-          >
-            加载更多网站
-          </button>
-
           <div
             v-if="!filteredWebsites.length"
-            class="category-empty-state"
+            class="category-empty-state reveal-child reveal-description"
+            style="--reveal-delay: 280ms"
             role="status"
           >
             <span class="category-empty-state__icon" aria-hidden="true">⌂</span>
@@ -143,11 +177,13 @@ import {
   Lightbulb,
   Palette,
   PenTool,
+  RotateCw,
   Star,
   Users,
   Zap,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import AnimatedPageTitle from "../common/AnimatedPageTitle.vue";
 import EmptyState from "../common/EmptyState.vue";
 import SiteCard from "../site/SiteCard.vue";
 import { normalizeWebsite } from "../../utils/api";
@@ -161,11 +197,16 @@ const props = defineProps({
   error: { type: String, default: "" },
 });
 
-defineEmits(["retry"]);
+const emit = defineEmits(["retry", "visit-site"]);
 
-const PAGE_SIZE = 25;
+function visitCategorySite(site) {
+  emit("visit-site", { ...site, visit_source: "home_category" });
+}
+
+const PAGE_SIZE = 15;
 const activeCategory = ref("全部");
-const visibleLimit = ref(PAGE_SIZE);
+const currentBatch = ref(0);
+const contentHasChanged = ref(false);
 
 const CATEGORY_ICON_MAP = {
   常用推荐: Star,
@@ -260,6 +301,8 @@ const allWebsites = computed(() => {
   return [...result.values()];
 });
 
+const visibleCategoryError = computed(() => String(props.error || "").trim());
+
 const categoryOptions = computed(() => {
   const options = [
     { name: "全部", description: "浏览当前收录的全部网站资源。" },
@@ -291,15 +334,13 @@ const filteredWebsites = computed(() => {
   );
 });
 
-const visibleWebsiteCount = computed(() => filteredWebsites.value.length);
-const normalizedVisibleLimit = computed(() => {
-  const value = Number(visibleLimit.value);
-  if (!Number.isFinite(value) || value < 1) return PAGE_SIZE;
-  return Math.max(PAGE_SIZE, value);
-});
-const renderedWebsites = computed(() =>
-  filteredWebsites.value.slice(0, normalizedVisibleLimit.value),
+const totalBatches = computed(() =>
+  Math.ceil(filteredWebsites.value.length / PAGE_SIZE),
 );
+const renderedWebsites = computed(() => {
+  const start = currentBatch.value * PAGE_SIZE;
+  return filteredWebsites.value.slice(start, start + PAGE_SIZE);
+});
 const activeCategoryDescription = computed(
   () =>
     categoryOptions.value.find(
@@ -315,13 +356,28 @@ function categoryIcon(name) {
 }
 
 function handleCategoryChange(categoryName) {
+  if (activeCategory.value === categoryName) return;
+  contentHasChanged.value = true;
   activeCategory.value = categoryName;
-  visibleLimit.value = PAGE_SIZE;
+  currentBatch.value = 0;
 }
 
-function loadMoreWebsites() {
-  visibleLimit.value += PAGE_SIZE;
+function changeWebsiteBatch() {
+  if (totalBatches.value <= 1) return;
+  contentHasChanged.value = true;
+  currentBatch.value = (currentBatch.value + 1) % totalBatches.value;
 }
+
+function revealCardStyle(index) {
+  return {
+    "--reveal-delay": `${280 + Math.min(index * 35, 350)}ms`,
+    "--refresh-delay": `${Math.min(index * 22, 220)}ms`,
+  };
+}
+
+watch(totalBatches, (batchCount) => {
+  if (currentBatch.value >= batchCount) currentBatch.value = 0;
+});
 </script>
 
 <style scoped>
@@ -334,33 +390,32 @@ function loadMoreWebsites() {
 
 .category-heading {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .category-heading p {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: var(--color-primary);
   font-weight: 850;
 }
 
 .category-heading h2 {
   margin: 0;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: clamp(32px, 4vw, 46px);
   line-height: 1.12;
 }
 
 .category-heading > span {
   display: block;
-  color: var(--color-text);
+  color: var(--app-text-secondary);
   line-height: 1.75;
 }
 
 .category-filter-bar {
   border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-  backdrop-filter: blur(18px);
+  background: transparent;
+  box-shadow: none;
 }
 
 .category-filter-bar {
@@ -386,8 +441,7 @@ function loadMoreWebsites() {
   height: 40px;
   flex: 0 0 auto;
   place-items: center;
-  border-radius: 14px;
-  background: var(--color-soft-orange);
+  background: transparent;
   color: var(--color-primary);
 }
 
@@ -403,13 +457,13 @@ function loadMoreWebsites() {
 }
 
 .category-filter-bar__copy strong {
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 15px;
 }
 
 .category-filter-bar__copy small {
   overflow: hidden;
-  color: var(--color-muted);
+  color: var(--app-text-secondary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -419,11 +473,22 @@ function loadMoreWebsites() {
   display: flex;
   min-width: 0;
   flex: 1;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 0;
-  scrollbar-width: thin;
+  overflow-y: hidden;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.category-nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .category-tab {
@@ -432,10 +497,10 @@ function loadMoreWebsites() {
   flex: 0 0 auto;
   align-items: center;
   gap: 7px;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--radius-pill);
-  background: rgba(241, 245, 249, 0.74);
-  color: #64748b;
+  background: transparent;
+  color: var(--app-tab-text);
   padding: 0 13px;
   font: inherit;
   font-size: 13px;
@@ -455,9 +520,8 @@ function loadMoreWebsites() {
 
 .category-tab:hover,
 .category-tab:focus-visible {
-  border-color: rgba(255, 112, 88, 0.28);
-  background: rgba(255, 247, 244, 0.94);
-  color: var(--color-primary);
+  background: var(--app-tab-hover-bg);
+  color: var(--app-text-secondary);
   outline: none;
   transform: translateY(-1px);
 }
@@ -465,13 +529,17 @@ function loadMoreWebsites() {
 .category-tab--active,
 .category-tab--active:hover,
 .category-tab--active:focus-visible {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgba(255, 112, 88, 0.2);
+  background: var(--app-tab-active-bg);
+  color: var(--app-tab-text-active);
+  box-shadow: none;
 }
 
 .website-grid-state {
+  min-width: 0;
+  margin-top: -14px;
+}
+
+.category-results-scroll {
   min-width: 0;
 }
 
@@ -485,7 +553,7 @@ function loadMoreWebsites() {
 
 .website-grid-toolbar p {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--app-text-secondary);
   font-size: 14px;
   font-weight: 750;
 }
@@ -497,34 +565,51 @@ function loadMoreWebsites() {
   min-width: 0;
 }
 
-.website-card-grid :deep(.website-card--category) {
-  height: 100%;
+.website-card-grid :deep(.website-card--category-compact) {
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
+  box-sizing: border-box;
 }
 
-.website-load-more {
-  display: block;
-  margin: 22px auto 0;
-  border: 1px solid rgba(255, 112, 88, 0.28);
+.website-change-batch {
+  display: flex;
+  min-height: 36px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--app-card-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-primary);
-  padding: 9px 20px;
+  background: transparent;
+  color: var(--app-text-primary);
+  padding: 0 14px;
   font: inherit;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition:
     transform 180ms ease,
-    background-color 180ms ease,
-    box-shadow 180ms ease;
+    border-color 180ms ease,
+    background-color 180ms ease;
 }
 
-.website-load-more:hover,
-.website-load-more:focus-visible {
-  background: rgba(255, 247, 244, 0.96);
-  box-shadow: 0 8px 20px rgba(255, 112, 88, 0.12);
+.website-change-batch :deep(svg) {
+  width: 16px;
+  height: 16px;
+  transition: transform 240ms ease;
+}
+
+.website-change-batch:hover,
+.website-change-batch:focus-visible {
+  border-color: var(--app-border);
+  background: var(--app-card-hover-bg);
   outline: none;
   transform: translateY(-1px);
+}
+
+.website-change-batch:hover :deep(svg),
+.website-change-batch:focus-visible :deep(svg) {
+  transform: rotate(90deg);
 }
 
 .website-skeleton-grid {
@@ -540,7 +625,7 @@ function loadMoreWebsites() {
   gap: 16px;
   border: 1px solid var(--color-border);
   border-radius: 20px;
-  background: #ffffff;
+  background: var(--app-card-bg);
   padding: 22px;
 }
 
@@ -577,10 +662,12 @@ function loadMoreWebsites() {
 
 .category-request-note {
   min-height: 38px;
-  border: 1px solid var(--color-border-soft);
+  border: 1px solid var(--app-card-border);
   border-radius: 12px;
-  background: var(--color-soft);
-  color: var(--color-muted);
+  background: var(--app-card-bg);
+  color: var(--app-text-secondary);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 10px 12px;
   font-size: 13px;
 }
@@ -593,8 +680,8 @@ function loadMoreWebsites() {
   gap: 12px;
   border: 1px dashed var(--color-border);
   border-radius: 22px;
-  background: #ffffff;
-  color: var(--color-text);
+  background: var(--app-card-bg);
+  color: var(--app-text-secondary);
   padding: 28px;
   text-align: center;
 }
@@ -631,7 +718,7 @@ function loadMoreWebsites() {
   gap: 10px;
   border: 1px dashed rgba(100, 116, 139, 0.24);
   border-radius: 20px;
-  background: rgba(248, 250, 252, 0.76);
+  background: var(--app-container-bg);
   padding: 40px 24px;
   text-align: center;
 }
@@ -649,14 +736,20 @@ function loadMoreWebsites() {
 
 .category-empty-state h3 {
   margin: 0;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 20px;
 }
 
 .category-empty-state p {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--app-text-secondary);
   line-height: 1.7;
+}
+
+@media (min-width: 1024px) {
+  .website-grid-state {
+    margin-top: -4px;
+  }
 }
 
 @media (max-width: 1200px) {
@@ -696,6 +789,11 @@ function loadMoreWebsites() {
 }
 
 @media (max-width: 480px) {
+  .website-change-batch {
+    gap: 6px;
+    padding: 0 10px;
+  }
+
   .website-card-grid,
   .website-skeleton-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -708,6 +806,14 @@ function loadMoreWebsites() {
   .website-skeleton-card i,
   .category-tab {
     animation: none;
+    transition: none;
+  }
+
+  .website-change-batch {
+    transition: none;
+  }
+
+  .website-change-batch :deep(svg) {
     transition: none;
   }
 }

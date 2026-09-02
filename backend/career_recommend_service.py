@@ -1,44 +1,17 @@
-"""Questionnaire-driven career recommendation scoring."""
-
+"""Profile-based career ranking, intentionally separate from website ranking."""
 from __future__ import annotations
 
-from collections import OrderedDict
-
-from occupation_utils import get_occupation_label, normalize_occupation
+from career_catalog import CAREERS, LEGACY_CODE_MAP, get_career
 
 
-PURPOSE_TAGS = {
-    "efficiency": {"office efficiency", "automation", "product management"},
-    "learning": {"learning platforms", "programming", "data analysis"},
-    "ai_tools": {"AI tools", "programming", "model"},
-    "project_development": {"programming", "project_development", "product management"},
-    "design_assets": {"design resources", "assets", "AI tools"},
-    "data_analysis": {"data analysis", "programming", "AI tools"},
-    "content_creation": {"content_creation", "assets", "AI tools"},
-    "industry_news": {"product management", "data analysis", "learning platforms"},
-}
-
-SKILL_LABELS = {
-    "beginner": "入门能力",
-    "junior": "初级能力",
-    "intermediate": "中级能力",
-    "senior": "高级能力",
-}
-
-SKILL_TAGS = {
-    "beginner": {"入门能力", "学习成长"},
-    "junior": {"初级能力", "项目实践"},
-    "intermediate": {"中级能力", "项目实践"},
-    "senior": {"高级能力", "复杂项目"},
-}
-
-PREFERENCE_TAGS = {
-    "tutorial first": {"learning platforms", "tutorial"},
-    "efficiency first": {"office efficiency", "automation"},
-    "professional first": {"professional tools", "project management"},
-    "free first": {"free tools"},
-    "domestic first": {"domestic resources"},
-    "international first": {"international resources"},
+CAREER_MATCH_WEIGHTS = {
+    "occupation": 15,
+    "direction": 25,
+    "primary_need": 20,
+    "skills": 20,
+    "tasks": 10,
+    "pain_points": 5,
+    "goals": 5,
 }
 
 
@@ -49,124 +22,168 @@ def _values(value):
         source = str(value).split(",")
     else:
         source = []
-    return [str(item).strip() for item in source if str(item).strip()]
+    return {str(item).strip().casefold() for item in source if str(item).strip()}
 
 
-def _lower_set(value):
-    return {item.casefold() for item in _values(value)}
+def _profile_values(profile, key, fallback=()):
+    values = _values(profile.get(key))
+    if not values and fallback:
+        values = _values(profile.get("tags")) & set(fallback)
+    return values
 
 
-def _canonical_codes(occupations):
-    codes = []
-    for occupation in occupations or []:
-        code = normalize_occupation(occupation)
-        if code and code not in codes:
-            codes.append(code)
-    return codes
+def _signal_score(values, strong, supporting, maximum):
+    """Reward multiple direct signals without making one generic tag decisive."""
+    strong = tuple(dict.fromkeys(strong))
+    supporting = tuple(dict.fromkeys(supporting))
+    strong_hits = values & set(strong)
+    supporting_hits = values & set(supporting)
+    if not strong_hits and not supporting_hits:
+        return 0.0, []
+    # Direct evidence counts twice as much as support.  A career with several
+    # strong tags therefore outranks a loosely related specialty.
+    denominator = max(2, min(4, len(strong) * 2 + len(supporting)))
+    score = maximum * min(1.0, (len(strong_hits) * 2 + len(supporting_hits)) / denominator)
+    return score, sorted(strong_hits | supporting_hits)
 
 
-def _occupation_tags(code, occupation_tag_map):
-    raw = (occupation_tag_map or {}).get(code) or []
-    return {str(item).strip().casefold() for item in raw if str(item).strip()}
+def _level(score):
+    if score >= 80:
+        return "very_high"
+    if score >= 65:
+        return "high"
+    if score >= 50:
+        return "medium"
+    return "possible"
+
+
+def _reason(text):
+    return text
+
+
+def _career_score(profile, career):
+    occupation = str(profile.get("occupation") or "").strip().casefold()
+    secondary_role = str(profile.get("secondary_role") or "").strip().casefold()
+    direction = str(profile.get("direction") or "").strip().casefold()
+    primary_need = str(profile.get("primary_need") or "").strip().casefold()
+    skills = _profile_values(profile, "skills", career["strong_tags"] + career["supporting_tags"])
+    tasks = _profile_values(profile, "tasks", career["tasks"])
+    pains = _profile_values(profile, "pain_points", career["pain_points"])
+    goals = _profile_values(profile, "goals", career["strong_tags"] + career["supporting_tags"])
+    # V2 profile values remain usable as a weaker fallback when structured V3
+    # fields do not exist.
+    generic_tags = _values(profile.get("tags")) | _values(profile.get("interests"))
+    # V3 tags are curated semantic evidence.  Add only catalog-relevant tags
+    # to the skills evidence, so a captured ``database`` or ``deployment``
+    # signal helps a related specialty without becoming a blanket boost.
+    skills |= generic_tags & (set(career["strong_tags"]) | set(career["supporting_tags"]))
+    if not skills:
+        skills = generic_tags
+    if not tasks:
+        tasks = generic_tags
+    if not pains:
+        pains = generic_tags
+    if not goals:
+        goals = generic_tags
+
+    score = 0.0
+    reasons = {"identity": [], "direction": [], "need": [], "skills": [], "tasks": [], "pains": [], "goals": []}
+    legacy_career = get_career(profile.get("career_code") or profile.get("occupation"))
+    legacy_selected = legacy_career is career and occupation not in set(career["occupation"])
+    if occupation in set(career["occupation"]) or secondary_role in set(career["occupation"]) or legacy_selected:
+        score += CAREER_MATCH_WEIGHTS["occupation"]
+        reasons["identity"].append(_reason("你的职业身份与该方向一致"))
+    if legacy_selected:
+        # V2 stored one coarse career code rather than the V3 evidence set.
+        # Keep that explicit historic selection visible without treating it as
+        # evidence for every sibling specialty.
+        score += CAREER_MATCH_WEIGHTS["primary_need"]
+    if direction and direction in set(career["directions"]):
+        score += CAREER_MATCH_WEIGHTS["direction"]
+        reasons["direction"].append(_reason(f"你的方向是 {direction}"))
+
+    needs = {primary_need} if primary_need else set()
+    need_score, need_hits = _signal_score(needs, career["strong_tags"] + career["tasks"], career["supporting_tags"], CAREER_MATCH_WEIGHTS["primary_need"])
+    score += need_score
+    if need_hits:
+        reasons["need"].append(_reason("核心需求匹配：" + "、".join(need_hits[:2])))
+    skill_score, skill_hits = _signal_score(skills, career["strong_tags"], career["supporting_tags"], CAREER_MATCH_WEIGHTS["skills"])
+    score += skill_score
+    if skill_hits:
+        reasons["skills"].append(_reason("技能匹配：" + "、".join(skill_hits[:2])))
+    task_score, task_hits = _signal_score(tasks, career["tasks"], career["supporting_tags"], CAREER_MATCH_WEIGHTS["tasks"])
+    score += task_score
+    if task_hits:
+        reasons["tasks"].append(_reason("工作任务匹配：" + "、".join(task_hits[:2])))
+    pain_score, pain_hits = _signal_score(pains, career["pain_points"], career["supporting_tags"], CAREER_MATCH_WEIGHTS["pain_points"])
+    score += pain_score
+    if pain_hits:
+        reasons["pains"].append(_reason("当前难点匹配：" + "、".join(pain_hits[:2])))
+    goal_score, goal_hits = _signal_score(goals, career["strong_tags"], career["supporting_tags"], CAREER_MATCH_WEIGHTS["goals"])
+    score += goal_score
+    if goal_hits:
+        reasons["goals"].append(_reason("目标匹配：" + "、".join(goal_hits[:2])))
+
+    # Keep explanations concise for the card while preserving meaningful
+    # evidence.  No base score is added: unrelated jobs stay below threshold.
+    core_reasons = [
+        *reasons["skills"], *reasons["need"], *reasons["tasks"],
+        *reasons["pains"], *reasons["goals"], *reasons["direction"], *reasons["identity"],
+    ]
+    return round(min(100, score), 2), core_reasons[:2]
+
+
+def build_career_recommendations(profile, occupations=None, occupation_tag_map=None, limit=8):
+    """Return up to eight explainable careers for V2 or V3 profiles.
+
+    ``occupations`` and ``occupation_tag_map`` remain accepted for callers from
+    the previous API, but the stable catalog is now the source of truth.
+    """
+    profile = dict(profile or {})
+    legacy_code = profile.get("career_code") or profile.get("occupation")
+    legacy_career = get_career(legacy_code)
+    if legacy_career and not profile.get("career_code"):
+        profile["career_code"] = legacy_career["code"]
+    legacy_tags = []
+    if occupation_tag_map and legacy_code:
+        legacy_tags = (occupation_tag_map.get(str(legacy_code))
+                       or occupation_tag_map.get(legacy_career["code"] if legacy_career else "")
+                       or [])
+    if legacy_tags:
+        profile["tags"] = list(dict.fromkeys([*(profile.get("tags") or []), *legacy_tags]))
+    rows = []
+    for career in CAREERS:
+        score, reasons = _career_score(profile, career)
+        if score < 35:
+            continue
+        rows.append({
+            "code": career["code"], "career_code": career["code"],
+            "label": career["name"], "career_name": career["name"],
+            "category": career["category"], "description": career["description"],
+            "direction": career["category"], "match_score": score, "score": score,
+            "match_level": _level(score), "match_reasons": reasons,
+            "reasons": reasons, "reason": "；".join(reasons),
+            "ability_tags": list(_values(profile.get("skills")) or _values(profile.get("skill_level")) or _values(profile.get("interests")))[:6],
+            "occupation_tags": list(career["strong_tags"]),
+            "interest_tags": list(career["supporting_tags"]),
+        })
+    rows.sort(key=lambda item: (-item["match_score"], item["code"]))
+    return rows[: max(1, min(int(limit or 8), 8))]
 
 
 def filter_sites_for_career(sites, career_code, keywords=None):
-    """Keep only resources associated with the requested career."""
-    canonical_code = normalize_occupation(career_code)
-    keyword_values = [str(item).strip().casefold() for item in (keywords or [])]
+    """Compatibility helper used by older callers; matching uses stable code."""
+    career = get_career(career_code)
+    if not career:
+        return []
+    terms = {item.casefold() for item in (keywords or [])} | set(career["strong_tags"]) | set(career["supporting_tags"])
     matched = []
     for site in sites or []:
-        occupations = _values(site.get("occupations"))
-        exact_match = any(
-            normalize_occupation(value) == canonical_code for value in occupations
-        )
-        searchable_text = " ".join(
-            str(site.get(field) or "")
-            for field in ("name", "summary", "description", "category_name")
-        ).casefold()
-        keyword_match = any(keyword in searchable_text for keyword in keyword_values)
-        if exact_match or keyword_match:
+        haystack = " ".join(str(site.get(key) or "") for key in ("name", "summary", "description", "category_name"))
+        haystack += " " + " ".join(str(item) for item in site.get("tags", []))
+        if any(term in haystack.casefold() for term in terms):
             matched.append(site)
     return matched
 
 
-def build_career_recommendations(profile, occupations, occupation_tag_map=None, limit=5):
-    """Return ranked career cards from the latest questionnaire profile.
-
-    The explicit occupation is one signal, not the complete result. Interests,
-    purposes, skill level, and preferences all contribute to the score so an
-    updated questionnaire can change both the ranking and the explanation.
-    """
-    profile = profile or {}
-    codes = _canonical_codes(occupations)
-    selected = normalize_occupation(profile.get("occupation"))
-    interests = _lower_set(profile.get("interests"))
-    purposes = _lower_set(profile.get("purposes"))
-    preferences = _lower_set(profile.get("preferences"))
-    purpose_tags = {
-        tag.casefold()
-        for purpose in purposes
-        for tag in PURPOSE_TAGS.get(purpose, set())
-    }
-    skill_level = str(profile.get("skill_level") or "").strip().casefold()
-    skill_tags = {tag.casefold() for tag in SKILL_TAGS.get(skill_level, set())}
-
-    recommendations = []
-    for code in codes:
-        label = get_occupation_label(code) or code
-        career_tags = _occupation_tags(code, occupation_tag_map)
-        interest_matches = sorted(interests & career_tags)
-        purpose_matches = sorted(purpose_tags & career_tags)
-        preference_matches = sorted(preferences & career_tags)
-
-        score = 20.0
-        reasons = []
-        if selected == code:
-            score += 38
-            reasons.append(f"你在问卷中选择了“{label}”方向")
-        if interests:
-            interest_score = 27 * len(interest_matches) / max(len(interests), 1)
-            score += interest_score
-            if interest_matches:
-                reasons.append("兴趣标签匹配：" + "、".join(interest_matches[:3]))
-        if purpose_matches:
-            score += min(18, 8 * len(purpose_matches))
-            reasons.append("使用目的与该方向相关")
-        if skill_level:
-            score += 7
-            reasons.append(f"当前能力水平：{SKILL_LABELS.get(skill_level, skill_level)}")
-        if preference_matches:
-            score += min(5, len(preference_matches) * 2)
-        if not reasons:
-            reasons.append("根据问卷中的兴趣和使用目标综合匹配")
-
-        recommendations.append(
-            {
-                "code": code,
-                "label": label,
-                "direction": _direction_for(code),
-                "match_score": round(min(score, 99), 2),
-                "reasons": reasons[:3],
-                "reason": "；".join(reasons[:3]),
-                "ability_tags": sorted(skill_tags) or [SKILL_LABELS.get(skill_level, "待补充能力水平")],
-                "interest_tags": [*interest_matches, *purpose_matches][:6],
-                "occupation_tags": sorted(career_tags),
-            }
-        )
-
-    recommendations.sort(
-        key=lambda item: (-item["match_score"], item["code"] == selected, item["code"])
-    )
-    return recommendations[: max(1, min(int(limit), len(recommendations))) ] if recommendations else []
-
-
-def _direction_for(code):
-    groups = OrderedDict(
-        [
-            ("技术研发", {"frontend_developer", "backend_developer", "ai_app_developer", "llm_engineer"}),
-            ("产品与设计", {"product_manager", "ui_ux_designer"}),
-            ("数据与运营", {"data_analyst", "operations", "technical_operations"}),
-            ("教育与内容", {"student", "teacher", "creator"}),
-        ]
-    )
-    return next((name for name, members in groups.items() if code in members), "通用方向")
+__all__ = ["CAREER_MATCH_WEIGHTS", "LEGACY_CODE_MAP", "build_career_recommendations", "filter_sites_for_career"]

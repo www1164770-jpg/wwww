@@ -1,0 +1,213 @@
+{
+  "generated_at": "2026-08-13T15:11:44.523224+00:00",
+  "mode": "reconstructed_from_verified_profiles_no_database_write",
+  "matched_generic_count": 29,
+  "updated_count": 29,
+  "skipped_count": 0,
+  "updates": [
+    {
+      "website_id": 215,
+      "name": "美团",
+      "old_description": "美团：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "本地生活服务平台，提供餐饮外卖、到店消费、酒店和休闲娱乐服务。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 216,
+      "name": "饿了么",
+      "old_description": "饿了么：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "即时配送与外卖服务平台，可在线订餐并获取本地生活配送服务。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 217,
+      "name": "大众点评",
+      "old_description": "大众点评：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "本地生活消费平台，提供商户信息、用户评价和餐饮休闲推荐。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 411,
+      "name": "喜马拉雅",
+      "old_description": "喜马拉雅：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "中文音频平台，提供有声书、播客、课程和知识类节目。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 570,
+      "name": "DuckDuckGo",
+      "old_description": "DuckDuckGo：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "强调隐私保护的搜索引擎，减少用户搜索行为追踪。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 571,
+      "name": "Startpage",
+      "old_description": "Startpage：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 572,
+      "name": "Yandex",
+      "old_description": "Yandex：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "提供网页、图片、地图和邮箱等服务的综合互联网平台。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 573,
+      "name": "Brave Search",
+      "old_description": "Brave Search：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "Brave 推出的隐私搜索引擎，强调独立索引和减少追踪。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 574,
+      "name": "Ecosia",
+      "old_description": "Ecosia：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "将搜索广告收入用于植树和环保项目的公益型搜索引擎。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 575,
+      "name": "Internet Archive",
+      "old_description": "Internet Archive：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "非营利数字档案馆，收录历史网页、书籍、音视频和软件资源。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 576,
+      "name": "Wiktionary",
+      "old_description": "Wiktionary：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "Wikimedia 旗下开放式多语言词典，提供词义、发音和词源信息。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 577,
+      "name": "Wikimedia Commons",
+      "old_description": "Wikimedia Commons：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "Wikimedia 的开放媒体资源库，提供可自由使用的图像和音视频素材。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 578,
+      "name": "Google News",
+      "old_description": "Google News：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "Google 的新闻聚合服务，汇集多家媒体的实时新闻与专题报道。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 579,
+      "name": "Reuters",
+      "old_description": "Reuters：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "国际新闻通讯机构，报道全球政治、财经、商业和突发新闻。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 580,
+      "name": "BBC",
+      "old_description": "BBC：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "英国广播公司旗下资讯平台，提供国际新闻、文化、科技和视听内容。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 581,
+      "name": "The Guardian",
+      "old_description": "The Guardian：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "英国新闻媒体平台，报道国际新闻、政治、文化、环境和社会议题。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 582,
+      "name": "澎湃新闻",
+      "old_description": "澎湃新闻：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "中文时政与思想资讯平台，报道时事、财经、文化和社会新闻。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 583,
+      "name": "界面新闻",
+      "old_description": "界面新闻：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "面向商业与财经领域的中文新闻平台，关注公司、产业和金融市场。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 584,
+      "name": "财新网",
+      "old_description": "财新网：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "财经新闻与商业资讯平台，重点报道金融、经济、公司和公共政策。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 585,
+      "name": "知乎盐选",
+      "old_description": "知乎盐选：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "知乎推出的付费内容服务，提供电子书、专栏和精选知识内容。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 586,
+      "name": "得到",
+      "old_description": "得到：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "知识学习平台，提供课程、电子书、听书和个人成长内容。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 587,
+      "name": "荔枝",
+      "old_description": "荔枝：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "中文音频社区与播客平台，提供电台节目和声音内容。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 588,
+      "name": "网易公开课",
+      "old_description": "网易公开课：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "汇集公开课程、演讲和知识视频的在线学习平台。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 589,
+      "name": "腾讯新闻",
+      "old_description": "腾讯新闻：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "腾讯旗下新闻资讯平台，提供时政、社会、财经和热点报道。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 590,
+      "name": "凤凰网",
+      "old_description": "凤凰网：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "综合中文资讯平台，报道新闻、财经、文化和国际时事。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 591,
+      "name": "观察者网",
+      "old_description": "观察者网：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "关注时政、国际关系和社会议题的中文新闻评论平台。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 592,
+      "name": "人民网",
+      "old_description": "人民网：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "人民日报社旗下综合新闻平台，提供时政、国际、社会和财经资讯。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 593,
+      "name": "新华网",
+      "old_description": "新华网：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "新华社主办的综合新闻网站，提供国内外新闻及政务、财经等资讯。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    },
+    {
+      "website_id": 594,
+      "name": "国家政务服务平台",
+      "old_description": "国家政务服务平台：提供搜索、资讯、阅读或日常信息服务",
+      "new_description": "国家级政务服务入口，提供政务事项查询、在线办理和便民服务。",
+      "reason": "exact_generic_description_replaced_with_reviewed_site_profile"
+    }
+  ],
+  "skipped": []
+}

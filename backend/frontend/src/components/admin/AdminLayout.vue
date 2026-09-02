@@ -7,6 +7,9 @@
         <RouterLink to="/admin/dashboard" exact-active-class="active"
           >数据概览</RouterLink
         >
+        <RouterLink to="/admin/recommendation-metrics" exact-active-class="active"
+          >推荐质量分析</RouterLink
+        >
         <RouterLink to="/admin/sites" exact-active-class="active"
           >网站管理</RouterLink
         >

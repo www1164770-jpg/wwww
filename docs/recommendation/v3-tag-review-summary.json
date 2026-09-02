@@ -1,0 +1,143 @@
+{
+  "phase": "V3_tag_phase_2.2-A",
+  "mode": "human_review_summary",
+  "total_candidates": 46,
+  "approved_records": 39,
+  "rejected_records": 7,
+  "needs_review": 0,
+  "approved_tags_total": 57,
+  "rejected_tags_total": 51,
+  "status_sum_ok": true,
+  "validation_errors": [],
+  "ready_for_migration_preview": true,
+  "by_signal": {
+    "api_debugging": {
+      "total": 3,
+      "approved_records": 3,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 6,
+      "rejected_tags": 3
+    },
+    "code_generation": {
+      "total": 3,
+      "approved_records": 3,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 3,
+      "rejected_tags": 3
+    },
+    "database": {
+      "total": 4,
+      "approved_records": 4,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 5,
+      "rejected_tags": 4
+    },
+    "debugging": {
+      "total": 1,
+      "approved_records": 1,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 2,
+      "rejected_tags": 1
+    },
+    "deployment": {
+      "total": 5,
+      "approved_records": 5,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 7,
+      "rejected_tags": 5
+    },
+    "documentation": {
+      "total": 3,
+      "approved_records": 3,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 3,
+      "rejected_tags": 3
+    },
+    "git_project_management": {
+      "total": 12,
+      "approved_records": 5,
+      "rejected_records": 7,
+      "needs_review": 0,
+      "approved_tags": 10,
+      "rejected_tags": 26
+    },
+    "go": {
+      "total": 1,
+      "approved_records": 1,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 2,
+      "rejected_tags": 1
+    },
+    "java": {
+      "total": 1,
+      "approved_records": 1,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 2,
+      "rejected_tags": 1
+    },
+    "javascript": {
+      "total": 3,
+      "approved_records": 3,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 3,
+      "rejected_tags": 0
+    },
+    "node": {
+      "total": 3,
+      "approved_records": 3,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 6,
+      "rejected_tags": 0
+    },
+    "python": {
+      "total": 1,
+      "approved_records": 1,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 2,
+      "rejected_tags": 1
+    },
+    "react": {
+      "total": 1,
+      "approved_records": 1,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 1,
+      "rejected_tags": 0
+    },
+    "testing": {
+      "total": 2,
+      "approved_records": 2,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 2,
+      "rejected_tags": 2
+    },
+    "typescript": {
+      "total": 1,
+      "approved_records": 1,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 1,
+      "rejected_tags": 1
+    },
+    "vue": {
+      "total": 2,
+      "approved_records": 2,
+      "rejected_records": 0,
+      "needs_review": 0,
+      "approved_tags": 2,
+      "rejected_tags": 0
+    }
+  }
+}

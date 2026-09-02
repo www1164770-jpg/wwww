@@ -91,7 +91,9 @@ function handleToggle() {
     const nextFavorited = favoritesStore.isFavorite(normalizedSite.value);
     void syncPromise.catch((requestError) => {
       const normalizedError = normalizeFavoriteError(requestError);
-      errorToast(normalizedError.message || "鏀惰棌鎿嶄綔澶辫触锛岃绋嶅悗閲嶈瘯");
+      errorToast(
+        normalizedError.message || "鏀惰棌鎿嶄綔澶辫触锛岃绋嶅悗閲嶈瘯",
+      );
     });
     emit("changed", {
       site: normalizedSite.value,
@@ -109,46 +111,52 @@ function handleToggle() {
 .favorite-star {
   position: absolute;
   z-index: 10;
-  top: 14px;
-  right: 14px;
+  top: 18px;
+  right: 18px;
   display: inline-flex;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 4px;
   border: 0;
-  border-radius: 10px;
   background: transparent;
-  color: #a8b1c1;
+  color: var(--favorite-muted-color);
+  box-shadow: none;
   cursor: pointer;
   pointer-events: auto;
   touch-action: manipulation;
   transition:
     color 160ms ease,
-    background-color 160ms ease,
-    transform 160ms ease;
+    opacity 160ms ease;
 }
 
 .favorite-star--sm {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .favorite-star--lg {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
 }
 
 .favorite-star:hover:not(:disabled) {
-  color: #f2765d;
-  background: rgba(242, 118, 93, 0.1);
-  transform: translateY(-1px);
+  color: var(--app-text-primary);
+  background: transparent;
+  box-shadow: none;
 }
 
 .favorite-star.is-favorite {
-  color: #f2765d;
-  background: rgba(242, 118, 93, 0.1);
+  color: var(--favorite-color);
+  background: transparent;
+  text-shadow: 0 0 8px rgba(255, 123, 92, 0.35);
 }
 
 .favorite-star.is-pending {
@@ -165,6 +173,13 @@ function handleToggle() {
   height: 21px;
   stroke-width: 2;
   pointer-events: none;
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.favorite-star:hover:not(:disabled) .favorite-star__icon {
+  transform: scale(1.1);
 }
 
 .favorite-star:focus-visible {
@@ -173,11 +188,12 @@ function handleToggle() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .favorite-star {
+  .favorite-star,
+  .favorite-star__icon {
     transition: none;
   }
 
-  .favorite-star:hover:not(:disabled) {
+  .favorite-star:hover:not(:disabled) .favorite-star__icon {
     transform: none;
   }
 }

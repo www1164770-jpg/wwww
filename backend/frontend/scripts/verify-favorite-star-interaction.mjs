@@ -54,6 +54,28 @@ const checks = [
   ],
   ["favorited star uses current color", /currentColor/.test(favoriteStar)],
   [
+    "favorite control is a background-free icon action",
+    /\.favorite-star\s*\{[\s\S]*?top:\s*18px[\s\S]*?right:\s*18px[\s\S]*?padding:\s*4px[\s\S]*?border:\s*0[\s\S]*?background:\s*transparent[\s\S]*?box-shadow:\s*none/.test(
+      favoriteStar,
+    ),
+  ],
+  [
+    "favorite colors use adaptive theme variables",
+    /color:\s*var\(--favorite-muted-color\)/.test(favoriteStar) &&
+      /\.favorite-star\.is-favorite\s*\{[\s\S]*?color:\s*var\(--favorite-color\)/.test(
+        favoriteStar,
+      ),
+  ],
+  [
+    "hover feedback only strengthens and scales the icon",
+    /\.favorite-star:hover:not\(:disabled\)\s+\.favorite-star__icon\s*\{[\s\S]*?transform:\s*scale\(1\.1\)/.test(
+      favoriteStar,
+    ) &&
+      !/\.favorite-star:hover:not\(:disabled\)\s*\{[^}]*transform:/.test(
+        favoriteStar,
+      ),
+  ],
+  [
     "hover does not disable the button",
     !favoriteStar.includes("is-spinning") && !favoriteStar.includes("Loader"),
   ],

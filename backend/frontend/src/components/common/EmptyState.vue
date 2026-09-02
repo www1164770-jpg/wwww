@@ -31,11 +31,13 @@ defineProps({
   display: grid;
   justify-items: center;
   gap: 10px;
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--app-card-border);
   border-radius: var(--radius-card);
-  background: #ffffff;
+  background: var(--app-panel-soft-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 42px 24px;
-  color: var(--color-muted);
+  color: var(--app-text-muted);
   text-align: center;
 }
 
@@ -54,7 +56,7 @@ defineProps({
 
 strong {
   display: block;
-  color: var(--color-heading);
+  color: var(--app-text-primary);
   font-size: 18px;
 }
 

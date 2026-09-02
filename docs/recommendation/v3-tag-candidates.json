@@ -1,0 +1,743 @@
+{
+  "questionnaire_version": 3,
+  "profile_schema_version": 3,
+  "algorithm_version": "phase1-v1",
+  "mode": "preview_only",
+  "write_performed": false,
+  "signal_count": 18,
+  "candidate_count": 46,
+  "high_confidence_count": 46,
+  "candidates": [
+    {
+      "signal": "api_debugging",
+      "website_id": 849,
+      "website": "Insomnia",
+      "url": "https://insomnia.rest",
+      "existing_tags": [
+        "api",
+        "api debugging",
+        "backend",
+        "developer"
+      ],
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:insomnia.rest"
+    },
+    {
+      "signal": "api_debugging",
+      "website_id": 244,
+      "website": "Postman",
+      "url": "https://www.postman.com",
+      "existing_tags": [
+        "api",
+        "api debugging",
+        "backend",
+        "developer"
+      ],
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:postman.com"
+    },
+    {
+      "signal": "api_debugging",
+      "website_id": 245,
+      "website": "Swagger",
+      "url": "https://swagger.io",
+      "existing_tags": [
+        "api",
+        "api debugging",
+        "backend",
+        "developer",
+        "documentation"
+      ],
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:swagger.io"
+    },
+    {
+      "signal": "code_generation",
+      "website_id": 80,
+      "website": "Cursor",
+      "url": "https://www.cursor.com",
+      "existing_tags": [
+        "ai",
+        "ai coding",
+        "code generation",
+        "developer"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:cursor.com"
+    },
+    {
+      "signal": "code_generation",
+      "website_id": 79,
+      "website": "GitHub Copilot",
+      "url": "https://github.com/features/copilot",
+      "existing_tags": [
+        "ai",
+        "ai coding",
+        "code generation",
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "explicit_name:github copilot"
+    },
+    {
+      "signal": "code_generation",
+      "website_id": 274,
+      "website": "Replit",
+      "url": "https://replit.com",
+      "existing_tags": [
+        "ai coding",
+        "code generation"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "explicit_name:replit"
+    },
+    {
+      "signal": "database",
+      "website_id": 247,
+      "website": "MongoDB",
+      "url": "https://www.mongodb.com",
+      "existing_tags": [
+        "backend",
+        "database",
+        "developer"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:mongodb.com"
+    },
+    {
+      "signal": "database",
+      "website_id": 248,
+      "website": "PostgreSQL",
+      "url": "https://www.postgresql.org",
+      "existing_tags": [
+        "backend",
+        "database",
+        "developer"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:postgresql.org"
+    },
+    {
+      "signal": "database",
+      "website_id": 246,
+      "website": "Redis",
+      "url": "https://redis.io",
+      "existing_tags": [
+        "backend",
+        "database",
+        "developer"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:redis.io"
+    },
+    {
+      "signal": "database",
+      "website_id": 235,
+      "website": "Supabase",
+      "url": "https://supabase.com",
+      "existing_tags": [
+        "database"
+      ],
+      "suggested_tags": [
+        "backend",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:supabase.com"
+    },
+    {
+      "signal": "debugging",
+      "website_id": 386,
+      "website": "Sentry",
+      "url": "https://sentry.io",
+      "existing_tags": [],
+      "suggested_tags": [
+        "debugging",
+        "code_analysis",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:sentry.io"
+    },
+    {
+      "signal": "deployment",
+      "website_id": 35,
+      "website": "Netlify",
+      "url": "https://www.netlify.com",
+      "existing_tags": [
+        "developer",
+        "devops",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "deployment",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:netlify.com"
+    },
+    {
+      "signal": "deployment",
+      "website_id": 36,
+      "website": "Railway",
+      "url": "https://railway.app",
+      "existing_tags": [],
+      "suggested_tags": [
+        "deployment",
+        "devops",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:railway.app"
+    },
+    {
+      "signal": "deployment",
+      "website_id": 238,
+      "website": "Render",
+      "url": "https://render.com",
+      "existing_tags": [],
+      "suggested_tags": [
+        "deployment",
+        "devops",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:render.com"
+    },
+    {
+      "signal": "deployment",
+      "website_id": 34,
+      "website": "Vercel",
+      "url": "https://vercel.com",
+      "existing_tags": [
+        "developer",
+        "devops",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "deployment",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:vercel.com"
+    },
+    {
+      "signal": "deployment",
+      "website_id": 520,
+      "website": "Vercel",
+      "url": "https://vercel.com",
+      "existing_tags": [
+        "developer",
+        "devops",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "deployment",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:vercel.com"
+    },
+    {
+      "signal": "documentation",
+      "website_id": 767,
+      "website": "MDN Learn",
+      "url": "https://developer.mozilla.org/docs/Learn",
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:developer.mozilla.org"
+    },
+    {
+      "signal": "documentation",
+      "website_id": 27,
+      "website": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:developer.mozilla.org"
+    },
+    {
+      "signal": "documentation",
+      "website_id": 522,
+      "website": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:developer.mozilla.org"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 678,
+      "website": "Bitbucket",
+      "url": "https://bitbucket.org",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:bitbucket.org"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 316,
+      "website": "Changesets",
+      "url": "https://github.com/changesets/changesets",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 629,
+      "website": "ComfyUI",
+      "url": "https://github.com/comfyanonymous/ComfyUI",
+      "existing_tags": [
+        "ai",
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 20,
+      "website": "GitHub",
+      "url": "https://github.com",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 518,
+      "website": "GitHub",
+      "url": "https://github.com",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 383,
+      "website": "GitHub Actions",
+      "url": "https://github.com/features/actions",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 79,
+      "website": "GitHub Copilot",
+      "url": "https://github.com/features/copilot",
+      "existing_tags": [
+        "ai",
+        "ai coding",
+        "code generation",
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 21,
+      "website": "GitLab",
+      "url": "https://gitlab.com",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:gitlab.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 190,
+      "website": "Linear",
+      "url": "https://linear.app",
+      "existing_tags": [
+        "efficiency",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:linear.app"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 844,
+      "website": "Release Please",
+      "url": "https://github.com/googleapis/release-please",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 843,
+      "website": "lint-staged",
+      "url": "https://github.com/lint-staged/lint-staged",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "git_project_management",
+      "website_id": 846,
+      "website": "nvm",
+      "url": "https://github.com/nvm-sh/nvm",
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "suggested_tags": [
+        "collaboration",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:github.com"
+    },
+    {
+      "signal": "go",
+      "website_id": 601,
+      "website": "Go",
+      "url": "https://go.dev/doc",
+      "existing_tags": [],
+      "suggested_tags": [
+        "go",
+        "backend",
+        "programming"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:go.dev"
+    },
+    {
+      "signal": "java",
+      "website_id": 604,
+      "website": "Java",
+      "url": "https://dev.java/learn",
+      "existing_tags": [],
+      "suggested_tags": [
+        "java",
+        "backend",
+        "programming"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:dev.java"
+    },
+    {
+      "signal": "javascript",
+      "website_id": 767,
+      "website": "MDN Learn",
+      "url": "https://developer.mozilla.org/docs/Learn",
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "javascript"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:developer.mozilla.org"
+    },
+    {
+      "signal": "javascript",
+      "website_id": 27,
+      "website": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "javascript"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:developer.mozilla.org"
+    },
+    {
+      "signal": "javascript",
+      "website_id": 522,
+      "website": "MDN Web Docs",
+      "url": "https://developer.mozilla.org",
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "javascript"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:developer.mozilla.org"
+    },
+    {
+      "signal": "node",
+      "website_id": 847,
+      "website": "Corepack",
+      "url": "https://nodejs.org/api/corepack.html",
+      "existing_tags": [
+        "backend",
+        "developer"
+      ],
+      "suggested_tags": [
+        "node",
+        "javascript"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:nodejs.org"
+    },
+    {
+      "signal": "node",
+      "website_id": 92,
+      "website": "Node.js",
+      "url": "https://nodejs.org",
+      "existing_tags": [
+        "backend",
+        "developer"
+      ],
+      "suggested_tags": [
+        "node",
+        "javascript"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:nodejs.org"
+    },
+    {
+      "signal": "node",
+      "website_id": 532,
+      "website": "Node.js",
+      "url": "https://nodejs.org/docs/latest/api",
+      "existing_tags": [
+        "backend",
+        "developer",
+        "documentation"
+      ],
+      "suggested_tags": [
+        "node",
+        "javascript"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:nodejs.org"
+    },
+    {
+      "signal": "python",
+      "website_id": 533,
+      "website": "Python 文档",
+      "url": "https://docs.python.org/3",
+      "existing_tags": [
+        "developer",
+        "documentation"
+      ],
+      "suggested_tags": [
+        "python",
+        "backend",
+        "programming"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:python.org"
+    },
+    {
+      "signal": "react",
+      "website_id": 85,
+      "website": "React",
+      "url": "https://react.dev",
+      "existing_tags": [
+        "developer",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "react"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:react.dev"
+    },
+    {
+      "signal": "testing",
+      "website_id": 313,
+      "website": "Cypress",
+      "url": "https://www.cypress.io",
+      "existing_tags": [],
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:cypress.io"
+    },
+    {
+      "signal": "testing",
+      "website_id": 125,
+      "website": "Playwright",
+      "url": "https://playwright.dev",
+      "existing_tags": [],
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:playwright.dev"
+    },
+    {
+      "signal": "typescript",
+      "website_id": 94,
+      "website": "TypeScript",
+      "url": "https://www.typescriptlang.org",
+      "existing_tags": [],
+      "suggested_tags": [
+        "typescript",
+        "frontend"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:typescriptlang.org"
+    },
+    {
+      "signal": "vue",
+      "website_id": 84,
+      "website": "Vue.js",
+      "url": "https://cn.vuejs.org",
+      "existing_tags": [
+        "developer",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "vue"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:vuejs.org"
+    },
+    {
+      "signal": "vue",
+      "website_id": 530,
+      "website": "Vue.js",
+      "url": "https://vuejs.org",
+      "existing_tags": [
+        "developer",
+        "frontend"
+      ],
+      "suggested_tags": [
+        "vue"
+      ],
+      "confidence": "high",
+      "reason": "exact_domain:vuejs.org"
+    }
+  ]
+}

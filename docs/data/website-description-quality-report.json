@@ -1,0 +1,522 @@
+{
+  "source": "database",
+  "total_websites": 946,
+  "valid_website_count": 946,
+  "valid_descriptions": 946,
+  "empty_descriptions": 0,
+  "empty_description_count": 0,
+  "generic_descriptions": 0,
+  "generic_fallback_count": 0,
+  "low_quality_descriptions": 0,
+  "name_prefixed_descriptions": 0,
+  "name_prefix_count": 0,
+  "duplicate_descriptions": 42,
+  "exact_duplicate_description_count": 42,
+  "high_similarity_descriptions": 42,
+  "normalized_duplicate_description_count": 42,
+  "too_short_count": 0,
+  "too_long_count": 0,
+  "duplicate_groups": [
+    {
+      "description": "Create stunning original music for free in seconds using our AI generator.",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 78,
+          "name": "Suno AI",
+          "url": "https://suno.ai"
+        },
+        {
+          "website_id": 633,
+          "name": "Suno",
+          "url": "https://suno.com"
+        }
+      ]
+    },
+    {
+      "description": "Explore 100,000+ recorded user flows, app screens, and UI patterns from Airbnb, Uber,",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 320,
+          "name": "Screenlane",
+          "url": "https://screenlane.com"
+        },
+        {
+          "website_id": 641,
+          "name": "Page Flows",
+          "url": "https://pageflows.com"
+        }
+      ]
+    },
+    {
+      "description": "GitHub is where people build software.",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 79,
+          "name": "GitHub Copilot",
+          "url": "https://github.com/features/copilot"
+        },
+        {
+          "website_id": 383,
+          "name": "GitHub Actions",
+          "url": "https://github.com/features/actions"
+        }
+      ]
+    },
+    {
+      "description": "Photopea Online Photo Editor lets you edit photos, apply effects, filters, add text,",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 162,
+          "name": "Photopea",
+          "url": "https://www.photopea.com"
+        },
+        {
+          "website_id": 261,
+          "name": "在线PS",
+          "url": "https://www.photopea.com"
+        }
+      ]
+    },
+    {
+      "description": "即时设计是第一款面向国内设计师的专业在线UI设计工具，支持多人实时协作、原型交互、资源管理与开发标注，拥有海量的设计资源与素材。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 158,
+          "name": "即时设计",
+          "url": "https://js.design"
+        },
+        {
+          "website_id": 179,
+          "name": "即时设计",
+          "url": "https://js.design"
+        }
+      ]
+    },
+    {
+      "description": "在线协作式 UI 设计工具，支持界面设计、原型制作和团队评审。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 157,
+          "name": "MasterGo",
+          "url": "https://mastergo.com"
+        },
+        {
+          "website_id": 180,
+          "name": "MasterGo",
+          "url": "https://mastergo.com"
+        }
+      ]
+    },
+    {
+      "description": "在线协作白板工具，可用于头脑风暴、流程梳理、项目规划和团队工作坊。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 185,
+          "name": "Miro",
+          "url": "https://miro.com"
+        },
+        {
+          "website_id": 424,
+          "name": "Miro",
+          "url": "https://miro.com"
+        }
+      ]
+    },
+    {
+      "description": "开源可观测性与数据可视化平台，可构建指标、日志和链路追踪仪表盘。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 204,
+          "name": "Grafana",
+          "url": "https://grafana.com"
+        },
+        {
+          "website_id": 387,
+          "name": "Grafana",
+          "url": "https://grafana.com"
+        }
+      ]
+    },
+    {
+      "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 27,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org"
+        },
+        {
+          "website_id": 522,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org"
+        }
+      ]
+    },
+    {
+      "description": "用于发现、使用和分享机器学习资源。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 82,
+          "name": "Hugging Face",
+          "url": "https://huggingface.co"
+        },
+        {
+          "website_id": 519,
+          "name": "Hugging Face",
+          "url": "https://huggingface.co"
+        }
+      ]
+    },
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 20,
+          "name": "GitHub",
+          "url": "https://github.com"
+        },
+        {
+          "website_id": 518,
+          "name": "GitHub",
+          "url": "https://github.com"
+        }
+      ]
+    },
+    {
+      "description": "用于构建、预览和部署现代 Web 应用。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 34,
+          "name": "Vercel",
+          "url": "https://vercel.com"
+        },
+        {
+          "website_id": 520,
+          "name": "Vercel",
+          "url": "https://vercel.com"
+        }
+      ]
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 26,
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com"
+        },
+        {
+          "website_id": 523,
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com"
+        }
+      ]
+    },
+    {
+      "description": "用于界面设计、原型制作和团队评审。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 65,
+          "name": "Figma",
+          "url": "https://www.figma.com"
+        },
+        {
+          "website_id": 521,
+          "name": "Figma",
+          "url": "https://www.figma.com"
+        }
+      ]
+    },
+    {
+      "description": "用于知识管理、项目规划和团队文档协作。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 56,
+          "name": "Notion",
+          "url": "https://www.notion.so"
+        },
+        {
+          "website_id": 525,
+          "name": "Notion",
+          "url": "https://www.notion.so"
+        }
+      ]
+    },
+    {
+      "description": "用于视觉探索、概念设计和图像创作。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 75,
+          "name": "Midjourney",
+          "url": "https://www.midjourney.com"
+        },
+        {
+          "website_id": 524,
+          "name": "Midjourney",
+          "url": "https://www.midjourney.com"
+        }
+      ]
+    },
+    {
+      "description": "用于问答、写作、编程与日常工作辅助。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 66,
+          "name": "ChatGPT",
+          "url": "https://chat.openai.com"
+        },
+        {
+          "website_id": 516,
+          "name": "ChatGPT",
+          "url": "https://chatgpt.com"
+        }
+      ]
+    },
+    {
+      "description": "组件开发与展示工具，可独立构建、测试和文档化 UI 组件。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 126,
+          "name": "Storybook",
+          "url": "https://storybook.js.org"
+        },
+        {
+          "website_id": 615,
+          "name": "Storybook",
+          "url": "https://storybook.js.org/docs"
+        }
+      ]
+    },
+    {
+      "description": "网易云音乐是一款专注于发现与分享的音乐产品，依托专业音乐人、DJ、好友推荐及社交功能，为用户打造全新的音乐生活。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 10,
+          "name": "网易云音乐",
+          "url": "https://music.163.com"
+        },
+        {
+          "website_id": 410,
+          "name": "网易云音乐电台",
+          "url": "https://music.163.com/#/discover/djradio"
+        }
+      ]
+    },
+    {
+      "description": "跨平台桌面应用框架，可使用 JavaScript、HTML 和 CSS 构建桌面软件。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 298,
+          "name": "Electron",
+          "url": "https://www.electronjs.org"
+        },
+        {
+          "website_id": 611,
+          "name": "Electron",
+          "url": "https://www.electronjs.org/docs/latest"
+        }
+      ]
+    },
+    {
+      "description": "适合长文理解、内容创作和复杂任务分析。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 67,
+          "name": "Claude",
+          "url": "https://claude.ai"
+        },
+        {
+          "website_id": 517,
+          "name": "Claude",
+          "url": "https://claude.ai"
+        }
+      ]
+    }
+  ],
+  "high_similarity_groups": [],
+  "description_usage_top_20": [
+    {
+      "description": "网易云音乐是一款专注于发现与分享的音乐产品，依托专业音乐人、DJ、好友推荐及社交功能，为用户打造全新的音乐生活。",
+      "count": 2
+    },
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2
+    },
+    {
+      "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+      "count": 2
+    },
+    {
+      "description": "用于构建、预览和部署现代 Web 应用。",
+      "count": 2
+    },
+    {
+      "description": "用于知识管理、项目规划和团队文档协作。",
+      "count": 2
+    },
+    {
+      "description": "用于界面设计、原型制作和团队评审。",
+      "count": 2
+    },
+    {
+      "description": "用于问答、写作、编程与日常工作辅助。",
+      "count": 2
+    },
+    {
+      "description": "适合长文理解、内容创作和复杂任务分析。",
+      "count": 2
+    },
+    {
+      "description": "用于视觉探索、概念设计和图像创作。",
+      "count": 2
+    },
+    {
+      "description": "Create stunning original music for free in seconds using our AI generator.",
+      "count": 2
+    },
+    {
+      "description": "GitHub is where people build software.",
+      "count": 2
+    },
+    {
+      "description": "用于发现、使用和分享机器学习资源。",
+      "count": 2
+    },
+    {
+      "description": "组件开发与展示工具，可独立构建、测试和文档化 UI 组件。",
+      "count": 2
+    },
+    {
+      "description": "在线协作式 UI 设计工具，支持界面设计、原型制作和团队评审。",
+      "count": 2
+    },
+    {
+      "description": "即时设计是第一款面向国内设计师的专业在线UI设计工具，支持多人实时协作、原型交互、资源管理与开发标注，拥有海量的设计资源与素材。",
+      "count": 2
+    },
+    {
+      "description": "Photopea Online Photo Editor lets you edit photos, apply effects, filters, add text,",
+      "count": 2
+    },
+    {
+      "description": "在线协作白板工具，可用于头脑风暴、流程梳理、项目规划和团队工作坊。",
+      "count": 2
+    },
+    {
+      "description": "开源可观测性与数据可视化平台，可构建指标、日志和链路追踪仪表盘。",
+      "count": 2
+    },
+    {
+      "description": "跨平台桌面应用框架，可使用 JavaScript、HTML 和 CSS 构建桌面软件。",
+      "count": 2
+    }
+  ],
+  "normalized_description_usage_top_20": [
+    {
+      "description": "网易云音乐是一款专注于发现与分享的音乐产品，依托专业音乐人、DJ、好友推荐及社交功能，为用户打造全新的音乐生活。",
+      "count": 2
+    },
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2
+    },
+    {
+      "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+      "count": 2
+    },
+    {
+      "description": "用于构建、预览和部署现代 Web 应用。",
+      "count": 2
+    },
+    {
+      "description": "用于知识管理、项目规划和团队文档协作。",
+      "count": 2
+    },
+    {
+      "description": "用于界面设计、原型制作和团队评审。",
+      "count": 2
+    },
+    {
+      "description": "用于问答、写作、编程与日常工作辅助。",
+      "count": 2
+    },
+    {
+      "description": "适合长文理解、内容创作和复杂任务分析。",
+      "count": 2
+    },
+    {
+      "description": "用于视觉探索、概念设计和图像创作。",
+      "count": 2
+    },
+    {
+      "description": "Create stunning original music for free in seconds using our AI generator.",
+      "count": 2
+    },
+    {
+      "description": "GitHub is where people build software.",
+      "count": 2
+    },
+    {
+      "description": "用于发现、使用和分享机器学习资源。",
+      "count": 2
+    },
+    {
+      "description": "组件开发与展示工具，可独立构建、测试和文档化 UI 组件。",
+      "count": 2
+    },
+    {
+      "description": "在线协作式 UI 设计工具，支持界面设计、原型制作和团队评审。",
+      "count": 2
+    },
+    {
+      "description": "即时设计是第一款面向国内设计师的专业在线UI设计工具，支持多人实时协作、原型交互、资源管理与开发标注，拥有海量的设计资源与素材。",
+      "count": 2
+    },
+    {
+      "description": "Photopea Online Photo Editor lets you edit photos, apply effects, filters, add text,",
+      "count": 2
+    },
+    {
+      "description": "在线协作白板工具，可用于头脑风暴、流程梳理、项目规划和团队工作坊。",
+      "count": 2
+    },
+    {
+      "description": "开源可观测性与数据可视化平台，可构建指标、日志和链路追踪仪表盘。",
+      "count": 2
+    },
+    {
+      "description": "跨平台桌面应用框架，可使用 JavaScript、HTML 和 CSS 构建桌面软件。",
+      "count": 2
+    }
+  ]
+}

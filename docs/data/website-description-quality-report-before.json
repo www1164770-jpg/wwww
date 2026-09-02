@@ -1,0 +1,5112 @@
+{
+  "source": "database",
+  "total_websites": 946,
+  "valid_website_count": 946,
+  "valid_descriptions": 193,
+  "empty_descriptions": 291,
+  "empty_description_count": 291,
+  "generic_descriptions": 457,
+  "generic_fallback_count": 457,
+  "low_quality_descriptions": 753,
+  "name_prefixed_descriptions": 3,
+  "name_prefix_count": 3,
+  "duplicate_descriptions": 20,
+  "exact_duplicate_description_count": 20,
+  "high_similarity_descriptions": 477,
+  "normalized_duplicate_description_count": 477,
+  "too_short_count": 2,
+  "too_long_count": 0,
+  "duplicate_groups": [
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 141,
+          "name": "Lapa Ninja",
+          "url": "https://www.lapa.ninja"
+        },
+        {
+          "website_id": 144,
+          "name": "Godly",
+          "url": "https://godly.website"
+        },
+        {
+          "website_id": 318,
+          "name": "Collect UI",
+          "url": "https://collectui.com"
+        },
+        {
+          "website_id": 320,
+          "name": "Screenlane",
+          "url": "https://screenlane.com"
+        },
+        {
+          "website_id": 476,
+          "name": "Minimal Gallery",
+          "url": "https://minimal.gallery"
+        },
+        {
+          "website_id": 477,
+          "name": "Httpster",
+          "url": "https://httpster.net"
+        },
+        {
+          "website_id": 480,
+          "name": "Dark Mode Design",
+          "url": "https://www.darkmodedesign.com"
+        },
+        {
+          "website_id": 635,
+          "name": "SiteInspire",
+          "url": "https://www.siteinspire.com"
+        },
+        {
+          "website_id": 636,
+          "name": "UI Garage",
+          "url": "https://uigarage.net"
+        },
+        {
+          "website_id": 637,
+          "name": "CSS Design Awards",
+          "url": "https://www.cssdesignawards.com"
+        },
+        {
+          "website_id": 638,
+          "name": "CSS Winner",
+          "url": "https://www.csswinner.com"
+        },
+        {
+          "website_id": 639,
+          "name": "UIJar",
+          "url": "https://uijar.com"
+        },
+        {
+          "website_id": 640,
+          "name": "Really Good UX",
+          "url": "https://www.reallygoodux.io"
+        },
+        {
+          "website_id": 641,
+          "name": "Page Flows",
+          "url": "https://pageflows.com"
+        },
+        {
+          "website_id": 642,
+          "name": "Refero",
+          "url": "https://refero.design"
+        },
+        {
+          "website_id": 643,
+          "name": "SaaSFrame",
+          "url": "https://www.saasframe.io"
+        },
+        {
+          "website_id": 644,
+          "name": "Nicely Done",
+          "url": "https://nicelydone.club"
+        },
+        {
+          "website_id": 645,
+          "name": "Fresh Folk",
+          "url": "https://fresh-folk.com"
+        },
+        {
+          "website_id": 646,
+          "name": "Brand New",
+          "url": "https://www.underconsideration.com/brandnew"
+        },
+        {
+          "website_id": 647,
+          "name": "LogoLounge",
+          "url": "https://www.logolounge.com"
+        },
+        {
+          "website_id": 648,
+          "name": "Dribbble Shots",
+          "url": "https://dribbble.com/shots"
+        },
+        {
+          "website_id": 649,
+          "name": "Pinterest Design",
+          "url": "https://www.pinterest.com/categories/design"
+        },
+        {
+          "website_id": 650,
+          "name": "Landingfolio",
+          "url": "https://www.landingfolio.com"
+        },
+        {
+          "website_id": 651,
+          "name": "Design Better",
+          "url": "https://www.designbetter.co"
+        },
+        {
+          "website_id": 652,
+          "name": "Design Systems",
+          "url": "https://www.designsystems.com"
+        },
+        {
+          "website_id": 653,
+          "name": "Uplabs",
+          "url": "https://www.uplabs.com"
+        },
+        {
+          "website_id": 654,
+          "name": "UI Patterns",
+          "url": "https://www.ui-patterns.com"
+        },
+        {
+          "website_id": 655,
+          "name": "Mobile Patterns",
+          "url": "https://www.mobile-patterns.com"
+        },
+        {
+          "website_id": 656,
+          "name": "Web Design Inspiration",
+          "url": "https://www.webdesign-inspiration.com"
+        },
+        {
+          "website_id": 657,
+          "name": "Design Notes",
+          "url": "https://www.designnotes.co"
+        }
+      ]
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 277,
+          "name": "Pika",
+          "url": "https://pika.art"
+        },
+        {
+          "website_id": 281,
+          "name": "Adobe Firefly",
+          "url": "https://firefly.adobe.com"
+        },
+        {
+          "website_id": 283,
+          "name": "ElevenLabs",
+          "url": "https://elevenlabs.io"
+        },
+        {
+          "website_id": 286,
+          "name": "Ideogram",
+          "url": "https://ideogram.ai"
+        },
+        {
+          "website_id": 289,
+          "name": "LangChain",
+          "url": "https://www.langchain.com"
+        },
+        {
+          "website_id": 290,
+          "name": "OpenRouter",
+          "url": "https://openrouter.ai"
+        },
+        {
+          "website_id": 291,
+          "name": "Together AI",
+          "url": "https://www.together.ai"
+        },
+        {
+          "website_id": 437,
+          "name": "Groq",
+          "url": "https://groq.com"
+        },
+        {
+          "website_id": 438,
+          "name": "Replicate",
+          "url": "https://replicate.com"
+        },
+        {
+          "website_id": 441,
+          "name": "Leonardo AI",
+          "url": "https://leonardo.ai"
+        },
+        {
+          "website_id": 442,
+          "name": "Playground AI",
+          "url": "https://playground.com"
+        },
+        {
+          "website_id": 443,
+          "name": "Gamma",
+          "url": "https://gamma.app"
+        },
+        {
+          "website_id": 617,
+          "name": "Poe",
+          "url": "https://poe.com"
+        },
+        {
+          "website_id": 618,
+          "name": "Character.AI",
+          "url": "https://character.ai"
+        },
+        {
+          "website_id": 619,
+          "name": "You.com",
+          "url": "https://you.com"
+        },
+        {
+          "website_id": 620,
+          "name": "Phind",
+          "url": "https://www.phind.com"
+        },
+        {
+          "website_id": 621,
+          "name": "Mistral Le Chat",
+          "url": "https://chat.mistral.ai"
+        },
+        {
+          "website_id": 622,
+          "name": "Cohere",
+          "url": "https://cohere.com"
+        },
+        {
+          "website_id": 623,
+          "name": "AI21 Labs",
+          "url": "https://www.ai21.com"
+        },
+        {
+          "website_id": 624,
+          "name": "Ollama",
+          "url": "https://ollama.com"
+        },
+        {
+          "website_id": 625,
+          "name": "LM Studio",
+          "url": "https://lmstudio.ai"
+        },
+        {
+          "website_id": 626,
+          "name": "LlamaIndex",
+          "url": "https://www.llamaindex.ai"
+        },
+        {
+          "website_id": 627,
+          "name": "Weights & Biases",
+          "url": "https://wandb.ai"
+        },
+        {
+          "website_id": 628,
+          "name": "MLflow",
+          "url": "https://mlflow.org"
+        },
+        {
+          "website_id": 629,
+          "name": "ComfyUI",
+          "url": "https://github.com/comfyanonymous/ComfyUI"
+        },
+        {
+          "website_id": 630,
+          "name": "Canva Magic Studio",
+          "url": "https://www.canva.com/magic-studio"
+        },
+        {
+          "website_id": 631,
+          "name": "Luma Dream Machine",
+          "url": "https://lumalabs.ai/dream-machine"
+        },
+        {
+          "website_id": 632,
+          "name": "HeyGen",
+          "url": "https://www.heygen.com"
+        },
+        {
+          "website_id": 633,
+          "name": "Suno",
+          "url": "https://suno.com"
+        },
+        {
+          "website_id": 634,
+          "name": "NotebookLM",
+          "url": "https://notebooklm.google.com"
+        }
+      ]
+    },
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 95,
+          "name": "Astro",
+          "url": "https://astro.build"
+        },
+        {
+          "website_id": 96,
+          "name": "SolidJS",
+          "url": "https://www.solidjs.com"
+        },
+        {
+          "website_id": 97,
+          "name": "Remix",
+          "url": "https://remix.run"
+        },
+        {
+          "website_id": 128,
+          "name": "Rollup",
+          "url": "https://rollupjs.org"
+        },
+        {
+          "website_id": 129,
+          "name": "Bun",
+          "url": "https://bun.sh"
+        },
+        {
+          "website_id": 292,
+          "name": "Deno",
+          "url": "https://deno.com"
+        },
+        {
+          "website_id": 294,
+          "name": "Qwik",
+          "url": "https://qwik.dev"
+        },
+        {
+          "website_id": 299,
+          "name": "Tauri",
+          "url": "https://tauri.app"
+        },
+        {
+          "website_id": 595,
+          "name": "Ember.js",
+          "url": "https://emberjs.com"
+        },
+        {
+          "website_id": 596,
+          "name": "Ruby",
+          "url": "https://www.ruby-lang.org/en/documentation"
+        },
+        {
+          "website_id": 597,
+          "name": "Rails",
+          "url": "https://guides.rubyonrails.org"
+        },
+        {
+          "website_id": 598,
+          "name": "Django",
+          "url": "https://docs.djangoproject.com"
+        },
+        {
+          "website_id": 599,
+          "name": "FastAPI",
+          "url": "https://fastapi.tiangolo.com"
+        },
+        {
+          "website_id": 600,
+          "name": "Flask",
+          "url": "https://flask.palletsprojects.com"
+        },
+        {
+          "website_id": 601,
+          "name": "Go",
+          "url": "https://go.dev/doc"
+        },
+        {
+          "website_id": 602,
+          "name": "Rust",
+          "url": "https://www.rust-lang.org/learn"
+        },
+        {
+          "website_id": 603,
+          "name": "Kotlin",
+          "url": "https://kotlinlang.org/docs/home.html"
+        },
+        {
+          "website_id": 604,
+          "name": "Java",
+          "url": "https://dev.java/learn"
+        },
+        {
+          "website_id": 605,
+          "name": "C#",
+          "url": "https://learn.microsoft.com/dotnet/csharp"
+        },
+        {
+          "website_id": 606,
+          "name": ".NET",
+          "url": "https://learn.microsoft.com/dotnet"
+        },
+        {
+          "website_id": 607,
+          "name": "Flutter",
+          "url": "https://docs.flutter.dev"
+        },
+        {
+          "website_id": 608,
+          "name": "Dart",
+          "url": "https://dart.dev/guides"
+        },
+        {
+          "website_id": 609,
+          "name": "Swift",
+          "url": "https://www.swift.org/documentation"
+        },
+        {
+          "website_id": 610,
+          "name": "Android Developers",
+          "url": "https://developer.android.com"
+        },
+        {
+          "website_id": 611,
+          "name": "Electron",
+          "url": "https://www.electronjs.org/docs/latest"
+        },
+        {
+          "website_id": 612,
+          "name": "Tailwind CSS",
+          "url": "https://tailwindcss.com/docs"
+        },
+        {
+          "website_id": 613,
+          "name": "Bootstrap",
+          "url": "https://getbootstrap.com/docs"
+        },
+        {
+          "website_id": 614,
+          "name": "PostCSS",
+          "url": "https://postcss.org"
+        },
+        {
+          "website_id": 615,
+          "name": "Storybook",
+          "url": "https://storybook.js.org/docs"
+        },
+        {
+          "website_id": 616,
+          "name": "Parcel",
+          "url": "https://parceljs.org"
+        }
+      ]
+    },
+    {
+      "description": "用于竞品信息、市场趋势或产品技术栈调研。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 205,
+          "name": "SimilarWeb",
+          "url": "https://www.similarweb.com"
+        },
+        {
+          "website_id": 354,
+          "name": "Crunchbase",
+          "url": "https://www.crunchbase.com"
+        },
+        {
+          "website_id": 355,
+          "name": "G2",
+          "url": "https://www.g2.com"
+        },
+        {
+          "website_id": 356,
+          "name": "Capterra",
+          "url": "https://www.capterra.com"
+        },
+        {
+          "website_id": 511,
+          "name": "BuiltWith",
+          "url": "https://builtwith.com"
+        },
+        {
+          "website_id": 512,
+          "name": "Wappalyzer",
+          "url": "https://www.wappalyzer.com"
+        },
+        {
+          "website_id": 513,
+          "name": "SpyFu",
+          "url": "https://www.spyfu.com"
+        },
+        {
+          "website_id": 514,
+          "name": "SEMrush",
+          "url": "https://www.semrush.com"
+        },
+        {
+          "website_id": 515,
+          "name": "Ahrefs",
+          "url": "https://ahrefs.com"
+        },
+        {
+          "website_id": 879,
+          "name": "Dealroom",
+          "url": "https://dealroom.co"
+        },
+        {
+          "website_id": 880,
+          "name": "Tracxn",
+          "url": "https://tracxn.com"
+        },
+        {
+          "website_id": 881,
+          "name": "Owler",
+          "url": "https://www.owler.com"
+        },
+        {
+          "website_id": 882,
+          "name": "Exploding Topics",
+          "url": "https://explodingtopics.com"
+        },
+        {
+          "website_id": 883,
+          "name": "Google Trends",
+          "url": "https://trends.google.com"
+        },
+        {
+          "website_id": 884,
+          "name": "AnswerThePublic",
+          "url": "https://answerthepublic.com"
+        },
+        {
+          "website_id": 885,
+          "name": "SparkToro",
+          "url": "https://sparktoro.com"
+        },
+        {
+          "website_id": 886,
+          "name": "Social Blade",
+          "url": "https://socialblade.com"
+        },
+        {
+          "website_id": 887,
+          "name": "Meta Ad Library",
+          "url": "https://www.facebook.com/ads/library"
+        },
+        {
+          "website_id": 888,
+          "name": "TikTok Creative Center",
+          "url": "https://ads.tiktok.com/business/creativecenter"
+        },
+        {
+          "website_id": 889,
+          "name": "SimilarTech",
+          "url": "https://www.similartech.com"
+        },
+        {
+          "website_id": 915,
+          "name": "CB Insights",
+          "url": "https://www.cbinsights.com"
+        },
+        {
+          "website_id": 916,
+          "name": "PitchBook",
+          "url": "https://pitchbook.com"
+        },
+        {
+          "website_id": 917,
+          "name": "Consumer Barometer",
+          "url": "https://www.consumerbarometer.com"
+        },
+        {
+          "website_id": 918,
+          "name": "Google Market Finder",
+          "url": "https://marketfinder.thinkwithgoogle.com"
+        },
+        {
+          "website_id": 919,
+          "name": "SEMrush Traffic Analytics",
+          "url": "https://www.semrush.com/analytics/traffic"
+        },
+        {
+          "website_id": 920,
+          "name": "Wappalyzer Lookup",
+          "url": "https://www.wappalyzer.com/lookup"
+        },
+        {
+          "website_id": 921,
+          "name": "Similarweb Website",
+          "url": "https://www.similarweb.com/website"
+        },
+        {
+          "website_id": 922,
+          "name": "BuiltWith Trends",
+          "url": "https://trends.builtwith.com"
+        },
+        {
+          "website_id": 923,
+          "name": "ProductPlan",
+          "url": "https://www.productplan.com"
+        },
+        {
+          "website_id": 924,
+          "name": "UserVoice",
+          "url": "https://www.uservoice.com"
+        }
+      ]
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 29,
+      "websites": [
+        {
+          "website_id": 140,
+          "name": "UI8",
+          "url": "https://ui8.net"
+        },
+        {
+          "website_id": 181,
+          "name": "Balsamiq",
+          "url": "https://balsamiq.com"
+        },
+        {
+          "website_id": 340,
+          "name": "InVision",
+          "url": "https://www.invisionapp.com"
+        },
+        {
+          "website_id": 341,
+          "name": "Marvel",
+          "url": "https://marvelapp.com"
+        },
+        {
+          "website_id": 343,
+          "name": "Overflow",
+          "url": "https://overflow.io"
+        },
+        {
+          "website_id": 424,
+          "name": "Miro",
+          "url": "https://miro.com"
+        },
+        {
+          "website_id": 486,
+          "name": "Mockflow",
+          "url": "https://www.mockflow.com"
+        },
+        {
+          "website_id": 487,
+          "name": "Uizard",
+          "url": "https://uizard.io"
+        },
+        {
+          "website_id": 488,
+          "name": "Visily",
+          "url": "https://www.visily.ai"
+        },
+        {
+          "website_id": 496,
+          "name": "UXPin",
+          "url": "https://www.uxpin.com"
+        },
+        {
+          "website_id": 498,
+          "name": "Origami Studio",
+          "url": "https://origami.design"
+        },
+        {
+          "website_id": 658,
+          "name": "Lucidchart",
+          "url": "https://www.lucidchart.com"
+        },
+        {
+          "website_id": 659,
+          "name": "Mockplus",
+          "url": "https://www.mockplus.com"
+        },
+        {
+          "website_id": 660,
+          "name": "Milanote",
+          "url": "https://milanote.com"
+        },
+        {
+          "website_id": 661,
+          "name": "FlowMapp",
+          "url": "https://flowmapp.com"
+        },
+        {
+          "website_id": 662,
+          "name": "FigJam",
+          "url": "https://www.figma.com/figjam"
+        },
+        {
+          "website_id": 663,
+          "name": "Figma Slides",
+          "url": "https://www.figma.com/slides"
+        },
+        {
+          "website_id": 664,
+          "name": "Relume",
+          "url": "https://www.relume.io"
+        },
+        {
+          "website_id": 665,
+          "name": "Siter.io",
+          "url": "https://siter.io"
+        },
+        {
+          "website_id": 666,
+          "name": "Webflow",
+          "url": "https://webflow.com"
+        },
+        {
+          "website_id": 667,
+          "name": "Bubble",
+          "url": "https://bubble.io"
+        },
+        {
+          "website_id": 668,
+          "name": "Wix Studio",
+          "url": "https://www.wix.com/studio"
+        },
+        {
+          "website_id": 669,
+          "name": "Framer Templates",
+          "url": "https://www.framer.com/marketplace"
+        },
+        {
+          "website_id": 670,
+          "name": "Wireframe.cc",
+          "url": "https://wireframe.cc"
+        },
+        {
+          "website_id": 671,
+          "name": "InVision Studio",
+          "url": "https://www.invisionapp.com/studio"
+        },
+        {
+          "website_id": 672,
+          "name": "Flowchart Fun",
+          "url": "https://flowchart.fun"
+        },
+        {
+          "website_id": 673,
+          "name": "Figma Community",
+          "url": "https://www.figma.com/community"
+        },
+        {
+          "website_id": 674,
+          "name": "Mockuuups Studio",
+          "url": "https://www.mockuuups.com"
+        },
+        {
+          "website_id": 675,
+          "name": "Productboard",
+          "url": "https://www.productboard.com"
+        }
+      ]
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 29,
+      "websites": [
+        {
+          "website_id": 114,
+          "name": "Chart.js",
+          "url": "https://www.chartjs.org"
+        },
+        {
+          "website_id": 116,
+          "name": "Highcharts",
+          "url": "https://www.highcharts.com"
+        },
+        {
+          "website_id": 203,
+          "name": "Metabase",
+          "url": "https://www.metabase.com"
+        },
+        {
+          "website_id": 387,
+          "name": "Grafana",
+          "url": "https://grafana.com"
+        },
+        {
+          "website_id": 802,
+          "name": "Apache Superset",
+          "url": "https://superset.apache.org"
+        },
+        {
+          "website_id": 803,
+          "name": "Redash",
+          "url": "https://redash.io"
+        },
+        {
+          "website_id": 804,
+          "name": "Qlik",
+          "url": "https://www.qlik.com"
+        },
+        {
+          "website_id": 805,
+          "name": "Sisense",
+          "url": "https://www.sisense.com"
+        },
+        {
+          "website_id": 806,
+          "name": "Domo",
+          "url": "https://www.domo.com"
+        },
+        {
+          "website_id": 807,
+          "name": "Hex",
+          "url": "https://hex.tech"
+        },
+        {
+          "website_id": 808,
+          "name": "Deepnote",
+          "url": "https://deepnote.com"
+        },
+        {
+          "website_id": 809,
+          "name": "Mode",
+          "url": "https://mode.com"
+        },
+        {
+          "website_id": 810,
+          "name": "DataCamp",
+          "url": "https://www.datacamp.com"
+        },
+        {
+          "website_id": 811,
+          "name": "Dataquest",
+          "url": "https://www.dataquest.io"
+        },
+        {
+          "website_id": 812,
+          "name": "Statista",
+          "url": "https://www.statista.com"
+        },
+        {
+          "website_id": 813,
+          "name": "Gapminder",
+          "url": "https://www.gapminder.org"
+        },
+        {
+          "website_id": 814,
+          "name": "Google Dataset Search",
+          "url": "https://datasetsearch.research.google.com"
+        },
+        {
+          "website_id": 815,
+          "name": "Data.gov",
+          "url": "https://data.gov"
+        },
+        {
+          "website_id": 816,
+          "name": "国家数据",
+          "url": "https://data.stats.gov.cn"
+        },
+        {
+          "website_id": 817,
+          "name": "World Bank Data",
+          "url": "https://data.worldbank.org"
+        },
+        {
+          "website_id": 818,
+          "name": "UN Data",
+          "url": "https://data.un.org"
+        },
+        {
+          "website_id": 819,
+          "name": "dbdiagram.io",
+          "url": "https://dbdiagram.io"
+        },
+        {
+          "website_id": 820,
+          "name": "SQLPad",
+          "url": "https://rickbergfalk.github.io/sqlpad"
+        },
+        {
+          "website_id": 821,
+          "name": "Vega",
+          "url": "https://vega.github.io/vega"
+        },
+        {
+          "website_id": 822,
+          "name": "Plotly",
+          "url": "https://plotly.com"
+        },
+        {
+          "website_id": 823,
+          "name": "From Data to Viz",
+          "url": "https://www.data-to-viz.com"
+        },
+        {
+          "website_id": 824,
+          "name": "Vega Voyager",
+          "url": "https://vega.github.io/voyager"
+        },
+        {
+          "website_id": 825,
+          "name": "中国数据开放平台",
+          "url": "https://www.data.gov.cn"
+        },
+        {
+          "website_id": 826,
+          "name": "European Data Portal",
+          "url": "https://data.europa.eu"
+        }
+      ]
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 274,
+          "name": "Replit",
+          "url": "https://replit.com"
+        },
+        {
+          "website_id": 398,
+          "name": "开源中国",
+          "url": "https://www.oschina.net"
+        },
+        {
+          "website_id": 676,
+          "name": "Codeberg",
+          "url": "https://codeberg.org"
+        },
+        {
+          "website_id": 677,
+          "name": "SourceForge",
+          "url": "https://sourceforge.net"
+        },
+        {
+          "website_id": 678,
+          "name": "Bitbucket",
+          "url": "https://bitbucket.org"
+        },
+        {
+          "website_id": 679,
+          "name": "Gerrit",
+          "url": "https://www.gerritcodereview.com"
+        },
+        {
+          "website_id": 680,
+          "name": "JSFiddle",
+          "url": "https://jsfiddle.net"
+        },
+        {
+          "website_id": 681,
+          "name": "Stack Exchange",
+          "url": "https://stackexchange.com"
+        },
+        {
+          "website_id": 682,
+          "name": "Super User",
+          "url": "https://superuser.com"
+        },
+        {
+          "website_id": 683,
+          "name": "Server Fault",
+          "url": "https://serverfault.com"
+        },
+        {
+          "website_id": 684,
+          "name": "Ask Ubuntu",
+          "url": "https://askubuntu.com"
+        },
+        {
+          "website_id": 685,
+          "name": "Hashnode",
+          "url": "https://hashnode.com"
+        },
+        {
+          "website_id": 686,
+          "name": "DZone",
+          "url": "https://dzone.com"
+        },
+        {
+          "website_id": 687,
+          "name": "InfoQ",
+          "url": "https://www.infoq.com"
+        },
+        {
+          "website_id": 688,
+          "name": "Hacker News",
+          "url": "https://news.ycombinator.com"
+        },
+        {
+          "website_id": 689,
+          "name": "Lobsters",
+          "url": "https://lobste.rs"
+        },
+        {
+          "website_id": 690,
+          "name": "HackerNoon",
+          "url": "https://hackernoon.com"
+        },
+        {
+          "website_id": 691,
+          "name": "OpenSource.com",
+          "url": "https://opensource.com"
+        },
+        {
+          "website_id": 692,
+          "name": "Linux 中国",
+          "url": "https://linux.cn"
+        },
+        {
+          "website_id": 693,
+          "name": "博客园精选",
+          "url": "https://www.cnblogs.com/pick"
+        },
+        {
+          "website_id": 694,
+          "name": "V2EX 技术区",
+          "url": "https://www.v2ex.com/go/programmer"
+        },
+        {
+          "website_id": 695,
+          "name": "CodeProject",
+          "url": "https://www.codeproject.com"
+        },
+        {
+          "website_id": 696,
+          "name": "Codeforces",
+          "url": "https://codeforces.com"
+        },
+        {
+          "website_id": 697,
+          "name": "HackerRank",
+          "url": "https://www.hackerrank.com"
+        },
+        {
+          "website_id": 698,
+          "name": "Exercism",
+          "url": "https://exercism.org"
+        },
+        {
+          "website_id": 699,
+          "name": "Gitter",
+          "url": "https://gitter.im"
+        },
+        {
+          "website_id": 700,
+          "name": "Matrix",
+          "url": "https://matrix.org"
+        },
+        {
+          "website_id": 701,
+          "name": "Zulip",
+          "url": "https://zulip.com"
+        }
+      ]
+    },
+    {
+      "description": "提供可视化、地图或三维图形开发能力。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 112,
+          "name": "D3.js",
+          "url": "https://d3js.org"
+        },
+        {
+          "website_id": 113,
+          "name": "Three.js",
+          "url": "https://threejs.org"
+        },
+        {
+          "website_id": 117,
+          "name": "Babylon.js",
+          "url": "https://www.babylonjs.com"
+        },
+        {
+          "website_id": 118,
+          "name": "Spline",
+          "url": "https://spline.design"
+        },
+        {
+          "website_id": 308,
+          "name": "Mapbox",
+          "url": "https://www.mapbox.com"
+        },
+        {
+          "website_id": 309,
+          "name": "Leaflet",
+          "url": "https://leafletjs.com"
+        },
+        {
+          "website_id": 310,
+          "name": "Deck.gl",
+          "url": "https://deck.gl"
+        },
+        {
+          "website_id": 467,
+          "name": "Vega-Lite",
+          "url": "https://vega.github.io/vega-lite"
+        },
+        {
+          "website_id": 828,
+          "name": "Kepler.gl",
+          "url": "https://kepler.gl"
+        },
+        {
+          "website_id": 829,
+          "name": "Cesium",
+          "url": "https://cesium.com"
+        },
+        {
+          "website_id": 830,
+          "name": "OpenLayers",
+          "url": "https://openlayers.org"
+        },
+        {
+          "website_id": 831,
+          "name": "MapLibre",
+          "url": "https://maplibre.org"
+        },
+        {
+          "website_id": 832,
+          "name": "Plotly.js",
+          "url": "https://plotly.com/javascript"
+        },
+        {
+          "website_id": 833,
+          "name": "p5.js",
+          "url": "https://p5js.org"
+        },
+        {
+          "website_id": 834,
+          "name": "PixiJS",
+          "url": "https://pixijs.com"
+        },
+        {
+          "website_id": 835,
+          "name": "Babylon Playground",
+          "url": "https://playground.babylonjs.com"
+        },
+        {
+          "website_id": 836,
+          "name": "Rive",
+          "url": "https://rive.app"
+        },
+        {
+          "website_id": 890,
+          "name": "MapTiler",
+          "url": "https://www.maptiler.com"
+        },
+        {
+          "website_id": 891,
+          "name": "ArcGIS",
+          "url": "https://www.arcgis.com"
+        },
+        {
+          "website_id": 892,
+          "name": "Esri",
+          "url": "https://www.esri.com"
+        },
+        {
+          "website_id": 893,
+          "name": "FusionCharts",
+          "url": "https://www.fusioncharts.com"
+        },
+        {
+          "website_id": 894,
+          "name": "amCharts",
+          "url": "https://www.amcharts.com"
+        },
+        {
+          "website_id": 895,
+          "name": "AnyChart",
+          "url": "https://www.anychart.com"
+        },
+        {
+          "website_id": 896,
+          "name": "ChartBlocks",
+          "url": "https://www.chartblocks.com"
+        },
+        {
+          "website_id": 897,
+          "name": "RAWGraphs",
+          "url": "https://www.rawgraphs.io"
+        },
+        {
+          "website_id": 898,
+          "name": "Infogram",
+          "url": "https://infogram.com"
+        },
+        {
+          "website_id": 899,
+          "name": "Visme",
+          "url": "https://www.visme.co"
+        },
+        {
+          "website_id": 900,
+          "name": "Flourish Visualization",
+          "url": "https://flourish.studio/visualisations"
+        }
+      ]
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 753,
+          "name": "Udemy",
+          "url": "https://www.udemy.com"
+        },
+        {
+          "website_id": 754,
+          "name": "FutureLearn",
+          "url": "https://www.futurelearn.com"
+        },
+        {
+          "website_id": 755,
+          "name": "OpenLearn",
+          "url": "https://www.open.edu/openlearn"
+        },
+        {
+          "website_id": 756,
+          "name": "Frontend Mentor",
+          "url": "https://www.frontendmentor.io"
+        },
+        {
+          "website_id": 757,
+          "name": "Frontend Masters",
+          "url": "https://frontendmasters.com"
+        },
+        {
+          "website_id": 758,
+          "name": "CSS-Tricks",
+          "url": "https://css-tricks.com"
+        },
+        {
+          "website_id": 759,
+          "name": "JavaScript.info",
+          "url": "https://javascript.info"
+        },
+        {
+          "website_id": 760,
+          "name": "W3Schools",
+          "url": "https://www.w3schools.com"
+        },
+        {
+          "website_id": 761,
+          "name": "Roadmap.sh",
+          "url": "https://roadmap.sh"
+        },
+        {
+          "website_id": 762,
+          "name": "Exercism Learning",
+          "url": "https://exercism.org/tracks"
+        },
+        {
+          "website_id": 763,
+          "name": "Codewars",
+          "url": "https://www.codewars.com"
+        },
+        {
+          "website_id": 764,
+          "name": "HackerRank Skills",
+          "url": "https://www.hackerrank.com/skills-directory"
+        },
+        {
+          "website_id": 765,
+          "name": "Project Euler",
+          "url": "https://projecteuler.net"
+        },
+        {
+          "website_id": 766,
+          "name": "The Odin Project",
+          "url": "https://www.theodinproject.com"
+        },
+        {
+          "website_id": 767,
+          "name": "MDN Learn",
+          "url": "https://developer.mozilla.org/docs/Learn"
+        },
+        {
+          "website_id": 768,
+          "name": "Google Codelabs",
+          "url": "https://codelabs.developers.google.com"
+        },
+        {
+          "website_id": 769,
+          "name": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/training"
+        },
+        {
+          "website_id": 770,
+          "name": "AWS Skill Builder",
+          "url": "https://skillbuilder.aws"
+        },
+        {
+          "website_id": 771,
+          "name": "Linux Journey",
+          "url": "https://linuxjourney.com"
+        },
+        {
+          "website_id": 772,
+          "name": "慕课网",
+          "url": "https://www.imooc.com"
+        },
+        {
+          "website_id": 773,
+          "name": "实验楼",
+          "url": "https://www.lanqiao.cn"
+        },
+        {
+          "website_id": 774,
+          "name": "Pluralsight",
+          "url": "https://www.pluralsight.com"
+        },
+        {
+          "website_id": 775,
+          "name": "LinkedIn Learning",
+          "url": "https://www.linkedin.com/learning"
+        },
+        {
+          "website_id": 776,
+          "name": "Brilliant",
+          "url": "https://brilliant.org"
+        },
+        {
+          "website_id": 777,
+          "name": "SoloLearn",
+          "url": "https://www.sololearn.com"
+        },
+        {
+          "website_id": 778,
+          "name": "Scrimba",
+          "url": "https://scrimba.com"
+        },
+        {
+          "website_id": 779,
+          "name": "egghead",
+          "url": "https://egghead.io"
+        },
+        {
+          "website_id": 780,
+          "name": "Turing College",
+          "url": "https://www.turingcollege.com"
+        }
+      ]
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 186,
+          "name": "语雀",
+          "url": "https://www.yuque.com"
+        },
+        {
+          "website_id": 187,
+          "name": "Confluence",
+          "url": "https://www.atlassian.com/software/confluence"
+        },
+        {
+          "website_id": 344,
+          "name": "Coda",
+          "url": "https://coda.io"
+        },
+        {
+          "website_id": 346,
+          "name": "Lark",
+          "url": "https://www.larksuite.com"
+        },
+        {
+          "website_id": 347,
+          "name": "Slite",
+          "url": "https://slite.com"
+        },
+        {
+          "website_id": 421,
+          "name": "Obsidian",
+          "url": "https://obsidian.md"
+        },
+        {
+          "website_id": 422,
+          "name": "Logseq",
+          "url": "https://logseq.com"
+        },
+        {
+          "website_id": 732,
+          "name": "Microsoft 365",
+          "url": "https://www.microsoft365.com"
+        },
+        {
+          "website_id": 733,
+          "name": "Google Drive",
+          "url": "https://drive.google.com"
+        },
+        {
+          "website_id": 734,
+          "name": "Google Sheets",
+          "url": "https://sheets.google.com"
+        },
+        {
+          "website_id": 735,
+          "name": "Google Slides",
+          "url": "https://slides.google.com"
+        },
+        {
+          "website_id": 736,
+          "name": "Box",
+          "url": "https://www.box.com"
+        },
+        {
+          "website_id": 737,
+          "name": "Evernote",
+          "url": "https://evernote.com"
+        },
+        {
+          "website_id": 738,
+          "name": "Heptabase",
+          "url": "https://heptabase.com"
+        },
+        {
+          "website_id": 739,
+          "name": "Craft",
+          "url": "https://www.craft.do"
+        },
+        {
+          "website_id": 740,
+          "name": "Quip",
+          "url": "https://quip.com"
+        },
+        {
+          "website_id": 741,
+          "name": "Zoho Writer",
+          "url": "https://www.zoho.com/writer"
+        },
+        {
+          "website_id": 742,
+          "name": "WPS",
+          "url": "https://www.wps.cn"
+        },
+        {
+          "website_id": 743,
+          "name": "腾讯会议",
+          "url": "https://meeting.tencent.com"
+        },
+        {
+          "website_id": 744,
+          "name": "Zoom",
+          "url": "https://zoom.us"
+        },
+        {
+          "website_id": 745,
+          "name": "Microsoft Teams",
+          "url": "https://www.microsoft.com/microsoft-teams"
+        },
+        {
+          "website_id": 746,
+          "name": "Slack",
+          "url": "https://slack.com"
+        },
+        {
+          "website_id": 747,
+          "name": "Discord",
+          "url": "https://discord.com"
+        },
+        {
+          "website_id": 748,
+          "name": "飞书多维表格",
+          "url": "https://www.feishu.cn/product/base"
+        },
+        {
+          "website_id": 749,
+          "name": "幕布",
+          "url": "https://mubu.com"
+        },
+        {
+          "website_id": 750,
+          "name": "ONLYOFFICE",
+          "url": "https://www.onlyoffice.com"
+        },
+        {
+          "website_id": 751,
+          "name": "Collabora Online",
+          "url": "https://www.collaboraonline.com"
+        },
+        {
+          "website_id": 752,
+          "name": "Fellow",
+          "url": "https://www.fellow.app"
+        }
+      ]
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 27,
+      "websites": [
+        {
+          "website_id": 188,
+          "name": "Jira",
+          "url": "https://www.atlassian.com/software/jira"
+        },
+        {
+          "website_id": 190,
+          "name": "Linear",
+          "url": "https://linear.app"
+        },
+        {
+          "website_id": 192,
+          "name": "Monday.com",
+          "url": "https://monday.com"
+        },
+        {
+          "website_id": 193,
+          "name": "Basecamp",
+          "url": "https://basecamp.com"
+        },
+        {
+          "website_id": 428,
+          "name": "Make",
+          "url": "https://www.make.com"
+        },
+        {
+          "website_id": 429,
+          "name": "n8n",
+          "url": "https://n8n.io"
+        },
+        {
+          "website_id": 781,
+          "name": "TickTick",
+          "url": "https://ticktick.com"
+        },
+        {
+          "website_id": 782,
+          "name": "Microsoft To Do",
+          "url": "https://to-do.office.com"
+        },
+        {
+          "website_id": 783,
+          "name": "Any.do",
+          "url": "https://www.any.do"
+        },
+        {
+          "website_id": 784,
+          "name": "Things",
+          "url": "https://culturedcode.com/things"
+        },
+        {
+          "website_id": 785,
+          "name": "Height",
+          "url": "https://height.app"
+        },
+        {
+          "website_id": 786,
+          "name": "ClickUp",
+          "url": "https://clickup.com"
+        },
+        {
+          "website_id": 787,
+          "name": "Toggl Track",
+          "url": "https://toggl.com/track"
+        },
+        {
+          "website_id": 788,
+          "name": "Clockify",
+          "url": "https://clockify.me"
+        },
+        {
+          "website_id": 789,
+          "name": "Baserow",
+          "url": "https://baserow.io"
+        },
+        {
+          "website_id": 790,
+          "name": "AppFlowy",
+          "url": "https://appflowy.io"
+        },
+        {
+          "website_id": 791,
+          "name": "Habitica",
+          "url": "https://habitica.com"
+        },
+        {
+          "website_id": 792,
+          "name": "Toggl Plan",
+          "url": "https://toggl.com/plan"
+        },
+        {
+          "website_id": 793,
+          "name": "Cron",
+          "url": "https://cron.com"
+        },
+        {
+          "website_id": 794,
+          "name": "Reclaim AI",
+          "url": "https://reclaim.ai"
+        },
+        {
+          "website_id": 795,
+          "name": "Motion Calendar",
+          "url": "https://www.usemotion.com"
+        },
+        {
+          "website_id": 796,
+          "name": "SavvyCal",
+          "url": "https://savvycal.com"
+        },
+        {
+          "website_id": 797,
+          "name": "Workflowy",
+          "url": "https://workflowy.com"
+        },
+        {
+          "website_id": 798,
+          "name": "Dynalist",
+          "url": "https://dynalist.io"
+        },
+        {
+          "website_id": 799,
+          "name": "Remember The Milk",
+          "url": "https://www.rememberthemilk.com"
+        },
+        {
+          "website_id": 800,
+          "name": "Focusmate",
+          "url": "https://www.focusmate.com"
+        },
+        {
+          "website_id": 801,
+          "name": "Productive",
+          "url": "https://productive.io"
+        }
+      ]
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 27,
+      "websites": [
+        {
+          "website_id": 101,
+          "name": "Arco Design",
+          "url": "https://arco.design"
+        },
+        {
+          "website_id": 102,
+          "name": "Vant",
+          "url": "https://vant-ui.github.io/vant"
+        },
+        {
+          "website_id": 109,
+          "name": "DaisyUI",
+          "url": "https://daisyui.com"
+        },
+        {
+          "website_id": 148,
+          "name": "Iconify",
+          "url": "https://iconify.design"
+        },
+        {
+          "website_id": 150,
+          "name": "Heroicons",
+          "url": "https://heroicons.com"
+        },
+        {
+          "website_id": 301,
+          "name": "PrimeVue",
+          "url": "https://primevue.org"
+        },
+        {
+          "website_id": 303,
+          "name": "Mantine",
+          "url": "https://mantine.dev"
+        },
+        {
+          "website_id": 304,
+          "name": "NextUI",
+          "url": "https://nextui.org"
+        },
+        {
+          "website_id": 449,
+          "name": "Ionic",
+          "url": "https://ionicframework.com"
+        },
+        {
+          "website_id": 462,
+          "name": "Aceternity UI",
+          "url": "https://ui.aceternity.com"
+        },
+        {
+          "website_id": 702,
+          "name": "PrimeReact",
+          "url": "https://primereact.org"
+        },
+        {
+          "website_id": 703,
+          "name": "TDesign",
+          "url": "https://tdesign.tencent.com"
+        },
+        {
+          "website_id": 704,
+          "name": "NutUI",
+          "url": "https://nutui.jd.com"
+        },
+        {
+          "website_id": 705,
+          "name": "Ant Design Vue",
+          "url": "https://www.antdv.com"
+        },
+        {
+          "website_id": 706,
+          "name": "React Aria",
+          "url": "https://react-spectrum.adobe.com/react-aria"
+        },
+        {
+          "website_id": 707,
+          "name": "React Bootstrap",
+          "url": "https://react-bootstrap.github.io"
+        },
+        {
+          "website_id": 708,
+          "name": "React Hook Form",
+          "url": "https://react-hook-form.com"
+        },
+        {
+          "website_id": 709,
+          "name": "VueUse",
+          "url": "https://vueuse.org"
+        },
+        {
+          "website_id": 710,
+          "name": "Floating UI",
+          "url": "https://floating-ui.com"
+        },
+        {
+          "website_id": 711,
+          "name": "Motion",
+          "url": "https://motion.dev"
+        },
+        {
+          "website_id": 712,
+          "name": "HeroUI",
+          "url": "https://www.heroui.com"
+        },
+        {
+          "website_id": 713,
+          "name": "dnd kit",
+          "url": "https://www.dndkit.com"
+        },
+        {
+          "website_id": 714,
+          "name": "Solid UI",
+          "url": "https://www.solid-ui.com"
+        },
+        {
+          "website_id": 715,
+          "name": "Kobalte",
+          "url": "https://www.kobalte.dev"
+        },
+        {
+          "website_id": 716,
+          "name": "Ark UI",
+          "url": "https://ark-ui.com"
+        },
+        {
+          "website_id": 717,
+          "name": "Ariakit",
+          "url": "https://ariakit.org"
+        },
+        {
+          "website_id": 718,
+          "name": "Reach UI",
+          "url": "https://reach.tech"
+        }
+      ]
+    },
+    {
+      "description": "提供前端构建、代码质量或依赖管理能力。",
+      "count": 25,
+      "websites": [
+        {
+          "website_id": 121,
+          "name": "ESLint",
+          "url": "https://eslint.org"
+        },
+        {
+          "website_id": 122,
+          "name": "Prettier",
+          "url": "https://prettier.io"
+        },
+        {
+          "website_id": 127,
+          "name": "pnpm",
+          "url": "https://pnpm.io"
+        },
+        {
+          "website_id": 131,
+          "name": "Biome",
+          "url": "https://biomejs.dev"
+        },
+        {
+          "website_id": 314,
+          "name": "Husky",
+          "url": "https://typicode.github.io/husky"
+        },
+        {
+          "website_id": 316,
+          "name": "Changesets",
+          "url": "https://github.com/changesets/changesets"
+        },
+        {
+          "website_id": 317,
+          "name": "Nx",
+          "url": "https://nx.dev"
+        },
+        {
+          "website_id": 837,
+          "name": "esbuild",
+          "url": "https://esbuild.github.io"
+        },
+        {
+          "website_id": 838,
+          "name": "SWC",
+          "url": "https://swc.rs"
+        },
+        {
+          "website_id": 839,
+          "name": "Yarn",
+          "url": "https://yarnpkg.com"
+        },
+        {
+          "website_id": 840,
+          "name": "Babel",
+          "url": "https://babeljs.io"
+        },
+        {
+          "website_id": 841,
+          "name": "Rome Tools",
+          "url": "https://rome.tools"
+        },
+        {
+          "website_id": 842,
+          "name": "Stylelint",
+          "url": "https://stylelint.io"
+        },
+        {
+          "website_id": 843,
+          "name": "lint-staged",
+          "url": "https://github.com/lint-staged/lint-staged"
+        },
+        {
+          "website_id": 844,
+          "name": "Release Please",
+          "url": "https://github.com/googleapis/release-please"
+        },
+        {
+          "website_id": 845,
+          "name": "Volta",
+          "url": "https://volta.sh"
+        },
+        {
+          "website_id": 846,
+          "name": "nvm",
+          "url": "https://github.com/nvm-sh/nvm"
+        },
+        {
+          "website_id": 847,
+          "name": "Corepack",
+          "url": "https://nodejs.org/api/corepack.html"
+        },
+        {
+          "website_id": 848,
+          "name": "npm Docs",
+          "url": "https://docs.npmjs.com"
+        },
+        {
+          "website_id": 901,
+          "name": "Gulp",
+          "url": "https://gulpjs.com"
+        },
+        {
+          "website_id": 902,
+          "name": "Grunt",
+          "url": "https://gruntjs.com"
+        },
+        {
+          "website_id": 903,
+          "name": "Lerna",
+          "url": "https://lerna.js.org"
+        },
+        {
+          "website_id": 904,
+          "name": "Bazel",
+          "url": "https://bazel.build"
+        },
+        {
+          "website_id": 940,
+          "name": "Buck2",
+          "url": "https://buck2.build"
+        },
+        {
+          "website_id": 941,
+          "name": "Just",
+          "url": "https://just.systems"
+        }
+      ]
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 25,
+      "websites": [
+        {
+          "website_id": 51,
+          "name": "TinyPNG",
+          "url": "https://tinypng.com"
+        },
+        {
+          "website_id": 52,
+          "name": "Squoosh",
+          "url": "https://squoosh.app"
+        },
+        {
+          "website_id": 146,
+          "name": "Freepik",
+          "url": "https://www.freepik.com"
+        },
+        {
+          "website_id": 151,
+          "name": "unDraw",
+          "url": "https://undraw.co"
+        },
+        {
+          "website_id": 152,
+          "name": "Storyset",
+          "url": "https://storyset.com"
+        },
+        {
+          "website_id": 171,
+          "name": "Adobe Color",
+          "url": "https://color.adobe.com"
+        },
+        {
+          "website_id": 175,
+          "name": "Realtime Colors",
+          "url": "https://www.realtimecolors.com"
+        },
+        {
+          "website_id": 324,
+          "name": "SVG Repo",
+          "url": "https://www.svgrepo.com"
+        },
+        {
+          "website_id": 482,
+          "name": "Open Doodles",
+          "url": "https://www.opendoodles.com"
+        },
+        {
+          "website_id": 483,
+          "name": "Humaaans",
+          "url": "https://www.humaaans.com"
+        },
+        {
+          "website_id": 484,
+          "name": "DrawKit",
+          "url": "https://www.drawkit.com"
+        },
+        {
+          "website_id": 485,
+          "name": "Vecteezy",
+          "url": "https://www.vecteezy.com"
+        },
+        {
+          "website_id": 719,
+          "name": "Unsplash Source",
+          "url": "https://source.unsplash.com"
+        },
+        {
+          "website_id": 720,
+          "name": "Burst",
+          "url": "https://burst.shopify.com"
+        },
+        {
+          "website_id": 721,
+          "name": "Kaboompics",
+          "url": "https://kaboompics.com"
+        },
+        {
+          "website_id": 722,
+          "name": "StockSnap",
+          "url": "https://stocksnap.io"
+        },
+        {
+          "website_id": 723,
+          "name": "Reshot",
+          "url": "https://www.reshot.com"
+        },
+        {
+          "website_id": 724,
+          "name": "ManyPixels",
+          "url": "https://www.manypixels.co"
+        },
+        {
+          "website_id": 725,
+          "name": "Fontsource",
+          "url": "https://fontsource.org"
+        },
+        {
+          "website_id": 726,
+          "name": "1001 Fonts",
+          "url": "https://www.1001fonts.com"
+        },
+        {
+          "website_id": 727,
+          "name": "Huemint",
+          "url": "https://huemint.com"
+        },
+        {
+          "website_id": 728,
+          "name": "Simple Icons",
+          "url": "https://simpleicons.org"
+        },
+        {
+          "website_id": 729,
+          "name": "Rawpixel",
+          "url": "https://www.rawpixel.com"
+        },
+        {
+          "website_id": 730,
+          "name": "VectorStock",
+          "url": "https://www.vectorstock.com"
+        },
+        {
+          "website_id": 731,
+          "name": "Iconscout",
+          "url": "https://iconscout.com"
+        }
+      ]
+    },
+    {
+      "description": "提供字体、色彩和无障碍视觉检查资源。",
+      "count": 25,
+      "websites": [
+        {
+          "website_id": 168,
+          "name": "Adobe Fonts",
+          "url": "https://fonts.adobe.com"
+        },
+        {
+          "website_id": 173,
+          "name": "Gradient Hunt",
+          "url": "https://gradienthunt.com"
+        },
+        {
+          "website_id": 176,
+          "name": "Fontpair",
+          "url": "https://www.fontpair.co"
+        },
+        {
+          "website_id": 337,
+          "name": "Paletton",
+          "url": "https://paletton.com"
+        },
+        {
+          "website_id": 491,
+          "name": "Fontshare",
+          "url": "https://www.fontshare.com"
+        },
+        {
+          "website_id": 865,
+          "name": "Font Squirrel",
+          "url": "https://www.fontsquirrel.com"
+        },
+        {
+          "website_id": 866,
+          "name": "Typewolf",
+          "url": "https://www.typewolf.com"
+        },
+        {
+          "website_id": 867,
+          "name": "Typograph",
+          "url": "https://typograph.app"
+        },
+        {
+          "website_id": 868,
+          "name": "Fonts In Use",
+          "url": "https://fontsinuse.com"
+        },
+        {
+          "website_id": 869,
+          "name": "Fontfabric",
+          "url": "https://www.fontfabric.com"
+        },
+        {
+          "website_id": 870,
+          "name": "Lost Type",
+          "url": "https://www.losttype.com"
+        },
+        {
+          "website_id": 871,
+          "name": "Colophon Foundry",
+          "url": "https://www.colophon-foundry.org"
+        },
+        {
+          "website_id": 872,
+          "name": "Type.today",
+          "url": "https://type.today"
+        },
+        {
+          "website_id": 873,
+          "name": "ColorSpace",
+          "url": "https://mycolor.space"
+        },
+        {
+          "website_id": 874,
+          "name": "Colorable",
+          "url": "https://colorable.jxnblk.com"
+        },
+        {
+          "website_id": 875,
+          "name": "Contrast Checker",
+          "url": "https://webaim.org/resources/contrastchecker"
+        },
+        {
+          "website_id": 876,
+          "name": "Accessible Colors",
+          "url": "https://accessible-colors.com"
+        },
+        {
+          "website_id": 877,
+          "name": "ColorZilla",
+          "url": "https://www.colorzilla.com"
+        },
+        {
+          "website_id": 878,
+          "name": "Mesh Gradients",
+          "url": "https://meshgradient.com"
+        },
+        {
+          "website_id": 909,
+          "name": "Fontspring",
+          "url": "https://www.fontspring.com"
+        },
+        {
+          "website_id": 910,
+          "name": "Fonts.com",
+          "url": "https://www.fonts.com"
+        },
+        {
+          "website_id": 911,
+          "name": "Typekit",
+          "url": "https://typekit.com"
+        },
+        {
+          "website_id": 912,
+          "name": "MyFonts",
+          "url": "https://www.myfonts.com"
+        },
+        {
+          "website_id": 913,
+          "name": "FontSpace",
+          "url": "https://www.fontspace.com"
+        },
+        {
+          "website_id": 914,
+          "name": "Abstract Fonts",
+          "url": "https://www.abstractfonts.com"
+        }
+      ]
+    },
+    {
+      "description": "提供开发调试、格式转换或性能检查工具。",
+      "count": 23,
+      "websites": [
+        {
+          "website_id": 54,
+          "name": "Regex101",
+          "url": "https://regex101.com"
+        },
+        {
+          "website_id": 55,
+          "name": "Can I Use",
+          "url": "https://caniuse.com"
+        },
+        {
+          "website_id": 244,
+          "name": "Postman",
+          "url": "https://www.postman.com"
+        },
+        {
+          "website_id": 849,
+          "name": "Insomnia",
+          "url": "https://insomnia.rest"
+        },
+        {
+          "website_id": 850,
+          "name": "Hoppscotch",
+          "url": "https://hoppscotch.io"
+        },
+        {
+          "website_id": 851,
+          "name": "JSON Formatter",
+          "url": "https://jsonformatter.org"
+        },
+        {
+          "website_id": 852,
+          "name": "JSON Crack",
+          "url": "https://jsoncrack.com"
+        },
+        {
+          "website_id": 853,
+          "name": "JWT.io",
+          "url": "https://jwt.io"
+        },
+        {
+          "website_id": 854,
+          "name": "Base64 Guru",
+          "url": "https://base64.guru"
+        },
+        {
+          "website_id": 855,
+          "name": "URL Encode Decode",
+          "url": "https://www.url-encode-decode.com"
+        },
+        {
+          "website_id": 856,
+          "name": "Diffchecker",
+          "url": "https://www.diffchecker.com"
+        },
+        {
+          "website_id": 857,
+          "name": "Bundlephobia",
+          "url": "https://bundlephobia.com"
+        },
+        {
+          "website_id": 858,
+          "name": "npm Trends",
+          "url": "https://npmtrends.com"
+        },
+        {
+          "website_id": 859,
+          "name": "HTTP Status Dogs",
+          "url": "https://httpstatusdogs.com"
+        },
+        {
+          "website_id": 860,
+          "name": "WebPageTest",
+          "url": "https://www.webpagetest.org"
+        },
+        {
+          "website_id": 861,
+          "name": "PageSpeed Insights",
+          "url": "https://pagespeed.web.dev"
+        },
+        {
+          "website_id": 862,
+          "name": "GTmetrix",
+          "url": "https://gtmetrix.com"
+        },
+        {
+          "website_id": 863,
+          "name": "SVGOMG",
+          "url": "https://jakearchibald.github.io/svgomg"
+        },
+        {
+          "website_id": 864,
+          "name": "Favicon Generator",
+          "url": "https://favicon.io"
+        },
+        {
+          "website_id": 905,
+          "name": "XML Validation",
+          "url": "https://www.xmlvalidation.com"
+        },
+        {
+          "website_id": 906,
+          "name": "HTML5 Editor",
+          "url": "https://www.html5editor.net"
+        },
+        {
+          "website_id": 907,
+          "name": "Hastebin",
+          "url": "https://www.toptal.com/developers/hastebin"
+        },
+        {
+          "website_id": 908,
+          "name": "Pastebin",
+          "url": "https://pastebin.com"
+        }
+      ]
+    },
+    {
+      "description": "用于任务安排、时间管理或个人效率提升。",
+      "count": 12,
+      "websites": [
+        {
+          "website_id": 928,
+          "name": "Focuster",
+          "url": "https://www.focuster.com"
+        },
+        {
+          "website_id": 929,
+          "name": "Due",
+          "url": "https://www.dueapp.com"
+        },
+        {
+          "website_id": 930,
+          "name": "OmniFocus",
+          "url": "https://www.omnigroup.com/omnifocus"
+        },
+        {
+          "website_id": 931,
+          "name": "Focus To-Do",
+          "url": "https://www.focustodo.cn"
+        },
+        {
+          "website_id": 932,
+          "name": "Sunsama",
+          "url": "https://www.sunsama.com"
+        },
+        {
+          "website_id": 933,
+          "name": "Akiflow",
+          "url": "https://akiflow.com"
+        },
+        {
+          "website_id": 934,
+          "name": "Routine",
+          "url": "https://routine.co"
+        },
+        {
+          "website_id": 935,
+          "name": "Amplenote",
+          "url": "https://www.amplenote.com"
+        },
+        {
+          "website_id": 936,
+          "name": "SkedPal",
+          "url": "https://skedpal.com"
+        },
+        {
+          "website_id": 937,
+          "name": "Timeular",
+          "url": "https://timeular.com"
+        },
+        {
+          "website_id": 938,
+          "name": "Pumble",
+          "url": "https://pumble.com"
+        },
+        {
+          "website_id": 939,
+          "name": "Quire",
+          "url": "https://quire.io"
+        }
+      ]
+    },
+    {
+      "description": "提供产品原型、线框或交互协作能力。",
+      "count": 3,
+      "websites": [
+        {
+          "website_id": 331,
+          "name": "Mockup World",
+          "url": "https://www.mockupworld.co"
+        },
+        {
+          "website_id": 926,
+          "name": "InVision Freehand",
+          "url": "https://www.invisionapp.com/freehand"
+        },
+        {
+          "website_id": 942,
+          "name": "Prototypr",
+          "url": "https://prototypr.io"
+        }
+      ]
+    },
+    {
+      "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 27,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org"
+        },
+        {
+          "website_id": 522,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org"
+        }
+      ]
+    },
+    {
+      "description": "用于发现、使用和分享机器学习资源。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 82,
+          "name": "Hugging Face",
+          "url": "https://huggingface.co"
+        },
+        {
+          "website_id": 519,
+          "name": "Hugging Face",
+          "url": "https://huggingface.co"
+        }
+      ]
+    },
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 20,
+          "name": "GitHub",
+          "url": "https://github.com"
+        },
+        {
+          "website_id": 518,
+          "name": "GitHub",
+          "url": "https://github.com"
+        }
+      ]
+    },
+    {
+      "description": "用于构建、预览和部署现代 Web 应用。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 34,
+          "name": "Vercel",
+          "url": "https://vercel.com"
+        },
+        {
+          "website_id": 520,
+          "name": "Vercel",
+          "url": "https://vercel.com"
+        }
+      ]
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 26,
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com"
+        },
+        {
+          "website_id": 523,
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com"
+        }
+      ]
+    },
+    {
+      "description": "用于界面设计、原型制作和团队评审。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 65,
+          "name": "Figma",
+          "url": "https://www.figma.com"
+        },
+        {
+          "website_id": 521,
+          "name": "Figma",
+          "url": "https://www.figma.com"
+        }
+      ]
+    },
+    {
+      "description": "用于知识管理、项目规划和团队文档协作。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 56,
+          "name": "Notion",
+          "url": "https://www.notion.so"
+        },
+        {
+          "website_id": 525,
+          "name": "Notion",
+          "url": "https://www.notion.so"
+        }
+      ]
+    },
+    {
+      "description": "用于视觉探索、概念设计和图像创作。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 75,
+          "name": "Midjourney",
+          "url": "https://www.midjourney.com"
+        },
+        {
+          "website_id": 524,
+          "name": "Midjourney",
+          "url": "https://www.midjourney.com"
+        }
+      ]
+    },
+    {
+      "description": "用于问答、写作、编程与日常工作辅助。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 66,
+          "name": "ChatGPT",
+          "url": "https://chat.openai.com"
+        },
+        {
+          "website_id": 516,
+          "name": "ChatGPT",
+          "url": "https://chatgpt.com"
+        }
+      ]
+    },
+    {
+      "description": "适合长文理解、内容创作和复杂任务分析。",
+      "count": 2,
+      "websites": [
+        {
+          "website_id": 67,
+          "name": "Claude",
+          "url": "https://claude.ai"
+        },
+        {
+          "website_id": 517,
+          "name": "Claude",
+          "url": "https://claude.ai"
+        }
+      ]
+    }
+  ],
+  "high_similarity_groups": [
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 141,
+          "name": "Lapa Ninja",
+          "url": "https://www.lapa.ninja"
+        },
+        {
+          "website_id": 144,
+          "name": "Godly",
+          "url": "https://godly.website"
+        },
+        {
+          "website_id": 318,
+          "name": "Collect UI",
+          "url": "https://collectui.com"
+        },
+        {
+          "website_id": 320,
+          "name": "Screenlane",
+          "url": "https://screenlane.com"
+        },
+        {
+          "website_id": 476,
+          "name": "Minimal Gallery",
+          "url": "https://minimal.gallery"
+        },
+        {
+          "website_id": 477,
+          "name": "Httpster",
+          "url": "https://httpster.net"
+        },
+        {
+          "website_id": 480,
+          "name": "Dark Mode Design",
+          "url": "https://www.darkmodedesign.com"
+        },
+        {
+          "website_id": 635,
+          "name": "SiteInspire",
+          "url": "https://www.siteinspire.com"
+        },
+        {
+          "website_id": 636,
+          "name": "UI Garage",
+          "url": "https://uigarage.net"
+        },
+        {
+          "website_id": 637,
+          "name": "CSS Design Awards",
+          "url": "https://www.cssdesignawards.com"
+        },
+        {
+          "website_id": 638,
+          "name": "CSS Winner",
+          "url": "https://www.csswinner.com"
+        },
+        {
+          "website_id": 639,
+          "name": "UIJar",
+          "url": "https://uijar.com"
+        },
+        {
+          "website_id": 640,
+          "name": "Really Good UX",
+          "url": "https://www.reallygoodux.io"
+        },
+        {
+          "website_id": 641,
+          "name": "Page Flows",
+          "url": "https://pageflows.com"
+        },
+        {
+          "website_id": 642,
+          "name": "Refero",
+          "url": "https://refero.design"
+        },
+        {
+          "website_id": 643,
+          "name": "SaaSFrame",
+          "url": "https://www.saasframe.io"
+        },
+        {
+          "website_id": 644,
+          "name": "Nicely Done",
+          "url": "https://nicelydone.club"
+        },
+        {
+          "website_id": 645,
+          "name": "Fresh Folk",
+          "url": "https://fresh-folk.com"
+        },
+        {
+          "website_id": 646,
+          "name": "Brand New",
+          "url": "https://www.underconsideration.com/brandnew"
+        },
+        {
+          "website_id": 647,
+          "name": "LogoLounge",
+          "url": "https://www.logolounge.com"
+        },
+        {
+          "website_id": 648,
+          "name": "Dribbble Shots",
+          "url": "https://dribbble.com/shots"
+        },
+        {
+          "website_id": 649,
+          "name": "Pinterest Design",
+          "url": "https://www.pinterest.com/categories/design"
+        },
+        {
+          "website_id": 650,
+          "name": "Landingfolio",
+          "url": "https://www.landingfolio.com"
+        },
+        {
+          "website_id": 651,
+          "name": "Design Better",
+          "url": "https://www.designbetter.co"
+        },
+        {
+          "website_id": 652,
+          "name": "Design Systems",
+          "url": "https://www.designsystems.com"
+        },
+        {
+          "website_id": 653,
+          "name": "Uplabs",
+          "url": "https://www.uplabs.com"
+        },
+        {
+          "website_id": 654,
+          "name": "UI Patterns",
+          "url": "https://www.ui-patterns.com"
+        },
+        {
+          "website_id": 655,
+          "name": "Mobile Patterns",
+          "url": "https://www.mobile-patterns.com"
+        },
+        {
+          "website_id": 656,
+          "name": "Web Design Inspiration",
+          "url": "https://www.webdesign-inspiration.com"
+        },
+        {
+          "website_id": 657,
+          "name": "Design Notes",
+          "url": "https://www.designnotes.co"
+        }
+      ]
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 277,
+          "name": "Pika",
+          "url": "https://pika.art"
+        },
+        {
+          "website_id": 281,
+          "name": "Adobe Firefly",
+          "url": "https://firefly.adobe.com"
+        },
+        {
+          "website_id": 283,
+          "name": "ElevenLabs",
+          "url": "https://elevenlabs.io"
+        },
+        {
+          "website_id": 286,
+          "name": "Ideogram",
+          "url": "https://ideogram.ai"
+        },
+        {
+          "website_id": 289,
+          "name": "LangChain",
+          "url": "https://www.langchain.com"
+        },
+        {
+          "website_id": 290,
+          "name": "OpenRouter",
+          "url": "https://openrouter.ai"
+        },
+        {
+          "website_id": 291,
+          "name": "Together AI",
+          "url": "https://www.together.ai"
+        },
+        {
+          "website_id": 437,
+          "name": "Groq",
+          "url": "https://groq.com"
+        },
+        {
+          "website_id": 438,
+          "name": "Replicate",
+          "url": "https://replicate.com"
+        },
+        {
+          "website_id": 441,
+          "name": "Leonardo AI",
+          "url": "https://leonardo.ai"
+        },
+        {
+          "website_id": 442,
+          "name": "Playground AI",
+          "url": "https://playground.com"
+        },
+        {
+          "website_id": 443,
+          "name": "Gamma",
+          "url": "https://gamma.app"
+        },
+        {
+          "website_id": 617,
+          "name": "Poe",
+          "url": "https://poe.com"
+        },
+        {
+          "website_id": 618,
+          "name": "Character.AI",
+          "url": "https://character.ai"
+        },
+        {
+          "website_id": 619,
+          "name": "You.com",
+          "url": "https://you.com"
+        },
+        {
+          "website_id": 620,
+          "name": "Phind",
+          "url": "https://www.phind.com"
+        },
+        {
+          "website_id": 621,
+          "name": "Mistral Le Chat",
+          "url": "https://chat.mistral.ai"
+        },
+        {
+          "website_id": 622,
+          "name": "Cohere",
+          "url": "https://cohere.com"
+        },
+        {
+          "website_id": 623,
+          "name": "AI21 Labs",
+          "url": "https://www.ai21.com"
+        },
+        {
+          "website_id": 624,
+          "name": "Ollama",
+          "url": "https://ollama.com"
+        },
+        {
+          "website_id": 625,
+          "name": "LM Studio",
+          "url": "https://lmstudio.ai"
+        },
+        {
+          "website_id": 626,
+          "name": "LlamaIndex",
+          "url": "https://www.llamaindex.ai"
+        },
+        {
+          "website_id": 627,
+          "name": "Weights & Biases",
+          "url": "https://wandb.ai"
+        },
+        {
+          "website_id": 628,
+          "name": "MLflow",
+          "url": "https://mlflow.org"
+        },
+        {
+          "website_id": 629,
+          "name": "ComfyUI",
+          "url": "https://github.com/comfyanonymous/ComfyUI"
+        },
+        {
+          "website_id": 630,
+          "name": "Canva Magic Studio",
+          "url": "https://www.canva.com/magic-studio"
+        },
+        {
+          "website_id": 631,
+          "name": "Luma Dream Machine",
+          "url": "https://lumalabs.ai/dream-machine"
+        },
+        {
+          "website_id": 632,
+          "name": "HeyGen",
+          "url": "https://www.heygen.com"
+        },
+        {
+          "website_id": 633,
+          "name": "Suno",
+          "url": "https://suno.com"
+        },
+        {
+          "website_id": 634,
+          "name": "NotebookLM",
+          "url": "https://notebooklm.google.com"
+        }
+      ]
+    },
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 95,
+          "name": "Astro",
+          "url": "https://astro.build"
+        },
+        {
+          "website_id": 96,
+          "name": "SolidJS",
+          "url": "https://www.solidjs.com"
+        },
+        {
+          "website_id": 97,
+          "name": "Remix",
+          "url": "https://remix.run"
+        },
+        {
+          "website_id": 128,
+          "name": "Rollup",
+          "url": "https://rollupjs.org"
+        },
+        {
+          "website_id": 129,
+          "name": "Bun",
+          "url": "https://bun.sh"
+        },
+        {
+          "website_id": 292,
+          "name": "Deno",
+          "url": "https://deno.com"
+        },
+        {
+          "website_id": 294,
+          "name": "Qwik",
+          "url": "https://qwik.dev"
+        },
+        {
+          "website_id": 299,
+          "name": "Tauri",
+          "url": "https://tauri.app"
+        },
+        {
+          "website_id": 595,
+          "name": "Ember.js",
+          "url": "https://emberjs.com"
+        },
+        {
+          "website_id": 596,
+          "name": "Ruby",
+          "url": "https://www.ruby-lang.org/en/documentation"
+        },
+        {
+          "website_id": 597,
+          "name": "Rails",
+          "url": "https://guides.rubyonrails.org"
+        },
+        {
+          "website_id": 598,
+          "name": "Django",
+          "url": "https://docs.djangoproject.com"
+        },
+        {
+          "website_id": 599,
+          "name": "FastAPI",
+          "url": "https://fastapi.tiangolo.com"
+        },
+        {
+          "website_id": 600,
+          "name": "Flask",
+          "url": "https://flask.palletsprojects.com"
+        },
+        {
+          "website_id": 601,
+          "name": "Go",
+          "url": "https://go.dev/doc"
+        },
+        {
+          "website_id": 602,
+          "name": "Rust",
+          "url": "https://www.rust-lang.org/learn"
+        },
+        {
+          "website_id": 603,
+          "name": "Kotlin",
+          "url": "https://kotlinlang.org/docs/home.html"
+        },
+        {
+          "website_id": 604,
+          "name": "Java",
+          "url": "https://dev.java/learn"
+        },
+        {
+          "website_id": 605,
+          "name": "C#",
+          "url": "https://learn.microsoft.com/dotnet/csharp"
+        },
+        {
+          "website_id": 606,
+          "name": ".NET",
+          "url": "https://learn.microsoft.com/dotnet"
+        },
+        {
+          "website_id": 607,
+          "name": "Flutter",
+          "url": "https://docs.flutter.dev"
+        },
+        {
+          "website_id": 608,
+          "name": "Dart",
+          "url": "https://dart.dev/guides"
+        },
+        {
+          "website_id": 609,
+          "name": "Swift",
+          "url": "https://www.swift.org/documentation"
+        },
+        {
+          "website_id": 610,
+          "name": "Android Developers",
+          "url": "https://developer.android.com"
+        },
+        {
+          "website_id": 611,
+          "name": "Electron",
+          "url": "https://www.electronjs.org/docs/latest"
+        },
+        {
+          "website_id": 612,
+          "name": "Tailwind CSS",
+          "url": "https://tailwindcss.com/docs"
+        },
+        {
+          "website_id": 613,
+          "name": "Bootstrap",
+          "url": "https://getbootstrap.com/docs"
+        },
+        {
+          "website_id": 614,
+          "name": "PostCSS",
+          "url": "https://postcss.org"
+        },
+        {
+          "website_id": 615,
+          "name": "Storybook",
+          "url": "https://storybook.js.org/docs"
+        },
+        {
+          "website_id": 616,
+          "name": "Parcel",
+          "url": "https://parceljs.org"
+        }
+      ]
+    },
+    {
+      "description": "用于竞品信息、市场趋势或产品技术栈调研。",
+      "count": 30,
+      "websites": [
+        {
+          "website_id": 205,
+          "name": "SimilarWeb",
+          "url": "https://www.similarweb.com"
+        },
+        {
+          "website_id": 354,
+          "name": "Crunchbase",
+          "url": "https://www.crunchbase.com"
+        },
+        {
+          "website_id": 355,
+          "name": "G2",
+          "url": "https://www.g2.com"
+        },
+        {
+          "website_id": 356,
+          "name": "Capterra",
+          "url": "https://www.capterra.com"
+        },
+        {
+          "website_id": 511,
+          "name": "BuiltWith",
+          "url": "https://builtwith.com"
+        },
+        {
+          "website_id": 512,
+          "name": "Wappalyzer",
+          "url": "https://www.wappalyzer.com"
+        },
+        {
+          "website_id": 513,
+          "name": "SpyFu",
+          "url": "https://www.spyfu.com"
+        },
+        {
+          "website_id": 514,
+          "name": "SEMrush",
+          "url": "https://www.semrush.com"
+        },
+        {
+          "website_id": 515,
+          "name": "Ahrefs",
+          "url": "https://ahrefs.com"
+        },
+        {
+          "website_id": 879,
+          "name": "Dealroom",
+          "url": "https://dealroom.co"
+        },
+        {
+          "website_id": 880,
+          "name": "Tracxn",
+          "url": "https://tracxn.com"
+        },
+        {
+          "website_id": 881,
+          "name": "Owler",
+          "url": "https://www.owler.com"
+        },
+        {
+          "website_id": 882,
+          "name": "Exploding Topics",
+          "url": "https://explodingtopics.com"
+        },
+        {
+          "website_id": 883,
+          "name": "Google Trends",
+          "url": "https://trends.google.com"
+        },
+        {
+          "website_id": 884,
+          "name": "AnswerThePublic",
+          "url": "https://answerthepublic.com"
+        },
+        {
+          "website_id": 885,
+          "name": "SparkToro",
+          "url": "https://sparktoro.com"
+        },
+        {
+          "website_id": 886,
+          "name": "Social Blade",
+          "url": "https://socialblade.com"
+        },
+        {
+          "website_id": 887,
+          "name": "Meta Ad Library",
+          "url": "https://www.facebook.com/ads/library"
+        },
+        {
+          "website_id": 888,
+          "name": "TikTok Creative Center",
+          "url": "https://ads.tiktok.com/business/creativecenter"
+        },
+        {
+          "website_id": 889,
+          "name": "SimilarTech",
+          "url": "https://www.similartech.com"
+        },
+        {
+          "website_id": 915,
+          "name": "CB Insights",
+          "url": "https://www.cbinsights.com"
+        },
+        {
+          "website_id": 916,
+          "name": "PitchBook",
+          "url": "https://pitchbook.com"
+        },
+        {
+          "website_id": 917,
+          "name": "Consumer Barometer",
+          "url": "https://www.consumerbarometer.com"
+        },
+        {
+          "website_id": 918,
+          "name": "Google Market Finder",
+          "url": "https://marketfinder.thinkwithgoogle.com"
+        },
+        {
+          "website_id": 919,
+          "name": "SEMrush Traffic Analytics",
+          "url": "https://www.semrush.com/analytics/traffic"
+        },
+        {
+          "website_id": 920,
+          "name": "Wappalyzer Lookup",
+          "url": "https://www.wappalyzer.com/lookup"
+        },
+        {
+          "website_id": 921,
+          "name": "Similarweb Website",
+          "url": "https://www.similarweb.com/website"
+        },
+        {
+          "website_id": 922,
+          "name": "BuiltWith Trends",
+          "url": "https://trends.builtwith.com"
+        },
+        {
+          "website_id": 923,
+          "name": "ProductPlan",
+          "url": "https://www.productplan.com"
+        },
+        {
+          "website_id": 924,
+          "name": "UserVoice",
+          "url": "https://www.uservoice.com"
+        }
+      ]
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 29,
+      "websites": [
+        {
+          "website_id": 140,
+          "name": "UI8",
+          "url": "https://ui8.net"
+        },
+        {
+          "website_id": 181,
+          "name": "Balsamiq",
+          "url": "https://balsamiq.com"
+        },
+        {
+          "website_id": 340,
+          "name": "InVision",
+          "url": "https://www.invisionapp.com"
+        },
+        {
+          "website_id": 341,
+          "name": "Marvel",
+          "url": "https://marvelapp.com"
+        },
+        {
+          "website_id": 343,
+          "name": "Overflow",
+          "url": "https://overflow.io"
+        },
+        {
+          "website_id": 424,
+          "name": "Miro",
+          "url": "https://miro.com"
+        },
+        {
+          "website_id": 486,
+          "name": "Mockflow",
+          "url": "https://www.mockflow.com"
+        },
+        {
+          "website_id": 487,
+          "name": "Uizard",
+          "url": "https://uizard.io"
+        },
+        {
+          "website_id": 488,
+          "name": "Visily",
+          "url": "https://www.visily.ai"
+        },
+        {
+          "website_id": 496,
+          "name": "UXPin",
+          "url": "https://www.uxpin.com"
+        },
+        {
+          "website_id": 498,
+          "name": "Origami Studio",
+          "url": "https://origami.design"
+        },
+        {
+          "website_id": 658,
+          "name": "Lucidchart",
+          "url": "https://www.lucidchart.com"
+        },
+        {
+          "website_id": 659,
+          "name": "Mockplus",
+          "url": "https://www.mockplus.com"
+        },
+        {
+          "website_id": 660,
+          "name": "Milanote",
+          "url": "https://milanote.com"
+        },
+        {
+          "website_id": 661,
+          "name": "FlowMapp",
+          "url": "https://flowmapp.com"
+        },
+        {
+          "website_id": 662,
+          "name": "FigJam",
+          "url": "https://www.figma.com/figjam"
+        },
+        {
+          "website_id": 663,
+          "name": "Figma Slides",
+          "url": "https://www.figma.com/slides"
+        },
+        {
+          "website_id": 664,
+          "name": "Relume",
+          "url": "https://www.relume.io"
+        },
+        {
+          "website_id": 665,
+          "name": "Siter.io",
+          "url": "https://siter.io"
+        },
+        {
+          "website_id": 666,
+          "name": "Webflow",
+          "url": "https://webflow.com"
+        },
+        {
+          "website_id": 667,
+          "name": "Bubble",
+          "url": "https://bubble.io"
+        },
+        {
+          "website_id": 668,
+          "name": "Wix Studio",
+          "url": "https://www.wix.com/studio"
+        },
+        {
+          "website_id": 669,
+          "name": "Framer Templates",
+          "url": "https://www.framer.com/marketplace"
+        },
+        {
+          "website_id": 670,
+          "name": "Wireframe.cc",
+          "url": "https://wireframe.cc"
+        },
+        {
+          "website_id": 671,
+          "name": "InVision Studio",
+          "url": "https://www.invisionapp.com/studio"
+        },
+        {
+          "website_id": 672,
+          "name": "Flowchart Fun",
+          "url": "https://flowchart.fun"
+        },
+        {
+          "website_id": 673,
+          "name": "Figma Community",
+          "url": "https://www.figma.com/community"
+        },
+        {
+          "website_id": 674,
+          "name": "Mockuuups Studio",
+          "url": "https://www.mockuuups.com"
+        },
+        {
+          "website_id": 675,
+          "name": "Productboard",
+          "url": "https://www.productboard.com"
+        }
+      ]
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 29,
+      "websites": [
+        {
+          "website_id": 114,
+          "name": "Chart.js",
+          "url": "https://www.chartjs.org"
+        },
+        {
+          "website_id": 116,
+          "name": "Highcharts",
+          "url": "https://www.highcharts.com"
+        },
+        {
+          "website_id": 203,
+          "name": "Metabase",
+          "url": "https://www.metabase.com"
+        },
+        {
+          "website_id": 387,
+          "name": "Grafana",
+          "url": "https://grafana.com"
+        },
+        {
+          "website_id": 802,
+          "name": "Apache Superset",
+          "url": "https://superset.apache.org"
+        },
+        {
+          "website_id": 803,
+          "name": "Redash",
+          "url": "https://redash.io"
+        },
+        {
+          "website_id": 804,
+          "name": "Qlik",
+          "url": "https://www.qlik.com"
+        },
+        {
+          "website_id": 805,
+          "name": "Sisense",
+          "url": "https://www.sisense.com"
+        },
+        {
+          "website_id": 806,
+          "name": "Domo",
+          "url": "https://www.domo.com"
+        },
+        {
+          "website_id": 807,
+          "name": "Hex",
+          "url": "https://hex.tech"
+        },
+        {
+          "website_id": 808,
+          "name": "Deepnote",
+          "url": "https://deepnote.com"
+        },
+        {
+          "website_id": 809,
+          "name": "Mode",
+          "url": "https://mode.com"
+        },
+        {
+          "website_id": 810,
+          "name": "DataCamp",
+          "url": "https://www.datacamp.com"
+        },
+        {
+          "website_id": 811,
+          "name": "Dataquest",
+          "url": "https://www.dataquest.io"
+        },
+        {
+          "website_id": 812,
+          "name": "Statista",
+          "url": "https://www.statista.com"
+        },
+        {
+          "website_id": 813,
+          "name": "Gapminder",
+          "url": "https://www.gapminder.org"
+        },
+        {
+          "website_id": 814,
+          "name": "Google Dataset Search",
+          "url": "https://datasetsearch.research.google.com"
+        },
+        {
+          "website_id": 815,
+          "name": "Data.gov",
+          "url": "https://data.gov"
+        },
+        {
+          "website_id": 816,
+          "name": "国家数据",
+          "url": "https://data.stats.gov.cn"
+        },
+        {
+          "website_id": 817,
+          "name": "World Bank Data",
+          "url": "https://data.worldbank.org"
+        },
+        {
+          "website_id": 818,
+          "name": "UN Data",
+          "url": "https://data.un.org"
+        },
+        {
+          "website_id": 819,
+          "name": "dbdiagram.io",
+          "url": "https://dbdiagram.io"
+        },
+        {
+          "website_id": 820,
+          "name": "SQLPad",
+          "url": "https://rickbergfalk.github.io/sqlpad"
+        },
+        {
+          "website_id": 821,
+          "name": "Vega",
+          "url": "https://vega.github.io/vega"
+        },
+        {
+          "website_id": 822,
+          "name": "Plotly",
+          "url": "https://plotly.com"
+        },
+        {
+          "website_id": 823,
+          "name": "From Data to Viz",
+          "url": "https://www.data-to-viz.com"
+        },
+        {
+          "website_id": 824,
+          "name": "Vega Voyager",
+          "url": "https://vega.github.io/voyager"
+        },
+        {
+          "website_id": 825,
+          "name": "中国数据开放平台",
+          "url": "https://www.data.gov.cn"
+        },
+        {
+          "website_id": 826,
+          "name": "European Data Portal",
+          "url": "https://data.europa.eu"
+        }
+      ]
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 274,
+          "name": "Replit",
+          "url": "https://replit.com"
+        },
+        {
+          "website_id": 398,
+          "name": "开源中国",
+          "url": "https://www.oschina.net"
+        },
+        {
+          "website_id": 676,
+          "name": "Codeberg",
+          "url": "https://codeberg.org"
+        },
+        {
+          "website_id": 677,
+          "name": "SourceForge",
+          "url": "https://sourceforge.net"
+        },
+        {
+          "website_id": 678,
+          "name": "Bitbucket",
+          "url": "https://bitbucket.org"
+        },
+        {
+          "website_id": 679,
+          "name": "Gerrit",
+          "url": "https://www.gerritcodereview.com"
+        },
+        {
+          "website_id": 680,
+          "name": "JSFiddle",
+          "url": "https://jsfiddle.net"
+        },
+        {
+          "website_id": 681,
+          "name": "Stack Exchange",
+          "url": "https://stackexchange.com"
+        },
+        {
+          "website_id": 682,
+          "name": "Super User",
+          "url": "https://superuser.com"
+        },
+        {
+          "website_id": 683,
+          "name": "Server Fault",
+          "url": "https://serverfault.com"
+        },
+        {
+          "website_id": 684,
+          "name": "Ask Ubuntu",
+          "url": "https://askubuntu.com"
+        },
+        {
+          "website_id": 685,
+          "name": "Hashnode",
+          "url": "https://hashnode.com"
+        },
+        {
+          "website_id": 686,
+          "name": "DZone",
+          "url": "https://dzone.com"
+        },
+        {
+          "website_id": 687,
+          "name": "InfoQ",
+          "url": "https://www.infoq.com"
+        },
+        {
+          "website_id": 688,
+          "name": "Hacker News",
+          "url": "https://news.ycombinator.com"
+        },
+        {
+          "website_id": 689,
+          "name": "Lobsters",
+          "url": "https://lobste.rs"
+        },
+        {
+          "website_id": 690,
+          "name": "HackerNoon",
+          "url": "https://hackernoon.com"
+        },
+        {
+          "website_id": 691,
+          "name": "OpenSource.com",
+          "url": "https://opensource.com"
+        },
+        {
+          "website_id": 692,
+          "name": "Linux 中国",
+          "url": "https://linux.cn"
+        },
+        {
+          "website_id": 693,
+          "name": "博客园精选",
+          "url": "https://www.cnblogs.com/pick"
+        },
+        {
+          "website_id": 694,
+          "name": "V2EX 技术区",
+          "url": "https://www.v2ex.com/go/programmer"
+        },
+        {
+          "website_id": 695,
+          "name": "CodeProject",
+          "url": "https://www.codeproject.com"
+        },
+        {
+          "website_id": 696,
+          "name": "Codeforces",
+          "url": "https://codeforces.com"
+        },
+        {
+          "website_id": 697,
+          "name": "HackerRank",
+          "url": "https://www.hackerrank.com"
+        },
+        {
+          "website_id": 698,
+          "name": "Exercism",
+          "url": "https://exercism.org"
+        },
+        {
+          "website_id": 699,
+          "name": "Gitter",
+          "url": "https://gitter.im"
+        },
+        {
+          "website_id": 700,
+          "name": "Matrix",
+          "url": "https://matrix.org"
+        },
+        {
+          "website_id": 701,
+          "name": "Zulip",
+          "url": "https://zulip.com"
+        }
+      ]
+    },
+    {
+      "description": "提供可视化、地图或三维图形开发能力。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 112,
+          "name": "D3.js",
+          "url": "https://d3js.org"
+        },
+        {
+          "website_id": 113,
+          "name": "Three.js",
+          "url": "https://threejs.org"
+        },
+        {
+          "website_id": 117,
+          "name": "Babylon.js",
+          "url": "https://www.babylonjs.com"
+        },
+        {
+          "website_id": 118,
+          "name": "Spline",
+          "url": "https://spline.design"
+        },
+        {
+          "website_id": 308,
+          "name": "Mapbox",
+          "url": "https://www.mapbox.com"
+        },
+        {
+          "website_id": 309,
+          "name": "Leaflet",
+          "url": "https://leafletjs.com"
+        },
+        {
+          "website_id": 310,
+          "name": "Deck.gl",
+          "url": "https://deck.gl"
+        },
+        {
+          "website_id": 467,
+          "name": "Vega-Lite",
+          "url": "https://vega.github.io/vega-lite"
+        },
+        {
+          "website_id": 828,
+          "name": "Kepler.gl",
+          "url": "https://kepler.gl"
+        },
+        {
+          "website_id": 829,
+          "name": "Cesium",
+          "url": "https://cesium.com"
+        },
+        {
+          "website_id": 830,
+          "name": "OpenLayers",
+          "url": "https://openlayers.org"
+        },
+        {
+          "website_id": 831,
+          "name": "MapLibre",
+          "url": "https://maplibre.org"
+        },
+        {
+          "website_id": 832,
+          "name": "Plotly.js",
+          "url": "https://plotly.com/javascript"
+        },
+        {
+          "website_id": 833,
+          "name": "p5.js",
+          "url": "https://p5js.org"
+        },
+        {
+          "website_id": 834,
+          "name": "PixiJS",
+          "url": "https://pixijs.com"
+        },
+        {
+          "website_id": 835,
+          "name": "Babylon Playground",
+          "url": "https://playground.babylonjs.com"
+        },
+        {
+          "website_id": 836,
+          "name": "Rive",
+          "url": "https://rive.app"
+        },
+        {
+          "website_id": 890,
+          "name": "MapTiler",
+          "url": "https://www.maptiler.com"
+        },
+        {
+          "website_id": 891,
+          "name": "ArcGIS",
+          "url": "https://www.arcgis.com"
+        },
+        {
+          "website_id": 892,
+          "name": "Esri",
+          "url": "https://www.esri.com"
+        },
+        {
+          "website_id": 893,
+          "name": "FusionCharts",
+          "url": "https://www.fusioncharts.com"
+        },
+        {
+          "website_id": 894,
+          "name": "amCharts",
+          "url": "https://www.amcharts.com"
+        },
+        {
+          "website_id": 895,
+          "name": "AnyChart",
+          "url": "https://www.anychart.com"
+        },
+        {
+          "website_id": 896,
+          "name": "ChartBlocks",
+          "url": "https://www.chartblocks.com"
+        },
+        {
+          "website_id": 897,
+          "name": "RAWGraphs",
+          "url": "https://www.rawgraphs.io"
+        },
+        {
+          "website_id": 898,
+          "name": "Infogram",
+          "url": "https://infogram.com"
+        },
+        {
+          "website_id": 899,
+          "name": "Visme",
+          "url": "https://www.visme.co"
+        },
+        {
+          "website_id": 900,
+          "name": "Flourish Visualization",
+          "url": "https://flourish.studio/visualisations"
+        }
+      ]
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 753,
+          "name": "Udemy",
+          "url": "https://www.udemy.com"
+        },
+        {
+          "website_id": 754,
+          "name": "FutureLearn",
+          "url": "https://www.futurelearn.com"
+        },
+        {
+          "website_id": 755,
+          "name": "OpenLearn",
+          "url": "https://www.open.edu/openlearn"
+        },
+        {
+          "website_id": 756,
+          "name": "Frontend Mentor",
+          "url": "https://www.frontendmentor.io"
+        },
+        {
+          "website_id": 757,
+          "name": "Frontend Masters",
+          "url": "https://frontendmasters.com"
+        },
+        {
+          "website_id": 758,
+          "name": "CSS-Tricks",
+          "url": "https://css-tricks.com"
+        },
+        {
+          "website_id": 759,
+          "name": "JavaScript.info",
+          "url": "https://javascript.info"
+        },
+        {
+          "website_id": 760,
+          "name": "W3Schools",
+          "url": "https://www.w3schools.com"
+        },
+        {
+          "website_id": 761,
+          "name": "Roadmap.sh",
+          "url": "https://roadmap.sh"
+        },
+        {
+          "website_id": 762,
+          "name": "Exercism Learning",
+          "url": "https://exercism.org/tracks"
+        },
+        {
+          "website_id": 763,
+          "name": "Codewars",
+          "url": "https://www.codewars.com"
+        },
+        {
+          "website_id": 764,
+          "name": "HackerRank Skills",
+          "url": "https://www.hackerrank.com/skills-directory"
+        },
+        {
+          "website_id": 765,
+          "name": "Project Euler",
+          "url": "https://projecteuler.net"
+        },
+        {
+          "website_id": 766,
+          "name": "The Odin Project",
+          "url": "https://www.theodinproject.com"
+        },
+        {
+          "website_id": 767,
+          "name": "MDN Learn",
+          "url": "https://developer.mozilla.org/docs/Learn"
+        },
+        {
+          "website_id": 768,
+          "name": "Google Codelabs",
+          "url": "https://codelabs.developers.google.com"
+        },
+        {
+          "website_id": 769,
+          "name": "Microsoft Learn",
+          "url": "https://learn.microsoft.com/training"
+        },
+        {
+          "website_id": 770,
+          "name": "AWS Skill Builder",
+          "url": "https://skillbuilder.aws"
+        },
+        {
+          "website_id": 771,
+          "name": "Linux Journey",
+          "url": "https://linuxjourney.com"
+        },
+        {
+          "website_id": 772,
+          "name": "慕课网",
+          "url": "https://www.imooc.com"
+        },
+        {
+          "website_id": 773,
+          "name": "实验楼",
+          "url": "https://www.lanqiao.cn"
+        },
+        {
+          "website_id": 774,
+          "name": "Pluralsight",
+          "url": "https://www.pluralsight.com"
+        },
+        {
+          "website_id": 775,
+          "name": "LinkedIn Learning",
+          "url": "https://www.linkedin.com/learning"
+        },
+        {
+          "website_id": 776,
+          "name": "Brilliant",
+          "url": "https://brilliant.org"
+        },
+        {
+          "website_id": 777,
+          "name": "SoloLearn",
+          "url": "https://www.sololearn.com"
+        },
+        {
+          "website_id": 778,
+          "name": "Scrimba",
+          "url": "https://scrimba.com"
+        },
+        {
+          "website_id": 779,
+          "name": "egghead",
+          "url": "https://egghead.io"
+        },
+        {
+          "website_id": 780,
+          "name": "Turing College",
+          "url": "https://www.turingcollege.com"
+        }
+      ]
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28,
+      "websites": [
+        {
+          "website_id": 186,
+          "name": "语雀",
+          "url": "https://www.yuque.com"
+        },
+        {
+          "website_id": 187,
+          "name": "Confluence",
+          "url": "https://www.atlassian.com/software/confluence"
+        },
+        {
+          "website_id": 344,
+          "name": "Coda",
+          "url": "https://coda.io"
+        },
+        {
+          "website_id": 346,
+          "name": "Lark",
+          "url": "https://www.larksuite.com"
+        },
+        {
+          "website_id": 347,
+          "name": "Slite",
+          "url": "https://slite.com"
+        },
+        {
+          "website_id": 421,
+          "name": "Obsidian",
+          "url": "https://obsidian.md"
+        },
+        {
+          "website_id": 422,
+          "name": "Logseq",
+          "url": "https://logseq.com"
+        },
+        {
+          "website_id": 732,
+          "name": "Microsoft 365",
+          "url": "https://www.microsoft365.com"
+        },
+        {
+          "website_id": 733,
+          "name": "Google Drive",
+          "url": "https://drive.google.com"
+        },
+        {
+          "website_id": 734,
+          "name": "Google Sheets",
+          "url": "https://sheets.google.com"
+        },
+        {
+          "website_id": 735,
+          "name": "Google Slides",
+          "url": "https://slides.google.com"
+        },
+        {
+          "website_id": 736,
+          "name": "Box",
+          "url": "https://www.box.com"
+        },
+        {
+          "website_id": 737,
+          "name": "Evernote",
+          "url": "https://evernote.com"
+        },
+        {
+          "website_id": 738,
+          "name": "Heptabase",
+          "url": "https://heptabase.com"
+        },
+        {
+          "website_id": 739,
+          "name": "Craft",
+          "url": "https://www.craft.do"
+        },
+        {
+          "website_id": 740,
+          "name": "Quip",
+          "url": "https://quip.com"
+        },
+        {
+          "website_id": 741,
+          "name": "Zoho Writer",
+          "url": "https://www.zoho.com/writer"
+        },
+        {
+          "website_id": 742,
+          "name": "WPS",
+          "url": "https://www.wps.cn"
+        },
+        {
+          "website_id": 743,
+          "name": "腾讯会议",
+          "url": "https://meeting.tencent.com"
+        },
+        {
+          "website_id": 744,
+          "name": "Zoom",
+          "url": "https://zoom.us"
+        },
+        {
+          "website_id": 745,
+          "name": "Microsoft Teams",
+          "url": "https://www.microsoft.com/microsoft-teams"
+        },
+        {
+          "website_id": 746,
+          "name": "Slack",
+          "url": "https://slack.com"
+        },
+        {
+          "website_id": 747,
+          "name": "Discord",
+          "url": "https://discord.com"
+        },
+        {
+          "website_id": 748,
+          "name": "飞书多维表格",
+          "url": "https://www.feishu.cn/product/base"
+        },
+        {
+          "website_id": 749,
+          "name": "幕布",
+          "url": "https://mubu.com"
+        },
+        {
+          "website_id": 750,
+          "name": "ONLYOFFICE",
+          "url": "https://www.onlyoffice.com"
+        },
+        {
+          "website_id": 751,
+          "name": "Collabora Online",
+          "url": "https://www.collaboraonline.com"
+        },
+        {
+          "website_id": 752,
+          "name": "Fellow",
+          "url": "https://www.fellow.app"
+        }
+      ]
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 27,
+      "websites": [
+        {
+          "website_id": 188,
+          "name": "Jira",
+          "url": "https://www.atlassian.com/software/jira"
+        },
+        {
+          "website_id": 190,
+          "name": "Linear",
+          "url": "https://linear.app"
+        },
+        {
+          "website_id": 192,
+          "name": "Monday.com",
+          "url": "https://monday.com"
+        },
+        {
+          "website_id": 193,
+          "name": "Basecamp",
+          "url": "https://basecamp.com"
+        },
+        {
+          "website_id": 428,
+          "name": "Make",
+          "url": "https://www.make.com"
+        },
+        {
+          "website_id": 429,
+          "name": "n8n",
+          "url": "https://n8n.io"
+        },
+        {
+          "website_id": 781,
+          "name": "TickTick",
+          "url": "https://ticktick.com"
+        },
+        {
+          "website_id": 782,
+          "name": "Microsoft To Do",
+          "url": "https://to-do.office.com"
+        },
+        {
+          "website_id": 783,
+          "name": "Any.do",
+          "url": "https://www.any.do"
+        },
+        {
+          "website_id": 784,
+          "name": "Things",
+          "url": "https://culturedcode.com/things"
+        },
+        {
+          "website_id": 785,
+          "name": "Height",
+          "url": "https://height.app"
+        },
+        {
+          "website_id": 786,
+          "name": "ClickUp",
+          "url": "https://clickup.com"
+        },
+        {
+          "website_id": 787,
+          "name": "Toggl Track",
+          "url": "https://toggl.com/track"
+        },
+        {
+          "website_id": 788,
+          "name": "Clockify",
+          "url": "https://clockify.me"
+        },
+        {
+          "website_id": 789,
+          "name": "Baserow",
+          "url": "https://baserow.io"
+        },
+        {
+          "website_id": 790,
+          "name": "AppFlowy",
+          "url": "https://appflowy.io"
+        },
+        {
+          "website_id": 791,
+          "name": "Habitica",
+          "url": "https://habitica.com"
+        },
+        {
+          "website_id": 792,
+          "name": "Toggl Plan",
+          "url": "https://toggl.com/plan"
+        },
+        {
+          "website_id": 793,
+          "name": "Cron",
+          "url": "https://cron.com"
+        },
+        {
+          "website_id": 794,
+          "name": "Reclaim AI",
+          "url": "https://reclaim.ai"
+        },
+        {
+          "website_id": 795,
+          "name": "Motion Calendar",
+          "url": "https://www.usemotion.com"
+        },
+        {
+          "website_id": 796,
+          "name": "SavvyCal",
+          "url": "https://savvycal.com"
+        },
+        {
+          "website_id": 797,
+          "name": "Workflowy",
+          "url": "https://workflowy.com"
+        },
+        {
+          "website_id": 798,
+          "name": "Dynalist",
+          "url": "https://dynalist.io"
+        },
+        {
+          "website_id": 799,
+          "name": "Remember The Milk",
+          "url": "https://www.rememberthemilk.com"
+        },
+        {
+          "website_id": 800,
+          "name": "Focusmate",
+          "url": "https://www.focusmate.com"
+        },
+        {
+          "website_id": 801,
+          "name": "Productive",
+          "url": "https://productive.io"
+        }
+      ]
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 27,
+      "websites": [
+        {
+          "website_id": 101,
+          "name": "Arco Design",
+          "url": "https://arco.design"
+        },
+        {
+          "website_id": 102,
+          "name": "Vant",
+          "url": "https://vant-ui.github.io/vant"
+        },
+        {
+          "website_id": 109,
+          "name": "DaisyUI",
+          "url": "https://daisyui.com"
+        },
+        {
+          "website_id": 148,
+          "name": "Iconify",
+          "url": "https://iconify.design"
+        },
+        {
+          "website_id": 150,
+          "name": "Heroicons",
+          "url": "https://heroicons.com"
+        },
+        {
+          "website_id": 301,
+          "name": "PrimeVue",
+          "url": "https://primevue.org"
+        },
+        {
+          "website_id": 303,
+          "name": "Mantine",
+          "url": "https://mantine.dev"
+        },
+        {
+          "website_id": 304,
+          "name": "NextUI",
+          "url": "https://nextui.org"
+        },
+        {
+          "website_id": 449,
+          "name": "Ionic",
+          "url": "https://ionicframework.com"
+        },
+        {
+          "website_id": 462,
+          "name": "Aceternity UI",
+          "url": "https://ui.aceternity.com"
+        },
+        {
+          "website_id": 702,
+          "name": "PrimeReact",
+          "url": "https://primereact.org"
+        },
+        {
+          "website_id": 703,
+          "name": "TDesign",
+          "url": "https://tdesign.tencent.com"
+        },
+        {
+          "website_id": 704,
+          "name": "NutUI",
+          "url": "https://nutui.jd.com"
+        },
+        {
+          "website_id": 705,
+          "name": "Ant Design Vue",
+          "url": "https://www.antdv.com"
+        },
+        {
+          "website_id": 706,
+          "name": "React Aria",
+          "url": "https://react-spectrum.adobe.com/react-aria"
+        },
+        {
+          "website_id": 707,
+          "name": "React Bootstrap",
+          "url": "https://react-bootstrap.github.io"
+        },
+        {
+          "website_id": 708,
+          "name": "React Hook Form",
+          "url": "https://react-hook-form.com"
+        },
+        {
+          "website_id": 709,
+          "name": "VueUse",
+          "url": "https://vueuse.org"
+        },
+        {
+          "website_id": 710,
+          "name": "Floating UI",
+          "url": "https://floating-ui.com"
+        },
+        {
+          "website_id": 711,
+          "name": "Motion",
+          "url": "https://motion.dev"
+        },
+        {
+          "website_id": 712,
+          "name": "HeroUI",
+          "url": "https://www.heroui.com"
+        },
+        {
+          "website_id": 713,
+          "name": "dnd kit",
+          "url": "https://www.dndkit.com"
+        },
+        {
+          "website_id": 714,
+          "name": "Solid UI",
+          "url": "https://www.solid-ui.com"
+        },
+        {
+          "website_id": 715,
+          "name": "Kobalte",
+          "url": "https://www.kobalte.dev"
+        },
+        {
+          "website_id": 716,
+          "name": "Ark UI",
+          "url": "https://ark-ui.com"
+        },
+        {
+          "website_id": 717,
+          "name": "Ariakit",
+          "url": "https://ariakit.org"
+        },
+        {
+          "website_id": 718,
+          "name": "Reach UI",
+          "url": "https://reach.tech"
+        }
+      ]
+    },
+    {
+      "description": "提供前端构建、代码质量或依赖管理能力。",
+      "count": 25,
+      "websites": [
+        {
+          "website_id": 121,
+          "name": "ESLint",
+          "url": "https://eslint.org"
+        },
+        {
+          "website_id": 122,
+          "name": "Prettier",
+          "url": "https://prettier.io"
+        },
+        {
+          "website_id": 127,
+          "name": "pnpm",
+          "url": "https://pnpm.io"
+        },
+        {
+          "website_id": 131,
+          "name": "Biome",
+          "url": "https://biomejs.dev"
+        },
+        {
+          "website_id": 314,
+          "name": "Husky",
+          "url": "https://typicode.github.io/husky"
+        },
+        {
+          "website_id": 316,
+          "name": "Changesets",
+          "url": "https://github.com/changesets/changesets"
+        },
+        {
+          "website_id": 317,
+          "name": "Nx",
+          "url": "https://nx.dev"
+        },
+        {
+          "website_id": 837,
+          "name": "esbuild",
+          "url": "https://esbuild.github.io"
+        },
+        {
+          "website_id": 838,
+          "name": "SWC",
+          "url": "https://swc.rs"
+        },
+        {
+          "website_id": 839,
+          "name": "Yarn",
+          "url": "https://yarnpkg.com"
+        },
+        {
+          "website_id": 840,
+          "name": "Babel",
+          "url": "https://babeljs.io"
+        },
+        {
+          "website_id": 841,
+          "name": "Rome Tools",
+          "url": "https://rome.tools"
+        },
+        {
+          "website_id": 842,
+          "name": "Stylelint",
+          "url": "https://stylelint.io"
+        },
+        {
+          "website_id": 843,
+          "name": "lint-staged",
+          "url": "https://github.com/lint-staged/lint-staged"
+        },
+        {
+          "website_id": 844,
+          "name": "Release Please",
+          "url": "https://github.com/googleapis/release-please"
+        },
+        {
+          "website_id": 845,
+          "name": "Volta",
+          "url": "https://volta.sh"
+        },
+        {
+          "website_id": 846,
+          "name": "nvm",
+          "url": "https://github.com/nvm-sh/nvm"
+        },
+        {
+          "website_id": 847,
+          "name": "Corepack",
+          "url": "https://nodejs.org/api/corepack.html"
+        },
+        {
+          "website_id": 848,
+          "name": "npm Docs",
+          "url": "https://docs.npmjs.com"
+        },
+        {
+          "website_id": 901,
+          "name": "Gulp",
+          "url": "https://gulpjs.com"
+        },
+        {
+          "website_id": 902,
+          "name": "Grunt",
+          "url": "https://gruntjs.com"
+        },
+        {
+          "website_id": 903,
+          "name": "Lerna",
+          "url": "https://lerna.js.org"
+        },
+        {
+          "website_id": 904,
+          "name": "Bazel",
+          "url": "https://bazel.build"
+        },
+        {
+          "website_id": 940,
+          "name": "Buck2",
+          "url": "https://buck2.build"
+        },
+        {
+          "website_id": 941,
+          "name": "Just",
+          "url": "https://just.systems"
+        }
+      ]
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 25,
+      "websites": [
+        {
+          "website_id": 51,
+          "name": "TinyPNG",
+          "url": "https://tinypng.com"
+        },
+        {
+          "website_id": 52,
+          "name": "Squoosh",
+          "url": "https://squoosh.app"
+        },
+        {
+          "website_id": 146,
+          "name": "Freepik",
+          "url": "https://www.freepik.com"
+        },
+        {
+          "website_id": 151,
+          "name": "unDraw",
+          "url": "https://undraw.co"
+        },
+        {
+          "website_id": 152,
+          "name": "Storyset",
+          "url": "https://storyset.com"
+        },
+        {
+          "website_id": 171,
+          "name": "Adobe Color",
+          "url": "https://color.adobe.com"
+        },
+        {
+          "website_id": 175,
+          "name": "Realtime Colors",
+          "url": "https://www.realtimecolors.com"
+        },
+        {
+          "website_id": 324,
+          "name": "SVG Repo",
+          "url": "https://www.svgrepo.com"
+        },
+        {
+          "website_id": 482,
+          "name": "Open Doodles",
+          "url": "https://www.opendoodles.com"
+        },
+        {
+          "website_id": 483,
+          "name": "Humaaans",
+          "url": "https://www.humaaans.com"
+        },
+        {
+          "website_id": 484,
+          "name": "DrawKit",
+          "url": "https://www.drawkit.com"
+        },
+        {
+          "website_id": 485,
+          "name": "Vecteezy",
+          "url": "https://www.vecteezy.com"
+        },
+        {
+          "website_id": 719,
+          "name": "Unsplash Source",
+          "url": "https://source.unsplash.com"
+        },
+        {
+          "website_id": 720,
+          "name": "Burst",
+          "url": "https://burst.shopify.com"
+        },
+        {
+          "website_id": 721,
+          "name": "Kaboompics",
+          "url": "https://kaboompics.com"
+        },
+        {
+          "website_id": 722,
+          "name": "StockSnap",
+          "url": "https://stocksnap.io"
+        },
+        {
+          "website_id": 723,
+          "name": "Reshot",
+          "url": "https://www.reshot.com"
+        },
+        {
+          "website_id": 724,
+          "name": "ManyPixels",
+          "url": "https://www.manypixels.co"
+        },
+        {
+          "website_id": 725,
+          "name": "Fontsource",
+          "url": "https://fontsource.org"
+        },
+        {
+          "website_id": 726,
+          "name": "1001 Fonts",
+          "url": "https://www.1001fonts.com"
+        },
+        {
+          "website_id": 727,
+          "name": "Huemint",
+          "url": "https://huemint.com"
+        },
+        {
+          "website_id": 728,
+          "name": "Simple Icons",
+          "url": "https://simpleicons.org"
+        },
+        {
+          "website_id": 729,
+          "name": "Rawpixel",
+          "url": "https://www.rawpixel.com"
+        },
+        {
+          "website_id": 730,
+          "name": "VectorStock",
+          "url": "https://www.vectorstock.com"
+        },
+        {
+          "website_id": 731,
+          "name": "Iconscout",
+          "url": "https://iconscout.com"
+        }
+      ]
+    },
+    {
+      "description": "提供字体、色彩和无障碍视觉检查资源。",
+      "count": 25,
+      "websites": [
+        {
+          "website_id": 168,
+          "name": "Adobe Fonts",
+          "url": "https://fonts.adobe.com"
+        },
+        {
+          "website_id": 173,
+          "name": "Gradient Hunt",
+          "url": "https://gradienthunt.com"
+        },
+        {
+          "website_id": 176,
+          "name": "Fontpair",
+          "url": "https://www.fontpair.co"
+        },
+        {
+          "website_id": 337,
+          "name": "Paletton",
+          "url": "https://paletton.com"
+        },
+        {
+          "website_id": 491,
+          "name": "Fontshare",
+          "url": "https://www.fontshare.com"
+        },
+        {
+          "website_id": 865,
+          "name": "Font Squirrel",
+          "url": "https://www.fontsquirrel.com"
+        },
+        {
+          "website_id": 866,
+          "name": "Typewolf",
+          "url": "https://www.typewolf.com"
+        },
+        {
+          "website_id": 867,
+          "name": "Typograph",
+          "url": "https://typograph.app"
+        },
+        {
+          "website_id": 868,
+          "name": "Fonts In Use",
+          "url": "https://fontsinuse.com"
+        },
+        {
+          "website_id": 869,
+          "name": "Fontfabric",
+          "url": "https://www.fontfabric.com"
+        },
+        {
+          "website_id": 870,
+          "name": "Lost Type",
+          "url": "https://www.losttype.com"
+        },
+        {
+          "website_id": 871,
+          "name": "Colophon Foundry",
+          "url": "https://www.colophon-foundry.org"
+        },
+        {
+          "website_id": 872,
+          "name": "Type.today",
+          "url": "https://type.today"
+        },
+        {
+          "website_id": 873,
+          "name": "ColorSpace",
+          "url": "https://mycolor.space"
+        },
+        {
+          "website_id": 874,
+          "name": "Colorable",
+          "url": "https://colorable.jxnblk.com"
+        },
+        {
+          "website_id": 875,
+          "name": "Contrast Checker",
+          "url": "https://webaim.org/resources/contrastchecker"
+        },
+        {
+          "website_id": 876,
+          "name": "Accessible Colors",
+          "url": "https://accessible-colors.com"
+        },
+        {
+          "website_id": 877,
+          "name": "ColorZilla",
+          "url": "https://www.colorzilla.com"
+        },
+        {
+          "website_id": 878,
+          "name": "Mesh Gradients",
+          "url": "https://meshgradient.com"
+        },
+        {
+          "website_id": 909,
+          "name": "Fontspring",
+          "url": "https://www.fontspring.com"
+        },
+        {
+          "website_id": 910,
+          "name": "Fonts.com",
+          "url": "https://www.fonts.com"
+        },
+        {
+          "website_id": 911,
+          "name": "Typekit",
+          "url": "https://typekit.com"
+        },
+        {
+          "website_id": 912,
+          "name": "MyFonts",
+          "url": "https://www.myfonts.com"
+        },
+        {
+          "website_id": 913,
+          "name": "FontSpace",
+          "url": "https://www.fontspace.com"
+        },
+        {
+          "website_id": 914,
+          "name": "Abstract Fonts",
+          "url": "https://www.abstractfonts.com"
+        }
+      ]
+    },
+    {
+      "description": "提供开发调试、格式转换或性能检查工具。",
+      "count": 23,
+      "websites": [
+        {
+          "website_id": 54,
+          "name": "Regex101",
+          "url": "https://regex101.com"
+        },
+        {
+          "website_id": 55,
+          "name": "Can I Use",
+          "url": "https://caniuse.com"
+        },
+        {
+          "website_id": 244,
+          "name": "Postman",
+          "url": "https://www.postman.com"
+        },
+        {
+          "website_id": 849,
+          "name": "Insomnia",
+          "url": "https://insomnia.rest"
+        },
+        {
+          "website_id": 850,
+          "name": "Hoppscotch",
+          "url": "https://hoppscotch.io"
+        },
+        {
+          "website_id": 851,
+          "name": "JSON Formatter",
+          "url": "https://jsonformatter.org"
+        },
+        {
+          "website_id": 852,
+          "name": "JSON Crack",
+          "url": "https://jsoncrack.com"
+        },
+        {
+          "website_id": 853,
+          "name": "JWT.io",
+          "url": "https://jwt.io"
+        },
+        {
+          "website_id": 854,
+          "name": "Base64 Guru",
+          "url": "https://base64.guru"
+        },
+        {
+          "website_id": 855,
+          "name": "URL Encode Decode",
+          "url": "https://www.url-encode-decode.com"
+        },
+        {
+          "website_id": 856,
+          "name": "Diffchecker",
+          "url": "https://www.diffchecker.com"
+        },
+        {
+          "website_id": 857,
+          "name": "Bundlephobia",
+          "url": "https://bundlephobia.com"
+        },
+        {
+          "website_id": 858,
+          "name": "npm Trends",
+          "url": "https://npmtrends.com"
+        },
+        {
+          "website_id": 859,
+          "name": "HTTP Status Dogs",
+          "url": "https://httpstatusdogs.com"
+        },
+        {
+          "website_id": 860,
+          "name": "WebPageTest",
+          "url": "https://www.webpagetest.org"
+        },
+        {
+          "website_id": 861,
+          "name": "PageSpeed Insights",
+          "url": "https://pagespeed.web.dev"
+        },
+        {
+          "website_id": 862,
+          "name": "GTmetrix",
+          "url": "https://gtmetrix.com"
+        },
+        {
+          "website_id": 863,
+          "name": "SVGOMG",
+          "url": "https://jakearchibald.github.io/svgomg"
+        },
+        {
+          "website_id": 864,
+          "name": "Favicon Generator",
+          "url": "https://favicon.io"
+        },
+        {
+          "website_id": 905,
+          "name": "XML Validation",
+          "url": "https://www.xmlvalidation.com"
+        },
+        {
+          "website_id": 906,
+          "name": "HTML5 Editor",
+          "url": "https://www.html5editor.net"
+        },
+        {
+          "website_id": 907,
+          "name": "Hastebin",
+          "url": "https://www.toptal.com/developers/hastebin"
+        },
+        {
+          "website_id": 908,
+          "name": "Pastebin",
+          "url": "https://pastebin.com"
+        }
+      ]
+    },
+    {
+      "description": "用于任务安排、时间管理或个人效率提升。",
+      "count": 12,
+      "websites": [
+        {
+          "website_id": 928,
+          "name": "Focuster",
+          "url": "https://www.focuster.com"
+        },
+        {
+          "website_id": 929,
+          "name": "Due",
+          "url": "https://www.dueapp.com"
+        },
+        {
+          "website_id": 930,
+          "name": "OmniFocus",
+          "url": "https://www.omnigroup.com/omnifocus"
+        },
+        {
+          "website_id": 931,
+          "name": "Focus To-Do",
+          "url": "https://www.focustodo.cn"
+        },
+        {
+          "website_id": 932,
+          "name": "Sunsama",
+          "url": "https://www.sunsama.com"
+        },
+        {
+          "website_id": 933,
+          "name": "Akiflow",
+          "url": "https://akiflow.com"
+        },
+        {
+          "website_id": 934,
+          "name": "Routine",
+          "url": "https://routine.co"
+        },
+        {
+          "website_id": 935,
+          "name": "Amplenote",
+          "url": "https://www.amplenote.com"
+        },
+        {
+          "website_id": 936,
+          "name": "SkedPal",
+          "url": "https://skedpal.com"
+        },
+        {
+          "website_id": 937,
+          "name": "Timeular",
+          "url": "https://timeular.com"
+        },
+        {
+          "website_id": 938,
+          "name": "Pumble",
+          "url": "https://pumble.com"
+        },
+        {
+          "website_id": 939,
+          "name": "Quire",
+          "url": "https://quire.io"
+        }
+      ]
+    }
+  ],
+  "description_usage_top_20": [
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2
+    },
+    {
+      "description": "涵盖 HTML、CSS、JavaScript 和 Web API。",
+      "count": 2
+    },
+    {
+      "description": "用于构建、预览和部署现代 Web 应用。",
+      "count": 2
+    },
+    {
+      "description": "用于知识管理、项目规划和团队文档协作。",
+      "count": 2
+    },
+    {
+      "description": "用于界面设计、原型制作和团队评审。",
+      "count": 2
+    },
+    {
+      "description": "用于问答、写作、编程与日常工作辅助。",
+      "count": 2
+    },
+    {
+      "description": "适合长文理解、内容创作和复杂任务分析。",
+      "count": 2
+    },
+    {
+      "description": "用于视觉探索、概念设计和图像创作。",
+      "count": 2
+    },
+    {
+      "description": "用于发现、使用和分享机器学习资源。",
+      "count": 2
+    },
+    {
+      "description": "视频、课程与兴趣内容社区。",
+      "count": 1
+    },
+    {
+      "description": "中文问答、知识分享与经验交流社区。",
+      "count": 1
+    },
+    {
+      "description": "中文网页搜索与信息发现。",
+      "count": 1
+    },
+    {
+      "description": "影视、纪录片与在线视频平台。",
+      "count": 1
+    },
+    {
+      "description": "书影音内容发现与兴趣交流社区。",
+      "count": 1
+    },
+    {
+      "description": "集成代码托管、CI/CD 与项目管理的平台。",
+      "count": 1
+    },
+    {
+      "description": "面向中文开发者的代码托管与开源平台。",
+      "count": 1
+    },
+    {
+      "description": "中文技术文章、课程与开发者社区。",
+      "count": 1
+    },
+    {
+      "description": "中文 IT 技术博客与开发者服务平台。",
+      "count": 1
+    },
+    {
+      "description": "开发者博客与技术交流社区。",
+      "count": 1
+    }
+  ],
+  "normalized_description_usage_top_20": [
+    {
+      "description": "提供编程语言、框架或工程工具的官方文档。",
+      "count": 30
+    },
+    {
+      "description": "展示界面、品牌、插画或数字产品案例，适合收集视觉参考。",
+      "count": 30
+    },
+    {
+      "description": "用于竞品信息、市场趋势或产品技术栈调研。",
+      "count": 30
+    },
+    {
+      "description": "提供对话、生成式创作、模型调用或 AI 开发服务。",
+      "count": 30
+    },
+    {
+      "description": "用于数据集探索、统计分析、报表或交互式可视化。",
+      "count": 29
+    },
+    {
+      "description": "支持页面结构、交互流程、线框或高保真原型制作。",
+      "count": 29
+    },
+    {
+      "description": "提供可视化、地图或三维图形开发能力。",
+      "count": 28
+    },
+    {
+      "description": "用于文档编辑、知识管理、会议协作或团队沟通。",
+      "count": 28
+    },
+    {
+      "description": "提供代码协作、技术问答、开源项目或开发者交流。",
+      "count": 28
+    },
+    {
+      "description": "提供课程、公开课、编程练习或专业学习资料。",
+      "count": 28
+    },
+    {
+      "description": "提供可复用的 UI 组件、设计系统或前端样式资源。",
+      "count": 27
+    },
+    {
+      "description": "帮助管理任务、流程、时间或个人工作效率。",
+      "count": 27
+    },
+    {
+      "description": "提供图片、插画、图标、字体或颜色等设计素材。",
+      "count": 25
+    },
+    {
+      "description": "提供前端构建、代码质量或依赖管理能力。",
+      "count": 25
+    },
+    {
+      "description": "提供字体、色彩和无障碍视觉检查资源。",
+      "count": 25
+    },
+    {
+      "description": "提供开发调试、格式转换或性能检查工具。",
+      "count": 23
+    },
+    {
+      "description": "用于任务安排、时间管理或个人效率提升。",
+      "count": 12
+    },
+    {
+      "description": "提供产品原型、线框或交互协作能力。",
+      "count": 3
+    },
+    {
+      "description": "用于开源项目、团队协作和工程实践。",
+      "count": 2
+    },
+    {
+      "description": "用于查找编程问题、实践经验和技术方案。",
+      "count": 2
+    }
+  ]
+}

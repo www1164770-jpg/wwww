@@ -26,7 +26,7 @@ assert.doesNotMatch(
   new RegExp(`${legacyAuthMarker}|Guard|callback`, "i"),
 );
 assert.doesNotMatch(router, new RegExp(`${legacyAuthMarker}|callback`, "i"));
-assert.doesNotMatch(api, new RegExp(`${legacyAuthMarker}|send-code`, "i"));
+assert.doesNotMatch(api, new RegExp(`${legacyAuthMarker}|["']/auth/send-code`, "i"));
 assert.match(api, /send-register-code/);
 assert.equal(
   existsSync(

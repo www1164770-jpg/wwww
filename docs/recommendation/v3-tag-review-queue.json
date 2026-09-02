@@ -1,0 +1,1415 @@
+{
+  "mode": "human_review_queue",
+  "phase": "V3_tag_phase_2.2-A",
+  "questionnaire_version": 3,
+  "profile_schema_version": 3,
+  "algorithm_version": "phase1-v1",
+  "source_candidate_count": 46,
+  "reviewed_count": 46,
+  "approved_count": 39,
+  "rejected_count": 7,
+  "needs_review_count": 0,
+  "database_write_performed": false,
+  "items": [
+    {
+      "website": "Insomnia",
+      "website_id": 849,
+      "url": "https://insomnia.rest",
+      "signal": "api_debugging",
+      "suggested_tags": [
+        "api_debugging",
+        "testing",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "api",
+        "api debugging",
+        "backend",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:insomnia.rest",
+      "approved_tags": [
+        "api_debugging",
+        "testing"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Insomnia 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Postman",
+      "website_id": 244,
+      "url": "https://www.postman.com",
+      "signal": "api_debugging",
+      "suggested_tags": [
+        "api_debugging",
+        "testing",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "api",
+        "api debugging",
+        "backend",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:postman.com",
+      "approved_tags": [
+        "api_debugging",
+        "testing"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Postman 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Swagger",
+      "website_id": 245,
+      "url": "https://swagger.io",
+      "signal": "api_debugging",
+      "suggested_tags": [
+        "api_debugging",
+        "testing",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "api",
+        "api debugging",
+        "backend",
+        "developer",
+        "documentation"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:swagger.io",
+      "approved_tags": [
+        "api_debugging",
+        "testing"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Swagger 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Cursor",
+      "website_id": 80,
+      "url": "https://www.cursor.com",
+      "signal": "code_generation",
+      "suggested_tags": [
+        "code_generation",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "ai",
+        "ai coding",
+        "code generation",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:cursor.com",
+      "approved_tags": [
+        "code_generation"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Cursor 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "GitHub Copilot",
+      "website_id": 79,
+      "url": "https://github.com/features/copilot",
+      "signal": "code_generation",
+      "suggested_tags": [
+        "code_generation",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "ai",
+        "ai coding",
+        "code generation",
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "explicit_name:github copilot",
+      "approved_tags": [
+        "code_generation"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "GitHub Copilot 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Replit",
+      "website_id": 274,
+      "url": "https://replit.com",
+      "signal": "code_generation",
+      "suggested_tags": [
+        "code_generation",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "ai coding",
+        "code generation"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "explicit_name:replit",
+      "approved_tags": [
+        "code_generation"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Replit 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MongoDB",
+      "website_id": 247,
+      "url": "https://www.mongodb.com",
+      "signal": "database",
+      "suggested_tags": [
+        "database",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "backend",
+        "database",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:mongodb.com",
+      "approved_tags": [
+        "database"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "MongoDB 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "PostgreSQL",
+      "website_id": 248,
+      "url": "https://www.postgresql.org",
+      "signal": "database",
+      "suggested_tags": [
+        "database",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "backend",
+        "database",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:postgresql.org",
+      "approved_tags": [
+        "database"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "PostgreSQL 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Redis",
+      "website_id": 246,
+      "url": "https://redis.io",
+      "signal": "database",
+      "suggested_tags": [
+        "database",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "backend",
+        "database",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:redis.io",
+      "approved_tags": [
+        "database"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Redis 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Supabase",
+      "website_id": 235,
+      "url": "https://supabase.com",
+      "signal": "database",
+      "suggested_tags": [
+        "database",
+        "backend",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "database"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:supabase.com",
+      "approved_tags": [
+        "backend",
+        "database"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Supabase 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Sentry",
+      "website_id": 386,
+      "url": "https://sentry.io",
+      "signal": "debugging",
+      "suggested_tags": [
+        "debugging",
+        "code_analysis",
+        "developer_tools"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:sentry.io",
+      "approved_tags": [
+        "code_analysis",
+        "debugging"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Sentry 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Netlify",
+      "website_id": 35,
+      "url": "https://www.netlify.com",
+      "signal": "deployment",
+      "suggested_tags": [
+        "deployment",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "devops",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:netlify.com",
+      "approved_tags": [
+        "deployment"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Netlify 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Railway",
+      "website_id": 36,
+      "url": "https://railway.app",
+      "signal": "deployment",
+      "suggested_tags": [
+        "deployment",
+        "devops",
+        "developer_tools"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:railway.app",
+      "approved_tags": [
+        "deployment",
+        "devops"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Railway 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Render",
+      "website_id": 238,
+      "url": "https://render.com",
+      "signal": "deployment",
+      "suggested_tags": [
+        "deployment",
+        "devops",
+        "developer_tools"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:render.com",
+      "approved_tags": [
+        "deployment",
+        "devops"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Render 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Vercel",
+      "website_id": 34,
+      "url": "https://vercel.com",
+      "signal": "deployment",
+      "suggested_tags": [
+        "deployment",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "devops",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:vercel.com",
+      "approved_tags": [
+        "deployment"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Vercel 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Vercel",
+      "website_id": 520,
+      "url": "https://vercel.com",
+      "signal": "deployment",
+      "suggested_tags": [
+        "deployment",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "devops",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:vercel.com",
+      "approved_tags": [
+        "deployment"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Vercel 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MDN Learn",
+      "website_id": 767,
+      "url": "https://developer.mozilla.org/docs/Learn",
+      "signal": "documentation",
+      "suggested_tags": [
+        "documentation",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:developer.mozilla.org",
+      "approved_tags": [
+        "documentation"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "MDN Learn 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MDN Web Docs",
+      "website_id": 27,
+      "url": "https://developer.mozilla.org",
+      "signal": "documentation",
+      "suggested_tags": [
+        "documentation",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:developer.mozilla.org",
+      "approved_tags": [
+        "documentation"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "MDN Web Docs 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MDN Web Docs",
+      "website_id": 522,
+      "url": "https://developer.mozilla.org",
+      "signal": "documentation",
+      "suggested_tags": [
+        "documentation",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:developer.mozilla.org",
+      "approved_tags": [
+        "documentation"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "MDN Web Docs 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Bitbucket",
+      "website_id": 678,
+      "url": "https://bitbucket.org",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:bitbucket.org",
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Bitbucket 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Changesets",
+      "website_id": 316,
+      "url": "https://github.com/changesets/changesets",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "Changesets 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "ComfyUI",
+      "website_id": 629,
+      "url": "https://github.com/comfyanonymous/ComfyUI",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "ai",
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "ComfyUI 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "GitHub",
+      "website_id": 20,
+      "url": "https://github.com",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "GitHub 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "GitHub",
+      "website_id": 518,
+      "url": "https://github.com",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "GitHub 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "GitHub Actions",
+      "website_id": 383,
+      "url": "https://github.com/features/actions",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "GitHub Actions 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "GitHub Copilot",
+      "website_id": 79,
+      "url": "https://github.com/features/copilot",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "ai",
+        "ai coding",
+        "code generation",
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "GitHub Copilot 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "GitLab",
+      "website_id": 21,
+      "url": "https://gitlab.com",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:gitlab.com",
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "GitLab 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Linear",
+      "website_id": 190,
+      "url": "https://linear.app",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "efficiency",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:linear.app",
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Linear 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Release Please",
+      "website_id": 844,
+      "url": "https://github.com/googleapis/release-please",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "Release Please 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "lint-staged",
+      "website_id": 843,
+      "url": "https://github.com/lint-staged/lint-staged",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "lint-staged 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "nvm",
+      "website_id": 846,
+      "url": "https://github.com/nvm-sh/nvm",
+      "signal": "git_project_management",
+      "suggested_tags": [
+        "git_project_management",
+        "collaboration",
+        "developer_tools"
+      ],
+      "existing_tags": [
+        "developer",
+        "git project management"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:github.com",
+      "approved_tags": [],
+      "rejected_tags": [
+        "collaboration",
+        "developer_tools",
+        "git_project_management"
+      ],
+      "review_status": "rejected",
+      "review_note": "nvm 是具体代码库、CI、发布或开发工具，不足以证明项目管理/协作能力；本轮不写入宽泛标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Go",
+      "website_id": 601,
+      "url": "https://go.dev/doc",
+      "signal": "go",
+      "suggested_tags": [
+        "go",
+        "backend",
+        "programming"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:go.dev",
+      "approved_tags": [
+        "go",
+        "programming"
+      ],
+      "rejected_tags": [
+        "backend"
+      ],
+      "review_status": "approved",
+      "review_note": "Go 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Java",
+      "website_id": 604,
+      "url": "https://dev.java/learn",
+      "signal": "java",
+      "suggested_tags": [
+        "java",
+        "backend",
+        "programming"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:dev.java",
+      "approved_tags": [
+        "java",
+        "programming"
+      ],
+      "rejected_tags": [
+        "backend"
+      ],
+      "review_status": "approved",
+      "review_note": "Java 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MDN Learn",
+      "website_id": 767,
+      "url": "https://developer.mozilla.org/docs/Learn",
+      "signal": "javascript",
+      "suggested_tags": [
+        "javascript"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:developer.mozilla.org",
+      "approved_tags": [
+        "javascript"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "MDN Learn 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MDN Web Docs",
+      "website_id": 27,
+      "url": "https://developer.mozilla.org",
+      "signal": "javascript",
+      "suggested_tags": [
+        "javascript"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:developer.mozilla.org",
+      "approved_tags": [
+        "javascript"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "MDN Web Docs 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "MDN Web Docs",
+      "website_id": 522,
+      "url": "https://developer.mozilla.org",
+      "signal": "javascript",
+      "suggested_tags": [
+        "javascript"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:developer.mozilla.org",
+      "approved_tags": [
+        "javascript"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "MDN Web Docs 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Corepack",
+      "website_id": 847,
+      "url": "https://nodejs.org/api/corepack.html",
+      "signal": "node",
+      "suggested_tags": [
+        "node",
+        "javascript"
+      ],
+      "existing_tags": [
+        "backend",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:nodejs.org",
+      "approved_tags": [
+        "javascript",
+        "node"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "Corepack 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Node.js",
+      "website_id": 92,
+      "url": "https://nodejs.org",
+      "signal": "node",
+      "suggested_tags": [
+        "node",
+        "javascript"
+      ],
+      "existing_tags": [
+        "backend",
+        "developer"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:nodejs.org",
+      "approved_tags": [
+        "javascript",
+        "node"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "Node.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Node.js",
+      "website_id": 532,
+      "url": "https://nodejs.org/docs/latest/api",
+      "signal": "node",
+      "suggested_tags": [
+        "node",
+        "javascript"
+      ],
+      "existing_tags": [
+        "backend",
+        "developer",
+        "documentation"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:nodejs.org",
+      "approved_tags": [
+        "javascript",
+        "node"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "Node.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Python 文档",
+      "website_id": 533,
+      "url": "https://docs.python.org/3",
+      "signal": "python",
+      "suggested_tags": [
+        "python",
+        "backend",
+        "programming"
+      ],
+      "existing_tags": [
+        "developer",
+        "documentation"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:python.org",
+      "approved_tags": [
+        "programming",
+        "python"
+      ],
+      "rejected_tags": [
+        "backend"
+      ],
+      "review_status": "approved",
+      "review_note": "Python 文档 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "React",
+      "website_id": 85,
+      "url": "https://react.dev",
+      "signal": "react",
+      "suggested_tags": [
+        "react"
+      ],
+      "existing_tags": [
+        "developer",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:react.dev",
+      "approved_tags": [
+        "react"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "React 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Cypress",
+      "website_id": 313,
+      "url": "https://www.cypress.io",
+      "signal": "testing",
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:cypress.io",
+      "approved_tags": [
+        "testing"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Cypress 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Playwright",
+      "website_id": 125,
+      "url": "https://playwright.dev",
+      "signal": "testing",
+      "suggested_tags": [
+        "testing",
+        "developer_tools"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:playwright.dev",
+      "approved_tags": [
+        "testing"
+      ],
+      "rejected_tags": [
+        "developer_tools"
+      ],
+      "review_status": "approved",
+      "review_note": "Playwright 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "TypeScript",
+      "website_id": 94,
+      "url": "https://www.typescriptlang.org",
+      "signal": "typescript",
+      "suggested_tags": [
+        "typescript",
+        "frontend"
+      ],
+      "existing_tags": [],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:typescriptlang.org",
+      "approved_tags": [
+        "typescript"
+      ],
+      "rejected_tags": [
+        "frontend"
+      ],
+      "review_status": "approved",
+      "review_note": "TypeScript 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Vue.js",
+      "website_id": 84,
+      "url": "https://cn.vuejs.org",
+      "signal": "vue",
+      "suggested_tags": [
+        "vue"
+      ],
+      "existing_tags": [
+        "developer",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:vuejs.org",
+      "approved_tags": [
+        "vue"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "Vue.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    },
+    {
+      "website": "Vue.js",
+      "website_id": 530,
+      "url": "https://vuejs.org",
+      "signal": "vue",
+      "suggested_tags": [
+        "vue"
+      ],
+      "existing_tags": [
+        "developer",
+        "frontend"
+      ],
+      "candidate_confidence": "high",
+      "candidate_reason": "exact_domain:vuejs.org",
+      "approved_tags": [
+        "vue"
+      ],
+      "rejected_tags": [],
+      "review_status": "approved",
+      "review_note": "Vue.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。",
+      "review_checks": {
+        "capability_confirmed": true,
+        "tag_specific": true,
+        "no_profile_pollution": true,
+        "evidence_clear": true
+      }
+    }
+  ]
+}

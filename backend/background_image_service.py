@@ -17,6 +17,7 @@ from .background_config import (
     BACKGROUND_OUTPUT_MIME_TYPE,
     BACKGROUND_WEBP_QUALITY,
 )
+from .background_analysis import analyze_background
 
 
 class BackgroundUploadTooLarge(ValueError):
@@ -26,6 +27,14 @@ class BackgroundUploadTooLarge(ValueError):
 class InvalidBackgroundImage(ValueError):
     """Raised when an upload cannot be safely processed as a background image."""
 
+    def __init__(self, message: str, error_code: str = "UPLOAD_PIL_FAILED"):
+        super().__init__(message)
+        self.error_code = error_code
+
+
+class BackgroundImageAnalysisError(RuntimeError):
+    """Raised when a valid transcoded image cannot be analyzed."""
+
 
 @dataclass(frozen=True)
 class ProcessedBackground:
@@ -34,6 +43,7 @@ class ProcessedBackground:
     height: int
     mime_type: str
     file_size: int
+    analysis: dict | None = None
 
 
 def _read_limited(file_stream: BinaryIO) -> bytes:
@@ -71,21 +81,21 @@ def process_background_upload(
     except OSError as error:
         raise InvalidBackgroundImage("Invalid background image") from error
     if not source:
-        raise InvalidBackgroundImage("Background upload is empty")
+        raise InvalidBackgroundImage("Background upload is empty", "UPLOAD_FILE_EMPTY")
 
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(io.BytesIO(source)) as verified_image:
                 if verified_image.format not in BACKGROUND_ALLOWED_IMAGE_FORMATS:
-                    raise InvalidBackgroundImage("Unsupported background image format")
+                    raise InvalidBackgroundImage("Unsupported background image format", "UPLOAD_FORMAT_INVALID")
                 verified_image.verify()
 
             with Image.open(io.BytesIO(source)) as source_image:
                 if getattr(source_image, "is_animated", False) or getattr(source_image, "n_frames", 1) != 1:
-                    raise InvalidBackgroundImage("Animated background images are not allowed")
+                    raise InvalidBackgroundImage("Animated background images are not allowed", "UPLOAD_FORMAT_INVALID")
                 if source_image.width * source_image.height > BACKGROUND_MAX_PIXELS:
-                    raise InvalidBackgroundImage("Background image exceeds the pixel limit")
+                    raise InvalidBackgroundImage("Background image exceeds the pixel limit", "UPLOAD_DIMENSIONS_INVALID")
                 image = ImageOps.exif_transpose(source_image)
                 image = image.convert("RGBA" if _is_alpha_image(image) else "RGB")
                 image.thumbnail(
@@ -105,10 +115,16 @@ def process_background_upload(
         raise InvalidBackgroundImage("Invalid background image") from error
 
     content = output.getvalue()
+    try:
+        analysis = analyze_background(content)
+    except Exception as error:
+        raise BackgroundImageAnalysisError("Unable to analyze processed background") from error
+
     return ProcessedBackground(
         content=content,
         width=image.width,
         height=image.height,
         mime_type=BACKGROUND_OUTPUT_MIME_TYPE,
         file_size=len(content),
+        analysis=analysis,
     )

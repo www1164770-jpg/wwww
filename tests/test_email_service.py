@@ -4,6 +4,7 @@ import ssl
 import smtplib
 import sys
 import unittest
+from email import message_from_string
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -57,6 +58,27 @@ class EmailServiceConfigTests(unittest.TestCase):
             missing = email_service.validate_mail_config()
 
         self.assertEqual(missing, [])
+
+    def test_default_sender_falls_back_to_username(self):
+        import email_service
+
+        with patch.dict(
+            os.environ,
+            {
+                "MAIL_SERVER": "smtp.qq.com",
+                "MAIL_PORT": "465",
+                "MAIL_USERNAME": "sender@qq.com",
+                "MAIL_PASSWORD": "test-authorisation-code",
+                "MAIL_DEFAULT_SENDER": "",
+                "MAIL_USE_SSL": "true",
+                "MAIL_USE_TLS": "false",
+            },
+            clear=False,
+        ):
+            config = email_service.get_mail_config()
+
+        self.assertEqual(config["default_sender"], "sender@qq.com")
+        self.assertEqual(email_service.validate_mail_config(config), [])
 
     def test_ssl_and_tls_simultaneously_enabled_is_reported(self):
         import email_service
@@ -143,6 +165,22 @@ class EmailServiceTransportTests(unittest.TestCase):
         self.assertEqual(code, "SMTP_AUTH_FAILED")
         self.assertEqual(server.login.call_args.args[0], "sender@qq.com")
         self.assertEqual(server.login.call_args.args[1], "test-authorisation-code")
+        server.quit.assert_called_once()
+
+    def test_connection_preflight_authenticates_without_sending(self):
+        import email_service
+
+        server = MagicMock()
+        with patch.dict(os.environ, self._FULL_ENV, clear=False), patch.object(
+            email_service.smtplib, "SMTP_SSL", return_value=server
+        ):
+            ready, code = email_service.check_mail_connection()
+
+        self.assertTrue(ready)
+        self.assertEqual(code, "OK")
+        server.login.assert_called_once()
+        server.sendmail.assert_not_called()
+        server.quit.assert_called_once()
 
     def test_smtp_transport_errors_are_classified(self):
         import email_service
@@ -206,6 +244,25 @@ class EmailServiceTransportTests(unittest.TestCase):
         self.assertEqual(code, "OK")
         # Ensure a 6-digit code sequence is not embedded in the test email body
         self.assertNotRegex(server.sendmail.call_args.args[2], r"\b\d{6}\b")
+
+    def test_password_reset_email_names_ten_minute_expiry_and_ignore_guidance(self):
+        import email_service
+
+        server = MagicMock()
+        with patch.dict(os.environ, self._FULL_ENV, clear=False), patch.object(
+            email_service.smtplib, "SMTP_SSL", return_value=server
+        ):
+            sent, code = email_service.send_password_reset_email(
+                "user@example.com", "123456"
+            )
+
+        self.assertTrue(sent)
+        self.assertEqual(code, "OK")
+        message = message_from_string(server.sendmail.call_args.args[2])
+        html = message.get_payload(decode=True).decode("utf-8")
+        self.assertIn("123456", html)
+        self.assertIn("10 分钟", html)
+        self.assertIn("请忽略此邮件", html)
 
 
 class EmailServiceCodeStorageTests(unittest.TestCase):

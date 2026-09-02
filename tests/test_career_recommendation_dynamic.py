@@ -77,7 +77,7 @@ class DynamicCareerRecommendationTests(unittest.TestCase):
         )
 
         first = recommendations[0]
-        self.assertEqual(first["code"], "frontend_developer")
+        self.assertEqual(first["code"], "frontend_engineer")
         self.assertGreater(first["match_score"], 0)
         self.assertTrue(first["reason"])
         self.assertTrue(first["ability_tags"])

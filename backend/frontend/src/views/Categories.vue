@@ -4,7 +4,7 @@
     <main>
       <section class="hero">
         <div>
-          <h1>分类导航</h1>
+          <AnimatedPageTitle>分类导航</AnimatedPageTitle>
           <p>按行业和使用场景快速找到高质量网站资源。</p>
         </div>
         <SearchBar
@@ -43,6 +43,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
+import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
@@ -133,7 +134,7 @@ main {
     #ffffff;
   padding: clamp(38px, 6vw, 76px);
   text-align: center;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--app-card-shadow);
 }
 
 h1 {
@@ -172,7 +173,7 @@ h1 {
   color: var(--color-heading);
   padding: 22px;
   text-decoration: none;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+  box-shadow: var(--app-card-shadow);
   transition:
     transform var(--transition),
     box-shadow var(--transition),
@@ -183,7 +184,7 @@ h1 {
 .category-card:focus-visible {
   border-color: rgba(255, 112, 88, 0.34);
   transform: translateY(-5px);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--app-card-hover-shadow);
   outline: none;
 }
 

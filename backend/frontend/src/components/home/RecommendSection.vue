@@ -1,16 +1,28 @@
 <template>
   <section class="recommend-section">
     <div class="recommend-heading">
-      <span class="recommend-label">热门推荐</span>
-      <h2>正在被更多人使用的工具</h2>
-      <p>精选学习、开发、设计与效率工具，帮助你快速找到合适的资源。</p>
+      <span class="recommend-label reveal-child" style="--reveal-delay: 0ms"
+        >热门推荐</span
+      >
+      <AnimatedPageTitle
+        class="reveal-child reveal-title"
+        style="--reveal-delay: 80ms"
+        as="h2"
+        :animation="false"
+      >
+        正在被更多人使用的工具
+      </AnimatedPageTitle>
+      <p class="reveal-child reveal-description" style="--reveal-delay: 150ms">
+        精选学习、开发、设计与效率工具，帮助你快速找到合适的资源。
+      </p>
     </div>
 
     <div class="recommend-grid">
       <article
-        v-for="site in displayedSites"
+        v-for="(site, index) in displayedSites"
         :key="site.url"
-        class="website-card"
+        class="website-card reveal-child reveal-card"
+        :style="revealCardStyle(index)"
       >
         <a
           class="website-card-link"
@@ -18,6 +30,8 @@
           target="_blank"
           rel="noopener noreferrer"
           :aria-label="`访问 ${site.name}`"
+          @click="recordVisit(site, $event)"
+          @auxclick.middle="recordVisit(site, $event)"
         >
           <div class="website-card-header">
             <div class="website-icon-wrapper" aria-hidden="true">
@@ -58,11 +72,14 @@
 <script setup>
 import { computed } from "vue";
 import { ExternalLink } from "lucide-vue-next";
+import AnimatedPageTitle from "../common/AnimatedPageTitle.vue";
 import AppTooltip from "../common/AppTooltip.vue";
 import FavoriteStarButton from "../site/FavoriteStarButton.vue";
 import SiteLogo from "../site/SiteLogo.vue";
 import { featuredWebsites } from "../../data/featuredWebsites";
 import { getSiteDescription } from "../../utils/api";
+import { cleanSiteDescription } from "../../utils/siteText";
+import { visitSite } from "../../utils/siteVisit";
 
 const props = defineProps({
   sites: { type: Array, default: () => featuredWebsites },
@@ -72,14 +89,27 @@ const displayedSites = computed(() =>
   props.sites.length ? props.sites : featuredWebsites,
 );
 
+function revealCardStyle(index) {
+  return {
+    "--reveal-delay": `${230 + Math.min(index * 35, 350)}ms`,
+  };
+}
+
 function siteDescription(site) {
-  return getSiteDescription(site);
+  return cleanSiteDescription(
+    site?.name || site?.title,
+    getSiteDescription(site),
+  );
+}
+
+function recordVisit(site, event) {
+  visitSite(site, { source: "home_recommend", event });
 }
 </script>
 
 <style scoped>
 .recommend-section {
-  width: min(100% - 40px, 1220px);
+  width: min(var(--container), calc(100% - 40px));
   margin: 0 auto;
   padding: 48px 0 72px;
 }
@@ -98,14 +128,14 @@ function siteDescription(site) {
 
 .recommend-heading h2 {
   margin: 0;
-  color: #1f2d45;
+  color: var(--app-text-primary);
   font-size: clamp(32px, 3vw, 48px);
   line-height: 1.2;
 }
 
 .recommend-heading p {
   margin: 10px 0 0;
-  color: #667085;
+  color: var(--app-text-secondary);
   font-size: 16px;
   line-height: 1.65;
 }
@@ -113,24 +143,26 @@ function siteDescription(site) {
 .recommend-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
   width: 100%;
 }
 
 .website-card {
   position: relative;
   display: flex;
+  height: 160px;
   min-width: 0;
-  min-height: 190px;
+  min-height: 160px;
+  max-height: 160px;
   box-sizing: border-box;
   flex-direction: column;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.46);
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-card);
+  background: var(--app-card-bg);
+  backdrop-filter: blur(var(--app-blur));
   color: inherit;
-  box-shadow: 0 10px 30px rgba(31, 45, 75, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--app-card-shadow);
   transition:
     transform 0.22s ease,
     border-color 0.22s ease,
@@ -139,18 +171,19 @@ function siteDescription(site) {
 
 .website-card:hover {
   border-color: rgba(20, 20, 20, 0.9);
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--app-card-hover-bg);
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(31, 45, 75, 0.15);
+  box-shadow: var(--app-card-hover-shadow);
 }
 
 .website-card-link {
   display: flex;
+  height: 100%;
   min-width: 0;
-  min-height: 190px;
+  min-height: 0;
   box-sizing: border-box;
   flex-direction: column;
-  padding: 18px;
+  padding: 12px 18px;
   color: inherit;
   text-decoration: none;
 }
@@ -176,7 +209,7 @@ function siteDescription(site) {
   justify-content: center;
   overflow: hidden;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--app-container-bg);
 }
 
 .website-icon-wrapper .site-logo {
@@ -189,7 +222,7 @@ function siteDescription(site) {
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: #1f2d45;
+  color: var(--app-text-primary);
   font-size: 17px;
   font-weight: 700;
   line-height: 1.35;
@@ -199,13 +232,13 @@ function siteDescription(site) {
 
 .website-description {
   display: -webkit-box;
-  margin: 14px 0 16px;
+  margin: 10px 0 8px;
   overflow: hidden;
-  color: #5f6b7c;
+  color: var(--app-text-secondary);
   font-size: 14px;
   line-height: 1.65;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
 }
 
 .website-card-footer {
@@ -217,15 +250,19 @@ function siteDescription(site) {
 
 .website-category {
   display: inline-flex;
-  min-height: 28px;
   align-items: center;
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
-  color: #536174;
-  font-size: 12px;
-  font-weight: 600;
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-soft-orange);
+  color: var(--color-primary-dark);
+  padding: 4px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
 }
 
 .website-card__external {
@@ -268,9 +305,10 @@ function siteDescription(site) {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .website-card,
-  .website-card-link {
-    min-height: 170px;
+  .website-card {
+    height: 160px;
+    min-height: 160px;
+    max-height: 160px;
   }
 }
 

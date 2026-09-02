@@ -6,12 +6,10 @@
         <div class="category-heading">
           <div>
             <span class="category-eyebrow">RESOURCE DIRECTORY</span>
-            <h1>网站分类</h1>
+            <AnimatedPageTitle>网站分类</AnimatedPageTitle>
             <p>从开发、设计、学习到效率工具，按分类浏览当前收录的网站资源。</p>
           </div>
-          <span class="category-result-count" aria-live="polite">
-            {{ filteredWebsites.length }} 个网站
-          </span>
+          <span class="category-result-count">{{ activeCategory }}</span>
         </div>
 
         <nav class="category-nav" aria-label="网站分类">
@@ -65,15 +63,12 @@
         />
         <template v-else>
           <div
-            v-if="isRefreshing || loading || error"
+            v-if="requestErrorMessage"
             class="category-request-note"
-            role="status"
+            role="alert"
           >
-            <span v-if="loading">正在更新网站资源…</span>
-            <template v-else>
-              <span>{{ error }}</span>
-              <button type="button" @click="loadSites">重试</button>
-            </template>
+            <span>{{ requestErrorMessage }}</span>
+            <button type="button" @click="loadSites">重试</button>
           </div>
 
           <Transition name="view-switch" mode="out-in">
@@ -209,7 +204,8 @@
                     :href="selectedWebsiteUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    @click="recordWebsiteVisit(selectedWebsite)"
+                    @click="recordWebsiteVisit(selectedWebsite, $event)"
+                    @auxclick.middle="recordWebsiteVisit(selectedWebsite, $event)"
                   >
                     访问网站
                     <span aria-hidden="true">↗</span>
@@ -251,6 +247,8 @@
                           :href="selectedWebsiteUrl"
                           target="_blank"
                           rel="noopener noreferrer"
+                          @click="recordWebsiteVisit(selectedWebsite, $event)"
+                          @auxclick.middle="recordWebsiteVisit(selectedWebsite, $event)"
                         >
                           {{ selectedWebsiteUrl }}
                         </a>
@@ -314,6 +312,7 @@ import {
   Zap,
 } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
+import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
 import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
@@ -330,6 +329,7 @@ import {
   tagAPI,
   unwrapList,
 } from "../utils/api";
+import { visitSite } from "../utils/siteVisit";
 import { errorToast } from "../utils/toast";
 
 const route = useRoute();
@@ -391,6 +391,7 @@ const hasMoreSites = ref(false);
 const loadingMore = ref(false);
 const currentPage = ref(1);
 const error = ref("");
+const requestErrorMessage = computed(() => String(error.value || "").trim());
 const resultsPanel = ref(null);
 const filters = reactive({
   category_id: "",
@@ -402,6 +403,7 @@ const filters = reactive({
 const DEFAULT_SORT = "recommend";
 const FILTER_QUERY_KEYS = ["category_id", "tag", "is_free", "region", "sort"];
 const PAGE_SIZE = 24;
+const CATEGORY_SITES_CACHE_VERSION = "v2";
 let activeRequestController = null;
 let requestSequence = 0;
 let siteCardsObserver;
@@ -413,7 +415,9 @@ function siteCacheKey(source = {}) {
 
 function readSessionSiteCache(key) {
   try {
-    const value = sessionStorage.getItem(`zhihangyu:category-sites:${key}`);
+    const value = sessionStorage.getItem(
+      `zhihangyu:category-sites:${CATEGORY_SITES_CACHE_VERSION}:${key}`,
+    );
     const parsed = value ? JSON.parse(value) : null;
     return Array.isArray(parsed) ? parsed : [];
   } catch {
@@ -424,7 +428,7 @@ function readSessionSiteCache(key) {
 function writeSessionSiteCache(key, items) {
   try {
     sessionStorage.setItem(
-      `zhihangyu:category-sites:${key}`,
+      `zhihangyu:category-sites:${CATEGORY_SITES_CACHE_VERSION}:${key}`,
       JSON.stringify(items),
     );
   } catch {
@@ -763,6 +767,7 @@ function handleCategoryChange(categoryLabel) {
 function handleWebsiteClick(website) {
   const key = websiteKey(website);
   selectedWebsiteId.value = selectedWebsiteId.value === key ? null : key;
+  visitSite(website, { source: "category_list" });
 }
 
 function collapseDetails() {
@@ -773,10 +778,8 @@ function hideBrokenScreenshot(event) {
   event.currentTarget.closest("figure")?.remove();
 }
 
-async function recordWebsiteVisit(website) {
-  if (website?.id && !website.external_only) {
-    await siteAPI.recordClick(website.id).catch(() => {});
-  }
+function recordWebsiteVisit(website, event) {
+  visitSite(website, { source: "category_detail", event });
 }
 
 function observeSiteCards() {
@@ -873,13 +876,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at 8% 10%,
-      rgba(191, 245, 237, 0.2),
-      transparent 28%
-    ),
-    #ffffff;
+  background: var(--app-page-bg);
 }
 
 main {
@@ -930,19 +927,18 @@ h1 {
   flex: 0 0 auto;
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--app-card-bg);
   color: var(--color-muted);
   padding: 8px 12px;
   font-size: 13px;
   font-weight: 750;
 }
 
-.category-nav,
 .secondary-filters,
 .website-detail-sidebar,
 .website-detail-card {
   border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--app-container-bg);
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
   backdrop-filter: blur(18px);
 }
@@ -953,8 +949,11 @@ h1 {
   align-items: center;
   gap: 8px;
   overflow-x: auto;
+  border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 22px;
+  background: transparent;
   padding: 10px;
+  box-shadow: none;
   scrollbar-width: thin;
 }
 
@@ -964,10 +963,10 @@ h1 {
   flex: 0 0 auto;
   align-items: center;
   gap: 7px;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--radius-pill);
-  background: rgba(241, 245, 249, 0.74);
-  color: #64748b;
+  background: transparent;
+  color: var(--app-tab-text);
   padding: 0 15px;
   font: inherit;
   font-size: 13px;
@@ -987,24 +986,22 @@ h1 {
 
 .category-tab:hover,
 .category-tab:focus-visible {
-  border-color: rgba(255, 112, 88, 0.28);
-  background: rgba(255, 247, 244, 0.94);
-  color: var(--color-primary);
+  background: var(--app-tab-hover-bg);
+  color: var(--app-text-secondary);
   outline: none;
   transform: translateY(-1px);
 }
 
 .category-tab--active {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgba(255, 112, 88, 0.2);
+  background: var(--app-tab-active-bg);
+  color: var(--app-tab-text-active);
+  box-shadow: none;
 }
 
 .category-tab--active:hover,
 .category-tab--active:focus-visible {
-  background: var(--color-primary-dark);
-  color: #ffffff;
+  background: var(--app-tab-active-bg);
+  color: var(--app-tab-text-active);
 }
 
 .secondary-filters {
@@ -1065,10 +1062,12 @@ h1 {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
-  border: 1px solid var(--color-border-soft);
+  border: 1px solid var(--app-card-border);
   border-radius: 12px;
-  background: var(--color-soft);
-  color: var(--color-muted);
+  background: var(--app-card-bg);
+  color: var(--app-text-secondary);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 8px 12px;
   font-size: 13px;
 }
@@ -1078,8 +1077,8 @@ h1 {
   min-height: 36px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  background: #ffffff;
-  color: var(--color-heading);
+  background: var(--app-button-bg);
+  color: var(--app-text-primary);
   padding: 0 13px;
   font: inherit;
   font-size: 13px;
@@ -1124,8 +1123,11 @@ h1 {
   min-width: 0;
 }
 
-.category-site-grid :deep(.website-card--category) {
-  height: 100%;
+.category-site-grid :deep(.website-card--category-compact) {
+  height: 160px;
+  min-height: 160px;
+  max-height: 160px;
+  box-sizing: border-box;
 }
 
 .category-load-more {
