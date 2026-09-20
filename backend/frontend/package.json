@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --configLoader runner",
+    "build": "vite build",
     "test:auth-state": "node scripts/verify-auth-state.mjs",
     "test:auth-request-contract": "node scripts/verify-auth-request-contract.mjs",
     "test:password-reset": "node scripts/verify-password-reset.mjs",
@@ -52,6 +52,9 @@
     "test:recommendation-metrics": "node scripts/verify-recommendation-metrics.mjs",
     "test:personalization": "node scripts/verify-personalization.mjs",
     "test:animated-title": "node scripts/verify-animated-page-title.mjs",
+    "test:entry-smoke": "node scripts/verify-app-entry-smoke.mjs",
+    "test:core": "npm run test:auth-state && npm run test:site-search && npm run test:favorite-star-interaction && npm run test:home-category-switch && npm run test:animated-title && npm run test:entry-smoke",
+    "test:check": "npm run test:core && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {

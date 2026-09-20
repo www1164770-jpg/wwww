@@ -13,8 +13,8 @@ const api = read("src/utils/api.js");
 
 assert.match(
   category,
-  /const activeCategory = ref\("全部"\)[\s\S]*?const visibleLimit = ref\(PAGE_SIZE\)/,
-  "首页分类必须默认选中全部，并初始化分页数量",
+  /const PAGE_SIZE = 15;[\s\S]*?const activeCategory = ref\("全部"\);[\s\S]*?const currentBatch = ref\(0\);/,
+  "首页分类必须默认选中全部，并从第 0 批开始分页",
 );
 assert.match(
   category,
@@ -28,13 +28,28 @@ assert.match(
 );
 assert.match(
   category,
-  /const renderedWebsites = computed\(\(\) =>\s*filteredWebsites\.value\.slice\(0, normalizedVisibleLimit\.value\)/,
-  "渲染数组必须由过滤数组稳定切片得到",
+  /const totalBatches = computed\(\(\) =>\s*Math\.ceil\(filteredWebsites\.value\.length \/ PAGE_SIZE\),\s*\);/,
+  "总批次数必须根据筛选结果和 PAGE_SIZE 计算",
 );
 assert.match(
   category,
-  /function handleCategoryChange\(categoryName\)\s*\{\s*activeCategory\.value = categoryName;\s*visibleLimit\.value = PAGE_SIZE;/,
-  "切换分类必须只更新分类和可见数量",
+  /const renderedWebsites = computed\(\(\) =>\s*\{\s*const start = currentBatch\.value \* PAGE_SIZE;\s*return filteredWebsites\.value\.slice\(start, start \+ PAGE_SIZE\);\s*\}\);/,
+  "渲染数组必须按 currentBatch × PAGE_SIZE 切片，并且每批最多 PAGE_SIZE 条",
+);
+assert.match(
+  category,
+  /function handleCategoryChange\(categoryName\)\s*\{\s*if \(activeCategory\.value === categoryName\) return;\s*contentHasChanged\.value = true;\s*activeCategory\.value = categoryName;\s*currentBatch\.value = 0;/,
+  "切换分类必须保留已加载数据，并将分页批次重置为第 0 批",
+);
+assert.match(
+  category,
+  /function changeWebsiteBatch\(\)\s*\{\s*if \(totalBatches\.value <= 1\) return;\s*contentHasChanged\.value = true;\s*currentBatch\.value = \(currentBatch\.value \+ 1\) % totalBatches\.value;/,
+  "换一批必须在有效批次数内循环切换 currentBatch",
+);
+assert.match(
+  category,
+  /watch\(totalBatches, \(batchCount\) =>\s*\{\s*if \(currentBatch\.value >= batchCount\) currentBatch\.value = 0;\s*\}\);/,
+  "筛选结果减少导致当前批次越界时，必须回到第 0 批",
 );
 for (const forbidden of [
   "allWebsites.value = []",
