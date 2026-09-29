@@ -1,0 +1,29 @@
+{
+  "id": 1,
+  "revision": 25,
+  "indexed_revision": -1,
+  "task_id": null,
+  "task_kind": null,
+  "target_index": "stage2_test_88d11013562c",
+  "updated_at": "2026-09-27 06:12:02.631773",
+  "outbox": [
+    {
+      "status": "processed",
+      "count": 26
+    }
+  ],
+  "failures": [
+    {
+      "event_uid": "5868ff27-ba3a-11f1-9dac-ccc530bd0aff",
+      "status": "processed",
+      "attempt_count": 0,
+      "last_error": "SearchUnavailable: ConnectTimeout"
+    },
+    {
+      "event_uid": "583afde9-ba3a-11f1-9dac-ccc530bd0aff",
+      "status": "processed",
+      "attempt_count": 1,
+      "last_error": "lease_expired"
+    }
+  ]
+}

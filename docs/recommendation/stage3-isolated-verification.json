@@ -1,0 +1,2941 @@
+{
+  "captured_at": "2026-09-25T14:43:42.657481+00:00",
+  "database": "ai_retrieval_80183efd0298_test",
+  "index": "stage3_test_80183efd0298",
+  "source_database_modified": false,
+  "model": "deterministic doubles; NO real provider call",
+  "real_model_verified": false,
+  "sample_count": 8,
+  "checks": [
+    "AI success response: 免费、中文、无需安装、适合新手的论文绘图工具",
+    "hard requirements outrank conflicting programmer profile",
+    "AI also excludes confirmed product aliases",
+    "trial is not fully free; missing verified fields remain unknown",
+    "unpublished and unrelated resources excluded",
+    "all identities/links originate from real fixture records",
+    "each reason has field evidence",
+    "AI success response: 接口调试工具",
+    "different task retrieves API resource through same search service",
+    "AI success response: 不要付费，不需要中文也可以的接口调试工具",
+    "negative fee and optional Chinese handled correctly",
+    "AI success response: 免费但必须付费的论文绘图工具",
+    "contradiction returns clarification, not arbitrary selection",
+    "AI success response: 免费、中文、无需安装、适合新手的论文绘图工具",
+    "model timeout falls back to rules with explicit notice",
+    "AI success response: 免费、中文、无需安装、适合新手的论文绘图工具",
+    "invalid JSON structure falls back to rules",
+    "AI success response: 免费、中文、无需安装、适合新手的论文绘图工具",
+    "fabricated model ID/link rejected without losing valid retrieval",
+    "AI success response: 免费、中文、无需安装、适合新手的论文绘图工具",
+    "resource unpublished before async sync is hidden",
+    "similarity excludes self, confirmed alias, unpublished and unrelated category peer",
+    "paid alternative retained with explicit pricing difference",
+    "similarity missing-resource API compatibility",
+    "similarity stable ordering",
+    "AI authentication unchanged",
+    "exact seven-field error contract 请输入需求描述",
+    "exact seven-field error contract 需求描述必须是文本",
+    "exact seven-field error contract 需求描述必须是文本",
+    "exact seven-field error contract 请输入需求描述",
+    "exact seven-field error contract 请更具体地描述你的需求",
+    "exact seven-field error contract 需求描述不能超过 500 个字符",
+    "ordinary search independent of failed model",
+    "normal zero results never cause database fallback",
+    "Redis failure preserves Meilisearch retrieval",
+    "ordinary search transport failure still falls back to database"
+  ],
+  "responses": [
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 7,
+          "full_count": 1,
+          "retrieved": 7,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": false,
+        "items": [
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "free",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "met",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 1,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "pricing_model",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "free",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 25,
+            "match_status": "full",
+            "name": "Plot Alpha",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/1"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unknown",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "unknown",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "unknown",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "unknown",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 3,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 13,
+            "match_status": "unverified",
+            "name": "Plot Unknown",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [
+              "收费：完全免费",
+              "语言：中文",
+              "安装：无需",
+              "门槛：适合新手"
+            ],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/3"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "trial",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 2,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Trial",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/2"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "paid",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 7,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Paid",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/7"
+          }
+        ],
+        "notice": "",
+        "query": "免费 中文 无需安装 适合新手的论文绘图工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "免费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "中文",
+              "field": "language",
+              "label": "语言：中文",
+              "strength": "must",
+              "value": "zh"
+            },
+            {
+              "evidence": "无需安装",
+              "field": "installation",
+              "label": "安装：无需",
+              "strength": "must",
+              "value": "none"
+            },
+            {
+              "evidence": "适合新手",
+              "field": "level",
+              "label": "门槛：适合新手",
+              "strength": "must",
+              "value": "beginner"
+            },
+            {
+              "evidence": "论文绘图",
+              "field": "task",
+              "label": "用途：论文绘图",
+              "strength": "must",
+              "value": "论文绘图"
+            }
+          ],
+          "original_query": "免费、中文、无需安装、适合新手的论文绘图工具",
+          "source": "model"
+        }
+      }
+    },
+    {
+      "query": "接口调试工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 7,
+          "full_count": 1,
+          "retrieved": 7,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": false,
+        "items": [
+          {
+            "category_name": "开发",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "接口调试"
+                },
+                "evidence_id": 0,
+                "field": "task",
+                "label": "用途：接口调试",
+                "state": "met",
+                "strength": "must",
+                "value": "接口调试"
+              }
+            ],
+            "description": "接口调试",
+            "id": 4,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "接口调试"
+              }
+            ],
+            "match_score": 13,
+            "match_status": "full",
+            "name": "API Bench",
+            "reason": "资源摘要包含“接口调试”。",
+            "summary": "接口调试",
+            "tags": [
+              "api_testing"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/4"
+          }
+        ],
+        "notice": "",
+        "query": "接口调试工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "接口调试",
+              "field": "task",
+              "label": "用途：接口调试",
+              "strength": "must",
+              "value": "接口调试"
+            }
+          ],
+          "original_query": "接口调试工具",
+          "source": "model"
+        }
+      }
+    },
+    {
+      "query": "不要付费，不需要中文也可以的接口调试工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 7,
+          "full_count": 1,
+          "retrieved": 7,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": false,
+        "items": [
+          {
+            "category_name": "开发",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "free",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "met",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "query",
+                  "value": "不需要中文也可以"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：不限",
+                "state": "met",
+                "strength": "prefer",
+                "value": "any"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "接口调试"
+                },
+                "evidence_id": 2,
+                "field": "task",
+                "label": "用途：接口调试",
+                "state": "met",
+                "strength": "must",
+                "value": "接口调试"
+              }
+            ],
+            "description": "接口调试",
+            "id": 4,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "pricing_model",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "free",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "query",
+                "value": "不需要中文也可以"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "接口调试"
+              }
+            ],
+            "match_score": 17,
+            "match_status": "full",
+            "name": "API Bench",
+            "reason": "资源摘要包含“接口调试”。其余必选条件见核对结果。",
+            "summary": "接口调试",
+            "tags": [
+              "api_testing"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/4"
+          }
+        ],
+        "notice": "",
+        "query": "不要付费 不需要中文也可以的接口调试工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "不要付费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "不需要中文也可以",
+              "field": "language",
+              "label": "语言：不限",
+              "strength": "prefer",
+              "value": "any"
+            },
+            {
+              "evidence": "接口调试",
+              "field": "task",
+              "label": "用途：接口调试",
+              "strength": "must",
+              "value": "接口调试"
+            }
+          ],
+          "original_query": "不要付费，不需要中文也可以的接口调试工具",
+          "source": "model"
+        }
+      }
+    },
+    {
+      "query": "免费但必须付费的论文绘图工具",
+      "data": {
+        "clarifications": [
+          "收费条件存在冲突，请确认必须满足哪一项。"
+        ],
+        "coverage": {},
+        "degraded": false,
+        "items": [],
+        "notice": "请先澄清需求中的冲突或不明确条件。",
+        "query": "免费但必须付费的论文绘图工具",
+        "requirements": {
+          "clarifications": [
+            "收费条件存在冲突，请确认必须满足哪一项。"
+          ],
+          "conditions": [
+            {
+              "evidence": "免费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "必须付费",
+              "field": "pricing",
+              "label": "收费：付费",
+              "strength": "must",
+              "value": "paid"
+            },
+            {
+              "evidence": "论文绘图",
+              "field": "task",
+              "label": "用途：论文绘图",
+              "strength": "must",
+              "value": "论文绘图"
+            }
+          ],
+          "original_query": "免费但必须付费的论文绘图工具",
+          "source": "model"
+        }
+      }
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 7,
+          "full_count": 1,
+          "retrieved": 7,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": true,
+        "items": [
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "free",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "met",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 1,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "pricing_model",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "free",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 25,
+            "match_status": "full",
+            "name": "Plot Alpha",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/1"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unknown",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "unknown",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "unknown",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "unknown",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 3,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 13,
+            "match_status": "unverified",
+            "name": "Plot Unknown",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [
+              "收费：完全免费",
+              "语言：中文",
+              "安装：无需",
+              "门槛：适合新手"
+            ],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/3"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "trial",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 2,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Trial",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/2"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "paid",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 7,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Paid",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/7"
+          }
+        ],
+        "notice": "需求理解暂用规则处理，请核对条件。",
+        "query": "免费 中文 无需安装 适合新手的论文绘图工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "免费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "中文",
+              "field": "language",
+              "label": "语言：中文",
+              "strength": "must",
+              "value": "zh"
+            },
+            {
+              "evidence": "无需安装",
+              "field": "installation",
+              "label": "安装：无需",
+              "strength": "must",
+              "value": "none"
+            },
+            {
+              "evidence": "适合新手",
+              "field": "level",
+              "label": "门槛：适合新手",
+              "strength": "must",
+              "value": "beginner"
+            },
+            {
+              "evidence": "论文绘图",
+              "field": "task",
+              "label": "用途：论文绘图",
+              "strength": "must",
+              "value": "论文绘图"
+            }
+          ],
+          "original_query": "免费、中文、无需安装、适合新手的论文绘图工具",
+          "source": "rules"
+        }
+      }
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 7,
+          "full_count": 1,
+          "retrieved": 7,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": true,
+        "items": [
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "free",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "met",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 1,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "pricing_model",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "free",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 25,
+            "match_status": "full",
+            "name": "Plot Alpha",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/1"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unknown",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "unknown",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "unknown",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "unknown",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 3,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 13,
+            "match_status": "unverified",
+            "name": "Plot Unknown",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [
+              "收费：完全免费",
+              "语言：中文",
+              "安装：无需",
+              "门槛：适合新手"
+            ],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/3"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "trial",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 2,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Trial",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/2"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "paid",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 7,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Paid",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/7"
+          }
+        ],
+        "notice": "需求理解暂用规则处理，请核对条件。",
+        "query": "免费 中文 无需安装 适合新手的论文绘图工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "免费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "中文",
+              "field": "language",
+              "label": "语言：中文",
+              "strength": "must",
+              "value": "zh"
+            },
+            {
+              "evidence": "无需安装",
+              "field": "installation",
+              "label": "安装：无需",
+              "strength": "must",
+              "value": "none"
+            },
+            {
+              "evidence": "适合新手",
+              "field": "level",
+              "label": "门槛：适合新手",
+              "strength": "must",
+              "value": "beginner"
+            },
+            {
+              "evidence": "论文绘图",
+              "field": "task",
+              "label": "用途：论文绘图",
+              "strength": "must",
+              "value": "论文绘图"
+            }
+          ],
+          "original_query": "免费、中文、无需安装、适合新手的论文绘图工具",
+          "source": "rules"
+        }
+      }
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 7,
+          "full_count": 1,
+          "retrieved": 7,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": true,
+        "items": [
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "free",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "met",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 1,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "pricing_model",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "free",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 25,
+            "match_status": "full",
+            "name": "Plot Alpha",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/1"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unknown",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "unknown",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "unknown",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "unknown",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 3,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 13,
+            "match_status": "unverified",
+            "name": "Plot Unknown",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [
+              "收费：完全免费",
+              "语言：中文",
+              "安装：无需",
+              "门槛：适合新手"
+            ],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/3"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "trial",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 2,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Trial",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/2"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "paid",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 7,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Paid",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/7"
+          }
+        ],
+        "notice": "说明已改用资源字段生成。",
+        "query": "免费 中文 无需安装 适合新手的论文绘图工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "免费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "中文",
+              "field": "language",
+              "label": "语言：中文",
+              "strength": "must",
+              "value": "zh"
+            },
+            {
+              "evidence": "无需安装",
+              "field": "installation",
+              "label": "安装：无需",
+              "strength": "must",
+              "value": "none"
+            },
+            {
+              "evidence": "适合新手",
+              "field": "level",
+              "label": "门槛：适合新手",
+              "strength": "must",
+              "value": "beginner"
+            },
+            {
+              "evidence": "论文绘图",
+              "field": "task",
+              "label": "用途：论文绘图",
+              "strength": "must",
+              "value": "论文绘图"
+            }
+          ],
+          "original_query": "免费、中文、无需安装、适合新手的论文绘图工具",
+          "source": "model"
+        }
+      }
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "data": {
+        "clarifications": [],
+        "coverage": {
+          "evaluated": 6,
+          "full_count": 1,
+          "retrieved": 6,
+          "scope": "public_catalog",
+          "truncated": false
+        },
+        "degraded": false,
+        "items": [
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "free",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "met",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 6,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "pricing_model",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "free",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 25,
+            "match_status": "full",
+            "name": "Plot Alias",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/6"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unknown",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "unknown",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "unknown",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": null,
+                  "value": null,
+                  "verified_at": null
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "unknown",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 3,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 13,
+            "match_status": "unverified",
+            "name": "Plot Unknown",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [
+              "收费：完全免费",
+              "语言：中文",
+              "安装：无需",
+              "门槛：适合新手"
+            ],
+            "unmet_conditions": [],
+            "url": "https://fixture.invalid/products/3"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "trial",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 2,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Trial",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/2"
+          },
+          {
+            "category_name": "科研",
+            "condition_checks": [
+              {
+                "evidence": {
+                  "field": "pricing_model",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "paid",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 0,
+                "field": "pricing",
+                "label": "收费：完全免费",
+                "state": "unmet",
+                "strength": "must",
+                "value": "free"
+              },
+              {
+                "evidence": {
+                  "field": "language",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": [
+                    "zh"
+                  ],
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 1,
+                "field": "language",
+                "label": "语言：中文",
+                "state": "met",
+                "strength": "must",
+                "value": "zh"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.installation",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "none",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 2,
+                "field": "installation",
+                "label": "安装：无需",
+                "state": "met",
+                "strength": "must",
+                "value": "none"
+              },
+              {
+                "evidence": {
+                  "field": "entry_requirements.level",
+                  "source_ref": "synthetic-stage3-fixture",
+                  "value": "beginner",
+                  "verified_at": "2026-09-25"
+                },
+                "evidence_id": 3,
+                "field": "level",
+                "label": "门槛：适合新手",
+                "state": "met",
+                "strength": "must",
+                "value": "beginner"
+              },
+              {
+                "evidence": {
+                  "field": "summary",
+                  "source_ref": null,
+                  "value": "论文绘图"
+                },
+                "evidence_id": 4,
+                "field": "task",
+                "label": "用途：论文绘图",
+                "state": "met",
+                "strength": "must",
+                "value": "论文绘图"
+              }
+            ],
+            "description": "论文绘图",
+            "id": 7,
+            "logo_url": "",
+            "match_evidence": [
+              {
+                "field": "language",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": [
+                  "zh"
+                ],
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.installation",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "none",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "entry_requirements.level",
+                "source_ref": "synthetic-stage3-fixture",
+                "value": "beginner",
+                "verified_at": "2026-09-25"
+              },
+              {
+                "field": "summary",
+                "source_ref": null,
+                "value": "论文绘图"
+              }
+            ],
+            "match_score": 22,
+            "match_status": "partial",
+            "name": "Plot Paid",
+            "reason": "资源摘要包含“论文绘图”。其余必选条件见核对结果。",
+            "summary": "论文绘图",
+            "tags": [
+              "scientific_plot"
+            ],
+            "unknown_conditions": [],
+            "unmet_conditions": [
+              "收费：完全免费"
+            ],
+            "url": "https://fixture.invalid/products/7"
+          }
+        ],
+        "notice": "",
+        "query": "免费 中文 无需安装 适合新手的论文绘图工具",
+        "requirements": {
+          "clarifications": [],
+          "conditions": [
+            {
+              "evidence": "免费",
+              "field": "pricing",
+              "label": "收费：完全免费",
+              "strength": "must",
+              "value": "free"
+            },
+            {
+              "evidence": "中文",
+              "field": "language",
+              "label": "语言：中文",
+              "strength": "must",
+              "value": "zh"
+            },
+            {
+              "evidence": "无需安装",
+              "field": "installation",
+              "label": "安装：无需",
+              "strength": "must",
+              "value": "none"
+            },
+            {
+              "evidence": "适合新手",
+              "field": "level",
+              "label": "门槛：适合新手",
+              "strength": "must",
+              "value": "beginner"
+            },
+            {
+              "evidence": "论文绘图",
+              "field": "task",
+              "label": "用途：论文绘图",
+              "strength": "must",
+              "value": "论文绘图"
+            }
+          ],
+          "original_query": "免费、中文、无需安装、适合新手的论文绘图工具",
+          "source": "model"
+        }
+      }
+    }
+  ],
+  "request_timings": [
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "duration_ms": 2163.665,
+      "model": "double",
+      "sequence": 1
+    },
+    {
+      "query": "接口调试工具",
+      "duration_ms": 44.659,
+      "model": "double",
+      "sequence": 2
+    },
+    {
+      "query": "不要付费，不需要中文也可以的接口调试工具",
+      "duration_ms": 62.389,
+      "model": "double",
+      "sequence": 3
+    },
+    {
+      "query": "免费但必须付费的论文绘图工具",
+      "duration_ms": 69.385,
+      "model": "double",
+      "sequence": 4
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "duration_ms": 74.695,
+      "model": "double",
+      "sequence": 5
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "duration_ms": 62.635,
+      "model": "double",
+      "sequence": 6
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "duration_ms": 55.489,
+      "model": "double",
+      "sequence": 7
+    },
+    {
+      "query": "免费、中文、无需安装、适合新手的论文绘图工具",
+      "duration_ms": 87.465,
+      "model": "double",
+      "sequence": 8
+    }
+  ],
+  "cache_conditions": "Unique new test index starts cold; subsequent requests reuse its Redis candidates. No production performance claim.",
+  "status": "passed"
+}

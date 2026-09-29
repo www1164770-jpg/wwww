@@ -8,6 +8,7 @@ const home = read("src/views/Home.vue");
 const card = read("src/components/site/SiteCard.vue");
 
 const checks = [
+  ["missing evidence never gets an affirmative fallback", !card.includes("该网站的功能与你当前选择的职业需求较为匹配。")],
   [
     "career recommendation continues to render SiteCard with reasons enabled",
     home.includes('v-for="site in visibleCareerSites"') &&
@@ -27,7 +28,7 @@ const checks = [
       "props.site.match_reason",
       "props.site.summary",
       "props.site.description",
-      "该网站的功能与你当前选择的职业需求较为匹配。",
+      "暂无明确画像匹配依据，供探索参考。",
     ].every(
       (snippet, index, snippets) =>
         card.indexOf(snippet) >= 0 &&

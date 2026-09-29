@@ -312,10 +312,7 @@ onBeforeUnmount(clearTimer);
   min-height: 100vh;
   place-items: center;
   padding: 24px;
-  background:
-    radial-gradient(circle at 12% 20%, rgba(191, 245, 237, 0.42), transparent 28%),
-    radial-gradient(circle at 90% 30%, rgba(255, 112, 88, 0.16), transparent 30%),
-    linear-gradient(180deg, #ffffff 0%, #fffaf8 100%);
+  background: #ffffff;
 }
 
 .auth-panel {
@@ -325,7 +322,7 @@ onBeforeUnmount(clearTimer);
   padding: clamp(28px, 5vw, 40px);
   border: 1px solid var(--color-border);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
+  background: #ffffff;
   box-shadow: var(--shadow-card);
 }
 
@@ -389,7 +386,7 @@ button {
   background: var(--color-primary);
   color: #ffffff;
   font-weight: 850;
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
 .send-code {

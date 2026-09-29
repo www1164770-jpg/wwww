@@ -1413,42 +1413,16 @@ def setup_search_engine():
     设置可搜索字段和排序规则，确保搜索结果既准确又按热度排序。
     此函数建议在应用启动时调用一次，后续无需重复执行。
     """
-    # 设定可以搜哪些字段
-    meili_index.update_searchable_attributes(['name', 'url'])  # 只对网站名称和 URL 建立全文索引
-    # 设定排序规则：先看匹配度，再看点击量(clicks)倒序
-    meili_index.update_ranking_rules([
-        "words", "typo", "proximity", "attribute", "sort", "exactness"
-    ])
-    meili_index.update_sortable_attributes(['clicks'])  # 允许按点击量字段排序
+    from search_catalog import configured_service
+    from search_sync import Sync
+    service = configured_service()
+    return Sync(service.catalog, service.meili).rebuild()
 
 
 def sync_search_data():
-    """
-    将 MySQL 中的网站数据全量同步到 Meilisearch 搜索引擎。
-
-    接口路径：POST /api/admin/sync-search
-    请求方法：POST
-    功能描述：读取数据库中所有网站记录，批量写入 Meilisearch 索引，
-              使搜索引擎数据与数据库保持一致。适合在数据库大批量更新后手动触发。
-    参数：无
-    返回：
-        200 - 同步成功，包含同步数量
-        500 - 同步失败
-    """
-    from models import Website # 确保你有这个模型
-    sites = Website.query.all()  # 查询数据库中所有网站记录
-    
-    documents = []  # 准备要写入搜索引擎的文档列表
-    for s in sites:
-        documents.append({
-            "id": s.id,          # 文档唯一标识，与数据库主键对应
-            "name": s.name,      # 网站名称，用于全文搜索
-            "url": s.url,        # 网站地址，用于全文搜索
-            "clicks": s.clicks or 0  # 点击量，用于热度排序（None 时默认为 0）
-        })
-    
-    meili_index.add_documents(documents)  # 批量写入 Meilisearch（已存在则更新，不存在则新增）
-    return jsonify({"message": f"成功同步 {len(documents)} 个网站到搜索引擎！"})
+    """Build, validate and atomically swap; never clear the live index."""
+    result = setup_search_engine()
+    return jsonify({"message": "搜索索引已校验并切换", "data": result})
 
 # --- 无感刷新 Token 接口 ---
 @app.route('/api/refresh', methods=['POST', 'OPTIONS'])
@@ -3156,27 +3130,10 @@ def audit_site(site_id):
         site.status = 'approved'
         db.session.commit()
         
-        # 2. ✨ 核心联动：同步推送到 Meilisearch 极速搜索引擎 ✨
-        try:
-            index = meili_index
-            
-            # 组装成搜索引擎需要的格式
-            document = {
-                "id": str(site.id),
-                "name": site.name,
-                "url": site.url,
-                "description": site.description,
-                "clicks": site.clicks or 0
-            }
-            # 推送！
-            index.add_documents([document])
-            print(f"🌍 [引擎同步] 成功将 {site.name} 推送至 Meilisearch!")
-            
-        except Exception as e:
-            print(f"⚠️ [引擎报错] Meilisearch 同步失败: {e}")
-            
-        return jsonify({"message": "已批准上线，并秒级同步至搜索引擎！"})
-        
+        # Transactional database triggers enqueue search.changed with this commit.
+        # Search indexing is asynchronous; a successful save is not a task success.
+        return jsonify({"message": "已批准上线，搜索索引待同步", "sync_pending": True})
+
     elif action == 'reject':
         db.session.delete(site)
         db.session.commit()
@@ -3278,7 +3235,8 @@ def delete_website(id):
 # 注册所有扩展模块（统一在此处注册，确保 app 实例已完全初始化）
 # =====================================================================
 try:
-    register_v1_routes(app, get_db_connection)
+    from search_catalog import configured_service
+    register_v1_routes(app, get_db_connection, search_service=configured_service())
     register_personalization_routes(app, get_db_connection)
     register_questionnaire_admin_read_routes(app, get_db_connection)
     register_review_routes(app, admin_required)

@@ -1,9 +1,12 @@
 from datetime import datetime, timezone
+import re
 
 
 # Stable questionnaire values are matched against site tags first, with text
 # keywords retained as a fallback while the existing catalog is being enriched.
 PROFILE_SIGNAL_KEYWORDS = {
+    "literature_search": ("literature", "scholar", "文献", "论文检索"),
+    "research": ("research", "学术", "文献", "研究"),
     "frontend": ("frontend", "javascript", "typescript", "vue", "react", "css"),
     "backend": ("backend", "api", "server", "database", "python"),
     "fullstack": ("fullstack", "frontend", "backend", "api"),
@@ -35,6 +38,8 @@ MATCH_WEIGHTS = {
 }
 
 SIGNAL_LABELS = {
+    "literature_search": "文献检索需求",
+    "research": "研究需求",
     "frontend": "\u524d\u7aef\u5f00\u53d1\u65b9\u5411",
     "backend": "\u540e\u7aef\u5f00\u53d1\u65b9\u5411",
     "fullstack": "\u5168\u6808\u5f00\u53d1\u65b9\u5411",
@@ -105,8 +110,27 @@ def _signal_score(site_text, site_tags, signal):
     keywords = PROFILE_SIGNAL_KEYWORDS.get(signal, ())
     if not keywords:
         return 0.0
-    hits = sum(keyword.casefold() in site_text for keyword in keywords)
+    hits = sum(_keyword_matches(keyword, site_text) for keyword in keywords)
     return min(hits / max(len(keywords), 1), 1.0)
+
+
+def _keyword_matches(keyword, text):
+    # Avoid ai in mail, api in capital, ui in build, etc.
+    pattern = re.escape(keyword.casefold())
+    if keyword.isascii():
+        pattern = r"(?<![a-z0-9])" + pattern + r"(?![a-z0-9])"
+    return bool(re.search(pattern, text.casefold()))
+
+
+def _signal_evidence(site, signal, profile_field):
+    signal = str(signal or "").casefold()
+    if signal in _normalised_set(site.get("tags")):
+        return [{"profile_field": profile_field, "signal": signal, "resource_field": "tags", "value": signal, "match_type": "exact_tag"}]
+    return [{"profile_field": profile_field, "signal": signal, "resource_field": field,
+             "value": keyword, "match_type": "keyword"}
+            for field in ("name", "url", "summary", "description", "category_name", "tags", "occupations")
+            for keyword in PROFILE_SIGNAL_KEYWORDS.get(signal, ())
+            if _keyword_matches(keyword, str(site.get(field) or ""))]
 
 
 def _priority_score(site, site_text, site_tags, priority):
@@ -187,7 +211,9 @@ def score_site(site, user_profile=None, rules=None):
         occupation_score = max(occupation_score, 0.3)
 
     direction_score = _signal_score(site_text, site_tags, user_profile.get("direction"))
-    need_score = _signal_score(site_text, site_tags, user_profile.get("primary_need"))
+    detailed_needs = _clean_list(user_profile.get("detailed_needs"))
+    need_signal = next((value for value in detailed_needs if value in PROFILE_SIGNAL_KEYWORDS or value in site_tags), user_profile.get("primary_need"))
+    need_score = _signal_score(site_text, site_tags, need_signal)
     priority_score = _priority_score(site, site_text, site_tags, user_profile.get("priority"))
     reserved_signals = {
         str(user_profile.get(key) or "").casefold()
@@ -225,19 +251,33 @@ def score_site(site, user_profile=None, rules=None):
         )
 
     reasons = []
+    evidence = []
     if occupation_score >= 0.5 and occupation:
-        reasons.append("\u5339\u914d\u4f60\u7684\u804c\u4e1a\u5b9a\u4f4d")
+        if occupation in site_occupations or occupation in site_tags:
+            reasons.append("匹配你的职业定位")
+            evidence.append({"profile_field": "occupation", "signal": occupation, "resource_field": "occupations" if occupation in site_occupations else "tags", "value": occupation, "match_type": "exact_tag"})
     if direction_score > 0:
-        reasons.append("\u7b26\u5408" + SIGNAL_LABELS.get(str(user_profile.get("direction") or ""), "\u7ec6\u5206\u65b9\u5411"))
+        hits = _signal_evidence(site, user_profile.get("direction"), "direction")
+        evidence.extend(hits)
+        reasons.append(("符合" if hits and hits[0]["match_type"] == "exact_tag" else "资源字段涉及") + SIGNAL_LABELS.get(str(user_profile.get("direction") or ""), str(user_profile.get("direction"))))
     if need_score > 0:
-        reasons.append("\u5339\u914d" + SIGNAL_LABELS.get(str(user_profile.get("primary_need") or ""), "\u6838\u5fc3\u9700\u6c42"))
+        hits = _signal_evidence(site, need_signal, "detailed_needs" if need_signal in detailed_needs else "primary_need")
+        evidence.extend(hits)
+        reasons.append(("匹配" if hits and hits[0]["match_type"] == "exact_tag" else "资源字段涉及") + SIGNAL_LABELS.get(str(need_signal or ""), str(need_signal)))
     if priority_score > 0:
-        reasons.append("\u7b26\u5408" + SIGNAL_LABELS.get(str(user_profile.get("priority") or ""), "\u5de5\u5177\u504f\u597d"))
+        hits = _signal_evidence(site, user_profile.get("priority"), "priority")
+        if hits:
+            evidence.extend(hits)
+            reasons.append("资源字段涉及" + SIGNAL_LABELS.get(str(user_profile.get("priority") or ""), str(user_profile.get("priority"))))
+        elif user_profile.get("priority") == "free_value" and site.get("is_free"):
+            reasons.append("资源记录标记为免费，收费情况尚需核验")
+            evidence.append({"profile_field": "priority", "signal": "free_value", "resource_field": "is_free", "value": site["is_free"], "match_type": "stored_flag"})
     matched_tags = sorted(extra_tags & site_tags)
     if matched_tags:
         reasons.append("\u5173\u8054\u6807\u7b7e\uff1a" + "\u3001".join(matched_tags[:2]))
+        evidence.extend({"profile_field": "interests", "signal": tag, "resource_field": "tags", "value": tag, "match_type": "exact_tag"} for tag in matched_tags)
     if not reasons:
-        reasons.append("\u4e0e\u4f60\u7684\u95ee\u5377\u753b\u50cf\u4fdd\u6301\u76f8\u5173")
+        reasons.append("暂无明确画像匹配依据，供探索参考")
 
     breakdown = {
         "occupation_score": round(occupation_score * 100, 2),
@@ -250,6 +290,7 @@ def score_site(site, user_profile=None, rules=None):
         "freshness_score": round(freshness_score * 100, 2),
         "behavior_score": round(behavior_score * 100, 2),
         "match_reasons": reasons[:4],
+        "match_evidence": evidence,
     }
     return round(min(score, 100), 2), reasons[0], breakdown
 
@@ -272,7 +313,8 @@ def rank_sites(sites, user_profile=None, limit=12, rules=None):
         item["match_score"] = score
         item["recommend_score"] = score
         item["match_reasons"] = breakdown.pop("match_reasons")
-        item["reason"] = item.get("reason") or reason
+        item["match_evidence"] = breakdown.pop("match_evidence")
+        item["reason"] = reason
         item["score_breakdown"] = breakdown
         item.update({key: value for key, value in breakdown.items() if key not in item})
         scored.append(item)

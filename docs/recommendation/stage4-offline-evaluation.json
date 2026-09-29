@@ -1,0 +1,76 @@
+{
+  "sample_resources": 12,
+  "profiles": 2,
+  "top_k": 3,
+  "model_calls": 0,
+  "conditions": "fixed memory fixtures, no DB/Redis/network; 20 warm in-process timing samples",
+  "comparisons": [
+    {
+      "profile": "literature",
+      "baseline": {
+        "ids": [
+          2,
+          1,
+          4
+        ],
+        "precision_at_3": 1.0,
+        "confirmed_duplicate_rate": 0.3333333333333333,
+        "task_coverage": 2,
+        "tool_type_coverage": 2,
+        "must_violations": 0,
+        "reason_evidence_valid": true
+      },
+      "diversity": {
+        "ids": [
+          4,
+          3,
+          2
+        ],
+        "precision_at_3": 1.0,
+        "confirmed_duplicate_rate": 0.0,
+        "task_coverage": 3,
+        "tool_type_coverage": 3,
+        "must_violations": 0,
+        "reason_evidence_valid": true
+      },
+      "baseline_median_ms": 0.1428000396117568,
+      "additional_rerank_median_ms": 0.021050043869763613,
+      "stable": true,
+      "feedback_undo_expiry_known": true
+    },
+    {
+      "profile": "api",
+      "baseline": {
+        "ids": [
+          6,
+          5,
+          8
+        ],
+        "precision_at_3": 1.0,
+        "confirmed_duplicate_rate": 0.3333333333333333,
+        "task_coverage": 2,
+        "tool_type_coverage": 2,
+        "must_violations": 0,
+        "reason_evidence_valid": true
+      },
+      "diversity": {
+        "ids": [
+          8,
+          7,
+          6
+        ],
+        "precision_at_3": 1.0,
+        "confirmed_duplicate_rate": 0.0,
+        "task_coverage": 3,
+        "tool_type_coverage": 3,
+        "must_violations": 0,
+        "reason_evidence_valid": true
+      },
+      "baseline_median_ms": 0.1706500188447535,
+      "additional_rerank_median_ms": 0.02389994915574789,
+      "stable": true,
+      "feedback_undo_expiry_known": true
+    }
+  ],
+  "status": "passed"
+}

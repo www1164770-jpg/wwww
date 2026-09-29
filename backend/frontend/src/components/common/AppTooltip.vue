@@ -45,9 +45,9 @@ const props = defineProps({
   content: { type: String, default: "" },
   disabled: { type: Boolean, default: false },
   showOnOverflow: { type: Boolean, default: false },
-  // Category cards opt into a body-level overlay so a clipped card cannot
-  // position the complete description over its own header.
-  floating: { type: Boolean, default: false },
+  // Card descriptions render in a body-level layer so the complete text never
+  // covers the card's logo, title, or actions.
+  floating: { type: Boolean, default: true },
   placement: { type: String, default: "top" },
   offset: { type: Number, default: 9 },
 });
@@ -60,6 +60,8 @@ const resolvedPlacement = ref("top");
 const isPositioned = ref(false);
 const floatingPosition = ref({ top: "0px", left: "0px" });
 const tooltipId = `app-tooltip-${++nextTooltipId}`;
+const tooltipDelay = 360;
+let showTimer = null;
 
 const normalizedContent = computed(() => props.content.trim());
 const hasContent = computed(() => Boolean(normalizedContent.value));
@@ -78,18 +80,27 @@ const floatingStyle = computed(() =>
     : undefined,
 );
 
-async function showTooltip() {
-  if (canInteract.value) {
+function showTooltip() {
+  if (!canInteract.value || visible.value || showTimer) return;
+
+  showTimer = window.setTimeout(async () => {
+    showTimer = null;
+    if (!canInteract.value) return;
+
     visible.value = true;
     if (props.floating) {
       isPositioned.value = false;
       await nextTick();
       updateFloatingPosition();
     }
-  }
+  }, tooltipDelay);
 }
 
 function hideTooltip() {
+  if (showTimer) {
+    window.clearTimeout(showTimer);
+    showTimer = null;
+  }
   visible.value = false;
   isPositioned.value = false;
 }
@@ -148,10 +159,12 @@ function updateFloatingPosition() {
   }
 
   const triggerRect = triggerElement.value.getBoundingClientRect();
-  const categoryCard = triggerElement.value.closest(".website-card--category");
-  // Keep the hover target narrow (the description), while anchoring a category
-  // tooltip outside the whole card so it can never cover its logo or title.
-  const anchorRect = categoryCard?.getBoundingClientRect() || triggerRect;
+  const card = triggerElement.value.closest(
+    ".website-card, .compact-tool-card",
+  );
+  // Keep the hover target narrow (the description), while anchoring the
+  // tooltip outside the whole card so it never covers card content.
+  const anchorRect = card?.getBoundingClientRect() || triggerRect;
   const tooltipRect = tooltipElement.value.getBoundingClientRect();
   const viewportPadding = 8;
   const offset = Math.max(8, Number(props.offset) || 9);
@@ -220,6 +233,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  if (showTimer) window.clearTimeout(showTimer);
   resizeObserver?.disconnect();
   resizeObserver = null;
   window.removeEventListener("resize", handleViewportChange);
@@ -242,7 +256,7 @@ onBeforeUnmount(() => {
 
 .app-tooltip__trigger:focus-visible {
   border-radius: 8px;
-  outline: 3px solid rgba(255, 112, 88, 0.28);
+  outline: 3px solid color-mix(in srgb, var(--primary) 18%, transparent);
   outline-offset: 3px;
 }
 
@@ -252,17 +266,17 @@ onBeforeUnmount(() => {
   bottom: calc(100% + 10px);
   left: 50%;
   width: max-content;
-  max-width: min(320px, calc(100vw - 32px));
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.94);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  color: #f8fafc;
-  padding: 10px 12px;
+  max-width: min(260px, calc(100vw - 32px));
+  border: 1px solid #e8edf3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  color: #475569;
+  padding: 8px 10px;
   pointer-events: none;
   font-size: 12px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.6;
   text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -273,16 +287,13 @@ onBeforeUnmount(() => {
   position: fixed;
   bottom: auto;
   z-index: 1000;
-  min-width: min(180px, calc(100vw - 16px));
   max-width: min(260px, calc(100vw - 16px));
-  padding: 8px 10px;
-  line-height: 1.5;
   transform: none;
 }
 
 .app-tooltip__content--floating::after {
   top: 100%;
-  border-top-color: rgba(15, 23, 42, 0.94);
+  border-top-color: #ffffff;
   border-bottom-color: transparent;
 }
 
@@ -290,7 +301,7 @@ onBeforeUnmount(() => {
   top: auto;
   bottom: 100%;
   border-top-color: transparent;
-  border-bottom-color: rgba(15, 23, 42, 0.94);
+  border-bottom-color: #ffffff;
 }
 
 .app-tooltip__content--floating.app-tooltip-fade-enter-from,
@@ -303,7 +314,7 @@ onBeforeUnmount(() => {
   top: 100%;
   left: 50%;
   border: 5px solid transparent;
-  border-top-color: rgba(15, 23, 42, 0.94);
+  border-top-color: #ffffff;
   content: "";
   transform: translateX(-50%);
 }

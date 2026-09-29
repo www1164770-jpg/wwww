@@ -1,27 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader />
     <main>
-      <section class="hero">
-        <div>
-          <AnimatedPageTitle>我的收藏</AnimatedPageTitle>
-          <p>这里保存了你常用和感兴趣的网站资源。</p>
-        </div>
-        <label class="filter">
-          分类
-          <select v-model="selectedCategory">
-            <option value="">全部分类</option>
-            <option
-              v-for="category in categories"
-              :key="category.id"
-              :value="category.id"
-            >
-              {{ category.name }}
-            </option>
-          </select>
-        </label>
-      </section>
-
       <LoadingState v-if="isInitialLoading" text="正在加载收藏..." />
       <section v-else-if="isBlockingError" class="favorite-error" role="alert">
         <strong>收藏加载失败</strong>
@@ -31,6 +10,22 @@
         </button>
       </section>
       <div v-else ref="favoritesPanel">
+        <div v-if="favorites.length" class="favorites-toolbar">
+          <strong>收藏资源</strong>
+          <label>
+            <span class="favorites-toolbar__label">分类</span>
+            <select v-model="selectedCategory" aria-label="筛选收藏分类">
+              <option value="">全部分类</option>
+              <option
+                v-for="category in categories"
+                :key="category.id"
+                :value="category.id"
+              >
+                {{ category.name }}
+              </option>
+            </select>
+          </label>
+        </div>
         <p
           v-if="favoriteStore.isRefreshing"
           class="favorite-background-status"
@@ -54,8 +49,8 @@
           :sites="filteredFavorites"
           empty-title="收藏夹还是空的"
           empty-description="浏览网站资源时点击收藏按钮，稍后可以在这里快速找到它们。"
-          empty-action-text="浏览网站分类"
-          empty-action-to="/categories"
+          empty-action-text="返回首页"
+          empty-action-to="/"
           @visit="visit"
         />
       </div>
@@ -73,8 +68,6 @@ import {
   watch,
 } from "vue";
 import { useRouter } from "vue-router";
-import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
-import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
 import { useFavoritesStore } from "../stores/favorites";
@@ -218,66 +211,76 @@ onBeforeUnmount(() => {
 <style scoped>
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background: transparent;
 }
 
 main {
   display: grid;
-  gap: 26px;
+  gap: 18px;
   width: min(1180px, calc(100% - 40px));
-  margin: 48px auto 78px;
+  margin: 0 auto 78px;
 }
 
-.hero {
+.favorites-toolbar {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  border-radius: 24px;
-  background:
-    radial-gradient(
-      circle at 12% 22%,
-      rgba(191, 245, 237, 0.32),
-      transparent 30%
-    ),
-    linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
-  padding: clamp(32px, 5vw, 64px);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.04);
+  gap: 16px;
+  min-height: 44px;
 }
 
-h1 {
-  margin: 0 0 10px;
-  color: var(--color-heading);
-  font-size: clamp(34px, 5vw, 54px);
-}
-
-.hero p {
+.favorites-toolbar > strong {
   margin: 0;
-  color: #718096;
-  line-height: 1.7;
-}
-
-.filter {
-  display: grid;
-  gap: 8px;
-  width: min(280px, 100%);
   color: var(--color-heading);
-  font-weight: 750;
+  font-size: 18px;
 }
 
-select {
+.favorites-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.favorites-toolbar__label {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.favorites-toolbar select {
   border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: #ffffff;
-  padding: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--color-heading);
+  padding: 9px 34px 9px 13px;
+  font: inherit;
+  font-size: 13px;
+}
+
+:deep(.empty-state) {
+  width: min(100%, 1000px);
+  min-height: 0;
+  margin: 0 auto;
+  border-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  padding: 70px 40px;
+}
+
+:deep(.empty-state strong) {
+  color: #14243d;
+}
+
+:deep(.empty-state p) {
+  color: #7e91aa;
 }
 
 .favorite-error,
 .favorite-refresh-status,
 .favorite-background-status {
-  border: 1px solid rgba(255, 112, 88, 0.25);
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
   border-radius: 16px;
-  background: #fff8f5;
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
   color: var(--color-text);
 }
 
@@ -344,12 +347,16 @@ select {
 @media (max-width: 760px) {
   main {
     width: min(100% - 28px, 1180px);
-    margin-top: 32px;
+    margin-top: 0;
   }
 
-  .hero {
-    align-items: stretch;
+  .favorites-toolbar {
+    align-items: flex-start;
     flex-direction: column;
+  }
+
+  :deep(.empty-state) {
+    padding: 54px 24px;
   }
 
   .favorite-refresh-status {

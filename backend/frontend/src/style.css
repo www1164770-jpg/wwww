@@ -1,75 +1,132 @@
 :root {
   color-scheme: light;
-  --color-primary: #ff7058;
-  --color-primary-dark: #ef5b45;
-  --color-heading: #253044;
-  --color-text: #526070;
-  --color-muted: #94a3b8;
-  --color-border: #e5e7eb;
-  --color-border-soft: #edf2f7;
-  --color-soft: #f8fafc;
-  --color-soft-orange: #fff1ed;
+  --background: #ffffff;
+  --page-background: #ffffff;
+  --page-bg: #ffffff;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --surface-hover: #f4f7ff;
+  --surface-border: #e8ecf2;
+  --surface-shadow: 0 6px 24px rgba(15, 23, 42, 0.04);
+  --surface-opacity: 1;
+  --card-background: #ffffff;
+  --navbar-background: #ffffff;
+  --bg-main: var(--background);
+  --bg-soft: var(--surface);
+  --bg-card: var(--card-background);
+  --text-primary: #17233c;
+  --text-secondary: #475569;
+  --text-tertiary: #8a94a6;
+  --text-muted: #94a3b8;
+  --text-on-primary: #ffffff;
+  --text-inverse: #ffffff;
+  --primary: #4f7df3;
+  --primary-hover: #3f6fe8;
+  --primary-soft: #f4f7ff;
+  --primary-light: var(--primary-soft);
+  --primary-border: #cbd9ff;
+  --primary-text: #3569dd;
+  --border-color: #e8edf3;
+  --border-light: var(--border-color);
+  --shadow-soft: 0 6px 24px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 8px 26px rgba(15, 23, 42, 0.06);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-hover);
+  --color-heading: var(--text-primary);
+  --color-text: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border-light);
+  --color-border-soft: #e9edf3;
+  --color-soft: var(--primary-light);
+  --color-soft-orange: var(--primary-light);
   --color-white: #ffffff;
-  --app-text-primary: #253044;
-  --app-text-secondary: #526070;
-  --app-text-muted: #64748b;
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: var(--text-tertiary);
+  --app-text-muted: var(--text-muted);
   --heading-text-color: var(--app-text-primary);
   --user-text-color: var(--app-text-primary);
   --user-muted-text-color: var(--app-text-muted);
-  --app-chrome-text-primary: #253044;
-  --app-chrome-text-secondary: #526070;
-  --app-chrome-text-muted: #64748b;
-  --app-text-placeholder: rgba(82, 96, 112, 0.76);
-  --app-text-disabled: rgba(100, 116, 139, 0.66);
-  --app-text-inverse: #ffffff;
+  --app-chrome-text-primary: var(--text-primary);
+  --app-chrome-text-secondary: var(--text-secondary);
+  --app-chrome-text-muted: var(--text-muted);
+  --app-text-placeholder: #8a9ab3;
+  --app-text-disabled: rgba(86, 106, 137, 0.58);
+  --app-text-inverse: var(--text-inverse);
   --app-tab-text: var(--app-text-muted);
   --app-tab-text-active: var(--app-text-primary);
-  --app-tab-hover-bg: rgba(15, 23, 42, 0.04);
-  --app-tab-active-bg: rgba(15, 23, 42, 0.08);
-  --favorite-color: var(--color-primary);
-  --favorite-muted-color: rgba(30, 40, 60, 0.45);
-  --app-surface: rgba(255, 255, 255, 0.88);
-  --app-surface-safe: rgba(255, 255, 255, 0.92);
-  --app-surface-strong: rgba(255, 255, 255, 0.97);
-  --app-border: rgba(15, 23, 42, 0.16);
-  --app-input-bg: rgba(255, 255, 255, 0.97);
-  --app-input-text: #1f2937;
-  --app-control-muted: #64748b;
+  --app-tab-hover-bg: color-mix(in srgb, var(--primary) 6%, transparent);
+  --app-tab-active-bg: var(--primary-light);
+  --favorite-color: var(--primary);
+  --favorite-muted-color: rgba(86, 106, 137, 0.55);
+  --app-surface: var(--surface);
+  --app-surface-safe: var(--surface);
+  --app-surface-strong: var(--surface);
+  --app-border: var(--surface-border);
+  --app-input-bg: #ffffff;
+  --app-input-text: var(--text-primary);
+  --app-control-muted: var(--text-muted);
   --app-readable-overlay: transparent;
-  --app-page-bg: transparent;
-  --app-background: var(--personalization-background, #f8fafc);
-  --app-container-bg: rgba(15, 23, 42, 0.04);
-  --app-card-bg: rgba(15, 23, 42, 0.06);
-  --app-card-hover-bg: rgba(15, 23, 42, 0.1);
-  --app-panel-bg: rgba(15, 23, 42, 0.06);
-  --app-panel-soft-bg: rgba(15, 23, 42, 0.04);
-  --app-control-bg: rgba(15, 23, 42, 0.1);
+  --app-page-bg: var(--page-bg);
+  --app-background: var(--personalization-background, #FFFFFF);
+  --app-container-bg: var(--surface-soft);
+  --app-card-bg: var(--surface);
+  --app-card-hover-bg: var(--surface-hover);
+  --app-panel-bg: var(--surface);
+  --app-panel-soft-bg: var(--surface-soft);
+  --app-control-bg: #ffffff;
   --background-overlay: transparent;
   --app-overlay: var(--background-overlay);
-  --app-card-border: rgba(15, 23, 42, 0.16);
-  --app-tag-bg: rgba(255, 255, 255, 0.65);
-  --app-tag-text: #1f2937;
-  --app-safe-surface: rgba(255, 255, 255, 0.18);
-  --app-card-content-overlay: rgba(255, 255, 255, 0.18);
-  --app-blur: 20px;
-  --app-card-shadow-color: rgba(15, 23, 42, 0.08);
-  --app-card-shadow: 0 2px 8px var(--app-card-shadow-color);
-  --app-card-hover-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
-  --app-control-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --app-card-border: var(--surface-border);
+  --app-tag-bg: var(--primary-light);
+  --app-tag-text: var(--primary-text);
+  --app-safe-surface: #ffffff;
+  --app-card-content-overlay: transparent;
+  --app-blur: 0px;
+  --app-card-shadow-color: rgba(15, 23, 42, 0.04);
+  --app-card-shadow: var(--surface-shadow);
+  --app-card-hover-shadow: var(--shadow-hover);
+  --app-control-shadow: none;
   --app-button-bg: var(--app-control-bg);
   --app-button-bg-hover: var(--app-card-hover-bg);
   --app-button-border: var(--app-card-border);
   --app-button-shadow: var(--app-control-shadow);
-  --app-button-primary-bg: rgba(255, 112, 88, 0.18);
-  --app-button-primary-border: rgba(255, 112, 88, 0.28);
-  --app-button-primary-shadow: 0 6px 16px rgba(255, 112, 88, 0.1);
+  --app-button-primary-bg: var(--primary);
+  --app-button-primary-border: var(--primary);
+  --app-button-primary-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 12%, transparent);
   --shadow-card: var(--app-card-hover-shadow);
   --shadow-soft: var(--app-card-shadow);
-  --radius-card: 22px;
-  --radius-large: 24px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-card: 18px;
+  --radius-large: var(--radius-lg);
   --radius-pill: 999px;
   --container: 1200px;
   --transition: 180ms ease;
+  --app-header-height: 64px;
+  --app-header-top: 0px;
+  --app-header-content-gap: 12px;
+  --app-route-content-top: calc(
+    var(--app-header-top) + var(--app-header-height) + var(--app-header-content-gap)
+  );
+  --ai-panel-width: clamp(380px, 25vw, 420px);
+  --ai-layout-transition: 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  --font-main: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif;
+  --app-font-family: var(--font-main);
+  --app-display-font: var(--font-main);
+}
+
+html[data-personalization-theme="night"] {
+  color-scheme: dark;
+}
+
+@media (max-width: 560px) {
+  :root {
+    --app-header-height: 60px;
+    --app-header-top: 0px;
+    --app-header-content-gap: 12px;
+  }
 }
 
 *,
@@ -82,14 +139,11 @@ html {
   width: 100%;
   min-height: 100%;
   overflow-y: scroll;
-  background: var(--app-background);
-  background-attachment: fixed;
-  background-position: var(
-    --personalization-background-position,
-    center center
-  );
-  background-repeat: no-repeat;
+  background: var(--app-background, var(--page-bg));
   background-size: var(--personalization-background-size, cover);
+  background-position: var(--personalization-background-position, center);
+  background-repeat: var(--personalization-background-repeat, no-repeat);
+  background-attachment: fixed;
   scroll-behavior: smooth;
   scroll-padding-top: 20px;
 }
@@ -101,17 +155,34 @@ body {
   min-height: 100vh;
   color: var(--app-text-secondary);
   background: transparent;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    "Microsoft YaHei",
-    sans-serif;
+  font-family: var(--app-font-family);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#app,
+.app,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div,
+a,
+button,
+input,
+textarea,
+select,
+label,
+table,
+th,
+td {
+  font-family: var(--font-main);
 }
 
 body::before {
@@ -121,13 +192,16 @@ body::before {
   background: var(--app-overlay);
   content: "";
   pointer-events: none;
+  backdrop-filter: var(--personalization-image-filter, none);
+  -webkit-backdrop-filter: var(--personalization-image-filter, none);
 }
 
 button,
 a,
 input,
 textarea,
-select {
+select,
+option {
   font: inherit;
 }
 
@@ -175,7 +249,7 @@ textarea:focus,
 select:focus {
   border-color: var(--color-primary) !important;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(255, 112, 88, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 ::selection {
@@ -184,11 +258,21 @@ select:focus {
 }
 
 #app,
+#root,
 #app-root {
   position: relative;
   z-index: 1;
   min-height: 100vh;
   background: transparent;
+}
+
+#app-root {
+  margin-right: 0;
+  transition: margin-right var(--ai-layout-transition);
+}
+
+#app-root.ai-assistant-open {
+  margin-right: var(--ai-panel-width);
 }
 
 .page {
@@ -212,6 +296,7 @@ html[data-personalization="on"] .widget,
 html[data-personalization="on"] .info-card-box,
 html[data-personalization="on"] .auth-modal,
 html[data-personalization="on"] .cookie-banner {
+  border-color: var(--app-card-border) !important;
   background: var(--app-card-bg) !important;
   backdrop-filter: blur(var(--app-blur));
   -webkit-backdrop-filter: blur(var(--app-blur));
@@ -238,12 +323,21 @@ html[data-personalization="on"] .cookie-banner {
 }
 
 html[data-personalization="on"] .page,
+html[data-personalization="on"] body,
+html[data-personalization="on"] #app,
+html[data-personalization="on"] #root,
+html[data-personalization="on"] #app-root,
+html[data-personalization="on"] .home-main,
 html[data-personalization="on"] .hero-search,
 html[data-personalization="on"] .career-section,
 html[data-personalization="on"] .career-recommendation-section,
 html[data-personalization="on"] .category-section,
 html[data-personalization="on"] .recommend-section {
   background: transparent !important;
+}
+
+html[data-personalization="on"] .profile-page {
+  background: var(--page-bg) !important;
 }
 
 html[data-personalization="on"] .career-profile-panel,
@@ -261,29 +355,39 @@ html[data-personalization="on"] .profile-menu nav,
 html[data-personalization="on"] .profile-menu + .content .panel {
   background: var(--app-card-bg) !important;
   border-color: var(--app-border) !important;
+  box-shadow: var(--app-card-shadow) !important;
   backdrop-filter: blur(var(--app-blur));
   -webkit-backdrop-filter: blur(var(--app-blur));
 }
 
 html[data-personalization="on"] .category-filter-bar,
 html[data-personalization="on"] .category-nav {
-  background: transparent !important;
-  box-shadow: none !important;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  border-color: var(--app-card-border) !important;
+  background: var(--app-container-bg) !important;
+  box-shadow: var(--app-card-shadow) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
 }
 
 html[data-personalization="on"] .app-header,
 html[data-personalization="on"] .app-header--compact {
-  background: var(--app-card-bg);
-  border-color: var(--app-card-border);
-  backdrop-filter: blur(var(--app-blur));
-  -webkit-backdrop-filter: blur(var(--app-blur));
-  box-shadow: var(--app-card-shadow);
+  background: transparent !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html[data-personalization="on"] .app-header.app-header--home {
+  border-bottom: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html[data-personalization="on"] .career-profile-panel {
-  background: var(--app-safe-surface) !important;
+  background: var(--app-card-bg) !important;
 }
 
 html[data-personalization="on"] .career-tag-group b,
@@ -304,17 +408,13 @@ html[data-personalization="on"] .career-card {
   color: var(--app-text-primary);
   border-color: var(--app-card-border) !important;
   background: var(--app-card-bg) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--app-card-shadow) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
 }
 
-html[data-personalization="on"] .site-card__inner,
 html[data-personalization="on"] .website-card-link {
-  background: linear-gradient(
-    180deg,
-    transparent 42%,
-    var(--app-card-content-overlay)
-  );
+  background: transparent;
 }
 
 html[data-personalization="on"] .site-card-name,
@@ -489,7 +589,7 @@ html[data-personalization="on"] .favorite-star {
   background: var(--color-primary) !important;
   border: 1px solid var(--color-primary) !important;
   border-radius: var(--radius-pill) !important;
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18) !important;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 12%, transparent) !important;
   transition:
     transform var(--transition),
     box-shadow var(--transition),
@@ -505,7 +605,7 @@ html[data-personalization="on"] .favorite-star {
 .cookie-actions .btn-primary:hover {
   background: var(--color-primary-dark) !important;
   transform: translateY(-2px);
-  box-shadow: 0 18px 38px rgba(255, 112, 88, 0.24) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 14%, transparent) !important;
 }
 
 .btn-cancel,
@@ -514,7 +614,7 @@ html[data-personalization="on"] .favorite-star {
 .nav-text-action,
 .cookie-actions button:not(.btn-primary) {
   color: var(--color-heading) !important;
-  background: #ffffff !important;
+  background: var(--app-control-bg) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-pill) !important;
   transition:
@@ -529,7 +629,7 @@ html[data-personalization="on"] .favorite-star {
 .nav-text-action:hover,
 .cookie-actions button:not(.btn-primary):hover {
   color: var(--color-primary) !important;
-  border-color: rgba(255, 112, 88, 0.42) !important;
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent) !important;
   transform: translateY(-1px);
   text-decoration: none !important;
 }
@@ -547,10 +647,12 @@ html[data-personalization="on"] .favorite-star {
 .engine-modal,
 .context-menu,
 .custom-context-menu {
-  background: #ffffff !important;
+  background: var(--app-card-bg) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-card) !important;
-  box-shadow: var(--shadow-card) !important;
+  box-shadow: var(--app-card-shadow) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
 }
 
 .auth-input,
@@ -561,7 +663,7 @@ textarea,
   width: 100%;
   min-height: 48px;
   color: var(--color-heading) !important;
-  background: #ffffff !important;
+  background: var(--app-input-bg) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: 14px !important;
 }
@@ -585,6 +687,150 @@ textarea,
   color: var(--color-heading);
 }
 
+#app::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background: transparent;
+  content: "";
+  pointer-events: none;
+}
+
+html[data-personalization-background-type="color"] #app::before,
+html[data-personalization-background-type="gradient"] #app::before,
+html[data-personalization-background-type="image"] #app::before,
+html[data-personalization-theme]:not([data-personalization-theme="default"]) #app::before {
+  display: none;
+}
+
+.page-section,
+.search-page,
+.favorites-page,
+.site-detail-page,
+.profile-page,
+.categories-page,
+.auth-page,
+.admin-page {
+  color: var(--text-secondary);
+}
+
+.main,
+.main-content,
+.content,
+.content-wrapper,
+.page-container,
+.route-view,
+.layout-content {
+  background: transparent !important;
+}
+
+.site-card,
+.website-card,
+.tool-card,
+.career-card,
+.block-shadow,
+.sidebar-box,
+.widget,
+.info-card-box,
+.auth-modal,
+.filter-dropdown__menu,
+.engine-menu,
+.dropdown,
+.context-menu,
+.custom-context-menu,
+.modal-content,
+.modal-panel {
+  border-color: var(--border-light) !important;
+  background: var(--app-card-bg) !important;
+  box-shadow: var(--app-card-shadow) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
+}
+
+.career-profile-panel,
+.career-request-state,
+.career-skeleton-card,
+.website-detail-card,
+.website-detail-sidebar,
+.user-card,
+.profile-menu + .content .panel {
+  border-color: var(--border-color) !important;
+  background: var(--app-card-bg) !important;
+  box-shadow: var(--app-card-shadow) !important;
+  backdrop-filter: blur(var(--app-blur));
+  -webkit-backdrop-filter: blur(var(--app-blur));
+}
+
+.empty-state,
+.category-empty-state {
+  border-color: var(--border-color) !important;
+  background: var(--app-card-bg) !important;
+  box-shadow: var(--app-card-shadow) !important;
+}
+
+.site-card:hover,
+.website-card:hover,
+.tool-card:hover,
+.career-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent) !important;
+  box-shadow: var(--shadow-hover) !important;
+}
+
+.filter-dropdown__label,
+.filter-dropdown__trigger,
+.filter-dropdown__value,
+.filter-dropdown__chevron {
+  color: var(--text-secondary) !important;
+}
+
+.filter-dropdown__trigger,
+.filter-dropdown__menu,
+.filter-dropdown__option,
+.engine-menu,
+.engine-menu__option {
+  border-color: var(--border-light) !important;
+  background-color: var(--app-control-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.filter-dropdown__option:hover,
+.filter-dropdown__option.is-active,
+.engine-menu__option:hover,
+.engine-menu__option.is-active {
+  background: #f8fafc !important;
+  color: var(--primary) !important;
+}
+
+.filter-dropdown__option.is-selected,
+.engine-menu__option.is-selected {
+  background: var(--primary-light) !important;
+  color: var(--primary) !important;
+}
+
+.site-card .visit,
+.site-card .actions .visit,
+.btn-primary,
+.btn-submit,
+.btn-send,
+.btn-save,
+.search-btn-oval,
+.empty-action {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 12%, transparent) !important;
+}
+
+.site-card .visit:hover,
+.btn-primary:hover,
+.btn-submit:hover,
+.btn-send:hover,
+.btn-save:hover,
+.search-btn-oval:hover,
+.empty-action:hover {
+  background: var(--primary-hover) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 14%, transparent) !important;
+}
+
 @media (max-width: 768px) {
   .home-section,
   .page-section {
@@ -598,6 +844,12 @@ textarea,
   .reveal-description,
   .reveal-card {
     transform: translate3d(0, 18px, 0) scale(0.99);
+  }
+}
+
+@media (max-width: 1100px) {
+  #app-root.ai-assistant-open {
+    margin-right: 0;
   }
 }
 

@@ -175,7 +175,7 @@ function visitSite(site) {
 }
 
 .compact-tool-card:hover {
-  border-color: rgba(255, 112, 88, 0.34);
+  border-color: color-mix(in srgb, var(--primary) 24%, transparent);
   transform: translateY(-4px);
   box-shadow: var(--app-card-hover-shadow);
 }
@@ -196,7 +196,18 @@ function visitSite(site) {
 }
 
 .compact-tool-card__logo {
+  display: block;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  object-fit: contain;
+  object-position: center;
 }
 
 .compact-tool-card__content {

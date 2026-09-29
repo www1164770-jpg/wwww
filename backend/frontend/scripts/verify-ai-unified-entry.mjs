@@ -1,3 +1,5 @@
+import { verifyEntryBusinessContract } from './ai-business-contract.mjs';
+const businessContract = await verifyEntryBusinessContract();
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -8,7 +10,7 @@ const home = read("src/views/Home.vue");
 const assistant = read("src/components/ai/AiSiteAssistant.vue");
 const store = read("src/stores/aiAssistant.js");
 
-const assistantMounts = home.match(/<AiSiteAssistant\b/g) || [];
+
 const checks = [
   [
     "Header imports the shared AI assistant store",
@@ -27,10 +29,11 @@ const checks = [
       !/v-if="!loggedIn"[\s\S]*?class="nav-ai-login-entry"/.test(header),
   ],
   [
-    "Header opens the shared panel for logged-in users",
-    /function handleAiAssistantEntry\(\)\s*\{[\s\S]*?if \(loggedIn\.value\) \{[\s\S]*?aiAssistantStore\.openAssistant\(\)/.test(
+    "Header toggles the shared panel for logged-in users without navigation",
+    /function handleAiAssistantEntry\(\)\s*\{[\s\S]*?if \(loggedIn\.value\) \{[\s\S]*?aiAssistantStore\.toggleAssistant\(\)/.test(
       header,
-    ),
+    ) &&
+      !/function handleAiAssistantEntry\(\)[\s\S]*?router\.push\(\s*["']\/["']\s*\)/.test(header),
   ],
   [
     "Header keeps the existing login redirect for signed-out users",
@@ -75,11 +78,8 @@ const checks = [
     ),
   ],
   [
-    "Home mounts exactly one assistant instance",
-    assistantMounts.length === 1 &&
-      /<AiSiteAssistant\s+v-if="loggedIn"\s+@visit="visitSite"\s*\/>/.test(
-        home,
-      ),
+    "App mounts exactly one authenticated assistant with shared visit handling",
+    businessContract,
   ],
   [
     "Home closes the panel when login state becomes invalid",
@@ -89,8 +89,7 @@ const checks = [
   ],
   [
     "The floating launcher remains in the existing panel",
-    assistant.includes("知航AI帮我找网站") &&
-      assistant.includes("toggleAssistant"),
+    businessContract && assistant.includes('aria-label="打开知航AI助手"'),
   ],
   [
     "The shared store remains UI-only with open and close methods",

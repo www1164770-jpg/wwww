@@ -1,0 +1,1 @@
+{"sequence": 84, "kind": "held", "at": "2026-09-28T14:31:06.010670+00:00", "gate": "career-old-python", "path": "/api/career/recommend", "method": "GET", "account": "research_fixture", "career": "python_engineer", "status": 200}

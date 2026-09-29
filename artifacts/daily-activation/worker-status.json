@@ -1,0 +1,16 @@
+{
+  "id": 1,
+  "revision": 2,
+  "indexed_revision": 2,
+  "task_id": null,
+  "task_kind": null,
+  "target_index": "websites_daily_v1",
+  "updated_at": "2026-09-29 06:10:23.021859",
+  "outbox": [
+    {
+      "status": "processed",
+      "count": 2
+    }
+  ],
+  "failures": []
+}

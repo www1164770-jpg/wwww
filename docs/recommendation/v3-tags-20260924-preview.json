@@ -1,0 +1,453 @@
+{
+  "version": "20260924_resource_quality_v1",
+  "command": "tags-preview",
+  "database": "nav_site",
+  "captured_at": "2026-09-25T06:15:36.915326+00:00",
+  "database_write_performed": false,
+  "blocked": "Approved review identities differ from the current catalog",
+  "identity_conflicts": [
+    {
+      "review_id": 849,
+      "review_name": "Insomnia",
+      "review_url": "https://insomnia.rest",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 244,
+      "review_name": "Postman",
+      "review_url": "https://www.postman.com",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 245,
+      "review_name": "Swagger",
+      "review_url": "https://swagger.io",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 80,
+      "review_name": "Cursor",
+      "review_url": "https://www.cursor.com",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3473,
+          "name": "Cursor",
+          "url": "https://www.cursor.com",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 79,
+      "review_name": "GitHub Copilot",
+      "review_url": "https://github.com/features/copilot",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 274,
+      "review_name": "Replit",
+      "review_url": "https://replit.com",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3731,
+          "name": "Replit",
+          "url": "https://replit.com",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 247,
+      "review_name": "MongoDB",
+      "review_url": "https://www.mongodb.com",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 248,
+      "review_name": "PostgreSQL",
+      "review_url": "https://www.postgresql.org",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 246,
+      "review_name": "Redis",
+      "review_url": "https://redis.io",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 235,
+      "review_name": "Supabase",
+      "review_url": "https://supabase.com",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 386,
+      "review_name": "Sentry",
+      "review_url": "https://sentry.io",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 35,
+      "review_name": "Netlify",
+      "review_url": "https://www.netlify.com",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 36,
+      "review_name": "Railway",
+      "review_url": "https://railway.app",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3928,
+          "name": "Railway",
+          "url": "https://railway.app",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 238,
+      "review_name": "Render",
+      "review_url": "https://render.com",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3929,
+          "name": "Render",
+          "url": "https://render.com",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 34,
+      "review_name": "Vercel",
+      "review_url": "https://vercel.com",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 520,
+      "review_name": "Vercel",
+      "review_url": "https://vercel.com",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 767,
+      "review_name": "MDN Learn",
+      "review_url": "https://developer.mozilla.org/docs/Learn",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3852,
+          "name": "MDN Learn",
+          "url": "https://developer.mozilla.org/docs/Learn",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 27,
+      "review_name": "MDN Web Docs",
+      "review_url": "https://developer.mozilla.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 522,
+      "review_name": "MDN Web Docs",
+      "review_url": "https://developer.mozilla.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 678,
+      "review_name": "Bitbucket",
+      "review_url": "https://bitbucket.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3728,
+          "name": "Bitbucket",
+          "url": "https://bitbucket.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 20,
+      "review_name": "GitHub",
+      "review_url": "https://github.com",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3494,
+          "name": "GitHub",
+          "url": "https://github.com",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 518,
+      "review_name": "GitHub",
+      "review_url": "https://github.com",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3494,
+          "name": "GitHub",
+          "url": "https://github.com",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 21,
+      "review_name": "GitLab",
+      "review_url": "https://gitlab.com",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3495,
+          "name": "GitLab",
+          "url": "https://gitlab.com",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 190,
+      "review_name": "Linear",
+      "review_url": "https://linear.app",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3871,
+          "name": "Linear",
+          "url": "https://linear.app",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 601,
+      "review_name": "Go",
+      "review_url": "https://go.dev/doc",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3618,
+          "name": "Go",
+          "url": "https://go.dev/doc",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 604,
+      "review_name": "Java",
+      "review_url": "https://dev.java/learn",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3621,
+          "name": "Java",
+          "url": "https://dev.java/learn",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 767,
+      "review_name": "MDN Learn",
+      "review_url": "https://developer.mozilla.org/docs/Learn",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3852,
+          "name": "MDN Learn",
+          "url": "https://developer.mozilla.org/docs/Learn",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 27,
+      "review_name": "MDN Web Docs",
+      "review_url": "https://developer.mozilla.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 522,
+      "review_name": "MDN Web Docs",
+      "review_url": "https://developer.mozilla.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 847,
+      "review_name": "Corepack",
+      "review_url": "https://nodejs.org/api/corepack.html",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 92,
+      "review_name": "Node.js",
+      "review_url": "https://nodejs.org",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 532,
+      "review_name": "Node.js",
+      "review_url": "https://nodejs.org/docs/latest/api",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3459,
+          "name": "Node.js",
+          "url": "https://nodejs.org/docs/latest/api",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 533,
+      "review_name": "Python 文档",
+      "review_url": "https://docs.python.org/3",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3461,
+          "name": "Python 文档",
+          "url": "https://docs.python.org/3",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 85,
+      "review_name": "React",
+      "review_url": "https://react.dev",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3451,
+          "name": "React",
+          "url": "https://react.dev",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 313,
+      "review_name": "Cypress",
+      "review_url": "https://www.cypress.io",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 125,
+      "review_name": "Playwright",
+      "review_url": "https://playwright.dev",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3935,
+          "name": "Playwright",
+          "url": "https://playwright.dev",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 94,
+      "review_name": "TypeScript",
+      "review_url": "https://www.typescriptlang.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3458,
+          "name": "TypeScript",
+          "url": "https://www.typescriptlang.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    },
+    {
+      "review_id": 84,
+      "review_name": "Vue.js",
+      "review_url": "https://cn.vuejs.org",
+      "current_record": null,
+      "same_url_candidates": []
+    },
+    {
+      "review_id": 530,
+      "review_name": "Vue.js",
+      "review_url": "https://vuejs.org",
+      "current_record": null,
+      "same_url_candidates": [
+        {
+          "id": 3450,
+          "name": "Vue.js",
+          "url": "https://vuejs.org",
+          "approved_codes_already_present": []
+        }
+      ]
+    }
+  ],
+  "rollback_preview": "Remove only journal-owned site_tags IDs; mark owned claims/identity links reverted. Retain websites, favorites, history, tag dictionary and journal.",
+  "plan": [],
+  "already_present": null,
+  "pending": null,
+  "schema_preview": [
+    "\nCREATE TABLE IF NOT EXISTS resource_field_claims (\n\tid INTEGER NOT NULL AUTO_INCREMENT, \n\tsite_id INTEGER NOT NULL, \n\tfield VARCHAR(40) NOT NULL, \n\tvalue TEXT, \n\tsource_kind VARCHAR(20) NOT NULL, \n\tsource_ref TEXT NOT NULL, \n\tverified_at VARCHAR(40), \n\tstate VARCHAR(16) NOT NULL, \n\tPRIMARY KEY (id)\n)ENGINE=InnoDB CHARSET=utf8mb4\n\n",
+    "\nCREATE TABLE IF NOT EXISTS resource_identity_links (\n\tid INTEGER NOT NULL AUTO_INCREMENT, \n\tsource_id INTEGER NOT NULL, \n\ttarget_id INTEGER NOT NULL, \n\tevidence TEXT NOT NULL, \n\tstate VARCHAR(16) NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT uq_resource_identity_source UNIQUE (source_id)\n)ENGINE=InnoDB CHARSET=utf8mb4\n\n",
+    "\nCREATE TABLE IF NOT EXISTS resource_quality_changes (\n\tid INTEGER NOT NULL AUTO_INCREMENT, \n\tversion VARCHAR(80) NOT NULL, \n\tchange_key VARCHAR(64) NOT NULL, \n\tkind VARCHAR(32) NOT NULL, \n\tpayload TEXT NOT NULL, \n\tstate VARCHAR(16) NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT uq_resource_quality_change UNIQUE (version, change_key)\n)ENGINE=InnoDB CHARSET=utf8mb4\n\n"
+  ]
+}

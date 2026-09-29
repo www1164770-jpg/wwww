@@ -1,0 +1,93 @@
+{
+  "captured_at_utc": "2026-09-27T06:09:58.099369+00:00",
+  "source": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "nav_site"
+  },
+  "configured_flags": {
+    "SEARCH_BACKEND": "unset",
+    "SEARCH_SYNC_ENABLED": "unset",
+    "RECOMMENDATION_RERANK_ENABLED": "unset",
+    "RECOMMENDATION_FEEDBACK_ENABLED": "unset",
+    "RECOMMENDATION_EXPOSURE_V2": "unset"
+  },
+  "real_model_key_present": false,
+  "audit_version": "readiness-audit-v1",
+  "status": "cannot_evaluate",
+  "algorithm_experiment_enabled": false,
+  "rows_after_exclusion": 233,
+  "truncated": false,
+  "test_account_exclusions_verified": false,
+  "excluded_account_count": 0,
+  "quality": {
+    "missing_time": 233,
+    "invalid_resource": 0,
+    "invalid_user": 0,
+    "unknown_event_type": 0,
+    "missing_batch": 1,
+    "missing_position": 233
+  },
+  "batch_ids_shared_by_accounts": 0,
+  "cross_account_attribution": "shared batch IDs are a diagnostic, not proof; no server-issued historical batch ownership ledger",
+  "display_proof": "client context only; historical position/visibility cannot be reconstructed from current profile",
+  "partitions": [
+    {
+      "versions": {
+        "event": "legacy-v1",
+        "algorithm": "phase1-v1",
+        "rerank": "baseline"
+      },
+      "collection_versions": {
+        "unknown": 233
+      },
+      "events": {
+        "impression": 232,
+        "click": 1,
+        "favorite": 0,
+        "repeat_visit": 0,
+        "feedback": 0,
+        "feedback_undo": 0
+      },
+      "account_count_unverified": 1,
+      "batches": 19,
+      "duplicate_impressions": 0,
+      "duplicate_clicks_same_timestamp": 0,
+      "click_duplicate_check_unknown": 1,
+      "orphan_recommendation_clicks": 1,
+      "click_order_unknown": 0,
+      "historical_occupations": null,
+      "historical_profiles": null,
+      "qualifying_occupations": 0,
+      "qualifying_profiles": 0,
+      "first_at": null,
+      "last_at": null,
+      "windows": {
+        "7": null,
+        "30": null
+      }
+    }
+  ],
+  "database_clock": {
+    "database_now": "2026-09-27 14:09:58",
+    "utc_now": "2026-09-27 06:09:58",
+    "session_timezone": "SYSTEM",
+    "utc_offset_minutes": 480
+  },
+  "runtime_tables": {
+    "user_behavior_events": true,
+    "search_sync_state": false,
+    "outbox_events": false,
+    "recommendation_feedback_migrations": false,
+    "resource_identity_links": false
+  },
+  "created_at_schema": {
+    "Field": "created_at",
+    "Type": "datetime",
+    "Null": "YES",
+    "Key": "",
+    "Default": null,
+    "Extra": ""
+  },
+  "window": "all stored rows; 7/30 day windows only when timestamps are complete"
+}

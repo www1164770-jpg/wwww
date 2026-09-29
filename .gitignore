@@ -33,6 +33,7 @@ frontend/dist/
 backend/frontend/dist/
 
 # 日志
+.runtime/
 logs/
 backend/logs/
 *.log

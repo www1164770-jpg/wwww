@@ -1,0 +1,8 @@
+{
+  "version": "20260925_v3_tag_identity_v1",
+  "command": "rollback",
+  "database": "v3_tag_identity_e7723631b2c4_test",
+  "captured_at": "2026-09-25T06:43:30.096115+00:00",
+  "database_write_performed": true,
+  "changes": []
+}

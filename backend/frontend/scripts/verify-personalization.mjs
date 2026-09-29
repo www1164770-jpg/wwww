@@ -283,10 +283,10 @@ globalThis.document = {
   },
 };
 applyPersonalization(color("#FFFFFF"));
-if (appliedVariables.get("--app-card-bg") !== "rgba(255, 255, 255, 0.70)")
-  throw new Error("White backgrounds must use a local white glass card");
-if (appliedVariables.get("--app-panel-bg") !== "rgba(255, 255, 255, 0.70)")
-  throw new Error("White backgrounds must use a local white settings panel");
+if (!appliedVariables.get("--app-card-bg")?.startsWith("rgba(255, 255, 255,"))
+  throw new Error("White backgrounds must use the configured translucent card surface");
+if (appliedVariables.get("--app-panel-bg") !== appliedVariables.get("--app-card-bg"))
+  throw new Error("Settings panels must share the configured card surface");
 if (
   appliedVariables.get("--app-overlay") !== "rgba(0, 0, 0, 0)" ||
   appliedVariables.get("--app-tag-text") !== "#1F2937"
@@ -300,18 +300,15 @@ if (
     "rgba(75, 85, 99, 0.76)"
 )
   throw new Error("White backgrounds must use the dedicated dark text palette");
-if (appliedVariables.get("--app-surface") !== "rgba(255, 255, 255, 0.75)")
+if (!appliedVariables.get("--app-surface")?.startsWith("rgba(255, 255, 255,"))
   throw new Error("White backgrounds must use a translucent white header");
 if (!style.includes("background: var(--app-card-bg)"))
   throw new Error("The personalized header must use the shared card glass");
-if (
-  appliedVariables.get("--app-card-shadow") !== "0 4px 12px rgba(0, 0, 0, 0.05)"
-)
-  throw new Error("White backgrounds must use the soft neutral card shadow");
+if (!appliedVariables.get("--app-card-shadow")?.includes("rgba(15, 23, 42,"))
+  throw new Error("White backgrounds must use the configured card shadow");
 applyPersonalization(color("#111827"));
 if (
-  appliedVariables.get("--app-text-primary") !==
-    "rgba(255, 255, 255, 0.92)" ||
+  appliedVariables.get("--app-text-primary") !== "#F8FAFC" ||
   appliedVariables.get("--app-text-secondary") !==
     "rgba(255, 255, 255, 0.78)" ||
   appliedVariables.get("--app-text-muted") !==
@@ -322,21 +319,94 @@ if (
     "rgba(255, 255, 255, 0.42)"
 )
   throw new Error("Dark backgrounds must expose the complete readable text scale");
-if (appliedVariables.get("--app-card-bg") !== "rgba(255, 255, 255, 0.12)")
-  throw new Error("Dark backgrounds must use a visible light glass card");
-if (appliedVariables.get("--app-panel-bg") !== "rgba(255, 255, 255, 0.12)")
-  throw new Error("Dark backgrounds must use a visible light settings panel");
+if (!appliedVariables.get("--app-card-bg")?.startsWith("rgba(15, 23, 42,"))
+  throw new Error("Dark backgrounds must use a readable dark glass card");
+if (appliedVariables.get("--app-panel-bg") !== appliedVariables.get("--app-card-bg"))
+  throw new Error("Dark background settings panels must share the configured card surface");
 if (
   appliedVariables.get("--app-overlay") !== "rgba(0, 0, 0, 0)" ||
   appliedVariables.get("--app-tag-text") !== "#FFFFFF"
 )
   throw new Error("Solid dark backgrounds must keep their original color");
-if (
-  appliedVariables.get("--app-card-shadow") !== "0 2px 8px rgba(0, 0, 0, 0.18)"
-)
-  throw new Error(
-    "Dark backgrounds must retain a visible but compact card shadow",
+if (!appliedVariables.get("--app-card-shadow")?.includes("rgba(15, 23, 42,"))
+  throw new Error("Dark backgrounds must retain the configured card shadow");
+const appearanceSnapshot = (card) => {
+  applyPersonalization({ ...color("#FFFFFF"), card });
+  return Object.fromEntries(
+    [
+      "--app-card-bg",
+      "--app-blur",
+      "--app-border",
+      "--app-card-shadow",
+      "--app-text-primary",
+      "--app-input-text",
+      "--app-input-bg",
+      "--app-surface-strong",
+    ].map(
+      (key) => [key, appliedVariables.get(key)],
+    ),
   );
+};
+const cardAt20 = appearanceSnapshot({ color: "#FFFFFF", opacity: 20, blur: 0, border: 0, shadow: 0 });
+const cardAt50 = appearanceSnapshot({ color: "#FFFFFF", opacity: 50, blur: 16, border: 20, shadow: 25 });
+const cardAt90 = appearanceSnapshot({ color: "#FFFFFF", opacity: 90, blur: 32, border: 40, shadow: 50 });
+if (
+  cardAt20["--app-card-bg"] === cardAt50["--app-card-bg"] ||
+  cardAt50["--app-card-bg"] === cardAt90["--app-card-bg"] ||
+  cardAt20["--app-blur"] !== "0px" ||
+  cardAt50["--app-blur"] !== "16px" ||
+  cardAt90["--app-blur"] !== "32px" ||
+  cardAt20["--app-border"] === cardAt90["--app-border"] ||
+  cardAt20["--app-card-shadow"] === cardAt90["--app-card-shadow"]
+)
+  throw new Error("Card opacity, blur, border, and shadow controls must change live CSS variables");
+if (
+  cardAt20["--app-text-primary"] !== cardAt90["--app-text-primary"] ||
+  cardAt20["--app-input-text"] !== cardAt90["--app-input-text"] ||
+  cardAt20["--app-input-bg"] !== cardAt90["--app-input-bg"] ||
+  cardAt20["--app-surface-strong"] !== cardAt90["--app-surface-strong"]
+)
+  throw new Error("Card opacity must not fade text, inputs, or fixed chrome");
+const themeAccents = ["ocean", "forest", "starlight", "sunset"].map((themeKey) => {
+  applyPersonalization({ ...defaultPersonalization(), themeKey });
+  return appliedVariables.get("--primary");
+});
+if (new Set(themeAccents).size !== themeAccents.length)
+  throw new Error("Official themes must expose distinct global primary colors");
+for (const [themeKey, pageBg, surfaceSoft] of [
+  ["default", "#FFFFFF", "#F8FAFC"],
+  ["starlight", "#F5F3FF", "#F7F4FF"],
+  ["forest", "#F3FAF6", "#F2F8F4"],
+  ["sunset", "#FFF7F2", "#FFF4EC"],
+  ["minimal-gray", "#F3F4F6", "#F7F8FA"],
+]) {
+  applyPersonalization({ ...defaultPersonalization(), themeKey });
+  if (
+    appliedVariables.get("--page-bg") !== pageBg ||
+    appliedVariables.get("--surface-soft") !== surfaceSoft ||
+    !appliedVariables.get("--surface")?.startsWith("rgba(") ||
+    !appliedVariables.get("--surface-border")?.startsWith("rgba(") ||
+    appliedVariables.get("--app-card-bg") !== appliedVariables.get("--surface")
+  )
+    throw new Error(`${themeKey} must expose the shared themed surface tokens`);
+}
+applyPersonalization({ ...defaultPersonalization(), themeKey: "night" });
+for (const [variable, expected] of [
+  ["--text-primary", "#F5F7FB"],
+  ["--text-secondary", "#D8DEEA"],
+  ["--text-tertiary", "#AEB8CB"],
+  ["--text-muted", "#8A95AA"],
+  ["--text-on-primary", "#FFFFFF"],
+  ["--text-inverse", "#0F172A"],
+])
+  if (appliedVariables.get(variable) !== expected)
+    throw new Error(`Night theme must set ${variable} to a readable dark-mode value`);
+if (
+  appliedVariables.get("--app-text-primary") !== "#F5F7FB" ||
+  appliedVariables.get("--app-text-secondary") !== "#D8DEEA" ||
+  appliedVariables.get("--app-text-muted") !== "#8A95AA"
+)
+  throw new Error("Night theme must propagate readable text colors to app variables");
 applyPersonalization(
   {
     ...defaultPersonalization(),
@@ -369,10 +439,8 @@ if (appliedVariables.get("--app-overlay") !== "rgba(15, 23, 42, 0.12)")
   throw new Error(
     "Complex images must use the neutral interference-reduction overlay",
   );
-if (
-  appliedVariables.get("--app-card-shadow") !== "0 2px 8px rgba(0, 0, 0, 0.12)"
-)
-  throw new Error("Complex images must use the balanced card shadow");
+if (!appliedVariables.get("--app-card-shadow")?.includes("rgba(15, 23, 42,"))
+  throw new Error("Complex images must use the configured card shadow");
 applyPersonalization(gradient);
 if (
   !appliedVariables
@@ -380,8 +448,34 @@ if (
     .includes("linear-gradient")
 )
   throw new Error("Gradient backgrounds must remain the root page background");
-if (appliedVariables.get("--app-overlay") === "rgba(0, 0, 0, 0)")
-  throw new Error("Gradient backgrounds must retain a light adaptive overlay");
+if (
+  appliedVariables.get("--app-overlay") !== "transparent" ||
+  appliedVariables.get("--app-text-primary") !== "#1F2937" ||
+  !appliedVariables.get("--app-card-bg")?.startsWith("rgba(255, 255, 255, 0.880)")
+)
+  throw new Error(
+    "Gradients must stay below near-white cards, dark text, and an overlay-free page",
+  );
+for (const opacity of [100, 80, 60, 40]) {
+  applyPersonalization({
+    ...gradient,
+    card: { ...gradient.card, opacity },
+  });
+  if (
+    appliedVariables.get("--surface-opacity") !== (opacity / 100).toFixed(3) ||
+    appliedVariables.get("--app-text-primary") !== "#1F2937" ||
+    appliedVariables.get("--app-input-text") !== "#1F2937" ||
+    appliedVariables.get("--app-input-bg") !== "rgba(255, 255, 255, 0.960)"
+  )
+    throw new Error("Gradient card alpha must not fade text or input controls");
+}
+for (const source of [view, read("src/views/ProfileView.vue")])
+  if (
+    /\.(?:personalization-page|profile-page|profile-shell|profile-sidebar)[^{]*\{[^}]*\bopacity\s*:/.test(
+      source,
+    )
+  )
+    throw new Error("Personalization layout containers must not use opacity");
 if (readabilityFor(color("#FFFFFF")).textColor !== "#1F2937")
   throw new Error("White background must resolve dark text");
 if (readabilityFor(color("#111827")).textColor !== "#F8FAFC")

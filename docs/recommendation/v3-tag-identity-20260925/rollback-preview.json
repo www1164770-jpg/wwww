@@ -1,0 +1,125 @@
+{
+  "version": "20260925_v3_tag_identity_v1",
+  "database_write_performed": false,
+  "mode": "prospective_rollback_not_executable",
+  "protect_existing_associations": true,
+  "policy": "After test apply, generate executable rollback-preview from this version's journal; remove only owned link IDs, never tag dictionary or preexisting links.",
+  "would_own": [
+    {
+      "site_id": 3473,
+      "tag": "code_generation"
+    },
+    {
+      "site_id": 3731,
+      "tag": "code_generation"
+    },
+    {
+      "site_id": 3928,
+      "tag": "deployment"
+    },
+    {
+      "site_id": 3929,
+      "tag": "deployment"
+    },
+    {
+      "site_id": 3929,
+      "tag": "devops"
+    },
+    {
+      "site_id": 3852,
+      "tag": "documentation"
+    },
+    {
+      "site_id": 3460,
+      "tag": "documentation"
+    },
+    {
+      "site_id": 3728,
+      "tag": "collaboration"
+    },
+    {
+      "site_id": 3728,
+      "tag": "git_project_management"
+    },
+    {
+      "site_id": 3494,
+      "tag": "collaboration"
+    },
+    {
+      "site_id": 3494,
+      "tag": "git_project_management"
+    },
+    {
+      "site_id": 3495,
+      "tag": "collaboration"
+    },
+    {
+      "site_id": 3495,
+      "tag": "git_project_management"
+    },
+    {
+      "site_id": 3871,
+      "tag": "collaboration"
+    },
+    {
+      "site_id": 3871,
+      "tag": "git_project_management"
+    },
+    {
+      "site_id": 3618,
+      "tag": "go"
+    },
+    {
+      "site_id": 3618,
+      "tag": "programming"
+    },
+    {
+      "site_id": 3621,
+      "tag": "java"
+    },
+    {
+      "site_id": 3621,
+      "tag": "programming"
+    },
+    {
+      "site_id": 3852,
+      "tag": "javascript"
+    },
+    {
+      "site_id": 3460,
+      "tag": "javascript"
+    },
+    {
+      "site_id": 3459,
+      "tag": "javascript"
+    },
+    {
+      "site_id": 3459,
+      "tag": "node"
+    },
+    {
+      "site_id": 3461,
+      "tag": "programming"
+    },
+    {
+      "site_id": 3461,
+      "tag": "python"
+    },
+    {
+      "site_id": 3451,
+      "tag": "react"
+    },
+    {
+      "site_id": 3935,
+      "tag": "testing"
+    },
+    {
+      "site_id": 3458,
+      "tag": "typescript"
+    },
+    {
+      "site_id": 3450,
+      "tag": "vue"
+    }
+  ]
+}

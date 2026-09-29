@@ -1,0 +1,233 @@
+{
+  "version": "20260925_v3_tag_identity_v1",
+  "command": "rollback",
+  "database": "v3_tag_identity_44019823ef1b_test",
+  "captured_at": "2026-09-27T06:11:36.439830+00:00",
+  "database_write_performed": true,
+  "changes": [
+    {
+      "id": 29,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "7eca4a550adb732db19e4b2c102e32fc2faa9104f6e63c665638b23c487579f1",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3450, \"tag\": \"vue\", \"already_present\": false, \"evidence\": \"Vue.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。\", \"review_url\": \"https://vuejs.org\", \"identity_mapping\": {\"source_index\": 45, \"source_record_sha256\": \"c784466c15957849e842095e6c7d52c13e21c1eb6343851dd0c9d3e8d1034071\", \"old\": {\"id\": 530, \"name\": \"Vue.js\", \"url\": \"https://vuejs.org\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4687, \"tag_id\": 138}",
+      "state": "active"
+    },
+    {
+      "id": 28,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "85fcf08b53086b5a0184f04f5c42b67dddf063818e107e172edeaa28084af493",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3458, \"tag\": \"typescript\", \"already_present\": false, \"evidence\": \"TypeScript 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://www.typescriptlang.org\", \"identity_mapping\": {\"source_index\": 43, \"source_record_sha256\": \"5bdcd1bb1f2770a68db42d694e6c4a8e91f9aa2aebb1e8b47592f22bea11a40c\", \"old\": {\"id\": 94, \"name\": \"TypeScript\", \"url\": \"https://www.typescriptlang.org\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4686, \"tag_id\": 137}",
+      "state": "active"
+    },
+    {
+      "id": 27,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "b8188f3d709804896a27d49dfad6dcb5f2787d4ad3ebe96ce0e6660d63139360",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3935, \"tag\": \"testing\", \"already_present\": false, \"evidence\": \"Playwright 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://playwright.dev\", \"identity_mapping\": {\"source_index\": 42, \"source_record_sha256\": \"68a61c2e106679daa82b44765bb5472c1367edb188ca7c55fa490578ccdd53f6\", \"old\": {\"id\": 125, \"name\": \"Playwright\", \"url\": \"https://playwright.dev\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4685, \"tag_id\": 136}",
+      "state": "active"
+    },
+    {
+      "id": 26,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "178714563277aa73827351a09fe55879b98020af55f91ffcdecc16504106ebc7",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3451, \"tag\": \"react\", \"already_present\": false, \"evidence\": \"React 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。\", \"review_url\": \"https://react.dev\", \"identity_mapping\": {\"source_index\": 40, \"source_record_sha256\": \"39af9d4c1624a4e6bb61a8d5d581bbe8e563b8e7c91e308d8d2401ed18347a50\", \"old\": {\"id\": 85, \"name\": \"React\", \"url\": \"https://react.dev\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4684, \"tag_id\": 135}",
+      "state": "active"
+    },
+    {
+      "id": 25,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "262842d0cc4d61982d2423247cc97b0359efb1d5a284ad2f35d5a3b8a24ef6ed",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3461, \"tag\": \"python\", \"already_present\": false, \"evidence\": \"Python 文档 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://docs.python.org/3\", \"identity_mapping\": {\"source_index\": 39, \"source_record_sha256\": \"24b816a354073e3f50ef2abc0b0dc69baca0b597c040b9a73095a816b1da1532\", \"old\": {\"id\": 533, \"name\": \"Python 文档\", \"url\": \"https://docs.python.org/3\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4683, \"tag_id\": 134}",
+      "state": "active"
+    },
+    {
+      "id": 24,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "6de6d404b20355e76becd63dc2ff20ab91f73b9888d35f499fea6a2d22f4aa0e",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3461, \"tag\": \"programming\", \"already_present\": false, \"evidence\": \"Python 文档 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://docs.python.org/3\", \"identity_mapping\": {\"source_index\": 39, \"source_record_sha256\": \"24b816a354073e3f50ef2abc0b0dc69baca0b597c040b9a73095a816b1da1532\", \"old\": {\"id\": 533, \"name\": \"Python 文档\", \"url\": \"https://docs.python.org/3\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4682, \"tag_id\": 130}",
+      "state": "active"
+    },
+    {
+      "id": 23,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "81cfcd55b7bb765b2cbd506d28003f517a1ef5797c34eede42dcb04db58c5802",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3459, \"tag\": \"node\", \"already_present\": false, \"evidence\": \"Node.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。\", \"review_url\": \"https://nodejs.org/docs/latest/api\", \"identity_mapping\": {\"source_index\": 38, \"source_record_sha256\": \"71a1808046fab5769172de3ec2c4a2b3ba5de429fd2e4fb3ecdf0723a5416114\", \"old\": {\"id\": 532, \"name\": \"Node.js\", \"url\": \"https://nodejs.org/docs/latest/api\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4681, \"tag_id\": 133}",
+      "state": "active"
+    },
+    {
+      "id": 22,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "9fbf8e74f0dcc04d21e5d00a4626a083531ca7c99276c29cd39c19a7cf39b009",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3459, \"tag\": \"javascript\", \"already_present\": false, \"evidence\": \"Node.js 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。\", \"review_url\": \"https://nodejs.org/docs/latest/api\", \"identity_mapping\": {\"source_index\": 38, \"source_record_sha256\": \"71a1808046fab5769172de3ec2c4a2b3ba5de429fd2e4fb3ecdf0723a5416114\", \"old\": {\"id\": 532, \"name\": \"Node.js\", \"url\": \"https://nodejs.org/docs/latest/api\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4680, \"tag_id\": 132}",
+      "state": "active"
+    },
+    {
+      "id": 21,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "aaaa86c6736a85256e90fa8c4bc7a6b168f6de5f1879bff54ca3ef50d24f199d",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3460, \"tag\": \"javascript\", \"already_present\": false, \"evidence\": \"MDN Web Docs 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。\", \"review_url\": \"https://developer.mozilla.org\", \"identity_mapping\": {\"source_index\": 34, \"source_record_sha256\": \"683d6bbc2e5d44629a954a8c4fc2d45128c970b8709671e75d1dd72b0566d8ed\", \"old\": {\"id\": 27, \"name\": \"MDN Web Docs\", \"url\": \"https://developer.mozilla.org\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4679, \"tag_id\": 132}",
+      "state": "active"
+    },
+    {
+      "id": 20,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "8ace2386d1b1a7065ccaca542b59e892aa6d74eabceb90c2074103a1f6511207",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3852, \"tag\": \"javascript\", \"already_present\": false, \"evidence\": \"MDN Learn 的页面能力与信号直接对应；批准具体标签，避免引入宽泛画像。\", \"review_url\": \"https://developer.mozilla.org/docs/Learn\", \"identity_mapping\": {\"source_index\": 33, \"source_record_sha256\": \"4e8e7088ca90aeeec841a2c19d9479dee7971f1f182a0d8440da2a7f3c97610b\", \"old\": {\"id\": 767, \"name\": \"MDN Learn\", \"url\": \"https://developer.mozilla.org/docs/Learn\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4678, \"tag_id\": 132}",
+      "state": "active"
+    },
+    {
+      "id": 19,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "09ba177a19e8a7b97a1f1728c8ac414a7b57073a7feea0522a9e9f39f6a901d9",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3621, \"tag\": \"programming\", \"already_present\": false, \"evidence\": \"Java 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://dev.java/learn\", \"identity_mapping\": {\"source_index\": 32, \"source_record_sha256\": \"c378f98dfbcce065d133f8625510d843069648917c2ff18491223c83ad6d2c56\", \"old\": {\"id\": 604, \"name\": \"Java\", \"url\": \"https://dev.java/learn\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4677, \"tag_id\": 130}",
+      "state": "active"
+    },
+    {
+      "id": 18,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "09190267f5d71af9798a6523b5b7102fe92168c438a3f469166e1aba77d80a55",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3621, \"tag\": \"java\", \"already_present\": false, \"evidence\": \"Java 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://dev.java/learn\", \"identity_mapping\": {\"source_index\": 32, \"source_record_sha256\": \"c378f98dfbcce065d133f8625510d843069648917c2ff18491223c83ad6d2c56\", \"old\": {\"id\": 604, \"name\": \"Java\", \"url\": \"https://dev.java/learn\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4676, \"tag_id\": 131}",
+      "state": "active"
+    },
+    {
+      "id": 17,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "4ecb0f4d666e63780934c4136d0e5e1aa4ab211bd7022f94be60f03e40faa467",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3618, \"tag\": \"programming\", \"already_present\": false, \"evidence\": \"Go 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://go.dev/doc\", \"identity_mapping\": {\"source_index\": 31, \"source_record_sha256\": \"1443c6c1ef2261873913e8f3e0d1f4140d019e51c8f604321e3ba60ba20cb461\", \"old\": {\"id\": 601, \"name\": \"Go\", \"url\": \"https://go.dev/doc\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4675, \"tag_id\": 130}",
+      "state": "active"
+    },
+    {
+      "id": 16,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "05eda55a9b604b772c883235aa307bd6524ac2412a332998b1fc62e4c7134dae",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3618, \"tag\": \"go\", \"already_present\": false, \"evidence\": \"Go 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://go.dev/doc\", \"identity_mapping\": {\"source_index\": 31, \"source_record_sha256\": \"1443c6c1ef2261873913e8f3e0d1f4140d019e51c8f604321e3ba60ba20cb461\", \"old\": {\"id\": 601, \"name\": \"Go\", \"url\": \"https://go.dev/doc\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4674, \"tag_id\": 129}",
+      "state": "active"
+    },
+    {
+      "id": 15,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "a1e2201788f872b21b289918ac9d63d5ba526eec67d7cfee2e4d43b66a3e49d9",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3871, \"tag\": \"git_project_management\", \"already_present\": false, \"evidence\": \"Linear 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://linear.app\", \"identity_mapping\": {\"source_index\": 27, \"source_record_sha256\": \"835460a484ef25056d8fffb28ba696e8a78d6f7a22d37960b22b902eade55cc7\", \"old\": {\"id\": 190, \"name\": \"Linear\", \"url\": \"https://linear.app\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4673, \"tag_id\": 128}",
+      "state": "active"
+    },
+    {
+      "id": 14,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "d9f2ee065e777fe72acfb05c91a0af9471535353ec7ca88cf109c6f83313abf3",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3871, \"tag\": \"collaboration\", \"already_present\": false, \"evidence\": \"Linear 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://linear.app\", \"identity_mapping\": {\"source_index\": 27, \"source_record_sha256\": \"835460a484ef25056d8fffb28ba696e8a78d6f7a22d37960b22b902eade55cc7\", \"old\": {\"id\": 190, \"name\": \"Linear\", \"url\": \"https://linear.app\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4672, \"tag_id\": 127}",
+      "state": "active"
+    },
+    {
+      "id": 13,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "460595d78f2be2f136338392ddb10ef019a4edd4c8be8b53b30cedc64942ef1d",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3495, \"tag\": \"git_project_management\", \"already_present\": false, \"evidence\": \"GitLab 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://gitlab.com\", \"identity_mapping\": {\"source_index\": 26, \"source_record_sha256\": \"8024fb5f609b44b0ce52c3440561e0c3af61148aac7fdd53d4eb363b3b3042e9\", \"old\": {\"id\": 21, \"name\": \"GitLab\", \"url\": \"https://gitlab.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4671, \"tag_id\": 128}",
+      "state": "active"
+    },
+    {
+      "id": 12,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "e7fcd979d89e213b639a58eb9a5b3a243452a28580126ffcaec65b3eda6cc5ef",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3495, \"tag\": \"collaboration\", \"already_present\": false, \"evidence\": \"GitLab 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://gitlab.com\", \"identity_mapping\": {\"source_index\": 26, \"source_record_sha256\": \"8024fb5f609b44b0ce52c3440561e0c3af61148aac7fdd53d4eb363b3b3042e9\", \"old\": {\"id\": 21, \"name\": \"GitLab\", \"url\": \"https://gitlab.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4670, \"tag_id\": 127}",
+      "state": "active"
+    },
+    {
+      "id": 11,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "51bc86f593364f398bb8f0f11e0d9856c203f989adf6bff65313040e5249183f",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3494, \"tag\": \"git_project_management\", \"already_present\": false, \"evidence\": \"GitHub 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://github.com\", \"identity_mapping\": {\"source_index\": 22, \"source_record_sha256\": \"e7cf28cf151557370f51c018aaae9f424a443712faeb4381592eec415458ab3e\", \"old\": {\"id\": 20, \"name\": \"GitHub\", \"url\": \"https://github.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4669, \"tag_id\": 128}",
+      "state": "active"
+    },
+    {
+      "id": 10,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "24a2fd6e6245359d0156c0d416ad9858a125189826ac1d0318e99403e7edb433",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3494, \"tag\": \"collaboration\", \"already_present\": false, \"evidence\": \"GitHub 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://github.com\", \"identity_mapping\": {\"source_index\": 22, \"source_record_sha256\": \"e7cf28cf151557370f51c018aaae9f424a443712faeb4381592eec415458ab3e\", \"old\": {\"id\": 20, \"name\": \"GitHub\", \"url\": \"https://github.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4668, \"tag_id\": 127}",
+      "state": "active"
+    },
+    {
+      "id": 9,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "0742a4203490536fc0b377c74af224abae19b6d541aa9a0a3aa1d90380c83673",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3728, \"tag\": \"git_project_management\", \"already_present\": false, \"evidence\": \"Bitbucket 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://bitbucket.org\", \"identity_mapping\": {\"source_index\": 19, \"source_record_sha256\": \"1112acab5c6f41037ceb5d5dc1de191b88f4f0d12698deef737642f2b0419898\", \"old\": {\"id\": 678, \"name\": \"Bitbucket\", \"url\": \"https://bitbucket.org\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4667, \"tag_id\": 128}",
+      "state": "active"
+    },
+    {
+      "id": 8,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "b451a92b5939f2a6ab1feccc87353c48487d4191c7586bc5608df4134a4ced87",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3728, \"tag\": \"collaboration\", \"already_present\": false, \"evidence\": \"Bitbucket 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://bitbucket.org\", \"identity_mapping\": {\"source_index\": 19, \"source_record_sha256\": \"1112acab5c6f41037ceb5d5dc1de191b88f4f0d12698deef737642f2b0419898\", \"old\": {\"id\": 678, \"name\": \"Bitbucket\", \"url\": \"https://bitbucket.org\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4666, \"tag_id\": 127}",
+      "state": "active"
+    },
+    {
+      "id": 7,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "5a15ab9cf74778b60b26d25549056e27cbf863c4ca4e1d1265800fe0435a3065",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3460, \"tag\": \"documentation\", \"already_present\": false, \"evidence\": \"MDN Web Docs 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://developer.mozilla.org\", \"identity_mapping\": {\"source_index\": 17, \"source_record_sha256\": \"94c5db24bb4f20f0aeecf32dc1c9685754cbc8f75c86452eca7db261e19be2ba\", \"old\": {\"id\": 27, \"name\": \"MDN Web Docs\", \"url\": \"https://developer.mozilla.org\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4665, \"tag_id\": 126}",
+      "state": "active"
+    },
+    {
+      "id": 6,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "81fdfda6337dc1bb677062423734c691c1d98a7c5ec5c65e8bf30940be032e1c",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3852, \"tag\": \"documentation\", \"already_present\": false, \"evidence\": \"MDN Learn 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://developer.mozilla.org/docs/Learn\", \"identity_mapping\": {\"source_index\": 16, \"source_record_sha256\": \"618490f4e6a4588456c24aedd3f9a7b38a68813208b513927a915f7660ec703b\", \"old\": {\"id\": 767, \"name\": \"MDN Learn\", \"url\": \"https://developer.mozilla.org/docs/Learn\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4664, \"tag_id\": 126}",
+      "state": "active"
+    },
+    {
+      "id": 5,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "c16355d934b64f3b56d17768e6ba0d1619855806e94dda33c1640b3cf927af4c",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3929, \"tag\": \"devops\", \"already_present\": false, \"evidence\": \"Render 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://render.com\", \"identity_mapping\": {\"source_index\": 13, \"source_record_sha256\": \"feb79f3d3db696378bdb58fa10e4a4e739ab181b2c7a94a645837efc8d0c7e80\", \"old\": {\"id\": 238, \"name\": \"Render\", \"url\": \"https://render.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4663, \"tag_id\": 44}",
+      "state": "active"
+    },
+    {
+      "id": 4,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "1da528adcb9cff8dcc50dd8388e2af0a7adb1e4d85ffac4b268d755b238e7f14",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3929, \"tag\": \"deployment\", \"already_present\": false, \"evidence\": \"Render 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://render.com\", \"identity_mapping\": {\"source_index\": 13, \"source_record_sha256\": \"feb79f3d3db696378bdb58fa10e4a4e739ab181b2c7a94a645837efc8d0c7e80\", \"old\": {\"id\": 238, \"name\": \"Render\", \"url\": \"https://render.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4662, \"tag_id\": 125}",
+      "state": "active"
+    },
+    {
+      "id": 3,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "43582aee15a755be17b64588ec7959a602c292095c79178f42ee5d516c79a5bb",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3928, \"tag\": \"deployment\", \"already_present\": false, \"evidence\": \"Railway 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://railway.app\", \"identity_mapping\": {\"source_index\": 12, \"source_record_sha256\": \"f96fd44fd418574a8146de3f18193145f06d89934bc89a8437d7f15d61e40492\", \"old\": {\"id\": 36, \"name\": \"Railway\", \"url\": \"https://railway.app\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4661, \"tag_id\": 125}",
+      "state": "active"
+    },
+    {
+      "id": 2,
+      "version": "20260925_v3_tag_identity_v1",
+      "change_key": "c6264a92826ad6cb182684ca6edc5e876813514c1066c4c9d324b5d48ad66905",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 3731, \"tag\": \"code_generation\", \"already_present\": false, \"evidence\": \"Replit 的核心能力与信号明确；仅批准具体标签，拒绝宽泛或与页面能力不直接对应的标签。\", \"review_url\": \"https://replit.com\", \"identity_mapping\": {\"source_index\": 5, \"source_record_sha256\": \"f3206d44a2d7a69a76ff51e673265c1c069df5244ae9f1c39c8363ca3b77b861\", \"old\": {\"id\": 274, \"name\": \"Replit\", \"url\": \"https://replit.com\"}, \"match_basis\": [\"unique_complete_normalized_url\", \"same_product_name\", \"active_catalog_record\"]}, \"source_review_sha256\": \"f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2\", \"owned_id\": 4660, \"tag_id\": 124}",
+      "state": "active"
+    }
+  ]
+}

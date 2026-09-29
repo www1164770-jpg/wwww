@@ -11,6 +11,10 @@ const home = read("src/views/Home.vue");
 const routes = readRepo("backend/v1_routes.py");
 const careerService = readRepo("backend/career_recommend_service.py");
 const source = `${home}\n${routes}\n${careerService}`;
+const selectCareerSource =
+  home.match(
+    /async function selectCareer\(career\)[\s\S]*?\n}\n\nasync function loadMarqueeSites/,
+  )?.[0] || "";
 
 const checks = [
   [
@@ -36,8 +40,12 @@ const checks = [
   ],
   ["career buttons call selectCareer", /@click="selectCareer\(career\)"/],
   ["selection writes active code", /activeCareerCode\.value = careerCode/],
-  ["selection updates URL", /nextQuery\.career = code/],
-  ["selection removes invalid URL value", /delete nextQuery\.career/],
+  ["initial recommendation load can still validate a URL career", /nextQuery\.career = code/],
+  ["initial recommendation load removes invalid URL value", /delete nextQuery\.career/],
+  [
+    "career selection does not navigate or rewrite the current route",
+    !/router\.(?:push|replace)\(/.test(selectCareerSource),
+  ],
   [
     "career code accepts camel case",
     /career\.careerCode \|\| career\.career_code/,
@@ -54,7 +62,9 @@ const checks = [
   ["recommendation request has stale-response guard", /latestCareerRequestId/],
   ["selection has stale-response guard", /latestCareerSelectionId/],
   ["selection clears previous error", /sitesError\.value = \"\"/],
-  ["selection exposes loading state", /sitesLoading\.value = !hasCachedSites/],
+  ["selection exposes loading state", /sitesLoading\.value = true/],
+  ["selection refreshes the selected career from the API", /params: \{ career: careerCode \}/],
+  ["selected-career refresh ignores stale responses", /latestCareerSiteRequestId/],
   ["career batches reset on selection", /careerBatchIndex\.value = 0/],
   ["batch size is sixteen", /const CAREER_BATCH_SIZE = 16/],
   [
@@ -134,6 +144,7 @@ const checks = [
   ["backend career route exists", /career\/recommend/],
   ["backend returns careerCode", /career\[\"careerCode\"\]/],
   ["backend returns grouped sites", /career\[\"sites\"\]/],
+  ["backend accepts a stable career request code", /requested_career_code = normalize_occupation\(request\.args\.get\(\"career\"\)\)/],
   ["backend returns questionnaire version", /questionnaire_version/],
   ["backend filters sites before ranking", /filter_sites_for_career\(/],
   ["career filter checks occupation relation", /normalize_occupation\(value\)/],

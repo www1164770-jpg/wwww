@@ -1,10 +1,15 @@
 import inspect
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from flask import Flask
 from flask_jwt_extended import JWTManager, create_access_token
+
+AI_INVALID_QUERY_CASES = [({}, "请输入需求描述"), ({"query": None}, "需求描述必须是文本"),
+    ({"query": 123}, "需求描述必须是文本"), ({"query": "   "}, "请输入需求描述"),
+    ({"query": "编"}, "请更具体地描述你的需求"), ({"query": "x" * 501}, "需求描述不能超过 500 个字符")]
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -310,7 +315,7 @@ class AiSiteRecommendRouteTests(unittest.TestCase):
             profile={"occupation": "程序员", "interests": '["编程"]'},
         )
         self.app = Flask(__name__)
-        self.app.config.update(TESTING=True, JWT_SECRET_KEY="ai-site-recommend-test-key")
+        self.app.config.update(TESTING=True, JWT_SECRET_KEY="ai-site-recommend-test-key-long-enough")
         JWTManager(self.app)
         register_v1_routes(self.app, self.database.connect)
         self.client = self.app.test_client()
@@ -324,12 +329,55 @@ class AiSiteRecommendRouteTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/ai/site-recommend", json={"query": "Python 调试"}).status_code, 401)
 
     def test_route_validates_query(self):
-        invalid_payloads = [{}, {"query": None}, {"query": 123}, {"query": "   "}, {"query": "编"}, {"query": "x" * 501}]
-        for payload in invalid_payloads:
+        for payload, message in AI_INVALID_QUERY_CASES:
             with self.subTest(payload=payload):
                 response = self.client.post("/api/ai/site-recommend", json=payload, headers=self.headers())
                 self.assertEqual(response.status_code, 400)
-                self.assertEqual(set(response.get_json()), {"code", "legacy_code", "message", "msg", "data"})
+                self.assert_error_contract(response, 400, message)
+
+    def assert_error_contract(self, response, code, message):
+        # Shared api_error gained these two fields in commit 8c9ba2a.
+        # Keep an EXACT field set and validate every value; no subset assertion.
+        body = response.get_json()
+        self.assertEqual(set(body), {"success", "code", "error_code", "legacy_code", "message", "msg", "data"})
+        self.assertEqual(body, {"success": False, "code": code, "error_code": None, "legacy_code": 0,
+                               "message": message, "msg": message, "data": {}})
+        self.assertIs(body["success"], False)
+        self.assertIs(type(body["code"]), int)
+        self.assertEqual(response.status_code, code)
+        self.assertTrue(response.is_json)
+
+    def test_route_internal_failure_is_safe_http_500(self):
+        secret = "mysql://internal-user:do-not-leak@example.invalid/private"
+        with patch("v1_routes.recommend_sites_for_query", side_effect=RuntimeError(secret)), self.assertLogs(self.app.logger, level="ERROR") as logs:
+            response = self.client.post("/api/ai/site-recommend", json={"query": "Python 调试"}, headers=self.headers())
+        self.assert_error_contract(response, 500, "推荐服务暂时不可用")
+        self.assertNotIn(secret, response.get_data(as_text=True))
+        self.assertNotIn(secret, "\n".join(logs.output))
+        self.assertNotIn("Traceback", response.get_data(as_text=True))
+
+    def test_route_rejects_malformed_json_and_non_object_body(self):
+        for raw in ('{"query":', '[]', 'null'):
+            with self.subTest(raw=raw):
+                response = self.client.post("/api/ai/site-recommend", data=raw, content_type="application/json", headers=self.headers())
+                self.assert_error_contract(response, 400, "请输入需求描述")
+
+    def test_optional_profile_connection_failure_does_not_escape(self):
+        calls = []
+        def connect():
+            calls.append(1)
+            if len(calls) == 2:  # User lookup succeeded; optional profile unavailable.
+                raise RuntimeError("private profile connection detail")
+            return self.database.connect()
+        app = Flask("ai-profile-connection-fixture")
+        app.config.update(TESTING=True, JWT_SECRET_KEY="profile-fixture-secret-long-enough-for-hs256")
+        JWTManager(app)
+        register_v1_routes(app, connect)
+        with app.app_context():
+            token = create_access_token(identity="member")
+        response = app.test_client().post("/api/ai/site-recommend", json={"query": "Python 调试"}, headers={"Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["data"]["items"][0]["id"], 1)
 
     def test_route_returns_only_real_valid_sites_and_strips_html_query(self):
         response = self.client.post(

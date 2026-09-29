@@ -1,7 +1,11 @@
 <template>
   <header
     class="app-header"
-    :class="{ 'app-header--compact': isCompact }"
+    :class="{
+      'app-header--compact': isCompact,
+      'app-header--home': true,
+      'app-header--ai-open': aiAssistantStore.isOpen,
+    }"
     :data-compact="isCompact"
   >
     <div class="header-inner">
@@ -13,7 +17,10 @@
           width="331"
           height="269"
         />
-        <span class="brand-name">知航屿</span>
+        <span class="brand-copy">
+          <span class="brand-name">知航屿</span>
+          <small class="brand-tagline">让知识更有方向</small>
+        </span>
       </RouterLink>
 
       <nav
@@ -43,6 +50,7 @@
               stroke-linejoin="round"
             />
           </svg>
+          <span>首页</span>
         </RouterLink>
         <RouterLink
           class="nav-item nav-favorites"
@@ -65,17 +73,19 @@
           >
             {{ favoriteCount > 99 ? "99+" : favoriteCount }}
           </span>
+          <span>收藏</span>
         </RouterLink>
         <button
           type="button"
           class="nav-item nav-ai-login-entry"
           :class="{ 'is-active': aiAssistantStore.isOpen }"
-          :aria-label="loggedIn ? '打开知航AI助手' : '登录并使用知航AI助手'"
+          :aria-label="loggedIn ? (aiAssistantStore.isOpen ? '关闭知航AI助手' : '打开知航AI助手') : '登录并使用知航AI助手'"
           :aria-expanded="loggedIn ? aiAssistantStore.isOpen : undefined"
           data-testid="ai-assistant-entry"
           @click="handleAiAssistantEntry"
         >
-          知航AI
+          <Bot :size="22" :stroke-width="1.8" aria-hidden="true" />
+          <span>AI助手</span>
         </button>
       </nav>
 
@@ -131,7 +141,11 @@
             </div>
           </div>
         </div>
-        <RouterLink v-else class="login-link" to="/login">登录</RouterLink>
+        <RouterLink v-else class="login-link" to="/login" aria-label="登录">
+          <svg class="user-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+            <path d="M12 12a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5Zm7.25 8.5a7.25 7.25 0 0 0-14.5 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </RouterLink>
       </div>
     </div>
   </header>
@@ -140,7 +154,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Star } from "lucide-vue-next";
+import { Bot, Star } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
 import { useAiAssistantStore } from "../../stores/aiAssistant";
 import { useFavoritesStore } from "../../stores/favorites";
@@ -183,12 +197,9 @@ function goToAiAssistantLogin() {
   router.push({ path: "/login", query: { redirect: "/" } });
 }
 
-async function handleAiAssistantEntry() {
+function handleAiAssistantEntry() {
   if (loggedIn.value) {
-    if (route.path !== "/") {
-      await router.push("/");
-    }
-    aiAssistantStore.openAssistant();
+    aiAssistantStore.toggleAssistant();
     return;
   }
 
@@ -274,17 +285,17 @@ onBeforeUnmount(() => {
   position: fixed;
   top: 20px;
   left: 50%;
-  z-index: 1000;
+  z-index: 100;
   width: max-content;
   max-width: calc(100vw - 24px);
   height: 68px;
   padding: 0 28px;
   border: 1px solid var(--app-card-border);
   border-radius: 34px;
-  background-color: var(--app-card-bg);
-  box-shadow: var(--app-card-shadow);
-  backdrop-filter: blur(var(--app-blur));
-  -webkit-backdrop-filter: blur(var(--app-blur));
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   transform: translateX(-50%);
   transition:
     top 220ms ease,
@@ -301,12 +312,171 @@ onBeforeUnmount(() => {
   height: 48px;
   padding: 0 14px;
   border-radius: 24px;
-  background-color: var(--app-card-bg);
-  box-shadow: var(--app-card-shadow);
+  background: transparent;
+  box-shadow: none;
 }
 
 .app-header-spacer {
   height: 0;
+}
+
+.app-header--home {
+  top: var(--app-header-top);
+  left: 0;
+  right: 0;
+  width: auto;
+  max-width: none;
+  height: var(--app-header-height);
+  border: 0;
+  border-bottom: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+  transform: none;
+  transition:
+    right var(--ai-layout-transition),
+    top 220ms ease,
+    height 220ms ease,
+    padding 220ms ease,
+    gap 220ms ease,
+    border-radius 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+
+.app-header--home.app-header--ai-open {
+  right: var(--ai-panel-width);
+}
+
+.app-header--home.app-header--compact {
+  top: var(--app-header-top);
+  height: var(--app-header-height);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-header--home .header-inner {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 0 clamp(16px, 2.5vw, 36px);
+}
+
+.app-header--home .brand,
+.app-header--home .nav-links,
+.app-header--home .actions {
+  position: static;
+  transform: none;
+}
+
+.app-header--home .brand {
+  justify-self: start;
+  gap: 10px;
+}
+
+.app-header--home .brand-logo {
+  width: 36px;
+  height: 36px;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.app-header--home .brand-name {
+  color: #0a234a;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.brand-tagline {
+  display: none;
+  color: #506888;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+.app-header--home .brand-tagline {
+  display: block;
+}
+
+.app-header--home .nav-links {
+  justify-self: center;
+  gap: 12px;
+}
+
+.app-header--home .nav-item {
+  display: inline-flex;
+  width: auto;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  color: #102d5a;
+  padding: 0 16px;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 1;
+}
+
+.app-header--home .nav-item::after {
+  display: none;
+}
+
+.app-header--home .nav-item.is-active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.app-header--home .nav-item:hover,
+.app-header--home .nav-item:focus-visible {
+  background: #f7f9fc;
+  color: var(--primary);
+}
+
+.app-header--home .nav-ai-login-entry {
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid #e3e8ef;
+  box-shadow: none;
+  padding: 0 14px;
+}
+
+.app-header--home .nav-ai-login-entry.is-active {
+  border-color: var(--primary-border);
+  background: var(--primary-soft);
+}
+
+.app-header--home .actions {
+  justify-self: end;
+}
+
+.app-header--home .login-link,
+.app-header--home .user-trigger {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  border-color: #e3e8ef;
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: none;
+  color: #0a234a;
+  padding: 0;
 }
 
 .header-inner {
@@ -706,14 +876,50 @@ onBeforeUnmount(() => {
 
 @media (max-width: 560px) {
   .app-header {
-    top: 12px;
+    top: 0;
     max-width: calc(100vw - 24px);
     padding: 0 10px;
   }
 
   .app-header--compact {
-    top: 8px;
+    top: 0;
     padding: 0 8px;
+  }
+
+  .app-header--home {
+    right: 0;
+    width: auto;
+    height: var(--app-header-height);
+  }
+
+  .app-header--home.app-header--ai-open {
+    right: 0;
+  }
+
+  .app-header--home .header-inner {
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    padding: 0 16px;
+  }
+
+  .app-header--home .brand-copy {
+    display: none;
+  }
+
+  .app-header--home .nav-links {
+    justify-self: end;
+    gap: 8px;
+  }
+
+  .app-header--home .nav-item {
+    gap: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .app-header--home .nav-ai-login-entry {
+    min-width: 44px;
+    padding: 0;
   }
 
   .app-header-spacer {

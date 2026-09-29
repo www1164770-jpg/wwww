@@ -73,7 +73,7 @@ button {
 
 button:hover,
 button:focus-visible {
-  border-color: rgba(255, 112, 88, 0.42);
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
   background: var(--color-soft-orange);
   color: var(--color-primary);
   outline: none;

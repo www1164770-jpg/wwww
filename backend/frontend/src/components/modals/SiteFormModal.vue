@@ -84,7 +84,7 @@ const submit = () => {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(15, 23, 42, 0.45);
+  background: #ffffff;
 }
 
 .modal {

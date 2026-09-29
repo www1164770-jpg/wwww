@@ -207,15 +207,18 @@ function recordVisit(site, event) {
   flex: 0 0 44px;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border-radius: 12px;
-  background: var(--app-container-bg);
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.website-icon-wrapper .site-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+.website-icon-wrapper :deep(.site-logo) {
+  width: 36px;
+  height: 36px;
+  border-radius: 0;
 }
 
 .website-name {

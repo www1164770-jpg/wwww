@@ -1,0 +1,9 @@
+{
+  "version": "20260926_feedback_v1",
+  "action": "rollback",
+  "statements": [
+    "UPDATE recommendation_feedback_migrations SET active=0 WHERE version='20260926_feedback_v1'"
+  ],
+  "data_deletion": false,
+  "rollback": "Disable migration gate; retain all preferences, operations and behavior audit events. Disable rollout flags first."
+}

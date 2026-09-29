@@ -145,21 +145,21 @@ export function mergeAccountWithGuestBackground(account, guest, imageId) {
 }
 
 export const officialThemes = [
-  { key: "default", name: "系统默认", colors: ["#F8FAFC", "#FF7058"] },
-  { key: "ocean", name: "深海蓝", colors: ["#E0F2FE", "#0284C7"] },
-  { key: "forest", name: "森野绿", colors: ["#ECFDF5", "#059669"] },
-  { key: "starlight", name: "星光紫", colors: ["#F5F3FF", "#7C3AED"] },
-  { key: "night", name: "夜航", colors: ["#111827", "#818CF8"] },
-  { key: "sunset", name: "落日橙", colors: ["#FFF7ED", "#EA580C"] },
-  { key: "minimal-gray", name: "极简灰", colors: ["#F3F4F6", "#4B5563"] },
-  { key: "sakura", name: "樱花粉", colors: ["#FFF1F2", "#DB2777"] },
+  { key: "default", name: "系统默认", colors: ["#FFFFFF", "#3978F6"], primary: "#4F7DF3", primaryHover: "#3F6EE8", primarySoft: "#EEF4FF", primaryBorder: "#CBD9FF", primaryText: "#3569DD", pageBg: "#FFFFFF", surface: "#FFFFFF", surfaceSoft: "#F8FAFC", surfaceBorder: "#E8ECF2" },
+  { key: "ocean", name: "深海蓝", colors: ["#E0F2FE", "#0284C7"], primary: "#2888C9", primaryHover: "#1976B4", primarySoft: "#EAF6FD", primaryBorder: "#B9E1F6", primaryText: "#1976B4", pageBg: "#F0F9FF", surface: "rgba(255, 255, 255, 0.9)", surfaceSoft: "#F1F8FC", surfaceBorder: "#D9EDF8" },
+  { key: "forest", name: "森野绿", colors: ["#ECFDF5", "#059669"], primary: "#43A47A", primaryHover: "#368B67", primarySoft: "#ECF8F2", primaryBorder: "#BCE4CF", primaryText: "#368B67", pageBg: "#F3FAF6", surface: "rgba(255, 255, 255, 0.9)", surfaceSoft: "#F2F8F4", surfaceBorder: "#DCEDE3" },
+  { key: "starlight", name: "星光紫", colors: ["#F5F3FF", "#7C3AED"], primary: "#8B5CF6", primaryHover: "#7C4DE8", primarySoft: "#F3EEFF", primaryBorder: "#D8C8FF", primaryText: "#7C4DE8", pageBg: "#F5F3FF", surface: "rgba(255, 255, 255, 0.88)", surfaceSoft: "#F7F4FF", surfaceBorder: "#E7DFFF" },
+  { key: "night", name: "夜航", colors: ["#070A10", "#818CF8"], primary: "#818CF8", primaryHover: "#A5B4FC", primarySoft: "#252A4A", primaryBorder: "#4B558B", primaryText: "#A5B4FC", pageBg: "#070A10", surface: "#0B1018", surfaceSoft: "#101722", surfaceBorder: "#334155" },
+  { key: "sunset", name: "落日橙", colors: ["#FFF7ED", "#EA580C"], primary: "#EA7A42", primaryHover: "#D86632", primarySoft: "#FFF1E9", primaryBorder: "#FFD2BE", primaryText: "#D86632", pageBg: "#FFF7F2", surface: "rgba(255, 255, 255, 0.9)", surfaceSoft: "#FFF4EC", surfaceBorder: "#F2DFD2" },
+  { key: "minimal-gray", name: "极简灰", colors: ["#F3F4F6", "#4B5563"], primary: "#667085", primaryHover: "#505A6A", primarySoft: "#F2F4F7", primaryBorder: "#D8DCE3", primaryText: "#505A6A", pageBg: "#F3F4F6", surface: "rgba(255, 255, 255, 0.9)", surfaceSoft: "#F7F8FA", surfaceBorder: "#E1E4E8" },
+  { key: "sakura", name: "樱花粉", colors: ["#FFF1F2", "#DB2777"], primary: "#D65C91", primaryHover: "#C34D80", primarySoft: "#FCEEF4", primaryBorder: "#F3C7D9", primaryText: "#C34D80", pageBg: "#FFF5F7", surface: "rgba(255, 255, 255, 0.9)", surfaceSoft: "#FFF4F7", surfaceBorder: "#F3DCE5" },
 ];
 
 export const defaultPersonalization = () => ({
   version: 1,
   background: {
     type: "default",
-    color: "#F8FAFC",
+    color: "#FFFFFF",
     imageId: null,
     size: "cover",
     position: "center center",
@@ -290,7 +290,7 @@ function baseColorFor(settings) {
   );
   return background.type === "color"
     ? background.color
-    : palette?.colors?.[0] || "#F8FAFC";
+    : palette?.colors?.[0] || "#FFFFFF";
 }
 
 export function analyzeBackground(settings) {
@@ -467,6 +467,12 @@ export function contrastRatio(a, b) {
   return (one + 0.05) / (two + 0.05);
 }
 
+function boundedNumber(value, minimum, maximum, fallback) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(maximum, Math.max(minimum, numeric));
+}
+
 export function applyPersonalization(
   settings,
   { imageUrl = "", disabled = false, readability = null } = {},
@@ -475,12 +481,34 @@ export function applyPersonalization(
   const root = document.documentElement;
   if (disabled) {
     root.dataset.personalization = "off";
+    delete root.dataset.personalizationBackgroundType;
+    delete root.dataset.personalizationTheme;
     [
       "--personalization-background",
       "--personalization-background-size",
       "--personalization-background-position",
+      "--personalization-background-repeat",
       "--personalization-overlay",
       "--personalization-image-filter",
+      "--page-bg",
+      "--surface",
+      "--surface-soft",
+      "--surface-hover",
+      "--surface-border",
+      "--surface-shadow",
+      "--surface-opacity",
+      "--primary",
+      "--primary-hover",
+      "--primary-light",
+      "--primary-soft",
+      "--primary-border",
+      "--primary-text",
+      "--text-primary",
+      "--text-secondary",
+      "--text-tertiary",
+      "--text-muted",
+      "--text-on-primary",
+      "--text-inverse",
       "--color-primary",
       "--color-primary-dark",
       "--color-heading",
@@ -491,6 +519,7 @@ export function applyPersonalization(
       "--personalization-card-shadow",
       "--app-text-primary",
       "--app-text-secondary",
+      "--app-text-tertiary",
       "--app-text-muted",
       "--heading-text-color",
       "--user-text-color",
@@ -511,6 +540,8 @@ export function applyPersonalization(
       "--app-surface-safe",
       "--app-surface-strong",
       "--app-border",
+      "--border-color",
+      "--border-light",
       "--app-input-bg",
       "--app-input-text",
       "--app-control-muted",
@@ -541,13 +572,19 @@ export function applyPersonalization(
   const bg = safe.background || {};
   const composition = compositionFor(safe);
   const palette = officialThemes.find((theme) => theme.key === safe.themeKey);
+  const accent = normalizeHexColor(palette?.primary || palette?.colors?.[1], "#4F7DF3");
   const base =
     bg.type === "color"
       ? bg.color
       : bg.type === "gradient"
         ? gradientCss(safe.gradient)
-        : palette?.colors?.[0] || "#F8FAFC";
+        : palette?.colors?.[0] || "#FFFFFF";
   const readable = readability || readabilityFor(safe);
+  const cardColor = normalizeHexColor(safe.card?.color, "#FFFFFF");
+  const cardOpacity = boundedNumber(safe.card?.opacity, 0, 100, 88) / 100;
+  const cardBlur = boundedNumber(safe.card?.blur, 0, 32, 18);
+  const borderStrength = boundedNumber(safe.card?.border, 0, 40, 12) / 100;
+  const shadowStrength = boundedNumber(safe.card?.shadow, 0, 50, 18);
   const customTextColor = normalizeHexColor(
     safe.typography?.color,
     "#253044",
@@ -558,88 +595,105 @@ export function applyPersonalization(
     ? relativeLuminance(bg.color || base)
     : 0;
   const nearWhiteBackground = isColorBackground && colorLuminance > 0.9;
-  const foreground = isCustomText
-    ? customTextColor
+  const isNightTheme = palette?.key === "night";
+  // A gradient is a page-level atmosphere, not a dark mode signal. Its content
+  // sits on a near-white surface so the page stays legible even when one stop is
+  // relatively saturated. Night is the only official theme that opts into dark
+  // chrome and light text.
+  const surfaceIsLight =
+    !isNightTheme &&
+    (bg.type === "gradient" || readable.surfaceMode === "light");
+  const lightSurfaceText =
+    bg.type === "gradient" ? "#1F2937" : readable.recommendedTextColor;
+  const foreground = isNightTheme
+    ? "#F5F7FB"
+    : isCustomText
+      ? customTextColor
+      : nearWhiteBackground
+        ? "#111827"
+        : bg.type === "gradient"
+          ? lightSurfaceText
+        : readable.textColor;
+  const chromePrimary = isNightTheme
+    ? "#F5F7FB"
     : nearWhiteBackground
-      ? "#111827"
-      : readable.textColor;
-  const surfaceIsLight = readable.surfaceMode === "light";
-  const chromePrimary = nearWhiteBackground
     ? "#111827"
     : surfaceIsLight
-      ? readable.recommendedTextColor
+      ? lightSurfaceText
       : "rgba(255, 255, 255, 0.92)";
-  const chromeSecondary = nearWhiteBackground
+  const chromeSecondary = isNightTheme
+    ? "#D8DEEA"
+    : nearWhiteBackground
     ? "#4B5563"
     : surfaceIsLight
       ? "#475569"
       : "rgba(255, 255, 255, 0.78)";
-  const chromeMuted = nearWhiteBackground
+  const chromeMuted = isNightTheme
+    ? "#8A95AA"
+    : nearWhiteBackground
     ? "#6B7280"
     : surfaceIsLight
       ? "#64748B"
       : "rgba(255, 255, 255, 0.64)";
-  const primary = isCustomText
-    ? customTextColor
-    : nearWhiteBackground
-    ? "#111827"
-    : surfaceIsLight
-      ? foreground
-      : "rgba(255, 255, 255, 0.92)";
-  const surface = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.75)"
-    : surfaceIsLight
-      ? "rgba(255, 255, 255, 0.92)"
-      : "rgba(15, 23, 42, 0.88)";
-  const strongSurface = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.85)"
-    : surfaceIsLight
-      ? "rgba(255, 255, 255, 0.97)"
-      : "rgba(15, 23, 42, 0.95)";
-  const secondary = isCustomText
+  const primary = accent;
+  const primaryHover = palette?.primaryHover || `color-mix(in srgb, ${primary} 84%, #0F172A)`;
+  const primarySoft = palette?.primarySoft || `rgba(${rgb(primary)}, 0.12)`;
+  const primaryBorder = palette?.primaryBorder || `rgba(${rgb(primary)}, 0.32)`;
+  const primaryText = palette?.primaryText || primaryHover;
+  const cardBase = surfaceIsLight
+    ? cardColor
+    : isNightTheme
+      ? palette.surface
+      : "#0F172A";
+  // The card slider controls this background alpha only. Text, controls, and
+  // fixed chrome intentionally use their own nearly opaque surface below.
+  const surface = `rgba(${rgb(cardBase)}, ${cardOpacity.toFixed(3)})`;
+  const strongSurface = `rgba(${rgb(cardBase)}, 0.960)`;
+  const secondary = isNightTheme
+    ? "#D8DEEA"
+    : isCustomText
     ? `rgba(${rgb(customTextColor)}, 0.82)`
     : nearWhiteBackground
     ? "#4B5563"
     : surfaceIsLight
       ? "#475569"
       : "rgba(255, 255, 255, 0.78)";
-  const muted = isCustomText
+  const tertiary = isNightTheme
+    ? "#AEB8CB"
+    : isCustomText
+      ? `rgba(${rgb(customTextColor)}, 0.74)`
+      : nearWhiteBackground
+        ? "#64748B"
+        : surfaceIsLight
+          ? "#64748B"
+          : "rgba(255, 255, 255, 0.68)";
+  const muted = isNightTheme
+    ? "#8A95AA"
+    : isCustomText
     ? `rgba(${rgb(customTextColor)}, 0.66)`
     : nearWhiteBackground
     ? "#6B7280"
     : surfaceIsLight
       ? "#64748B"
       : "rgba(255, 255, 255, 0.64)";
-  const placeholder = nearWhiteBackground
+  const placeholder = isNightTheme
+    ? "#8A95AA"
+    : nearWhiteBackground
     ? "rgba(75, 85, 99, 0.76)"
     : surfaceIsLight
       ? "rgba(71, 85, 105, 0.76)"
       : "rgba(255, 255, 255, 0.58)";
-  const disabledText = nearWhiteBackground
+  const disabledText = isNightTheme
+    ? "#8A95AA"
+    : nearWhiteBackground
     ? "rgba(107, 114, 128, 0.66)"
     : surfaceIsLight
       ? "rgba(100, 116, 139, 0.66)"
       : "rgba(255, 255, 255, 0.42)";
-  const containerBackground = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.65)"
-    : surfaceIsLight
-      ? "rgba(15, 23, 42, 0.04)"
-      : "rgba(255, 255, 255, 0.08)";
-  const cardBackground = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.70)"
-    : surfaceIsLight
-      ? "rgba(15, 23, 42, 0.08)"
-      : "rgba(255, 255, 255, 0.12)";
-  const cardHoverBackground = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.85)"
-    : surfaceIsLight
-      ? "rgba(15, 23, 42, 0.10)"
-      : "rgba(255, 255, 255, 0.18)";
-  const controlBackground = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.85)"
-    : surfaceIsLight
-      ? "rgba(15, 23, 42, 0.10)"
-      : "rgba(255, 255, 255, 0.18)";
+  const containerBackground = `rgba(${rgb(cardBase)}, 0.920)`;
+  const cardBackground = surface;
+  const cardHoverBackground = `rgba(${rgb(accent)}, ${(0.05 + cardOpacity * 0.05).toFixed(3)})`;
+  const controlBackground = strongSurface;
   const analysisSpread = Number(
     readable.contrastSpread ?? readable.spread ?? 0,
   );
@@ -647,39 +701,44 @@ export function applyPersonalization(
   const appOverlay = isColorBackground
     ? "rgba(0, 0, 0, 0)"
     : bg.type === "gradient"
-      ? surfaceIsLight
-        ? "rgba(15, 23, 42, 0.04)"
-        : "rgba(255, 255, 255, 0.03)"
+      ? "transparent"
       : complexImage
         ? "rgba(15, 23, 42, 0.12)"
         : surfaceIsLight
           ? "rgba(15, 23, 42, 0.08)"
           : "rgba(255, 255, 255, 0.08)";
-  const cardBorder = nearWhiteBackground
-    ? "rgba(15, 23, 42, 0.08)"
-    : surfaceIsLight
-      ? "rgba(15, 23, 42, 0.16)"
-      : "rgba(255, 255, 255, 0.28)";
+  const borderBase = surfaceIsLight ? "#475569" : "#E2E8F0";
+  const cardBorder = `rgba(${rgb(borderBase)}, ${borderStrength.toFixed(3)})`;
   const tagBackground = surfaceIsLight
     ? "rgba(255, 255, 255, 0.65)"
     : "rgba(255, 255, 255, 0.18)";
   const tagText = surfaceIsLight ? "#1F2937" : "#FFFFFF";
   const safeSurface = nearWhiteBackground
-    ? "rgba(255, 255, 255, 0.85)"
+    ? "rgba(255, 255, 255, 0.20)"
     : surfaceIsLight
-      ? "rgba(15, 23, 42, 0.08)"
+      ? "rgba(255, 255, 255, 0.20)"
       : "rgba(255, 255, 255, 0.18)";
   const cardContentOverlay = surfaceIsLight
     ? "rgba(255, 255, 255, 0.24)"
     : "rgba(15, 23, 42, 0.22)";
-  const cardShadowAlpha = nearWhiteBackground
-    ? 0.05
-    : complexImage
-      ? 0.12
-      : surfaceIsLight
-        ? 0.08
-        : 0.18;
+  const cardShadowAlpha = (shadowStrength / 50) * 0.25;
   const cardHoverShadowAlpha = Math.min(cardShadowAlpha + 0.04, 0.22);
+  const isThemeBaseColor =
+    bg.type === "color" &&
+    normalizeHexColor(bg.color) === normalizeHexColor(palette?.colors?.[0]);
+  const pageBg =
+    bg.type === "default" || isThemeBaseColor
+      ? palette?.pageBg || "#FFFFFF"
+      : bg.type === "color" || bg.type === "gradient"
+        ? base
+        : palette?.pageBg || "#FFFFFF";
+  const themeSurface = surface;
+  const themeSurfaceSoft = palette?.surfaceSoft || containerBackground;
+  const themeSurfaceBorder = palette?.surfaceBorder
+    ? `rgba(${rgb(palette.surfaceBorder)}, ${Math.min(0.82, 0.25 + borderStrength).toFixed(3)})`
+    : cardBorder;
+  const themeSurfaceHover = palette?.primarySoft || cardHoverBackground;
+  const themeSurfaceShadow = `0 ${Math.round(2 + shadowStrength * 0.12)}px ${Math.round(6 + shadowStrength * 0.52)}px rgba(15, 23, 42, ${cardShadowAlpha.toFixed(3)})`;
   const overlay =
     bg.type === "image"
       ? Math.max(Number(bg.overlay || 0), readable.overlayStrength || 0) / 100
@@ -689,14 +748,22 @@ export function applyPersonalization(
       ? `linear-gradient(rgba(${surfaceIsLight ? "255,255,255" : "15,23,42"}, ${overlay}), rgba(${surfaceIsLight ? "255,255,255" : "15,23,42"}, ${overlay})), url("${imageUrl}")`
       : base;
   root.dataset.personalization = "on";
+  root.dataset.personalizationBackgroundType = bg.type || "default";
+  root.dataset.personalizationTheme = safe.themeKey || "default";
   root.style.setProperty("--personalization-background", imageBackground);
   root.style.setProperty(
     "--personalization-background-size",
     bg.type === "image"
-      ? bg.size === "stretch"
+      ? bg.size === "repeat"
+        ? "auto"
+        : bg.size === "stretch"
         ? "100% 100%"
         : bg.size
       : "cover",
+  );
+  root.style.setProperty(
+    "--personalization-background-repeat",
+    bg.type === "image" && bg.size === "repeat" ? "repeat" : "no-repeat",
   );
   root.style.setProperty(
     "--personalization-background-position",
@@ -714,13 +781,39 @@ export function applyPersonalization(
   root.dataset.personalizationProtective = readable.surfaceRequired
     ? "on"
     : "off";
-  root.style.setProperty("--color-primary", palette?.colors?.[1] || "#FF7058");
+  root.style.setProperty("--primary", primary);
+  root.style.setProperty(
+    "--primary-hover",
+    primaryHover,
+  );
+  root.style.setProperty(
+    "--primary-light",
+    primarySoft,
+  );
+  root.style.setProperty("--primary-soft", primarySoft);
+  root.style.setProperty("--primary-border", primaryBorder);
+  root.style.setProperty("--primary-text", primaryText);
+  root.style.setProperty("--text-primary", foreground);
+  root.style.setProperty("--text-secondary", secondary);
+  root.style.setProperty("--text-tertiary", tertiary);
+  root.style.setProperty("--text-muted", muted);
+  root.style.setProperty("--text-on-primary", "#FFFFFF");
+  root.style.setProperty("--text-inverse", isNightTheme ? "#0F172A" : "#FFFFFF");
+  root.style.setProperty("--page-bg", pageBg);
+  root.style.setProperty("--surface", themeSurface);
+  root.style.setProperty("--surface-soft", themeSurfaceSoft);
+  root.style.setProperty("--surface-hover", themeSurfaceHover);
+  root.style.setProperty("--surface-border", themeSurfaceBorder);
+  root.style.setProperty("--surface-shadow", themeSurfaceShadow);
+  root.style.setProperty("--surface-opacity", cardOpacity.toFixed(3));
+  root.style.setProperty("--color-primary", primary);
   root.style.setProperty(
     "--color-primary-dark",
-    palette?.colors?.[1] || "#EF5B45",
+    primaryHover,
   );
-  root.style.setProperty("--app-text-primary", primary);
+  root.style.setProperty("--app-text-primary", foreground);
   root.style.setProperty("--app-text-secondary", secondary);
+  root.style.setProperty("--app-text-tertiary", tertiary);
   root.style.setProperty("--app-text-muted", muted);
   root.style.setProperty("--heading-text-color", foreground);
   root.style.setProperty("--user-text-color", primary);
@@ -730,7 +823,7 @@ export function applyPersonalization(
   root.style.setProperty("--app-chrome-text-muted", chromeMuted);
   root.style.setProperty("--app-text-placeholder", placeholder);
   root.style.setProperty("--app-text-disabled", disabledText);
-  root.style.setProperty("--app-text-inverse", "#FFFFFF");
+  root.style.setProperty("--app-text-inverse", isNightTheme ? "#0F172A" : "#FFFFFF");
   root.style.setProperty(
     "--app-tab-text",
     surfaceIsLight ? muted : secondary,
@@ -750,7 +843,7 @@ export function applyPersonalization(
   );
   root.style.setProperty(
     "--favorite-color",
-    palette?.colors?.[1] || "#FF7058",
+    primary,
   );
   root.style.setProperty(
     "--favorite-muted-color",
@@ -758,17 +851,12 @@ export function applyPersonalization(
       ? "rgba(30, 40, 60, 0.45)"
       : "rgba(255, 255, 255, 0.55)",
   );
-  root.style.setProperty("--app-surface", surface);
-  root.style.setProperty("--app-surface-safe", surface);
+  root.style.setProperty("--app-surface", themeSurface);
+  root.style.setProperty("--app-surface-safe", themeSurface);
   root.style.setProperty("--app-surface-strong", strongSurface);
-  root.style.setProperty(
-    "--app-border",
-    nearWhiteBackground
-      ? "rgba(15, 23, 42, 0.08)"
-      : surfaceIsLight
-        ? "rgba(15, 23, 42, 0.16)"
-        : "rgba(226, 232, 240, 0.24)",
-  );
+  root.style.setProperty("--app-border", themeSurfaceBorder);
+  root.style.setProperty("--border-color", themeSurfaceBorder);
+  root.style.setProperty("--border-light", themeSurfaceBorder);
   root.style.setProperty("--app-input-bg", strongSurface);
   root.style.setProperty(
     "--app-input-text",
@@ -776,55 +864,51 @@ export function applyPersonalization(
   );
   root.style.setProperty("--app-control-muted", muted);
   root.style.setProperty("--app-readable-overlay", appOverlay);
-  root.style.setProperty("--app-page-bg", "transparent");
-  root.style.setProperty("--app-container-bg", containerBackground);
-  root.style.setProperty("--app-card-bg", cardBackground);
-  root.style.setProperty("--app-card-hover-bg", cardHoverBackground);
-  root.style.setProperty("--app-panel-bg", cardBackground);
-  root.style.setProperty("--app-panel-soft-bg", containerBackground);
+  root.style.setProperty("--app-page-bg", pageBg);
+  root.style.setProperty("--app-container-bg", themeSurfaceSoft);
+  root.style.setProperty("--app-card-bg", themeSurface);
+  root.style.setProperty("--app-card-hover-bg", themeSurfaceHover);
+  root.style.setProperty("--app-panel-bg", themeSurface);
+  root.style.setProperty("--app-panel-soft-bg", themeSurfaceSoft);
   root.style.setProperty("--app-control-bg", controlBackground);
   root.style.setProperty("--background-overlay", appOverlay);
   root.style.setProperty("--app-overlay", appOverlay);
-  root.style.setProperty("--app-card-border", cardBorder);
+  root.style.setProperty("--app-card-border", themeSurfaceBorder);
   root.style.setProperty("--app-tag-bg", tagBackground);
   root.style.setProperty("--app-tag-text", tagText);
   root.style.setProperty("--app-safe-surface", safeSurface);
   root.style.setProperty("--app-card-content-overlay", cardContentOverlay);
-  root.style.setProperty("--app-blur", "20px");
+  root.style.setProperty("--app-blur", `${cardBlur}px`);
   root.style.setProperty(
     "--app-card-shadow-color",
     `rgba(0, 0, 0, ${cardShadowAlpha})`,
   );
   root.style.setProperty(
     "--app-card-shadow",
-    nearWhiteBackground
-      ? "0 4px 12px rgba(0, 0, 0, 0.05)"
-      : `0 2px 8px rgba(0, 0, 0, ${cardShadowAlpha})`,
+    themeSurfaceShadow,
   );
   root.style.setProperty(
     "--app-card-hover-shadow",
-    `0 6px 18px rgba(0, 0, 0, ${cardHoverShadowAlpha})`,
+    `0 ${Math.round(4 + shadowStrength * 0.14)}px ${Math.round(12 + shadowStrength * 0.6)}px rgba(15, 23, 42, ${cardHoverShadowAlpha.toFixed(3)})`,
   );
   root.style.setProperty(
     "--app-control-shadow",
-    `0 2px 6px rgba(0, 0, 0, ${Math.min(cardShadowAlpha, 0.1)})`,
+    `0 2px 6px rgba(15, 23, 42, ${Math.min(cardShadowAlpha, 0.1).toFixed(3)})`,
   );
   root.style.setProperty("--color-heading", foreground);
   root.style.setProperty("--color-text", secondary);
   root.style.setProperty("--color-muted", muted);
   root.style.setProperty(
     "--color-border",
-    nearWhiteBackground
-      ? "rgba(15, 23, 42, 0.08)"
-      : `rgba(${rgb(foreground)}, ${Math.max(0.16, Number(safe.card?.border || 12) / 100)})`,
+    cardBorder,
   );
   root.style.setProperty(
     "--personalization-card",
-    `rgba(${rgb(safe.card?.color)}, ${Number(safe.card?.opacity ?? 88) / 100})`,
+    cardBackground,
   );
   root.style.setProperty(
     "--personalization-card-blur",
-    `${safe.card?.blur ?? 18}px`,
+    `${cardBlur}px`,
   );
   root.style.setProperty(
     "--personalization-card-shadow",

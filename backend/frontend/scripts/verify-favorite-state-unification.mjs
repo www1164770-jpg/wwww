@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendDir = path.resolve(scriptsDir, "..");
 const read = (relativePath) =>
-  fs.readFileSync(path.join(frontendDir, relativePath), "utf8");
+  fs.readFileSync(path.join(frontendDir, relativePath), "utf8").replace(/\r\n/g, "\n");
 
 const store = read("src/stores/favorites.js");
 const favoriteStar = read("src/components/site/FavoriteStarButton.vue");
@@ -14,7 +14,6 @@ const siteList = read("src/components/site/SiteList.vue");
 const views = [
   "src/views/Home.vue",
   "src/views/SearchResults.vue",
-  "src/views/CategoryDetail.vue",
   "src/views/ProfileView.vue",
   "src/views/SiteDetail.vue",
   "src/views/Favorites.vue",

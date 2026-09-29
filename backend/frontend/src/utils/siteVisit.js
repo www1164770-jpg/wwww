@@ -6,7 +6,7 @@ import {
   siteAPI,
 } from "./api";
 import { getAccessToken, isValidAuthToken } from "./auth";
-import { getBehaviorSessionId, trackRepeatVisit } from "./behaviorTracker";
+import { getBehaviorSessionId, trackRepeatVisit, behaviorContext } from "./behaviorTracker";
 
 export const BROWSING_HISTORY_STORAGE_KEY = "zhihui:browsing-history:v1";
 export const BROWSING_HISTORY_DEDUPE_MS = 30_000;
@@ -34,7 +34,7 @@ function validDate(value) {
 
 function historyKey(item = {}) {
   const url = safeUrl(item.url);
-  if (url) return `url:${url.toLowerCase().replace(/\/$/, "")}`;
+  if (url) return `url:${url.replace(/\/$/, "")}`;
   const siteId = item.site_id ?? item.siteId ?? item.id;
   return siteId === undefined || siteId === null ? "" : `site:${siteId}`;
 }
@@ -174,7 +174,7 @@ export function recordBrowsingHistory(site, options = {}) {
       questionnaire_version: item.questionnaire_version,
       profile_version: item.profile_version,
       session_id: options.session_id || getBehaviorSessionId(),
-      metadata: { candidate_pool_id: item.candidate_pool_id },
+      metadata: { ...behaviorContext(site).metadata, candidate_pool_id: item.candidate_pool_id },
     }).catch((error) => {
       if (import.meta.env.DEV) {
         console.warn("[BrowsingHistory] click count update failed", error?.message || error);

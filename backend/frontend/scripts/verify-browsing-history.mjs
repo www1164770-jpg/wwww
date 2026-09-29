@@ -14,7 +14,6 @@ const profile = readFrontend("src/views/ProfileView.vue");
 const home = readFrontend("src/views/Home.vue");
 const search = readFrontend("src/views/SearchResults.vue");
 const favorites = readFrontend("src/views/Favorites.vue");
-const category = readFrontend("src/views/CategoryDetail.vue");
 const siteDetail = readFrontend("src/views/SiteDetail.vue");
 const marquee = readFrontend("src/components/home/ToolMarquee.vue");
 const recommend = readFrontend("src/components/home/RecommendSection.vue");
@@ -22,7 +21,7 @@ const siteCard = readFrontend("src/components/site/SiteCard.vue");
 const backend = readProject("backend/app.py");
 const packageJson = JSON.parse(readFrontend("package.json"));
 
-const pageSources = [home, search, favorites, category, siteDetail];
+const pageSources = [home, search, favorites, siteDetail];
 const directOpenOutsideUtility = pageSources.some((source) =>
   /window\.open\s*\(/.test(source),
 );
@@ -91,9 +90,8 @@ const checks = [
   ],
   [
     "Site cards route external actions through their visit event",
-    /website-card__external[\s\S]*?@click\.stop\.prevent="openSite"/.test(
-      siteCard,
-    ),
+    /<button type="button" class="visit" @click\.stop="openSite">/.test(siteCard) &&
+      /emit\("visit", \{ \.\.\.props\.site, url: normalizedSiteUrl\.value \}\)/.test(siteCard),
   ],
   [
     "The history view loads real records and only shows empty state for an empty list",

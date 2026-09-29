@@ -137,7 +137,7 @@ def _validate_lease_inputs(
     return normalized_worker_id
 
 
-def build_outbox_lease_query(*, now: datetime, limit: int):
+def build_outbox_lease_query(*, now: datetime, limit: int, event_type: str | None = None):
     if limit < 1 or limit > MAX_OUTBOX_BATCH:
         raise ValueError(
             f"crawler outbox limit must be between 1 and {MAX_OUTBOX_BATCH}"
@@ -147,6 +147,7 @@ def build_outbox_lease_query(*, now: datetime, limit: int):
         .where(
             OutboxEvent.status == PENDING,
             OutboxEvent.available_at <= now,
+            *([OutboxEvent.event_type == event_type] if event_type else []),
         )
         .order_by(
             OutboxEvent.available_at,
@@ -165,6 +166,7 @@ def lease_outbox_events(
     limit: int,
     lease_seconds: int,
     now: datetime,
+    event_type: str | None = None,
 ) -> list[OutboxEvent]:
     normalized_worker_id = _validate_lease_inputs(
         worker_id=worker_id,
@@ -173,7 +175,7 @@ def lease_outbox_events(
     )
     events = list(
         session.scalars(
-            build_outbox_lease_query(now=now, limit=limit)
+            build_outbox_lease_query(now=now, limit=limit, event_type=event_type)
         ).all()
     )
     leased_until = now + timedelta(seconds=lease_seconds)

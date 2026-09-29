@@ -352,7 +352,8 @@ def recommend_sites_for_query(query, candidates, occupation="", interests=None, 
         if not _valid_url(url):
             continue
         site_id = candidate.get("id")
-        normalized_url = url.lower()
+        parsed_identity = urlparse(url)
+        normalized_url = parsed_identity._replace(scheme=parsed_identity.scheme.lower(), netloc=parsed_identity.netloc.lower()).geturl()
         if (site_id not in (None, "") and site_id in seen_ids) or normalized_url in seen_urls:
             continue
         if site_id not in (None, ""):

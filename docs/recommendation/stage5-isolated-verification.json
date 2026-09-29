@@ -1,0 +1,33 @@
+{
+  "database": "feedback_f3c0f6749150_test",
+  "source_database_modified": false,
+  "model_calls": 0,
+  "checks": [
+    "migration apply twice is idempotent",
+    "preferences require login",
+    "rollout defaults disabled",
+    "feedback creates user preference",
+    "identical retry returns original result",
+    "equivalent reason no-op does not renew or duplicate",
+    "one audit event for effective transition",
+    "other user inherits no preferences",
+    "client user_id rejected",
+    "invalid reason type rejected",
+    "stale undo rejected",
+    "undo advances revision and clears preference",
+    "undo distinct from clicks and favorites",
+    "temporary feedback suspends active recommendation",
+    "expiry restores without data deletion",
+    "concurrent stale revisions cannot overwrite preference",
+    "audit failure rolls back preference and receipt",
+    "v2 requires visibility context",
+    "server timestamp and collection version independent of table default",
+    "visible events deduplicate server-side",
+    "concurrent impressions count once under MySQL snapshot isolation",
+    "old and new event versions remain distinct",
+    "rollback retains preference data and audit history",
+    "rollback gate prevents reads/writes when rollout accidentally left on",
+    "roll forward preserves effective preferences"
+  ],
+  "status": "passed"
+}

@@ -1,0 +1,12 @@
+{
+  "version": "20260926_feedback_v1",
+  "action": "apply",
+  "statements": [
+    "CREATE TABLE IF NOT EXISTS recommendation_feedback_migrations(version VARCHAR(64) PRIMARY KEY,active INT NOT NULL) ENGINE=InnoDB",
+    "CREATE TABLE IF NOT EXISTS recommendation_preferences(user_id INT NOT NULL,website_id INT NOT NULL,reason VARCHAR(20) NULL,revision BIGINT NOT NULL,expires_at DATETIME NULL,updated_at DATETIME NOT NULL,PRIMARY KEY(user_id,website_id)) ENGINE=InnoDB",
+    "CREATE TABLE IF NOT EXISTS recommendation_feedback_operations(user_id INT NOT NULL,request_id VARCHAR(64) NOT NULL,fingerprint TEXT NOT NULL,result_json TEXT NOT NULL,PRIMARY KEY(user_id,request_id)) ENGINE=InnoDB",
+    "Register active migration with idempotent upsert"
+  ],
+  "data_deletion": false,
+  "rollback": "Disable migration gate; retain all preferences, operations and behavior audit events. Disable rollout flags first."
+}

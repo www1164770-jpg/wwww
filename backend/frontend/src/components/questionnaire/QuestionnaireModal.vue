@@ -74,8 +74,8 @@ async function complete() {
 </script>
 
 <style scoped>
-.questionnaire-overlay { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 18px; background: rgba(15, 23, 42, .56); backdrop-filter: blur(8px); }
-.questionnaire-dialog { width: min(760px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; border: 1px solid var(--mono-border); border-radius: 24px; background: var(--mono-surface, #fff); padding: clamp(22px, 4vw, 36px); box-shadow: 0 24px 70px rgba(15, 23, 42, .22); }
+.questionnaire-overlay { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; padding: 18px; background: #ffffff; backdrop-filter: none; }
+.questionnaire-dialog { width: min(760px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; border: 1px solid #e8edf3; border-radius: 24px; background: #ffffff; padding: clamp(22px, 4vw, 36px); box-shadow: 0 10px 30px rgba(15, 23, 42, .08); }
 .dialog-heading { display: flex; align-items: start; justify-content: space-between; gap: 18px; margin-bottom: 8px; }
 .dialog-heading h2 { margin: 0; color: var(--mono-text, #111); }
 .eyebrow { margin: 0 0 5px; color: var(--mono-muted, #718096); font-size: 13px; font-weight: 800; }

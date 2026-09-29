@@ -10,27 +10,30 @@ const readFrontend = (file) =>
 const readProject = (file) => readFileSync(resolve(projectRoot, file), "utf8");
 
 const profile = readFrontend("src/views/ProfileView.vue");
+const app = readFrontend("src/App.vue");
 const router = readFrontend("src/router/index.js");
 const home = readFrontend("src/views/Home.vue");
 const api = readFrontend("src/utils/api.js");
 const backend = readProject("backend/v1_routes.py");
-const emptyState = readFrontend("src/components/common/EmptyState.vue");
-const loadingState = readFrontend("src/components/common/LoadingState.vue");
 
 const nav = profile.match(
-  /<nav aria-label="个人中心菜单">([\s\S]*?)<\/nav>/,
+  /<nav\s+class="profile-sidebar__nav"\s+aria-label="个人中心菜单">([\s\S]*?)<\/nav>/,
 )?.[1];
 assert.ok(nav, "个人中心菜单应存在");
 
-const menuItems = [...nav.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map(
-  ([, href, label]) => ({ href, label: label.trim() }),
-);
-assert.deepEqual(menuItems, [
-  { href: "#questionnaire", label: "我的问卷" },
-  { href: "#favorites", label: "我的收藏" },
-  { href: "#history", label: "浏览历史" },
-  { href: "#password", label: "修改密码" },
-]);
+for (const section of [
+  "personalization",
+  "survey",
+  "favorites",
+  "history",
+  "password",
+]) {
+  assert.match(nav, new RegExp(`profileSectionLink\\('${section}'\\)`));
+  assert.match(nav, new RegExp(`activeSection === '${section}'`));
+}
+assert.match(nav, /:to="\{ name: 'Profile' \}"/);
+assert.doesNotMatch(nav, /to="\/personalization"/);
+assert.match(profile, /<PersonalizationView[\s\S]*?embedded/);
 
 assert.doesNotMatch(
   profile,
@@ -38,37 +41,49 @@ assert.doesNotMatch(
 );
 assert.doesNotMatch(profile, /SiteList|function visit\(site\)/);
 for (const id of ["questionnaire", "favorites", "history", "password"]) {
-  assert.match(profile, new RegExp(`<section id="${id}"`));
+  assert.match(profile, new RegExp(`<section[^>]*id="${id}"`));
 }
-assert.match(profile, /grid-template-columns:\s*repeat\(4, max-content\)/);
-assert.match(profile, /\.page\s*\{[^}]*background:\s*transparent/);
 assert.match(
   profile,
-  /\.user-card,[\s\S]*?\.panel\s*\{[\s\S]*?border:\s*1px solid var\(--app-card-border\)[\s\S]*?background:\s*var\(--app-panel-bg\)[\s\S]*?backdrop-filter:\s*blur\(var\(--app-blur\)\)[\s\S]*?box-shadow:\s*var\(--app-card-shadow\)/,
+  /\.profile-shell\s*\{[\s\S]*?grid-template-columns:\s*232px minmax\(0, 1fr\)/,
+);
+assert.match(app, /app-route-content--header-clearance/);
+assert.match(
+  app,
+  /\.app-route-content--header-clearance\s*\{[\s\S]*?padding-top:\s*var\(--app-route-content-top\)/,
+);
+assert.match(
+  app,
+  /\.app-route-content--header-clearance > \.page\s*\{[\s\S]*?min-height:\s*calc\(100vh - var\(--app-route-content-top\)\)/,
+);
+assert.doesNotMatch(profile, /profile-header-clearance/);
+assert.match(
+  profile,
+  /\.profile-page\s*\{[\s\S]*?background:\s*var\(--page-bg\)/,
 );
 assert.match(
   profile,
-  /nav\s*\{[\s\S]*?background:\s*var\(--app-panel-bg\)[\s\S]*?box-shadow:\s*var\(--app-card-shadow\)/,
+  /\.survey-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/,
 );
 assert.match(
   profile,
-  /\.questionnaire-summary span\s*\{[\s\S]*?background:\s*var\(--app-control-bg\)[\s\S]*?backdrop-filter:\s*blur\(12px\)/,
+  /\.survey-tags b\s*\{[\s\S]*?border-radius:\s*999px[\s\S]*?background:\s*var\(--surface-soft\)/,
 );
-assert.match(
-  profile,
-  /\.history-item\s*\{[\s\S]*?background:\s*var\(--app-control-bg\)[\s\S]*?backdrop-filter:\s*blur\(12px\)/,
-);
-for (const state of [emptyState, loadingState]) {
-  assert.match(state, /background:\s*var\(--app-panel-soft-bg\)/);
-  assert.match(state, /border:\s*1px dashed var\(--app-card-border\)/);
-}
-assert.doesNotMatch(
-  profile,
-  /(?:\.questionnaire-summary span|\.history-item|input)\s*\{[^}]*background:\s*#fff(?:fff)?/i,
-);
+assert.match(profile, /v-show="activeSection === 'personalization'"/);
+assert.match(profile, /\.profile-section-panel\s*\{[\s\S]*?animation: profile-section-enter 200ms/);
+assert.match(app, /\["Profile", "ProfileSection"\][\s\S]*?"profile-layout"/);
+assert.match(profile, /<RouterLink class="profile-primary-link" to="\/favorites">/);
+assert.match(profile, /<RouterLink class="profile-card__action" to="\/questionnaire">/);
 
-assert.match(router, /function openProfileQuestionnaire\(to\)/);
-assert.match(router, /return to\.hash \? true : profileQuestionnaireLocation/);
+assert.match(
+  router,
+  /path: "\/profile\/:section\(personalization\|survey\|favorites\|history\|password\)"/,
+);
+assert.match(router, /name: "ProfileSection"/);
+assert.match(
+  router,
+  /path: "\/personalization",[\s\S]*?redirect: \{ name: "ProfileSection", params: \{ section: "personalization" \} \}/,
+);
 for (const legacyPath of [
   "/profile/recommend",
   "/profile/recommendation",
@@ -78,10 +93,7 @@ for (const legacyPath of [
 ]) {
   assert.ok(router.includes(`"${legacyPath}"`), `${legacyPath} 应保留兼容跳转`);
 }
-assert.match(
-  router,
-  /const profileQuestionnaireLocation = \{\s*name: "Profile",\s*hash: "#questionnaire",\s*\}/,
-);
+assert.match(router, /params: \{ section: "survey" \}/);
 
 assert.doesNotMatch(
   backend,

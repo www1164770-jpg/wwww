@@ -1,0 +1,184 @@
+[
+  {
+    "command": [
+      "click",
+      "@e1"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "fill",
+      "private test credential input"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "fill",
+      "private test credential input"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e8"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "wait",
+      "button[aria-label=\"打开用户菜单\"]"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "1440",
+      "1000"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "wait",
+      "[data-testid=\"career-site-batch\"]"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "scrollintoview",
+      "[data-testid=\"career-site-batch\"]"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e14]\n- navigation \"主导航\" [ref=e15]\n  - link \"首页\" [ref=e16]\n  - link \"收藏夹\" [ref=e17]\n  - button \"打开知航AI助手\" [expanded=false, ref=e18]\n- button \"打开用户菜单\" [expanded=false, ref=e19]\n- region \"首页搜索\" [ref=e20]\n  - region \"根据你的职业， 推荐最适合的资源\" [ref=e24]\n    - heading \"根据你的职业， 推荐最适合的资源\" [level=1, ref=e31]\n    - button \"当前搜索范围：站内搜索\" [expanded=false, ref=e123]\n    - searchbox \"使用站内搜索搜索\" [ref=e36]\n    - button \"使用站内搜索搜索\" [ref=e37]\n- region \"你的职业推荐\" [ref=e25]\n  - heading \"你的职业推荐\" [level=2, ref=e38]\n  - heading \"选择职业\" [level=3, ref=e32]\n  - button \"后端工程师 70%\" [ref=e39]\n  - button \"Python 开发工程师 70%\" [ref=e40]\n  - button \"API 工程师 62.5%\" [ref=e41]\n  - button \"技术产品经理 62.5%\" [ref=e42]\n  - button \"Go 开发工程师 60%\" [ref=e43]\n  - button \"Java 开发工程师 60%\" [ref=e44]\n  - button \"Node.js 工程师 60%\" [ref=e45]\n  - button \"数据工程师 50%\" [ref=e46]\n  - link \"更新问卷\" [ref=e33]\n- heading \"适合「后端工程师」的网站工具\" [level=2, ref=e47]\n- button \"换一批职业网站\" [disabled, ref=e48]\n- article \"MDN Web DocsHTML、CSS、JavaScript 与 Web API 权威文档。\" [ref=e49] clickable [cursor:pointer]\n  - button \"添加收藏 MDN Web Docs\" [ref=e124]\n  - link \"打开 MDN Web Docs\" [ref=e188]\n  - link \"MDN Web Docs\" [ref=e189]\n- article \"FastAPIFastAPI 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。\" [ref=e50] clickable [cursor:pointer]\n  - button \"添加收藏 FastAPI\" [ref=e125]\n  - link \"打开 FastAPI\" [ref=e190]\n  - link \"FastAPI\" [ref=e191]\n  - generic \"FastAPI 的核心资源入口，聚焦编程语言、框架或工程工具的官方文档。\" [ref=e192] clickable [cursor:pointer, tabindex]\n- article \"Node.jsNode.js 运行时 API 与开发指南。\" [ref=e51] clickable [cursor:pointer]\n  - button \"添加收藏 Node.js\" [ref=e126]\n  - link \"打开 Node.js\" [ref=e193]\n  - link \"Node.js\" [ref=e194]\n- article \"TeleportTeleport 面向个人与团队提供数据库管理、数据查询、身份与安全管理，并支持自主托管。\" [ref=e52] clickable [cursor:pointer]\n  - button \"添加收藏 Teleport\" [ref=e127]\n  - link \"打开 Teleport\" [ref=e195]\n  - link \"Teleport\" [ref=e196]\n  - generic \"Teleport 面向个人与团队提供数据库管理、数据查询、身份与安全管理，并支持自主托管。\" [ref=e197] clickable [cursor:pointer, tabindex]\n- article \"GoSƐGoSƐ 提供私有化的数据库管理、数据查询、文件存储能力，适合希望掌控数据的团队。\" [ref=e53] clickable [cursor:pointer]\n  - button \"添加收藏 GoSƐ\" [ref=e128]\n  - link \"打开 GoSƐ\" [ref=e198]\n  - link \"GoSƐ\" [ref=e199]\n  - generic \"GoSƐ 提供私有化的数据库管理、数据查询、文件存储能力，适合希望掌控数据的团队。\" [ref=e200] clickable [cursor:pointer, tabindex]\n- article \"ColanodeColanode 提供私有化的数据库管理、数据查询、文件存储能力，适合希望掌控数据的团队。\" [ref=e54] clickable [cursor:pointer]\n  - button \"添加收藏 Colanode\" [ref=e129]\n  - link \"打开 Colanode\" [ref=e201]\n  - link \"Colanode\" [ref=e202]\n  - generic \"Colanode 提供私有化的数据库管理、数据查询、文件存储能力，适合希望掌控数据的团队。\" [ref=e203] clickable [cursor:pointer, tabindex]\n- button \"询问知航AI助手\" [ref=e26]\n- heading \"正在被更多人使用的工具\" [level=2, ref=e34]\n- link \"访问 Vue 官方文档\" [ref=e55]\n  - heading \"Vue 官方文档\" [level=3, ref=e130]\n- button \"添加收藏 Vue 官方文档\" [ref=e56]\n- link \"访问 Claude\" [ref=e57]\n  - heading \"Claude\" [level=3, ref=e131]\n  - generic \"Anthropic 推出的 AI 助手，适合对话、写作、分析和编程辅助。\" [ref=e204] clickable [cursor:pointer, tabindex]\n- button \"添加收藏 Claude\" [ref=e58]\n- link \"访问 ProcessOn\" [ref=e59]\n  - heading \"ProcessOn\" [level=3, ref=e132]\n- button \"添加收藏 ProcessOn\" [ref=e60]\n- link \"访问 Bilibili 学习区\" [ref=e61]\n  - heading \"Bilibili 学习区\" [level=3, ref=e133]\n- button \"添加收藏 Bilibili 学习区\" [ref=e62]\n- link \"访问 Gemini\" [ref=e63]\n  - heading \"Gemini\" [level=3, ref=e134]\n  - generic \"Google 推出的多模态 AI 助手，支持搜索、写作和内容分析。\" [ref=e205] clickable [cursor:pointer, tabindex]\n- button \"添加收藏 Gemini\" [ref=e64]\n- link \"访问 MDN Web Docs\" [ref=e65]\n  - heading \"MDN Web Docs\" [level=3, ref=e135]\n  - generic \"权威的 Web 开发文档，覆盖 HTML、CSS、JavaScript 和 Web API。\" [ref=e206] clickable [cursor:pointer, tabindex]\n- button \"添加收藏 MDN Web Docs\" [ref=e66]\n- link \"访问 Kaggle\" [ref=e67]\n  - heading \"Kaggle\" [level=3, ref=e136]\n- button \"添加收藏 Kaggle\" [ref=e68]\n- link \"访问 Dribbble\" [ref=e69]\n  - heading \"Dribbble\" [level=3, ref=e137]\n- button \"添加收藏 Dribbble\" [ref=e70]\n- link \"访问 GitHub\" [ref=e71]\n  - heading \"GitHub\" [level=3, ref=e138]\n- button \"添加收藏 GitHub\" [ref=e72]\n- link \"访问 Stack Overflow\" [ref=e73]\n  - heading \"Stack Overflow\" [level=3, ref=e139]\n  - generic \"面向开发者的技术问答社区，可用于查找编程问题的解决方案。\" [ref=e207] clickable [cursor:pointer, tabindex]\n- button \"添加收藏 Stack Overflow\" [ref=e74]\n- link \"访问 Notion\" [ref=e75]\n  - heading \"Notion\" [level=3, ref=e140]\n- button \"添加收藏 Notion\" [ref=e76]\n- link \"访问 Figma\" [ref=e77]\n  - heading \"Figma\" [level=3, ref=e141]\n- button \"添加收藏 Figma\" [ref=e78]\n- link \"访问 Canva\" [ref=e79]\n  - heading \"Canva\" [level=3, ref=e142]\n- button \"添加收藏 Canva\" [ref=e80]\n- link \"访问 Google 学术\" [ref=e81]\n  - heading \"Google 学术\" [level=3, ref=e143]\n- button \"添加收藏 Google 学术\" [ref=e82]\n- link \"访问 Redis 官方文档\" [ref=e83]\n  - heading \"Redis 官方文档\" [level=3, ref=e144]\n- button \"添加收藏 Redis 官方文档\" [ref=e84]\n- region \"热门工具与平台\" [ref=e27]\n  - link \"访问 DeepSeek\" [ref=e85]\n  - link \"访问 Focusmate\" [ref=e86]\n  - link \"访问 Zenko CloudServer\" [ref=e87]\n  - link \"访问 Socialhome\" [ref=e88]\n  - link \"访问 少数派\" [ref=e89]\n  - link \"访问 HeyGen\" [ref=e90]\n  - link \"访问 Eonvelope\" [ref=e91]\n  - link \"访问 Serendipity\" [ref=e92]\n  - link \"访问 Electron\" [ref=e93]\n  - link \"访问 MediaMTX\" [ref=e94]\n  - link \"访问 Drupal Commerce\" [ref=e95]\n  - link \"访问 Thelia\" [ref=e96]\n  - link \"访问 Quasar\" [ref=e97]\n  - link \"访问 ChatGPT\" [ref=e98]\n  - link \"访问 Power BI\" [ref=e99]\n  - link \"访问 Iconfont\" [ref=e100]\n- heading \"按分类浏览网站资源\" [level=2, ref=e101]\n- navigation \"网站分类\" [ref=e102]\n  - button \"全部\" [ref=e145]\n  - button \"常用推荐\" [ref=e146]\n  - button \"框架文档\" [ref=e147]\n  - button \"AI 工具\" [ref=e148]\n  - button \"灵感采集\" [ref=e149]\n  - button \"原型设计\" [ref=e150]\n  - button \"开发社区\" [ref=e151]\n  - button \"UI 组件库\" [ref=e152]\n  - button \"素材资源\" [ref=e153]\n  - button \"文档办公\" [ref=e154]\n  - button \"学习资源\" [ref=e155]\n  - button \"效率工具\" [ref=e156]\n  - button \"数据分析\" [ref=e157]\n- button \"换一批\" [ref=e35]\n- article \"百度中文网页搜索与信息发现。常用推荐\" [ref=e103] clickable [cursor:pointer]\n  - button \"添加收藏 百度\" [ref=e158]\n  - heading \"百度\" [level=3, ref=e159]\n  - generic \"中文网页搜索与信息发现。\" [ref=e208] clickable [cursor:pointer, tabindex]\n- article \"Google全球搜索、地图、邮箱与在线服务入口。常用推荐\" [ref=e104] clickable [cursor:pointer]\n  - button \"添加收藏 Google\" [ref=e160]\n  - heading \"Google\" [level=3, ref=e161]\n  - generic \"全球搜索、地图、邮箱与在线服务入口。\" [ref=e209] clickable [cursor:pointer, tabindex]\n- article \"Bing微软提供的网页搜索与图片搜索服务。常用推荐\" [ref=e105] clickable [cursor:pointer]\n  - button \"添加收藏 Bing\" [ref=e162]\n  - heading \"Bing\" [level=3, ref=e163]\n  - generic \"微软提供的网页搜索与图片搜索服务。\" [ref=e210] clickable [cursor:pointer, tabindex]\n- article \"Wikipedia开放协作的在线百科全书。常用推荐\" [ref=e106] clickable [cursor:pointer]\n  - button \"添加收藏 Wikipedia\" [ref=e164]\n  - heading \"Wikipedia\" [level=3, ref=e165]\n  - generic \"开放协作的在线百科全书。\" [ref=e211] clickable [cursor:pointer, tabindex]\n- article \"知乎盐选知乎推出的付费内容服务，提供电子书、专栏和精选知识内容。常用推荐\" [ref=e107] clickable [cursor:pointer]\n  - button \"添加收藏 知乎盐选\" [ref=e166]\n  - heading \"知乎盐选\" [level=3, ref=e167]\n  - generic \"知乎推出的付费内容服务，提供电子书、专栏和精选知识内容。\" [ref=e212] clickable [cursor:pointer, tabindex]\n- article \"哔哩哔哩视频、课程与兴趣内容社区。常用推荐\" [ref=e108] clickable [cursor:pointer]\n  - button \"添加收藏 哔哩哔哩\" [ref=e168]\n  - heading \"哔哩哔哩\" [level=3, ref=e169]\n  - generic \"视频、课程与兴趣内容社区。\" [ref=e213] clickable [cursor:pointer, tabindex]\n- article \"豆瓣书影音内容发现与兴趣交流社区。常用推荐\" [ref=e109] clickable [cursor:pointer]\n  - button \"添加收藏 豆瓣\" [ref=e170]\n  - heading \"豆瓣\" [level=3, ref=e171]\n  - generic \"书影音内容发现与兴趣交流社区。\" [ref=e214] clickable [cursor:pointer, tabindex]\n- article \"微信读书在线阅读、书籍推荐与读书交流平台。常用推荐\" [ref=e110] clickable [cursor:pointer]\n  - button \"添加收藏 微信读书\" [ref=e172]\n  - heading \"微信读书\" [level=3, ref=e173]\n  - generic \"在线阅读、书籍推荐与读书交流平台。\" [ref=e215] clickable [cursor:pointer, tabindex]\n- article \"少数派数字产品、效率方法与应用评测内容。常用推荐\" [ref=e111] clickable [cursor:pointer]\n  - button \"添加收藏 少数派\" [ref=e174]\n  - heading \"少数派\" [level=3, ref=e175]\n  - generic \"数字产品、效率方法与应用评测内容。\" [ref=e216] clickable [cursor:pointer, tabindex]\n- article \"虎嗅科技、商业与创业领域的资讯平台。常用推荐\" [ref=e112] clickable [cursor:pointer]\n  - button \"添加收藏 虎嗅\" [ref=e176]\n  - heading \"虎嗅\" [level=3, ref=e177]\n  - generic \"科技、商业与创业领域的资讯平台。\" [ref=e217] clickable [cursor:pointer, tabindex]\n- article \"336氪创业、科技与新经济资讯平台。常用推荐\" [ref=e113] clickable [cursor:pointer]\n  - button \"添加收藏 36氪\" [ref=e178]\n  - heading \"36氪\" [level=3, ref=e179]\n  - generic \"创业、科技与新经济资讯平台。\" [ref=e218] clickable [cursor:pointer, tabindex]\n- article \"腾讯视频影视、纪录片与在线视频平台。常用推荐\" [ref=e114] clickable [cursor:pointer]\n  - button \"添加收藏 腾讯视频\" [ref=e180]\n  - heading \"腾讯视频\" [level=3, ref=e181]\n  - generic \"影视、纪录片与在线视频平台。\" [ref=e219] clickable [cursor:pointer, tabindex]\n- article \"DuckDuckGo强调隐私保护的搜索引擎，减少用户搜索行为追踪。常用推荐\" [ref=e115] clickable [cursor:pointer]\n  - button \"添加收藏 DuckDuckGo\" [ref=e182]\n  - heading \"DuckDuckGo\" [level=3, ref=e183]\n  - generic \"强调隐私保护的搜索引擎，减少用户搜索行为追踪。\" [ref=e220] clickable [cursor:pointer, tabindex]\n- article \"Startpage注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。常用推荐\" [ref=e116] clickable [cursor:pointer]\n  - button \"添加收藏 Startpage\" [ref=e184]\n  - heading \"Startpage\" [level=3, ref=e185]\n  - generic \"注重隐私保护的搜索引擎，可减少网页搜索中的用户追踪。\" [ref=e221] clickable [cursor:pointer, tabindex]\n- article \"Yandex提供网页、图片、地图和邮箱等服务的综合互联网平台。常用推荐\" [ref=e117] clickable [cursor:pointer]\n  - button \"添加收藏 Yandex\" [ref=e186]\n  - heading \"Yandex\" [level=3, ref=e187]\n  - generic \"提供网页、图片、地图和邮箱等服务的综合互联网平台。\" [ref=e222] clickable [cursor:pointer, tabindex]\n- region \"知航屿\" [ref=e21]\n  - link \"知航屿首页\" [ref=e28]\n- navigation \"页脚快速链接\" [ref=e22]\n  - heading \"快速链接\" [level=2, ref=e29]\n  - link \"首页\" [ref=e118]\n  - link \"分类浏览\" [ref=e119]\n  - link \"搜索资源\" [ref=e120]\n  - link \"我的收藏\" [ref=e121]\n- region \"相关信息\" [ref=e23]\n  - heading \"相关信息\" [level=2, ref=e30]\n  - link \"版权申诉\" [ref=e122]\n- button \"打开知航AI助手\" [expanded=false, ref=e3]\n- generic \"✅登录成功\" [ref=e13] clickable [cursor:pointer]\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"visibleImpressionKeys\": 1\n}\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\daily-activation\\daily-home.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\daily-activation\\daily-home.png\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:5173/search?q=GitHub"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:5173/search?q=GitHub\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".site-card"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e223]\n- navigation \"主导航\" [ref=e224]\n  - link \"首页\" [ref=e226]\n  - link \"收藏夹\" [ref=e227]\n  - button \"打开知航AI助手\" [expanded=false, ref=e228]\n- button \"打开用户菜单\" [expanded=false, ref=e229]\n- heading \"搜索结果：GitHub\" [level=1, ref=e234]\n- button \"当前搜索范围：站内搜索\" [expanded=false, ref=e270]\n- searchbox \"使用站内搜索搜索\" [ref=e239]: GitHub\n- button \"使用站内搜索搜索\" [ref=e240]\n- region \"搜索筛选\" [ref=e230]\n  - button \"分类 全部分类\" [expanded=false, ref=e241]\n  - button \"排序 相关度\" [expanded=false, ref=e242]\n- article \"GitHub代码托管、开源协作与项目管理平台。开发社区开发者技术社区programming_learner\" [ref=e243] clickable [cursor:pointer]\n  - button \"添加收藏 GitHub\" [ref=e271]\n  - button \"访问 GitHub\" [ref=e272]\n  - heading \"访问 GitHub\" [level=3, ref=e273]\n    - button \"访问 GitHub\" [ref=e336]\n- article \"VantVant 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。UI 组件库UI 组件库UI组件UI设计+1\" [ref=e244] clickable [cursor:pointer]\n  - button \"添加收藏 Vant\" [ref=e274]\n  - button \"访问 Vant\" [ref=e275]\n  - heading \"访问 Vant\" [level=3, ref=e276]\n    - button \"访问 Vant\" [ref=e337]\n  - generic \"Vant 的核心资源入口，聚焦可复用的 UI 组件、设计系统或前端样式资源。\" [ref=e338] clickable [cursor:pointer, tabindex]\n- article \"VegaVega 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。数据分析可视化数据分析\" [ref=e245] clickable [cursor:pointer]\n  - button \"添加收藏 Vega\" [ref=e277]\n  - button \"访问 Vega\" [ref=e278]\n  - heading \"访问 Vega\" [level=3, ref=e279]\n    - button \"访问 Vega\" [ref=e339]\n  - generic \"Vega 的核心资源入口，聚焦数据集探索、统计分析、报表或交互式可视化。\" [ref=e340] clickable [cursor:pointer, tabindex]\n- article \"mail-archivermail-archiver 是可自行部署的开源工具，主要用于数据统计、指标看板、备份归档。效率工具Archiving and Digital Preservation (DP\" [ref=e246] clickable [cursor:pointer]\n  - button \"添加收藏 mail-archiver\" [ref=e280]\n  - button \"访问 mail-archiver\" [ref=e281]\n  - heading \"访问 mail-archiver\" [level=3, ref=e282]\n    - button \"访问 mail-archiver\" [ref=e341]\n  - generic \"mail-archiver 是可自行部署的开源工具，主要用于数据统计、指标看板、备份归档。\" [ref=e342] clickable [cursor:pointer, tabindex]\n- article \"BukuBuku 面向个人与团队提供书签管理、链接收藏，并支持自主托管。文档办公Bookmarks and Link Sharingbookmark开源+1\" [ref=e247] clickable [cursor:pointer]\n  - button \"添加收藏 Buku\" [ref=e283]\n  - button \"访问 Buku\" [ref=e284]\n  - heading \"访问 Buku\" [level=3, ref=e285]\n    - button \"访问 Buku\" [ref=e343]\n  - generic \"Buku 面向个人与团队提供书签管理、链接收藏，并支持自主托管。\" [ref=e344] clickable [cursor:pointer, tabindex]\n- article \"ServasServas 是可自行部署的开源工具，主要用于书签管理、链接收藏。文档办公Bookmarks and Link Sharingbookmark开源+1\" [ref=e248] clickable [cursor:pointer]\n  - button \"添加收藏 Servas\" [ref=e286]\n  - button \"访问 Servas\" [ref=e287]\n  - heading \"访问 Servas\" [level=3, ref=e288]\n    - button \"访问 Servas\" [ref=e345]\n  - generic \"Servas 是可自行部署的开源工具，主要用于书签管理、链接收藏。\" [ref=e346] clickable [cursor:pointer, tabindex]\n- article \"PushBits通过 PushBits 可以在自有服务器上完成即时沟通、团队交流。效率工具communication开源自托管\" [ref=e249] clickable [cursor:pointer]\n  - button \"添加收藏 PushBits\" [ref=e289]\n  - button \"访问 PushBits\" [ref=e290]\n  - heading \"访问 PushBits\" [level=3, ref=e291]\n    - button \"访问 PushBits\" [ref=e347]\n  - generic \"通过 PushBits 可以在自有服务器上完成即时沟通、团队交流。\" [ref=e348] clickable [cursor:pointer, tabindex]\n- article \"TinodeTinode 面向个人与团队提供即时沟通、团队交流、开发协作，并支持自主托管。效率工具communicationdeveloper-tools开源+1\" [ref=e250] clickable [cursor:pointer]\n  - button \"添加收藏 Tinode\" [ref=e292]\n  - button \"访问 Tinode\" [ref=e293]\n  - heading \"访问 Tinode\" [level=3, ref=e294]\n    - button \"访问 Tinode\" [ref=e349]\n  - generic \"Tinode 面向个人与团队提供即时沟通、团队交流、开发协作，并支持自主托管。\" [ref=e350] clickable [cursor:pointer, tabindex]\n- article \"OpenTrashmailOpenTrashmail 面向个人与团队提供即时沟通、团队交流、邮件处理，并支持自主托管。工具/构建communicationemail开源+1\" [ref=e251] clickable [cursor:pointer]\n  - button \"添加收藏 OpenTrashmail\" [ref=e295]\n  - button \"访问 OpenTrashmail\" [ref=e296]\n  - heading \"访问 OpenTrashmail\" [level=3, ref=e297]\n    - button \"访问 OpenTrashmail\" [ref=e351]\n  - generic \"OpenTrashmail 面向个人与团队提供即时沟通、团队交流、邮件处理，并支持自主托管。\" [ref=e352] clickable [cursor:pointer, tabindex]\n- article \"PublifyPublify 面向个人与团队提供内容发布、站点管理，并支持自主托管。效率工具Content Management Systems (CMS)cms开源+1community_opera\" [ref=e252] clickable [cursor:pointer]\n  - button \"添加收藏 Publify\" [ref=e298]\n  - button \"访问 Publify\" [ref=e299]\n  - heading \"访问 Publify\" [level=3, ref=e300]\n    - button \"访问 Publify\" [ref=e353]\n  - generic \"Publify 面向个人与团队提供内容发布、站点管理，并支持自主托管。\" [ref=e354] clickable [cursor:pointer, tabindex]\n- article \"KapowarrKapowarr 面向个人与团队提供文档管理、知识沉淀、任务跟踪，并支持自主托管。文档办公Document Managementknowledgeproject-management+\" [ref=e253] clickable [cursor:pointer]\n  - button \"添加收藏 Kapowarr\" [ref=e301]\n  - button \"访问 Kapowarr\" [ref=e302]\n  - heading \"访问 Kapowarr\" [level=3, ref=e303]\n    - button \"访问 Kapowarr\" [ref=e355]\n  - generic \"Kapowarr 面向个人与团队提供文档管理、知识沉淀、任务跟踪，并支持自主托管。\" [ref=e356] clickable [cursor:pointer, tabindex]\n- article \"Bubo ReaderBubo Reader 面向个人与团队提供信息订阅、聚合阅读，并支持自主托管。效率工具Feed Readersrss开源+1\" [ref=e254] clickable [cursor:pointer]\n  - button \"添加收藏 Bubo Reader\" [ref=e304]\n  - button \"访问 Bubo Reader\" [ref=e305]\n  - heading \"访问 Bubo Reader\" [level=3, ref=e306]\n    - button \"访问 Bubo Reader\" [ref=e357]\n  - generic \"Bubo Reader 面向个人与团队提供信息订阅、聚合阅读，并支持自主托管。\" [ref=e358] clickable [cursor:pointer, tabindex]\n- article \"Yarr通过 Yarr 可以在自有服务器上完成信息订阅、聚合阅读。效率工具Feed Readersrss开源+1\" [ref=e255] clickable [cursor:pointer]\n  - button \"添加收藏 Yarr\" [ref=e307]\n  - button \"访问 Yarr\" [ref=e308]\n  - heading \"访问 Yarr\" [level=3, ref=e309]\n    - button \"访问 Yarr\" [ref=e359]\n- article \"Flare通过 Flare 可以在自有服务器上完成内容检索、索引与发现、文件存储。效率工具File Transfersearchstorage+2\" [ref=e256] clickable [cursor:pointer]\n  - button \"添加收藏 Flare\" [ref=e310]\n  - button \"访问 Flare\" [ref=e311]\n  - heading \"访问 Flare\" [level=3, ref=e312]\n    - button \"访问 Flare\" [ref=e360]\n  - generic \"通过 Flare 可以在自有服务器上完成内容检索、索引与发现、文件存储。\" [ref=e361] clickable [cursor:pointer, tabindex]\n- article \"mikochimikochi 是可自行部署的开源工具，主要用于音视频管理、媒体播放与分发、文件存储。效率工具File Transfermediastorage+2\" [ref=e257] clickable [cursor:pointer]\n  - button \"添加收藏 mikochi\" [ref=e313]\n  - button \"访问 mikochi\" [ref=e314]\n  - heading \"访问 mikochi\" [level=3, ref=e315]\n    - button \"访问 mikochi\" [ref=e362]\n  - generic \"mikochi 是可自行部署的开源工具，主要用于音视频管理、媒体播放与分发、文件存储。\" [ref=e363] clickable [cursor:pointer, tabindex]\n- article \"HypersomniaHypersomnia 面向个人与团队提供团队或个人信息管理、私有化部署，并支持自主托管。效率工具Games开源自托管game_engineer\" [ref=e258] clickable [cursor:pointer]\n  - button \"添加收藏 Hypersomnia\" [ref=e316]\n  - button \"访问 Hypersomnia\" [ref=e317]\n  - heading \"访问 Hypersomnia\" [level=3, ref=e318]\n    - button \"访问 Hypersomnia\" [ref=e364]\n  - generic \"Hypersomnia 面向个人与团队提供团队或个人信息管理、私有化部署，并支持自主托管。\" [ref=e365] clickable [cursor:pointer, tabindex]\n- article \"The Battle for WesnothThe Battle for Wesnoth 是可自行部署的开源工具，主要用于团队或个人信息管理、私有化部署。效率工具Games开源自托管game_engi\" [ref=e259] clickable [cursor:pointer]\n  - button \"添加收藏 The Battle for Wesnoth\" [ref=e319]\n  - button \"访问 The Battle for Wesnoth\" [ref=e320]\n  - heading \"访问 The Battle for Wesnoth\" [level=3, ref=e321]\n    - button \"访问 The Battle for Wesnoth\" [ref=e366]\n  - generic \"The Battle for Wesnoth 是可自行部署的开源工具，主要用于团队或个人信息管理、私有化部署。\" [ref=e367] clickable [cursor:pointer, tabindex]\n- article \"Minus GamesMinus Games 提供私有化的文件存储、同步与共享能力，适合希望掌控数据的团队。效率工具Gamesstorage开源+1game_engineer\" [ref=e260] clickable [cursor:pointer]\n  - button \"添加收藏 Minus Games\" [ref=e322]\n  - button \"访问 Minus Games\" [ref=e323]\n  - heading \"访问 Minus Games\" [level=3, ref=e324]\n    - button \"访问 Minus Games\" [ref=e368]\n  - generic \"Minus Games 提供私有化的文件存储、同步与共享能力，适合希望掌控数据的团队。\" [ref=e369] clickable [cursor:pointer, tabindex]\n- article \"AudioserveAudioserve 面向个人与团队提供音视频管理、媒体播放与分发、文件存储，并支持自主托管。素材资源Media Streamingmediastorage+2ios_engine\" [ref=e261] clickable [cursor:pointer]\n  - button \"添加收藏 Audioserve\" [ref=e325]\n  - button \"访问 Audioserve\" [ref=e326]\n  - heading \"访问 Audioserve\" [level=3, ref=e327]\n    - button \"访问 Audioserve\" [ref=e370]\n  - generic \"Audioserve 面向个人与团队提供音视频管理、媒体播放与分发、文件存储，并支持自主托管。\" [ref=e371] clickable [cursor:pointer, tabindex]\n- article \"ExpenseOwl通过 ExpenseOwl 可以在自有服务器上完成团队或个人信息管理、私有化部署。效率工具Money, Budgeting & Management开源自托管content_ope\" [ref=e262] clickable [cursor:pointer]\n  - button \"添加收藏 ExpenseOwl\" [ref=e328]\n  - button \"访问 ExpenseOwl\" [ref=e329]\n  - heading \"访问 ExpenseOwl\" [level=3, ref=e330]\n    - button \"访问 ExpenseOwl\" [ref=e372]\n  - generic \"通过 ExpenseOwl 可以在自有服务器上完成团队或个人信息管理、私有化部署。\" [ref=e373] clickable [cursor:pointer, tabindex]\n- navigation \"搜索结果分页\" [ref=e235]\n  - button \"上一页\" [disabled, ref=e263]\n  - button \"1\" [ref=e264]\n  - button \"2\" [ref=e265]\n  - button \"3\" [ref=e266]\n  - button \"4\" [ref=e267]\n  - button \"5\" [ref=e268]\n  - button \"下一页\" [ref=e269]\n- region \"知航屿\" [ref=e231]\n  - link \"知航屿首页\" [ref=e236]\n- navigation \"页脚快速链接\" [ref=e232]\n  - heading \"快速链接\" [level=2, ref=e237]\n  - link \"首页\" [ref=e331]\n  - link \"分类浏览\" [ref=e332]\n  - link \"搜索资源\" [ref=e333]\n  - link \"我的收藏\" [ref=e334]\n- region \"相关信息\" [ref=e233]\n  - heading \"相关信息\" [level=2, ref=e238]\n  - link \"版权申诉\" [ref=e335]\n- button \"打开知航AI助手\" [expanded=false, ref=e225]\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\daily-activation\\daily-search.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\daily-activation\\daily-search.png\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:5173/site/3460"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:5173/site/3460\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e374]\n- navigation \"主导航\" [ref=e375]\n  - link \"首页\" [ref=e377]\n  - link \"收藏夹\" [ref=e378]\n  - button \"打开知航AI助手\" [expanded=false, ref=e379]\n- button \"打开用户菜单\" [expanded=false, ref=e380]\n- heading \"MDN Web Docs\" [level=1, ref=e384]\n- button \"收藏\" [ref=e385]\n- button \"访问官网\" [ref=e386]\n- heading \"详细介绍\" [level=2, ref=e387]\n- heading \"评论区\" [level=2, ref=e388]\n- combobox \"评分\" [expanded=false, ref=e397]: 5 分\n  - option \"5 分\" [selected, ref=e440]\n  - option \"4 分\" [ref=e441]\n  - option \"3 分\" [ref=e442]\n  - option \"2 分\" [ref=e443]\n  - option \"1 分\" [ref=e444]\n- textbox \"评论内容\" [required, ref=e398]\n- button \"发表评论\" [ref=e392]\n- heading \"基础信息\" [level=2, ref=e393]\n- heading \"标签\" [level=2, ref=e394]\n- heading \"适用职业\" [level=2, ref=e395]\n- heading \"相似网站推荐\" [level=2, ref=e396]\n- article \"Vue.js渐进式 JavaScript 框架官方文档。推荐理由共同标签：开发文档、编程。此资源收费模式待核实。框架文档开发文档编程android_engineerautomation_test_en\" [ref=e399] clickable [cursor:pointer]\n  - button \"添加收藏 Vue.js\" [ref=e410]\n  - button \"访问 Vue.js\" [ref=e411]\n  - heading \"访问 Vue.js\" [level=3, ref=e412]\n    - button \"访问 Vue.js\" [ref=e445]\n  - button \"访问网站\" [ref=e413]\n  - link \"查看详情\" [ref=e414]\n- article \"AngularGoogle 维护的 Web 应用框架文档。推荐理由共同标签：开发文档、编程。此资源收费模式待核实。框架文档开发文档编程 访问网站  查看详情\" [ref=e400] clickable [cursor:pointer]\n  - button \"添加收藏 Angular\" [ref=e415]\n  - button \"访问 Angular\" [ref=e416]\n  - heading \"访问 Angular\" [level=3, ref=e417]\n    - button \"访问 Angular\" [ref=e446]\n  - button \"访问网站\" [ref=e418]\n  - link \"查看详情\" [ref=e419]\n- article \"Nuxt基于 Vue 的全栈 Web 框架文档。推荐理由共同标签：开发文档、编程。此资源收费模式待核实。框架文档开发文档编程 访问网站  查看详情\" [ref=e401] clickable [cursor:pointer]\n  - button \"添加收藏 Nuxt\" [ref=e420]\n  - button \"访问 Nuxt\" [ref=e421]\n  - heading \"访问 Nuxt\" [level=3, ref=e422]\n    - button \"访问 Nuxt\" [ref=e447]\n  - button \"访问网站\" [ref=e423]\n  - link \"查看详情\" [ref=e424]\n- article \"webpackJavaScript 模块打包工具官方文档。推荐理由共同标签：开发文档、编程。此资源收费模式待核实。框架文档开发文档编程android_engineerfrontend_engineer\" [ref=e402] clickable [cursor:pointer]\n  - button \"添加收藏 webpack\" [ref=e425]\n  - button \"访问 webpack\" [ref=e426]\n  - heading \"访问 webpack\" [level=3, ref=e427]\n    - button \"访问 webpack\" [ref=e448]\n  - button \"访问网站\" [ref=e428]\n  - link \"查看详情\" [ref=e429]\n- article \"TypeScriptJavaScript 的静态类型扩展与官方手册。推荐理由共同标签：开发文档、编程。此资源收费模式待核实。框架文档开发文档编程android_engineerautomation_t\" [ref=e403] clickable [cursor:pointer]\n  - button \"添加收藏 TypeScript\" [ref=e430]\n  - button \"访问 TypeScript\" [ref=e431]\n  - heading \"访问 TypeScript\" [level=3, ref=e432]\n    - button \"访问 TypeScript\" [ref=e449]\n  - button \"访问网站\" [ref=e433]\n  - link \"查看详情\" [ref=e434]\n- article \"Node.jsNode.js 运行时 API 与开发指南。推荐理由共同标签：开发文档、编程。此资源收费模式待核实。框架文档开发文档编程api_engineerbackend_engineerfulls\" [ref=e404] clickable [cursor:pointer]\n  - button \"添加收藏 Node.js\" [ref=e435]\n  - button \"访问 Node.js\" [ref=e436]\n  - heading \"访问 Node.js\" [level=3, ref=e437]\n    - button \"访问 Node.js\" [ref=e450]\n  - button \"访问网站\" [ref=e438]\n  - link \"查看详情\" [ref=e439]\n- region \"知航屿\" [ref=e381]\n  - link \"知航屿首页\" [ref=e389]\n- navigation \"页脚快速链接\" [ref=e382]\n  - heading \"快速链接\" [level=2, ref=e390]\n  - link \"首页\" [ref=e405]\n  - link \"分类浏览\" [ref=e406]\n  - link \"搜索资源\" [ref=e407]\n  - link \"我的收藏\" [ref=e408]\n- region \"相关信息\" [ref=e383]\n  - heading \"相关信息\" [level=2, ref=e391]\n  - link \"版权申诉\" [ref=e409]\n- button \"打开知航AI助手\" [expanded=false, ref=e376]\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "true\n",
+    "error": "",
+    "exit": 0
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\daily-activation\\daily-similar.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\daily-activation\\daily-similar.png\n",
+    "error": "",
+    "exit": 0
+  }
+]

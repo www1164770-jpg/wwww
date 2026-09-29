@@ -1,6 +1,24 @@
 <template>
-  <div id="app-root">
-    <router-view></router-view>
+  <div
+    id="app-root"
+    :class="{ 'ai-assistant-open': aiAssistantStore.isOpen }"
+  >
+    <AppHeader v-if="showAppHeader" />
+    <main
+      class="app-route-content"
+      :class="{
+        'app-route-content--header-clearance':
+          showAppHeader && route.name !== 'Home',
+      }"
+    >
+      <RouterView v-slot="{ Component }">
+        <Transition name="route-page">
+          <component :is="Component" :key="routeViewKey" />
+        </Transition>
+      </RouterView>
+    </main>
+    <RecommendationPreferencePanel compact />
+    <AiSiteAssistant @visit="visitAiRecommendation" />
   </div>
   <transition name="slide-up">
     <div v-if="showConsent" class="cookie-banner block-shadow">
@@ -51,19 +69,43 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import ToastNotification from "./components/ToastNotification.vue";
+import RecommendationPreferencePanel from "./components/site/RecommendationPreferencePanel.vue";
+import AiSiteAssistant from "./components/ai/AiSiteAssistant.vue";
+import AppHeader from "./components/layout/AppHeader.vue";
 import ClickSpark from "./components/effects/ClickSpark.vue";
 import QuestionnaireModal from "./components/questionnaire/QuestionnaireModal.vue";
 import { useUserStore } from "./stores/user";
 import { usePersonalizationStore } from "./stores/personalization";
+import { useAiAssistantStore } from "./stores/aiAssistant";
+import { normalizeUrl } from "./utils/api";
+import { visitSite as openVisitedSite } from "./utils/siteVisit";
 
 const showConsent = ref(false);
 const toast = reactive({ message: "", type: "info" });
 const userStore = useUserStore();
 const personalizationStore = usePersonalizationStore();
+const aiAssistantStore = useAiAssistantStore();
 const route = useRoute();
+const router = useRouter();
+const headerRouteNames = new Set([
+  "Home",
+  "SiteDetail",
+  "SearchResults",
+  "Favorites",
+  "Questionnaire",
+  "Profile",
+  "ProfileSection",
+  "Personalization",
+]);
+const showAppHeader = computed(() => headerRouteNames.has(route.name));
+const routeViewKey = computed(() =>
+  ["Profile", "ProfileSection"].includes(route.name)
+    ? "profile-layout"
+    : route.fullPath,
+);
 
 function handleToast(event) {
   toast.message = "";
@@ -86,7 +128,7 @@ watch(
   () => route.path,
   (path) => {
     personalizationStore.apply(personalizationStore.settings, { disabled: path.startsWith("/admin") });
-    if (path === "/" || path === "/personalization") personalizationStore.retryPendingBackgroundSync({ quiet: true });
+    if (path === "/" || path === "/personalization" || path === "/profile/personalization") personalizationStore.retryPendingBackgroundSync({ quiet: true });
   },
   { immediate: true },
 );
@@ -118,6 +160,23 @@ const handleConsent = (status) => {
 async function syncGuest() {
   await personalizationStore.syncGuestToAccount();
 }
+
+function visitAiRecommendation(site) {
+  const url = normalizeUrl(site?.url);
+  if (url) {
+    openVisitedSite(
+      { ...site, url },
+      {
+        source:
+          site?.visit_source ||
+          (site?.recommend_reason ? "career_recommend" : "home_recommend"),
+      },
+    );
+    return;
+  }
+
+  if (site?.id) router.push(`/site/${site.id}`);
+}
 </script>
 
 <style scoped>
@@ -134,15 +193,15 @@ async function syncGuest() {
   gap: 18px;
   padding: 16px 18px 16px 22px;
   color: var(--mono-text);
-  background: rgba(255, 255, 255, 0.86) !important;
+  background: #ffffff !important;
   border: 1px solid var(--mono-border);
   border-radius: var(--mono-radius-lg);
   box-shadow: var(--mono-shadow-md);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
-.personalization-conflict { position: fixed; z-index: 100000; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(15,23,42,.55); }
-.personalization-conflict section { width: min(100%, 520px); padding: 26px; border-radius: 20px; color: var(--color-heading); background: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+.personalization-conflict { position: fixed; z-index: 100000; inset: 0; display: grid; place-items: center; padding: 20px; background: #ffffff; }
+.personalization-conflict section { width: min(100%, 520px); padding: 26px; border: 1px solid #e8edf3; border-radius: 20px; color: var(--color-heading); background: #fff; box-shadow: 0 10px 30px rgba(15,23,42,.08); }
 .personalization-conflict h2 { margin: 0 0 10px; }.personalization-conflict p { line-height: 1.65; }.personalization-conflict section > div { display: flex; gap: 10px; justify-content: flex-end; }
 .cookie-content {
   display: flex;
@@ -191,10 +250,58 @@ async function syncGuest() {
 body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
 }
 /* 强制显示垂直滚动条，彻底杜绝因滚动条时隐时现导致的页面左右晃动 */
 html {
   overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+.app-route-content {
+  position: relative;
+  min-height: 100vh;
+}
+
+.app-route-content--header-clearance {
+  min-height: calc(100vh - var(--app-route-content-top));
+  padding-top: var(--app-route-content-top);
+}
+
+.app-route-content--header-clearance > .page {
+  min-height: calc(100vh - var(--app-route-content-top));
+}
+
+.route-page-enter-active {
+  transition:
+    opacity 400ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.route-page-leave-active {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  pointer-events: none;
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.route-page-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.route-page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-page-enter-active,
+  .route-page-leave-active {
+    transition: none;
+  }
 }
 </style>

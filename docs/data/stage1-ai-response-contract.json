@@ -1,0 +1,164 @@
+{
+  "source": "real Flask routes with isolated fake catalog",
+  "cases": [
+    {
+      "case": "missing_query",
+      "status": 400,
+      "body": {
+        "code": 400,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "请输入需求描述",
+        "msg": "请输入需求描述",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "null_query",
+      "status": 400,
+      "body": {
+        "code": 400,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "需求描述必须是文本",
+        "msg": "需求描述必须是文本",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "numeric_query",
+      "status": 400,
+      "body": {
+        "code": 400,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "需求描述必须是文本",
+        "msg": "需求描述必须是文本",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "blank_query",
+      "status": 400,
+      "body": {
+        "code": 400,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "请输入需求描述",
+        "msg": "请输入需求描述",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "too_short",
+      "status": 400,
+      "body": {
+        "code": 400,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "请更具体地描述你的需求",
+        "msg": "请更具体地描述你的需求",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "too_long",
+      "status": 400,
+      "body": {
+        "code": 400,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "需求描述不能超过 500 个字符",
+        "msg": "需求描述不能超过 500 个字符",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "internal_failure",
+      "status": 500,
+      "body": {
+        "code": 500,
+        "data": {},
+        "error_code": null,
+        "legacy_code": 0,
+        "message": "推荐服务暂时不可用",
+        "msg": "推荐服务暂时不可用",
+        "success": false
+      },
+      "expected_state": "error"
+    },
+    {
+      "case": "normal_match",
+      "status": 200,
+      "body": {
+        "code": 200,
+        "data": {
+          "items": [
+            {
+              "category_name": "",
+              "description": "帮助定位代码错误",
+              "id": 1,
+              "logo_url": "",
+              "match_score": 24.0,
+              "name": "Python 调试工具",
+              "reason": "网站名称包含“python”，与本次需求直接相关。",
+              "summary": "帮助定位代码错误",
+              "tags": [],
+              "url": "https://python-debug.example"
+            }
+          ],
+          "query": "python 调试"
+        },
+        "legacy_code": 0,
+        "message": "success",
+        "msg": "success",
+        "success": true
+      },
+      "expected_state": "success"
+    },
+    {
+      "case": "no_match",
+      "status": 200,
+      "body": {
+        "code": 200,
+        "data": {
+          "items": [],
+          "query": "量子烹饪机器人"
+        },
+        "legacy_code": 0,
+        "message": "未找到匹配网站",
+        "msg": "未找到匹配网站",
+        "success": true
+      },
+      "expected_state": "empty"
+    },
+    {
+      "case": "missing_login",
+      "status": 401,
+      "body": {
+        "msg": "Missing Authorization Header"
+      },
+      "expected_state": "unauthorized"
+    },
+    {
+      "case": "invalid_token",
+      "status": 422,
+      "body": {
+        "msg": "Not enough segments"
+      },
+      "expected_state": "unauthorized"
+    }
+  ]
+}

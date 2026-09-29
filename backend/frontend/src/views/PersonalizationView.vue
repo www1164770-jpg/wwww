@@ -1,10 +1,21 @@
 <template>
-  <div class="page personalization-page">
-    <AppHeader />
+  <div
+    class="personalization-page"
+    :class="{
+      page: !embedded,
+      'personalization-page--embedded': embedded,
+      'is-default-background': draft.background.type === 'default',
+    }"
+  >
     <main class="personalization-shell">
-      <header class="personalization-header">
+      <RecommendationPreferencePanel />
+      <header v-if="!embedded" class="personalization-header">
         <div class="header-copy"><p class="eyebrow">外观偏好</p><AnimatedPageTitle>个性化设置</AnimatedPageTitle><p>背景切换后会先校验可读性，再开放其他视觉调整。</p></div>
-        <RouterLink class="back-link" to="/profile">返回个人中心</RouterLink>
+      </header>
+      <header v-else class="personalization-panel-heading">
+        <p class="eyebrow">外观偏好</p>
+        <h1>个性化设置</h1>
+        <p>打造属于你的专属界面，让每一次使用都更舒适、更高效。</p>
       </header>
       <div class="personalization-layout settings-layout">
         <div class="settings-content">
@@ -77,27 +88,141 @@
               </p>
             </fieldset>
           </section>
-          <section id="card-style-settings" class="editor-card personalization-section"><fieldset><h2>卡片样式</h2><label>卡片颜色 <input v-model="draft.card.color" type="color" /></label><label>透明度 <input v-model.number="draft.card.opacity" type="range" min="35" max="100" /></label><label>毛玻璃强度 <input v-model.number="draft.card.blur" type="range" min="0" max="32" /></label><label>边框强度 <input v-model.number="draft.card.border" type="range" min="0" max="40" /></label><label>阴影强度 <input v-model.number="draft.card.shadow" type="range" min="0" max="50" /></label></fieldset></section>
+          <section id="card-style-settings" class="editor-card personalization-section" :class="{ 'is-dark-theme': draft.themeKey === 'night' }">
+            <fieldset class="card-style-settings">
+              <h2>卡片样式</h2>
+              <label class="card-color-control">卡片颜色 <input v-model="draft.card.color" type="color" /></label>
+              <div class="slider-grid">
+                <div class="setting-slider-item">
+                  <div class="slider-header">
+                    <div><div class="slider-title">透明度</div><p class="slider-desc">调整卡片背景的透明程度</p></div>
+                    <output class="slider-value" for="card-opacity">{{ sliderProgress(draft.card.opacity, 100) }}%</output>
+                  </div>
+                  <input id="card-opacity" v-model.number="draft.card.opacity" class="setting-range" :style="{ '--progress': `${sliderProgress(draft.card.opacity, 100)}%` }" type="range" min="0" max="100" aria-label="卡片透明度" />
+                </div>
+                <div class="setting-slider-item">
+                  <div class="slider-header">
+                    <div><div class="slider-title">毛玻璃强度</div><p class="slider-desc">调整背景模糊程度</p></div>
+                    <output class="slider-value" for="card-blur">{{ sliderProgress(draft.card.blur, 32) }}%</output>
+                  </div>
+                  <input id="card-blur" v-model.number="draft.card.blur" class="setting-range" :style="{ '--progress': `${sliderProgress(draft.card.blur, 32)}%` }" type="range" min="0" max="32" aria-label="卡片毛玻璃强度" />
+                </div>
+                <div class="setting-slider-item">
+                  <div class="slider-header">
+                    <div><div class="slider-title">边框强度</div><p class="slider-desc">调整卡片边界显示强度</p></div>
+                    <output class="slider-value" for="card-border">{{ sliderProgress(draft.card.border, 40) }}%</output>
+                  </div>
+                  <input id="card-border" v-model.number="draft.card.border" class="setting-range" :style="{ '--progress': `${sliderProgress(draft.card.border, 40)}%` }" type="range" min="0" max="40" aria-label="卡片边框强度" />
+                </div>
+                <div class="setting-slider-item">
+                  <div class="slider-header">
+                    <div><div class="slider-title">阴影强度</div><p class="slider-desc">调整卡片层级和悬浮感</p></div>
+                    <output class="slider-value" for="card-shadow">{{ sliderProgress(draft.card.shadow, 50) }}%</output>
+                  </div>
+                  <input id="card-shadow" v-model.number="draft.card.shadow" class="setting-range" :style="{ '--progress': `${sliderProgress(draft.card.shadow, 50)}%` }" type="range" min="0" max="50" aria-label="卡片阴影强度" />
+                </div>
+              </div>
+            </fieldset>
+          </section>
           <section id="advanced-settings" class="editor-card personalization-section"><fieldset class="advanced-settings"><h2>高级选项</h2><p class="advanced-intro">用于当前浏览器。相同冲突会自动处理；本机或账户设置明显变化时仍会重新询问。</p><div class="preference-group"><h3>登录冲突处理</h3><div class="preference-options"><label class="preference-option" :class="{ 'is-selected': conflictDecision === 'account' }"><input v-model="conflictDecision" type="radio" value="account" @change="changeConflictDecision" /><span class="preference-radio" aria-hidden="true"></span><span class="preference-option-content"><strong class="preference-option-title">优先使用账户设置</strong><span class="preference-option-description">以你的账户个性化设置为准，在本机发生冲突时可能会被覆盖。</span></span></label><label class="preference-option" :class="{ 'is-selected': conflictDecision === 'local' }"><input v-model="conflictDecision" type="radio" value="local" @change="changeConflictDecision" /><span class="preference-radio" aria-hidden="true"></span><span class="preference-option-content"><strong class="preference-option-title">优先保留本机设置</strong><span class="preference-option-description">以此设备上的设置为准，账户设置变更时不会自动覆盖本机偏好。</span></span></label></div></div></fieldset></section>
           <footer class="editor-card actions settings-actions"><button class="secondary reset-button" @click="restore">恢复默认</button><div class="actions-primary"><button class="secondary cancel-button" @click="cancel">取消修改</button><button class="primary save-button" :disabled="saving" @click="save">{{ saving ? '正在保存…' : '保存设置' }}</button></div></footer>
         </div>
+        <aside v-if="embedded" class="personalization-live-preview" aria-label="实时预览">
+          <div class="personalization-live-preview__heading">
+            <div>
+              <h2>实时预览</h2>
+              <p>调整会立即反映在此处，保存后才会同步到全站。</p>
+            </div>
+            <span>预览中</span>
+          </div>
+          <div class="personalization-live-preview__canvas" :class="{ 'is-dark-preview': isDarkPreview }" :style="previewSurfaceStyle">
+            <div class="preview-topbar"><i></i><i></i><i></i></div>
+            <div class="preview-hero">
+              <b>知航屿</b>
+              <strong>为下一次探索，留出更舒适的界面。</strong>
+              <em>当前主题：{{ currentThemeName }}</em>
+            </div>
+            <div class="preview-cards">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <p class="personalization-live-preview__note">背景、主题、字体与卡片效果均使用当前草稿设置渲染。</p>
+        </aside>
       </div>
     </main>
   </div>
+
+  <Teleport to="body">
+    <div
+      v-if="themeNameModalOpen"
+      class="theme-modal-overlay"
+      @click.self="closeThemeNameModal"
+    >
+      <form
+        class="theme-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="theme-modal-title"
+        aria-describedby="theme-modal-description"
+        @keydown.esc.prevent="closeThemeNameModal"
+        @submit.prevent="submitThemeName"
+      >
+        <h2 id="theme-modal-title">{{ themeNameModalTitle }}</h2>
+        <p id="theme-modal-description">{{ themeNameModalDescription }}</p>
+        <label class="theme-name-field" for="theme-name-input">
+          <input
+            id="theme-name-input"
+            ref="themeNameInput"
+            v-model="themeName"
+            type="text"
+            maxlength="30"
+            placeholder="请输入主题名称"
+            aria-label="主题名称"
+            :aria-invalid="Boolean(themeNameError)"
+            :aria-describedby="themeNameError ? 'theme-name-error' : undefined"
+            @input="themeNameError = ''"
+          />
+        </label>
+        <p v-if="themeNameError" id="theme-name-error" class="theme-name-error" role="alert">
+          {{ themeNameError }}
+        </p>
+        <div class="theme-modal-actions">
+          <button type="button" class="theme-modal-cancel" :disabled="themeNameSubmitting" @click="closeThemeNameModal">
+            取消
+          </button>
+          <button type="submit" class="theme-modal-save" :disabled="themeNameSubmitting">
+            {{ themeNameSubmitting ? '正在保存…' : '保存' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
-import { onBeforeRouteLeave, RouterLink } from "vue-router";
+import RecommendationPreferencePanel from "../components/site/RecommendationPreferencePanel.vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
-import AppHeader from "../components/layout/AppHeader.vue";
 import { personalizationAPI } from "../utils/api";
 import { compositionFor, cloneSettings, defaultPersonalization, normalizeHexColor, officialThemes, readPersonalizationConflictPreference, readabilityFor, savePersonalizationConflictPreference } from "../utils/personalization";
 import { usePersonalizationStore } from "../stores/personalization";
 import { errorToast, successToast } from "../utils/toast";
 
+const props = defineProps({
+  embedded: { type: Boolean, default: false },
+});
+
 const store = usePersonalizationStore(); const draft = ref(cloneSettings(store.settings)); const saving = ref(false);
 const conflictDecision = ref(readPersonalizationConflictPreference()?.decision || "");
+const themeNameModalOpen = ref(false);
+const themeNameModalMode = ref("save");
+const themeName = ref("");
+const themeNameError = ref("");
+const themeNameInput = ref(null);
+const themeNameSubmitting = ref(false);
+const themeBeingRenamed = ref(null);
+const themeNameModalTitle = computed(() => themeNameModalMode.value === "rename" ? "重命名主题" : "保存为我的主题");
+const themeNameModalDescription = computed(() => themeNameModalMode.value === "rename" ? "为该主题设置一个新的名称。" : "为当前个性化设置设置一个名称，方便以后快速使用。");
 const modes = [{ id: "default", label: "系统默认" }, { id: "color", label: "纯色" }, { id: "gradient", label: "渐变" }, { id: "image", label: "图片" }];
 const typographyModes = [{ id: "auto", label: "自动" }, { id: "custom", label: "自定义" }, { id: "light", label: "浅色" }, { id: "dark", label: "深色" }];
 const textColorInput = ref(normalizeHexColor(draft.value.typography.color, "#253044"));
@@ -107,6 +232,27 @@ const readabilityWarning = computed(() => draft.value.typography.mode === "custo
 const previewDevice = ref("desktop");
 const composition = computed(() => draft.value.background[previewDevice.value] || (draft.value.background[previewDevice.value] = compositionFor(draft.value, previewDevice.value === "mobile" ? 375 : 1440)));
 const previewImageStyle = computed(() => ({ transform: `translate(${composition.value.positionX - 50}%, ${composition.value.positionY - 50}%) scale(${composition.value.scale}) rotate(${composition.value.rotation}deg)`, filter: `brightness(${draft.value.background.brightness}%) blur(${draft.value.background.blur}px)` }));
+const currentTheme = computed(() => officialThemes.find((theme) => theme.key === draft.value.themeKey));
+const currentThemeName = computed(() => currentTheme.value?.name || "系统默认");
+const isDarkPreview = computed(() => currentTheme.value?.key === "night");
+function sliderProgress(value, max) { return Math.round((Number(value) / max) * 100); }
+const previewSurfaceStyle = computed(() => {
+  const background = draft.value.background;
+  if (background.type === "gradient") {
+    const stops = draft.value.gradient.stops.map((stop) => `${stop.color} ${stop.position}%`).join(", ");
+    return { background: `linear-gradient(${draft.value.gradient.angle}deg, ${stops})` };
+  }
+  if (background.type === "image" && store.imageUrl) {
+    return {
+      backgroundImage: `linear-gradient(rgba(15, 23, 42, ${Number(background.overlay || 0) / 100}), rgba(15, 23, 42, ${Number(background.overlay || 0) / 100})), url("${store.imageUrl}")`,
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      backgroundSize: background.size === "repeat" ? "auto" : background.size || "cover",
+      filter: `brightness(${background.brightness || 100}%)`,
+    };
+  }
+  return { background: background.type === "color" ? background.color : currentTheme.value?.colors?.[0] || "#ffffff" };
+});
 watch(draft, (value) => { void store.preview(value); }, { deep: true });
 watch(() => draft.value.typography.color, (value) => { const normalized = normalizeHexColor(value); if (normalized && !textColorInputError.value) textColorInput.value = normalized; });
 onMounted(async () => { await store.load(); draft.value = cloneSettings(store.settings); });
@@ -122,7 +268,9 @@ function recentLabel(item) { const key = String(item || ""); if (key.startsWith(
 function applyRecent(item) { const key = String(item || ""); if (key.startsWith("theme:")) { const theme = officialThemes.find((entry) => entry.key === key.slice(6)); if (theme) selectTheme(theme); } else if (key.startsWith("image:")) draft.value.background.type = "image"; else if (key.startsWith("gradient:")) draft.value.background.type = "gradient"; else if (key.startsWith("color:")) { draft.value.background.type = "color"; draft.value.background.color = key.slice(6) || draft.value.background.color; } else draft.value.background.type = "default"; }
 async function toggleFavorite(theme) { const wasFavorite = draft.value.favorites.includes(theme.key); draft.value.favorites = wasFavorite ? draft.value.favorites.filter((key) => key !== theme.key) : [...draft.value.favorites, theme.key]; try { if (store.isLoggedIn) await (wasFavorite ? personalizationAPI.unfavoriteTheme(theme.key) : personalizationAPI.favoriteTheme(theme.key)); else await store.save(draft.value); } catch (error) { draft.value.favorites = wasFavorite ? [...draft.value.favorites, theme.key] : draft.value.favorites.filter((key) => key !== theme.key); errorToast(error.response?.data?.msg || "主题收藏失败"); } }
 function applyCustomTheme(theme) { const applied = cloneSettings(theme.settings); applied.customThemes = cloneSettings(draft.value).customThemes; applied.favorites = [...draft.value.favorites]; applied.recent = [...draft.value.recent]; draft.value = applied; }
-async function renameTheme(theme) { const name = window.prompt("请输入新名称", theme.name); if (!name?.trim()) return; try { if (store.isLoggedIn) await personalizationAPI.updateTheme(theme.key, { name: name.trim() }); theme.name = name.trim(); if (!store.isLoggedIn) await store.save(draft.value); } catch { errorToast("主题重命名失败"); } }
+function openThemeNameModal(mode = "save", theme = null) { themeNameModalMode.value = mode; themeBeingRenamed.value = theme; themeName.value = theme?.name || ""; themeNameError.value = ""; themeNameModalOpen.value = true; void nextTick(() => themeNameInput.value?.focus()); }
+function closeThemeNameModal(force = false) { if (themeNameSubmitting.value && !force) return; themeNameModalOpen.value = false; themeName.value = ""; themeNameError.value = ""; themeBeingRenamed.value = null; }
+function renameTheme(theme) { openThemeNameModal("rename", theme); }
 async function removeTheme(theme) { if (!window.confirm(`确定删除主题“${theme.name}”吗？`)) return; try { if (store.isLoggedIn) await personalizationAPI.deleteTheme(theme.key); draft.value.customThemes = draft.value.customThemes.filter((item) => item.key !== theme.key); if (!store.isLoggedIn) await store.save(draft.value); } catch { errorToast("主题删除失败"); } }
 async function selectImage(event) { const file = event.target.files?.[0]; if (!file) return; if (file.size > 10 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) { errorToast("请选择 10MB 以内的 JPG、JPEG、PNG 或 WEBP 图片"); return; } try { if (store.isLoggedIn) { const response = await personalizationAPI.uploadBackground(file); draft.value.background.imageId = response.data?.data?.id; draft.value.background.analysis = response.data?.data?.analysis || {}; store.setImageBlob(file); await store.refreshBackgrounds(); } else await store.setGuestImage(file); draft.value.background.type = "image"; } catch { errorToast("图片上传失败，请稍后重试"); } }
 async function useSavedBackground(background) { try { await store.selectBackground(background); draft.value.background.type = "image"; draft.value.background.imageId = background.id; draft.value.background.analysis = background.analysis || {}; successToast("已应用背景，点击保存后同步"); } catch (error) { errorToast(error.response?.data?.msg || "背景读取失败，请稍后重试"); } }
@@ -130,11 +278,11 @@ async function removeSavedBackground(background) { if (!window.confirm(`确定�
 async function changeBackgroundPrivacy(background, privacy) { const previous = background.privacy; try { await store.updateBackgroundPrivacy(background, privacy); successToast(privacy === "private" ? "已设为仅自己可见" : "已设为公开"); } catch (error) { background.privacy = previous; errorToast(error.response?.data?.msg || "隐私设置更新失败"); } }
 function resetImageAdjustments() { draft.value.background.desktop = { positionX: 50, positionY: 50, scale: 1, rotation: 0 }; draft.value.background.mobile = { positionX: 50, positionY: 50, scale: 1, rotation: 0 }; draft.value.background.brightness = 100; draft.value.background.blur = 0; draft.value.background.overlay = 0; }
 function startDrag(event) { const start = { x: event.clientX, y: event.clientY, positionX: composition.value.positionX, positionY: composition.value.positionY }; const move = (moveEvent) => { composition.value.positionX = Math.max(0, Math.min(100, start.positionX + (moveEvent.clientX - start.x) / 2)); composition.value.positionY = Math.max(0, Math.min(100, start.positionY + (moveEvent.clientY - start.y) / 2)); }; const end = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", end); }; window.addEventListener("pointermove", move); window.addEventListener("pointerup", end); }
-async function save() { saving.value = true; try { await store.save(draft.value); draft.value = cloneSettings(store.settings); successToast("个性化设置已保存"); } catch (error) { errorToast(error.response?.data?.msg || "设置保存失败，请稍后重试"); } finally { saving.value = false; } }
+async function save() { saving.value = true; try { await store.save(draft.value); draft.value = cloneSettings(store.settings); successToast("个性化设置已保存"); } catch (error) { if (import.meta.env.DEV) console.error("个性化设置保存请求失败", { status: error.response?.status, message: error.response?.data?.msg || error.message }); errorToast(error.response?.data?.msg || "设置保存失败，请稍后重试"); } finally { saving.value = false; } }
 async function cancel() { await store.cancel(); draft.value = cloneSettings(store.settings); }
 async function restore() { await store.restoreDefault(); draft.value = cloneSettings(store.settings); }
-async function saveAsTheme() { const name = window.prompt("请输入主题名称"); if (!name?.trim()) return; if (draft.value.customThemes.length >= 5) { errorToast("最多可以保存 5 套自定义主题，请删除已有主题后再创建。"); return; } const theme = { key: `custom-${Date.now()}`, name: name.trim().slice(0, 30), settings: cloneSettings(draft.value) }; try { if (store.isLoggedIn) { const response = await personalizationAPI.createTheme(theme); draft.value.customThemes.push(response.data?.data || theme); } else { draft.value.customThemes.push(theme); await store.save(draft.value); } successToast("主题已保存"); } catch (error) { errorToast(error.response?.data?.msg || "主题保存失败"); } }
-onBeforeRouteLeave(() => { if (JSON.stringify(draft.value) !== JSON.stringify(store.originalSettings) && !saving.value) return window.confirm("当前修改尚未保存，确定离开吗？"); return true; });
+function saveAsTheme() { openThemeNameModal(); }
+async function submitThemeName() { const name = themeName.value.trim(); if (!name) { themeNameError.value = "请输入主题名称"; void nextTick(() => themeNameInput.value?.focus()); return; } themeNameSubmitting.value = true; try { if (themeNameModalMode.value === "rename") { const theme = themeBeingRenamed.value; if (!theme) return; if (store.isLoggedIn) await personalizationAPI.updateTheme(theme.key, { name }); theme.name = name; if (!store.isLoggedIn) await store.save(draft.value); closeThemeNameModal(true); return; } if (draft.value.customThemes.length >= 5) { errorToast("最多可以保存 5 套自定义主题，请删除已有主题后再创建。"); return; } const theme = { key: `custom-${Date.now()}`, name: name.slice(0, 30), settings: cloneSettings(draft.value) }; if (store.isLoggedIn) { const response = await personalizationAPI.createTheme(theme); draft.value.customThemes.push(response.data?.data || theme); } else { draft.value.customThemes.push(theme); await store.save(draft.value); } successToast("主题已保存"); closeThemeNameModal(true); } catch (error) { errorToast(themeNameModalMode.value === "rename" ? "主题重命名失败" : error.response?.data?.msg || "主题保存失败"); } finally { themeNameSubmitting.value = false; } }
 </script>
 
 <style scoped>
@@ -144,9 +292,273 @@ onBeforeRouteLeave(() => { if (JSON.stringify(draft.value) !== JSON.stringify(st
   background: transparent;
 }
 
+.personalization-page--embedded {
+  --app-border: var(--surface-border);
+  --app-panel-bg: var(--surface);
+  --app-panel-soft-bg: var(--surface-soft);
+  --app-control-bg: var(--surface-soft);
+  --app-button-bg: var(--surface);
+  --app-button-bg-hover: var(--surface-hover);
+  --app-button-border: var(--surface-border);
+  --app-button-shadow: none;
+  --app-button-primary-bg: var(--primary);
+  --app-button-primary-border: var(--primary);
+  --app-button-primary-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+  --personalization-card-shadow: var(--surface-shadow);
+  width: 100%;
+  padding: 0;
+  /* ProfileView owns the single page background layer. */
+  background: transparent;
+}
+
+.personalization-page--embedded .personalization-shell {
+  width: 100%;
+  gap: 20px;
+}
+
+.personalization-page--embedded .settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.personalization-live-preview {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  background: var(--surface);
+  padding: 18px;
+  box-shadow: var(--surface-shadow);
+}
+
+.personalization-live-preview__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.personalization-live-preview__heading h2,
+.personalization-live-preview__heading p,
+.personalization-live-preview__note {
+  margin: 0;
+}
+
+.personalization-live-preview__heading h2 {
+  color: var(--app-text-primary);
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.personalization-live-preview__heading p,
+.personalization-live-preview__note {
+  color: var(--app-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.personalization-live-preview__heading span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.personalization-live-preview__canvas {
+  display: grid;
+  min-height: 250px;
+  align-content: start;
+  gap: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 12px;
+  color: var(--app-text-primary);
+  padding: 12px;
+  transition: background 180ms ease, filter 180ms ease;
+}
+
+.personalization-live-preview__canvas.is-dark-preview {
+  border-color: rgba(255, 255, 255, .12);
+  color: var(--text-primary);
+}
+
+.personalization-live-preview__canvas.is-dark-preview .preview-hero,
+.personalization-live-preview__canvas.is-dark-preview .preview-cards span {
+  border-color: rgba(255, 255, 255, .1);
+  background: rgba(11, 16, 24, .84);
+}
+
+.preview-topbar {
+  display: flex;
+  gap: 5px;
+}
+
+.preview-topbar i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .28;
+}
+
+.preview-hero,
+.preview-cards {
+  display: grid;
+  gap: 8px;
+}
+
+.preview-hero {
+  border: 1px solid rgba(255, 255, 255, .58);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .72);
+  padding: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.preview-hero b { font-size: 12px; }
+.preview-hero strong { font-size: 15px; line-height: 1.45; }
+.preview-hero em { font-size: 11px; font-style: normal; opacity: .7; }
+
+.preview-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.preview-cards span {
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, .6);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .66);
+  backdrop-filter: blur(8px);
+}
+
+.personalization-panel-heading {
+  display: grid;
+  gap: 6px;
+  padding: 4px 2px 2px;
+}
+
+.personalization-panel-heading h1,
+.personalization-panel-heading p {
+  margin: 0;
+}
+
+.personalization-panel-heading h1 {
+  color: var(--app-text-primary);
+  font-size: clamp(25px, 3vw, 32px);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.personalization-panel-heading > p:last-child {
+  color: var(--app-text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+html[data-personalization="on"] .personalization-page.is-default-background {
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: var(--text-tertiary);
+  --app-text-muted: var(--text-muted);
+  --app-border: var(--surface-border);
+  --app-card-border: var(--surface-border);
+  --app-panel-bg: var(--surface);
+  --app-panel-soft-bg: var(--surface-soft);
+  --app-control-bg: var(--surface-soft);
+  --app-button-bg: var(--surface);
+  --app-button-bg-hover: var(--surface-hover);
+  --app-button-border: var(--surface-border);
+  --app-button-shadow: none;
+  --app-button-primary-bg: var(--primary);
+  --app-button-primary-border: var(--primary);
+  --app-button-primary-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 12%, transparent);
+  --personalization-card-shadow: var(--surface-shadow);
+  background: var(--page-bg) !important;
+}
+
+.personalization-page.is-default-background .personalization-header,
+.personalization-page.is-default-background .personalization-section,
+.personalization-page.is-default-background .settings-actions {
+  border-color: var(--surface-border);
+  background: var(--surface);
+  box-shadow: var(--surface-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.personalization-page.is-default-background .personalization-header,
+.personalization-page.is-default-background .personalization-section,
+.personalization-page.is-default-background .settings-actions {
+  border-radius: 16px;
+}
+
+.personalization-page.is-default-background .personalization-layout button,
+.personalization-page.is-default-background .personalization-layout .secondary,
+.personalization-page.is-default-background .back-link,
+.personalization-page.is-default-background .editor-card input:not([type="range"]):not([type="radio"]),
+.personalization-page.is-default-background .editor-card select,
+.personalization-page.is-default-background .official-theme-card,
+.personalization-page.is-default-background .custom-theme-grid article,
+.personalization-page.is-default-background .background-grid article,
+.personalization-page.is-default-background .editor-card .preference-option {
+  border-color: var(--surface-border);
+  background: var(--surface-soft);
+}
+
+.personalization-page.is-default-background .personalization-layout button.selected {
+  border: 1.5px solid var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.personalization-page.is-default-background .official-theme-card.is-active {
+  border: 1.5px solid var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.personalization-page.is-default-background .editor-card .text-color-mode.is-selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.personalization-page.is-default-background .editor-card .preference-option.is-selected {
+  border-color: #9dd5bd;
+  background: #f7fbf9;
+  box-shadow: none;
+}
+
+.personalization-page.is-default-background .preference-option.is-selected .preference-radio,
+.personalization-page.is-default-background .preference-option.is-selected .preference-radio::after {
+  border-color: #67b98e;
+  background: #67b98e;
+}
+
+.personalization-page.is-default-background .personalization-layout button:hover:not(:disabled),
+.personalization-page.is-default-background .back-link:hover {
+  background: var(--surface-hover);
+}
+
+.personalization-page.is-default-background .editor-card input:not([type="range"]):not([type="radio"]):focus,
+.personalization-page.is-default-background .editor-card select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.personalization-page.is-default-background .editor-card input[type="range"] {
+  accent-color: var(--primary);
+}
+
 .personalization-shell {
   width: min(1180px, calc(100% - 48px));
-  margin: 18px auto 0;
+  margin: 0 auto;
   display: grid;
   gap: 18px;
   color: var(--app-text-primary);
@@ -521,6 +933,149 @@ onBeforeRouteLeave(() => { if (JSON.stringify(draft.value) !== JSON.stringify(st
 
 .editor-card input[type="range"] {
   accent-color: var(--color-primary);
+}
+
+.card-style-settings {
+  gap: 20px !important;
+}
+
+.card-color-control {
+  width: fit-content;
+}
+
+.slider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 28px;
+}
+
+.setting-slider-item {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  padding: 12px 4px;
+  --slider-track: #e7ebf2;
+}
+
+.is-dark-theme .setting-slider-item {
+  --slider-track: rgba(255, 255, 255, .15);
+}
+
+.slider-header {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.slider-title {
+  color: var(--app-text-primary);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.slider-desc {
+  margin: 4px 0 0;
+  color: var(--app-text-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.slider-value {
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.setting-range {
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 999px;
+  outline: none;
+  background: linear-gradient(to right, var(--primary) 0%, var(--primary) var(--progress), var(--slider-track) var(--progress), var(--slider-track) 100%) center / 100% 6px no-repeat;
+  cursor: pointer;
+}
+
+.setting-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.setting-range::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 3px solid var(--primary);
+  border-radius: 50%;
+  background: var(--surface, #fff);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .16);
+  cursor: grab;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.setting-range::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--slider-track);
+}
+
+.setting-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.setting-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 3px solid var(--primary);
+  border-radius: 50%;
+  background: var(--surface, #fff);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, .16);
+  cursor: grab;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.setting-range:hover::-webkit-slider-thumb,
+.setting-range:hover::-moz-range-thumb {
+  transform: scale(1.08);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, .2);
+}
+
+.setting-range:active::-webkit-slider-thumb,
+.setting-range:active::-moz-range-thumb {
+  transform: scale(1.12);
+  cursor: grabbing;
+}
+
+.setting-range:focus-visible {
+  box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
 .mode-grid {
@@ -914,7 +1469,7 @@ onBeforeRouteLeave(() => { if (JSON.stringify(draft.value) !== JSON.stringify(st
 .settings-content > footer .primary {
   border-color: var(--app-button-primary-border);
   background: var(--app-button-primary-bg);
-  color: var(--app-text-primary);
+  color: var(--text-on-primary);
   box-shadow: var(--app-button-primary-shadow);
 }
 
@@ -933,13 +1488,153 @@ onBeforeRouteLeave(() => { if (JSON.stringify(draft.value) !== JSON.stringify(st
   transform: none;
 }
 
+.theme-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, .28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.theme-modal {
+  width: min(420px, calc(100vw - 40px));
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  border: 1px solid #e7ecf3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, .16);
+  color: #1f2937;
+}
+
+.theme-modal h2,
+.theme-modal p {
+  margin: 0;
+}
+
+.theme-modal h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.theme-modal > p {
+  color: #7c879d;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.theme-name-field {
+  display: block;
+}
+
+.theme-name-field input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #dde4ee;
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: #1f2937;
+  font: inherit;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.theme-name-field input::placeholder {
+  color: #9aa5b5;
+}
+
+.theme-name-field input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.theme-name-field input[aria-invalid="true"] {
+  border-color: #e05252;
+}
+
+.theme-name-error {
+  margin-top: -8px !important;
+  color: #e05252 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+.theme-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.theme-modal-actions button {
+  min-width: 76px;
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, opacity .18s ease;
+}
+
+.theme-modal-cancel {
+  border: 1px solid #dde4ee;
+  background: #fff;
+  color: #596579;
+}
+
+.theme-modal-cancel:hover:not(:disabled) {
+  background: #f7f9fc;
+}
+
+.theme-modal-save {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.theme-modal-save:hover:not(:disabled) {
+  filter: brightness(.96);
+}
+
+.theme-modal-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
 @media (max-width: 899px) {
   .personalization-shell {
     width: min(100% - 28px, 1180px);
   }
+
+  .personalization-page--embedded .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .personalization-live-preview {
+    position: static;
+  }
 }
 
 @media (max-width: 600px) {
+  .theme-modal-overlay {
+    padding: 16px;
+  }
+
+  .theme-modal {
+    width: calc(100vw - 32px);
+    padding: 20px;
+  }
+
   .personalization-page {
     padding-bottom: 24px;
   }
@@ -991,6 +1686,11 @@ onBeforeRouteLeave(() => { if (JSON.stringify(draft.value) !== JSON.stringify(st
 
   .custom-text-color {
     grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .slider-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 
   .text-color-reset {

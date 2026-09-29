@@ -165,7 +165,7 @@ const relatedLinks = [{ label: "版权申诉", to: "/dmca" }];
 .app-footer__link:focus-visible,
 .app-footer__brand-link:focus-visible {
   border-radius: 6px;
-  outline: 3px solid rgba(255, 112, 88, 0.26);
+  outline: 3px solid color-mix(in srgb, var(--primary) 18%, transparent);
   outline-offset: 3px;
 }
 

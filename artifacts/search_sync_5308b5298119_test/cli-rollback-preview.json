@@ -1,0 +1,28 @@
+{
+  "version": "20260925_search_sync_v1",
+  "database": "search_sync_5308b5298119_test",
+  "rollback": [
+    "DROP TRIGGER IF EXISTS `search_v2_websites_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_websites_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_websites_delete`",
+    "DROP TRIGGER IF EXISTS `search_v2_site_tags_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_site_tags_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_site_tags_delete`",
+    "DROP TRIGGER IF EXISTS `search_v2_tags_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_tags_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_tags_delete`",
+    "DROP TRIGGER IF EXISTS `search_v2_site_occupations_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_site_occupations_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_site_occupations_delete`",
+    "DROP TRIGGER IF EXISTS `search_v2_categories_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_categories_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_categories_delete`",
+    "DROP TRIGGER IF EXISTS `search_v2_resource_field_claims_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_resource_field_claims_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_resource_field_claims_delete`",
+    "DROP TRIGGER IF EXISTS `search_v2_resource_identity_links_insert`",
+    "DROP TRIGGER IF EXISTS `search_v2_resource_identity_links_update`",
+    "DROP TRIGGER IF EXISTS `search_v2_resource_identity_links_delete`"
+  ],
+  "policy": "Stop worker; select SEARCH_BACKEND=database; remove only these triggers. Retain all business data, versions and outbox audit records."
+}

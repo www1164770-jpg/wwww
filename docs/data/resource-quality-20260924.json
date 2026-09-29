@@ -1,0 +1,619 @@
+{
+  "version": "20260924_resource_quality_v1",
+  "command": "audit",
+  "database": "nav_site",
+  "captured_at": "2026-09-24T09:23:08.808988+00:00",
+  "database_write_performed": false,
+  "total_resources": 1305,
+  "status_counts": {
+    "approved": 1305
+  },
+  "empty_fields": {
+    "name": 0,
+    "url": 0,
+    "summary": 0,
+    "description": 0,
+    "category_id": 0,
+    "source": 0,
+    "is_free": 1305,
+    "need_login": 1305
+  },
+  "unknown_structured_fields": [
+    "audience",
+    "pricing_model",
+    "language",
+    "entry_requirements",
+    "verified_at"
+  ],
+  "invalid_url_ids": [],
+  "duplicate_urls": [],
+  "same_name_candidates": [
+    [
+      3511,
+      3631
+    ],
+    [
+      3512,
+      3630
+    ],
+    [
+      3529,
+      3788
+    ],
+    [
+      3535,
+      3810
+    ],
+    [
+      3753,
+      4090
+    ]
+  ],
+  "fetch_equivalence_candidates": [],
+  "duplicate_descriptions": [],
+  "tagged_resources": 1305,
+  "untagged_resource_ids": [],
+  "duplicate_tag_links": [],
+  "orphan_tag_links": [],
+  "career_coverage": [
+    {
+      "code": "frontend_engineer",
+      "name": "前端工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "vue_engineer",
+      "name": "Vue 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "react_engineer",
+      "name": "React 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "backend_engineer",
+      "name": "后端工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "python_engineer",
+      "name": "Python 开发工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "java_engineer",
+      "name": "Java 开发工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "go_engineer",
+      "name": "Go 开发工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "node_engineer",
+      "name": "Node.js 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "fullstack_engineer",
+      "name": "全栈工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "mobile_engineer",
+      "name": "移动端工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "android_engineer",
+      "name": "Android 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ios_engineer",
+      "name": "iOS 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "game_engineer",
+      "name": "游戏工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "embedded_engineer",
+      "name": "嵌入式工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "qa_engineer",
+      "name": "测试工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "automation_test_engineer",
+      "name": "自动化测试工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "devops_engineer",
+      "name": "DevOps 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "sre_engineer",
+      "name": "SRE 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "operations_engineer",
+      "name": "运维工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "database_engineer",
+      "name": "数据库工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "api_engineer",
+      "name": "API 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "cloud_engineer",
+      "name": "云工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ai_application_engineer",
+      "name": "AI 应用开发工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ai_agent_engineer",
+      "name": "AI Agent 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "llm_application_engineer",
+      "name": "LLM 应用开发工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "prompt_engineer",
+      "name": "提示词工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "machine_learning_engineer",
+      "name": "机器学习工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "deep_learning_engineer",
+      "name": "深度学习工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "nlp_engineer",
+      "name": "自然语言处理工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "computer_vision_engineer",
+      "name": "计算机视觉工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ai_backend_engineer",
+      "name": "AI 后端工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "mlops_engineer",
+      "name": "MLOps 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "data_analyst",
+      "name": "数据分析师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "data_engineer",
+      "name": "数据工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "data_scientist",
+      "name": "数据科学家",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "business_analyst",
+      "name": "商业分析师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "bi_engineer",
+      "name": "BI 工程师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ui_designer",
+      "name": "UI 设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ux_designer",
+      "name": "UX 设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ui_ux_designer",
+      "name": "UI/UX 设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "web_designer",
+      "name": "网页设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "graphic_designer",
+      "name": "平面设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "brand_designer",
+      "name": "品牌设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "visual_designer",
+      "name": "视觉设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "illustrator",
+      "name": "插画师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "3d_designer",
+      "name": "3D 设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "motion_designer",
+      "name": "动效设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "interaction_designer",
+      "name": "交互设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "product_designer",
+      "name": "产品设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "product_manager",
+      "name": "产品经理",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ai_product_manager",
+      "name": "AI 产品经理",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "technical_product_manager",
+      "name": "技术产品经理",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "product_operation",
+      "name": "产品运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "user_operation",
+      "name": "用户运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "content_operation",
+      "name": "内容运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "community_operation",
+      "name": "社区运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "growth_operation",
+      "name": "增长运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "marketing_operation",
+      "name": "市场运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "seo_operation",
+      "name": "SEO 运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "ecommerce_operation",
+      "name": "电商运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "data_operation",
+      "name": "数据运营",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "content_creator",
+      "name": "内容创作者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "short_video_creator",
+      "name": "短视频创作者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "video_editor",
+      "name": "视频剪辑师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "video_creator",
+      "name": "视频创作者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "graphic_content_creator",
+      "name": "图文内容创作者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "wechat_creator",
+      "name": "公众号创作者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "technical_blogger",
+      "name": "技术博主",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "copywriter",
+      "name": "文案策划",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "script_writer",
+      "name": "脚本编剧",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "streamer",
+      "name": "主播",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "podcast_creator",
+      "name": "播客创作者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "photographer",
+      "name": "摄影师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "teacher",
+      "name": "教师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "college_teacher",
+      "name": "高校教师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "middle_school_teacher",
+      "name": "中学教师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "primary_school_teacher",
+      "name": "小学教师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "trainer",
+      "name": "培训师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "course_designer",
+      "name": "课程设计师",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "researcher",
+      "name": "研究人员",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "graduate_student",
+      "name": "研究生",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "college_student",
+      "name": "大学生",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "programming_learner",
+      "name": "编程学习者",
+      "persisted_resource_count": 11,
+      "approved_resource_count": 11
+    },
+    {
+      "code": "administration",
+      "name": "行政专员",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "hr",
+      "name": "人力资源",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "finance",
+      "name": "财务",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "accountant",
+      "name": "会计",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "sales",
+      "name": "销售",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "customer_service",
+      "name": "客户服务",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "project_manager",
+      "name": "项目经理",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "consultant",
+      "name": "咨询顾问",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "freelancer",
+      "name": "自由职业者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    },
+    {
+      "code": "entrepreneur",
+      "name": "创业者",
+      "persisted_resource_count": 6,
+      "approved_resource_count": 6
+    }
+  ],
+  "candidate_policy": "Candidates only; never merge by domain/name/fetch identity. No redirects fetched."
+}

@@ -31,50 +31,12 @@ limiter = Limiter(
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 def fetch_deepseek_suggestions(query):
-    """调用 DeepSeek API 获取推荐网站"""
-    url = "https://api.deepseek.com/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    
-    system_prompt = """
-    你是一个专业的互联网网站推荐专家。
-    请根据用户的查询，推荐5-10个最相关、最高质量的真实可用网站。
-    你必须严格返回一个JSON对象，包含一个名为 "websites" 的数组。绝对不要输出任何其他的解释性文字或Markdown代码块标记。
-    JSON格式示例：
-    {
-      "websites": [
-        {
-          "title": "网站的名称",
-          "url": "https://www.example.com",
-          "snippet": "网站的核心功能介绍或推荐理由"
-        }
-      ]
-    }
-    """
-    
-    payload = {
-        "model": "deepseek-chat",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"帮我找找这个：{query}"}
-        ],
-        "response_format": {"type": "json_object"}
-    }
-    
-    response = requests.post(url, headers=headers, json=payload, timeout=30)
-    response.raise_for_status() 
-    
-    result_data = response.json()
-    content_str = result_data['choices'][0]['message']['content']
-    
-    try:
-        parsed_json = json.loads(content_str)
-        return parsed_json.get('websites', [])
-    except json.JSONDecodeError:
-        print(f"JSON 解析失败: {content_str}")
-        return []
+    """Legacy adapter: identities and links also come only from the public catalog."""
+    from search_catalog import configured_service
+    from ai_retrieval import retrieve_recommendations, configured_model
+    result = retrieve_recommendations(query, configured_service(), model=configured_model())
+    return [{"title": match["site"]["name"], "url": match["site"]["url"], "snippet": match["reason"]}
+            for match in result["matches"]]
 
 def clean_ai_results(items):
     seen_urls = set()

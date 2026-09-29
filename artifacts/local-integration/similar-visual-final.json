@@ -1,0 +1,134 @@
+[
+  {
+    "bottom": 671.328125,
+    "controls": [
+      {
+        "clear": true,
+        "text": "添加收藏 专项同域付费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问 专项同域付费产品"
+      },
+      {
+        "clear": true,
+        "text": "专项同域付费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问网站"
+      },
+      {
+        "clear": true,
+        "text": "查看详情"
+      }
+    ],
+    "left": 967.5,
+    "opacity": "1",
+    "overflow": false,
+    "reason": "共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。",
+    "right": 1277.5,
+    "top": 347.8125,
+    "unclipped": true,
+    "width": 1440
+  },
+  {
+    "bottom": 662,
+    "controls": [
+      {
+        "clear": true,
+        "text": "添加收藏 专项未知收费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问 专项未知收费产品"
+      },
+      {
+        "clear": true,
+        "text": "专项未知收费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问网站"
+      },
+      {
+        "clear": true,
+        "text": "查看详情"
+      }
+    ],
+    "left": 967.5,
+    "opacity": "1",
+    "overflow": false,
+    "reason": "共同标签：专项相似验收20260929。此资源收费模式待核实。",
+    "right": 1277.5,
+    "top": 357.328125,
+    "unclipped": true,
+    "width": 1440
+  },
+  {
+    "bottom": 614.53125,
+    "controls": [
+      {
+        "clear": true,
+        "text": "添加收藏 专项同域付费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问 专项同域付费产品"
+      },
+      {
+        "clear": true,
+        "text": "专项同域付费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问网站"
+      },
+      {
+        "clear": true,
+        "text": "查看详情"
+      }
+    ],
+    "left": 39,
+    "opacity": "1",
+    "overflow": false,
+    "reason": "共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。",
+    "right": 336,
+    "top": 250.015625,
+    "unclipped": true,
+    "width": 390
+  },
+  {
+    "bottom": 605.203125,
+    "controls": [
+      {
+        "clear": true,
+        "text": "添加收藏 专项未知收费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问 专项未知收费产品"
+      },
+      {
+        "clear": true,
+        "text": "专项未知收费产品"
+      },
+      {
+        "clear": true,
+        "text": "访问网站"
+      },
+      {
+        "clear": true,
+        "text": "查看详情"
+      }
+    ],
+    "left": 39,
+    "opacity": "1",
+    "overflow": false,
+    "reason": "共同标签：专项相似验收20260929。此资源收费模式待核实。",
+    "right": 336,
+    "top": 259.53125,
+    "unclipped": true,
+    "width": 390
+  }
+]

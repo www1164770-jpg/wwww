@@ -1,0 +1,233 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 6,
+    "passes": 6,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-09-29T09:56:05.280Z",
+    "end": "2026-09-29T09:56:37.597Z",
+    "duration": 32317,
+    "testsRegistered": 6,
+    "passPercent": 100,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "be2fca51-1ed4-4bb9-a674-81aa19550813",
+      "title": "",
+      "fullFile": "D:\\study\\智汇\\wwww_git\\selenium-test\\test\\real-ai-assistant.test.js",
+      "file": "\\test\\real-ai-assistant.test.js",
+      "beforeHooks": [],
+      "afterHooks": [],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "98e97300-6b49-4828-a727-1e026e8e9991",
+          "title": "知航屿真实AI助手自动化测试",
+          "fullFile": "D:\\study\\智汇\\wwww_git\\selenium-test\\test\\real-ai-assistant.test.js",
+          "file": "\\test\\real-ai-assistant.test.js",
+          "beforeHooks": [
+            {
+              "title": "\"before each\" hook in \"知航屿真实AI助手自动化测试\"",
+              "fullTitle": "知航屿真实AI助手自动化测试 \"before each\" hook in \"知航屿真实AI助手自动化测试\"",
+              "timedOut": false,
+              "duration": 2107,
+              "state": null,
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const username =\n                    process.env.TEST_USERNAME;\n                const password =\n                    process.env.TEST_PASSWORD;\n                assert.ok(\n                    username,\n                    \"未设置 TEST_USERNAME\"\n                );\n                assert.ok(\n                    password,\n                    \"未设置 TEST_PASSWORD\"\n                );\n                driver =\n                    await new Builder()\n                        .forBrowser(\n                            Browser.CHROME\n                        )\n                        .build();\n                loginPage =\n                    new RealLoginPage(\n                        driver\n                    );\n                aiPage =\n                    new AIAssistantPage(\n                        driver\n                    );\n                // ======================================\n                // 登录\n                // ======================================\n                await loginPage.open();\n                await loginPage.login(\n                    username,\n                    password\n                );\n                // ======================================\n                // 等登录完成\n                // ======================================\n                await driver.wait(\n                    async () => {\n                        const url =\n                            await driver\n                                .getCurrentUrl();\n                        return !url.includes(\n                            \"/login\"\n                        );\n                    },\n                    20000,\n                    \"登录失败，仍停留在登录页\"\n                );\n                // ======================================\n                // 等 AI助手 导航出现\n                // ======================================\n                await driver.wait(\n                    async () => {\n                        const elements =\n                            await driver.findElements(\n                                By.xpath(\n                                    '//*[normalize-space(.)=\"AI助手\"]'\n                                )\n                            );\n                        for (const element of elements) {\n                            try {\n                                if (\n                                    await element.isDisplayed()\n                                ) {\n                                    return true;\n                                }\n                            } catch (error) {\n                                // 继续\n                            }\n                        }\n                        return false;\n                    },\n                    20000,\n                    \"登录后没有看到 AI助手 导航\"\n                );\n                await driver.sleep(\n                    500\n                );",
+              "err": {},
+              "uuid": "3bdbd53a-7ded-47f7-9b41-ece0edf94c99",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": true,
+              "skipped": false
+            }
+          ],
+          "afterHooks": [
+            {
+              "title": "\"after each\" hook in \"知航屿真实AI助手自动化测试\"",
+              "fullTitle": "知航屿真实AI助手自动化测试 \"after each\" hook in \"知航屿真实AI助手自动化测试\"",
+              "timedOut": false,
+              "duration": 48,
+              "state": null,
+              "speed": null,
+              "pass": false,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "try {\n                    if (\n                        driver &&\n                        this.currentTest &&\n                        this.currentTest.state\n                            === \"failed\"\n                    ) {\n                        const image =\n                            await driver\n                                .takeScreenshot();\n                        const testName =\n                            this.currentTest\n                                .title\n                                .replace(\n                                    /[\\\\/:*?\"<>|]/g,\n                                    \"_\"\n                                );\n                        const screenshotPath =\n                            path.join(\n                                screenshotsDir,\n                                `${Date.now()}-${testName}.png`\n                            );\n                        fs.writeFileSync(\n                            screenshotPath,\n                            image,\n                            \"base64\"\n                        );\n                        console.log(\n                            \"\\nAI助手测试失败，截图已保存：\"\n                        );\n                        console.log(\n                            screenshotPath\n                        );\n                    }\n                } finally {\n                    if (driver) {\n                        try {\n                            await driver.quit();\n                        } catch (error) {\n                            // 忽略\n                        }\n                        driver =\n                            null;\n                    }\n                }",
+              "err": {},
+              "uuid": "a011e93b-cf3d-4130-9b32-8d27cef9b232",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": true,
+              "skipped": false
+            }
+          ],
+          "tests": [
+            {
+              "title": "应该能够正常展开AI助手",
+              "fullTitle": "知航屿真实AI助手自动化测试 应该能够正常展开AI助手",
+              "timedOut": false,
+              "duration": 2393,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "await aiPage.open();\n                assert.equal(\n                    await aiPage.isOpen(),\n                    true,\n                    \"AI助手没有成功展开\"\n                );",
+              "err": {},
+              "uuid": "98cffa16-cdc7-41e4-80b2-eedee00660c4",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "展开后应该显示对话推荐写作三个功能",
+              "fullTitle": "知航屿真实AI助手自动化测试 展开后应该显示对话推荐写作三个功能",
+              "timedOut": false,
+              "duration": 2403,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "await aiPage.open();\n                assert.equal(\n                    await aiPage\n                        .isChatTabVisible(),\n                    true,\n                    \"没有看到对话功能\"\n                );\n                assert.equal(\n                    await aiPage\n                        .isRecommendTabVisible(),\n                    true,\n                    \"没有看到推荐功能\"\n                );\n                assert.equal(\n                    await aiPage\n                        .isWriteTabVisible(),\n                    true,\n                    \"没有看到写作功能\"\n                );",
+              "err": {},
+              "uuid": "294e77c1-a308-40f5-b60f-a2d9e2105056",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "AI助手应该显示需求输入框",
+              "fullTitle": "知航屿真实AI助手自动化测试 AI助手应该显示需求输入框",
+              "timedOut": false,
+              "duration": 2366,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "await aiPage.open();\n                assert.equal(\n                    await aiPage\n                        .isInputVisible(),\n                    true,\n                    \"AI助手输入框没有显示\"\n                );",
+              "err": {},
+              "uuid": "907a55bc-f473-4e73-ad44-d5e698a8f77f",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "应该能够在AI助手输入框中输入内容",
+              "fullTitle": "知航屿真实AI助手自动化测试 应该能够在AI助手输入框中输入内容",
+              "timedOut": false,
+              "duration": 4008,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "await aiPage.open();\n                const message =\n                    \"帮我推荐学习 Python 的网站\";\n                await aiPage.typeMessage(\n                    message\n                );\n                const value =\n                    await aiPage\n                        .getInputValue();\n                assert.equal(\n                    value,\n                    message,\n                    \"AI助手输入框内容不正确\"\n                );",
+              "err": {},
+              "uuid": "fed77671-d365-41a3-9aab-1f1dd11d012a",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "应该能够关闭AI助手",
+              "fullTitle": "知航屿真实AI助手自动化测试 应该能够关闭AI助手",
+              "timedOut": false,
+              "duration": 3843,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "await aiPage.open();\n                assert.equal(\n                    await aiPage.isOpen(),\n                    true\n                );\n                await aiPage.closeByX();\n                assert.equal(\n                    await aiPage.isOpen(),\n                    false,\n                    \"AI助手关闭失败\"\n                );",
+              "err": {},
+              "uuid": "b01c40aa-986f-484b-9b1d-ff5e50e415bd",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "关闭AI助手后应该能够再次打开",
+              "fullTitle": "知航屿真实AI助手自动化测试 关闭AI助手后应该能够再次打开",
+              "timedOut": false,
+              "duration": 4702,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "await aiPage.open();\n                await aiPage.closeByX();\n                assert.equal(\n                    await aiPage.isOpen(),\n                    false\n                );\n                await aiPage.open();\n                assert.equal(\n                    await aiPage.isOpen(),\n                    true,\n                    \"AI助手第二次打开失败\"\n                );",
+              "err": {},
+              "uuid": "e76cc790-3691-46df-b011-7dfa08999122",
+              "parentUUID": "98e97300-6b49-4828-a727-1e026e8e9991",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "98cffa16-cdc7-41e4-80b2-eedee00660c4",
+            "294e77c1-a308-40f5-b60f-a2d9e2105056",
+            "907a55bc-f473-4e73-ad44-d5e698a8f77f",
+            "fed77671-d365-41a3-9aab-1f1dd11d012a",
+            "b01c40aa-986f-484b-9b1d-ff5e50e415bd",
+            "e76cc790-3691-46df-b011-7dfa08999122"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 19715,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 120000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 2000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "12.0.2"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "8.1.1"
+    },
+    "marge": {
+      "options": null,
+      "version": "6.3.2"
+    }
+  }
+}

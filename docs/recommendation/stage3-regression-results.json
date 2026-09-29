@@ -1,0 +1,51 @@
+[
+  {
+    "pattern": "test_ai_site_recommend_v1.py",
+    "exit_code": 0,
+    "tests_run": 20,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_site_search_v1.py",
+    "exit_code": 0,
+    "tests_run": 11,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_auth.py",
+    "exit_code": 0,
+    "tests_run": 33,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_favorites_v1.py",
+    "exit_code": 0,
+    "tests_run": 27,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_career*.py",
+    "exit_code": 0,
+    "tests_run": 9,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_ai_retrieval_stage3.py",
+    "exit_code": 0,
+    "tests_run": 23,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_ai_model_transport_stage3.py",
+    "exit_code": 0,
+    "tests_run": 5,
+    "failures": [],
+    "errors": []
+  }
+]

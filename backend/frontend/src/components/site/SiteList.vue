@@ -5,6 +5,7 @@
       :key="site.id"
       :site="site"
       :hide-actions="hideActions"
+      :show-reason="showReason"
       @visit="$emit('visit', $event)"
     />
   </div>
@@ -31,6 +32,7 @@ defineProps({
   emptyActionText: { type: String, default: "" },
   emptyActionTo: { type: [String, Object], default: "" },
   hideActions: { type: Boolean, default: false },
+  showReason: { type: Boolean, default: false },
 });
 defineEmits(["visit"]);
 </script>

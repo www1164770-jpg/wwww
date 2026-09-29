@@ -10,6 +10,11 @@
 
 ## 本地环境
 
+Docker Desktop 开发方式：当前工作区配置好根 `.env` 后，执行
+`docker compose up -d`，访问 `http://localhost:5173`。
+普通代码保存后前端热更新、后端自动重载；结束时 `docker compose down` 保留数据库。
+新工作区首次配置、依赖更新和数据安全说明见 [DOCKER.md](DOCKER.md)。
+
 在仓库根目录创建 Python 虚拟环境并安装依赖。
 
 Windows PowerShell：

@@ -8,9 +8,9 @@ function canonicalUrl(value) {
     const hostname = url.hostname.toLowerCase().replace(/^www\./, "");
     const port = url.port ? `:${url.port}` : "";
     const pathname = url.pathname.replace(/\/+$/, "") || "/";
-    return `${hostname}${port}${pathname}${url.search}`.toLowerCase();
+    return `${hostname}${port}${pathname}${url.search}`;
   } catch {
-    return text.replace(/\/+$/, "").toLowerCase();
+    return text.replace(/\/+$/, "");
   }
 }
 

@@ -1,0 +1,8 @@
+{
+  "source": "native browser visibilitychange, actual tab t1 to t2 and back",
+  "hidden_at": "2026-09-28 09:12:59.698000",
+  "visible_at": "2026-09-28 09:13:24.591000",
+  "timezone": "Asia/Shanghai",
+  "impressions_during_hidden": 0,
+  "limitation": "already-visible cards; not subsecond hide-before-threshold race"
+}

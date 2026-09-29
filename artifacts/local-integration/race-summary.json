@@ -1,0 +1,140 @@
+[
+  {
+    "case": "account-b-after",
+    "same": true,
+    "responses": [
+      {
+        "path": "/api/favorites",
+        "method": "GET",
+        "started": 1790605702605,
+        "ended": 1790605702858
+      },
+      {
+        "path": "/api/recommendation/preferences",
+        "method": "GET",
+        "started": 1790605702605,
+        "ended": 1790605702859
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790605702755,
+        "ended": 1790605703141
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790605702859,
+        "ended": 1790605703498
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790605703457,
+        "ended": 1790605703775
+      },
+      {
+        "path": "/api/recommendation/preferences",
+        "method": "POST",
+        "started": 1790605681512,
+        "ended": 1790605769821
+      },
+      {
+        "path": "/api/career/recommend?career=python_engineer",
+        "method": "GET",
+        "started": 1790605681732,
+        "ended": 1790605769828
+      }
+    ]
+  },
+  {
+    "case": "favorite-fixed-after",
+    "same": true,
+    "responses": [
+      {
+        "path": "/api/favorites",
+        "method": "GET",
+        "started": 1790606308892,
+        "ended": 1790606309322
+      },
+      {
+        "path": "/api/sites/47/favorite",
+        "method": "POST",
+        "started": 1790606307016,
+        "ended": 1790606336151
+      }
+    ]
+  },
+  {
+    "case": "undo-after",
+    "same": true,
+    "responses": [
+      {
+        "path": "/api/recommendation/preferences",
+        "method": "GET",
+        "started": 1790606559821,
+        "ended": 1790606560082
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790606559984,
+        "ended": 1790606560233
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790606560082,
+        "ended": 1790606560539
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790606560476,
+        "ended": 1790606560836
+      },
+      {
+        "path": "/api/recommendation/preferences",
+        "method": "POST",
+        "started": 1790606558434,
+        "ended": 1790606617079
+      }
+    ]
+  },
+  {
+    "case": "career-fixed-after",
+    "same": true,
+    "responses": [
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790606309066,
+        "ended": 1790606309555
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790606309132,
+        "ended": 1790606309913
+      },
+      {
+        "path": "/api/career/recommend",
+        "method": "GET",
+        "started": 1790606309781,
+        "ended": 1790606310320
+      },
+      {
+        "path": "/api/career/recommend?career=backend_engineer",
+        "method": "GET",
+        "started": 1790606371578,
+        "ended": 1790606371640
+      },
+      {
+        "path": "/api/career/recommend?career=python_engineer",
+        "method": "GET",
+        "started": 1790606371331,
+        "ended": 1790606444241
+      }
+    ]
+  }
+]

@@ -1,0 +1,89 @@
+{
+  "test_user_id": 2,
+  "checks": [
+    "login",
+    "career recommendations",
+    "feedback + visible-v2 enabled; baseline rerank retained",
+    "public Meili search with Redis hot cache",
+    "detail and similar resources",
+    "rule retrieval with model disabled",
+    "favorite add",
+    "favorite restored",
+    "negative feedback",
+    "feedback restore",
+    "worker revision and index converge",
+    "cache revision updates after committed writes",
+    "all requested HTTP checks completed"
+  ],
+  "site_id": 3460,
+  "search_before": [
+    {
+      "cached": false,
+      "dataVersion": "search-v2:0:0",
+      "durationMs": 29.652,
+      "fallbackReason": null,
+      "relaxed": false,
+      "source": "meilisearch",
+      "truncated": false
+    },
+    {
+      "cached": true,
+      "dataVersion": "search-v2:0:0",
+      "durationMs": 24.407,
+      "fallbackReason": null,
+      "relaxed": false,
+      "source": "meilisearch",
+      "truncated": false
+    }
+  ],
+  "similar_ids": [
+    3450,
+    3452,
+    3454,
+    3457,
+    3458,
+    3459
+  ],
+  "ai_mode": {
+    "source": "rules",
+    "degraded": true
+  },
+  "state": {
+    "id": 1,
+    "revision": 2,
+    "indexed_revision": 2,
+    "task_id": null,
+    "task_kind": null,
+    "target_index": "websites_daily_v1",
+    "updated_at": "2026-09-29 06:10:23.021859"
+  },
+  "reconcile": {
+    "revision": 2,
+    "missing": [],
+    "not_public_or_removed": [],
+    "stale": [],
+    "expected_count": 1305,
+    "actual_count": 1305
+  },
+  "search_after": [
+    {
+      "cached": false,
+      "dataVersion": "search-v2:2:2",
+      "durationMs": 30.739,
+      "fallbackReason": null,
+      "relaxed": false,
+      "source": "meilisearch",
+      "truncated": false
+    },
+    {
+      "cached": true,
+      "dataVersion": "search-v2:2:2",
+      "durationMs": 23.993,
+      "fallbackReason": null,
+      "relaxed": false,
+      "source": "meilisearch",
+      "truncated": false
+    }
+  ],
+  "status": "passed"
+}

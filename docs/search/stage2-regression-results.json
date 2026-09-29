@@ -1,0 +1,79 @@
+[
+  {
+    "pattern": "test_resource_quality_stage1.py",
+    "exit_code": 0,
+    "tests_run": 8,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_v3_tag_identity.py",
+    "exit_code": 0,
+    "tests_run": 10,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_questionnaire_v*.py",
+    "exit_code": 0,
+    "tests_run": 23,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_career*.py",
+    "exit_code": 0,
+    "tests_run": 9,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_personalized_recommendation.py",
+    "exit_code": 0,
+    "tests_run": 4,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_v3_tag_review_queue.py",
+    "exit_code": 0,
+    "tests_run": 3,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_recommend_sort_v1.py",
+    "exit_code": 0,
+    "tests_run": 3,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_favorites_v1.py",
+    "exit_code": 0,
+    "tests_run": 27,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_auth.py",
+    "exit_code": 0,
+    "tests_run": 33,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_ai_site_recommend_v1.py",
+    "exit_code": 0,
+    "tests_run": 20,
+    "failures": [],
+    "errors": []
+  },
+  {
+    "pattern": "test_site_search_v1.py",
+    "exit_code": 0,
+    "tests_run": 11,
+    "failures": [],
+    "errors": []
+  }
+]

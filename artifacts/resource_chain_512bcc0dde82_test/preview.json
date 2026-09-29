@@ -1,0 +1,25 @@
+{
+  "version": "20260924_resource_quality_v1",
+  "command": "tags-preview",
+  "database": "resource_chain_512bcc0dde82_test",
+  "captured_at": "2026-09-25T06:46:35.937745+00:00",
+  "database_write_performed": false,
+  "plan": [
+    {
+      "kind": "tag",
+      "site_id": 1,
+      "tag": "api_debugging",
+      "already_present": false,
+      "evidence": "Synthetic test review",
+      "review_url": "https://example.test/API"
+    }
+  ],
+  "already_present": 0,
+  "pending": 1,
+  "schema_preview": [
+    "\nCREATE TABLE IF NOT EXISTS resource_field_claims (\n\tid INTEGER NOT NULL AUTO_INCREMENT, \n\tsite_id INTEGER NOT NULL, \n\tfield VARCHAR(40) NOT NULL, \n\tvalue TEXT, \n\tsource_kind VARCHAR(20) NOT NULL, \n\tsource_ref TEXT NOT NULL, \n\tverified_at VARCHAR(40), \n\tstate VARCHAR(16) NOT NULL, \n\tPRIMARY KEY (id)\n)ENGINE=InnoDB CHARSET=utf8mb4\n\n",
+    "\nCREATE TABLE IF NOT EXISTS resource_identity_links (\n\tid INTEGER NOT NULL AUTO_INCREMENT, \n\tsource_id INTEGER NOT NULL, \n\ttarget_id INTEGER NOT NULL, \n\tevidence TEXT NOT NULL, \n\tstate VARCHAR(16) NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT uq_resource_identity_source UNIQUE (source_id)\n)ENGINE=InnoDB CHARSET=utf8mb4\n\n",
+    "\nCREATE TABLE IF NOT EXISTS resource_quality_changes (\n\tid INTEGER NOT NULL AUTO_INCREMENT, \n\tversion VARCHAR(80) NOT NULL, \n\tchange_key VARCHAR(64) NOT NULL, \n\tkind VARCHAR(32) NOT NULL, \n\tpayload TEXT NOT NULL, \n\tstate VARCHAR(16) NOT NULL, \n\tPRIMARY KEY (id), \n\tCONSTRAINT uq_resource_quality_change UNIQUE (version, change_key)\n)ENGINE=InnoDB CHARSET=utf8mb4\n\n"
+  ],
+  "rollback_preview": "Remove only journal-owned site_tags IDs; mark owned claims/identity links reverted. Retain websites, favorites, history, tag dictionary and journal."
+}

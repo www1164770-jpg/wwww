@@ -1,0 +1,129 @@
+name: zhihangyu
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    environment:
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${DOCKER_MEILI_MASTER_KEY:?Set DOCKER_MEILI_MASTER_KEY in the root .env}
+    volumes:
+      - meili_data:/meili_data
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-nav_site}
+      MYSQL_USER: ${DB_USER:-zhihangyu}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the root .env}
+    ports:
+      - "127.0.0.1:${MYSQL_PUBLISHED_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --protocol=TCP -h 127.0.0.1 -u\"$$MYSQL_USER\" \"$$MYSQL_DATABASE\" -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment: &backend_environment
+      APP_ENV: development
+      FLASK_ENV: development
+      FLASK_DEBUG: "1"
+      BACKEND_HOST: 0.0.0.0
+      BACKEND_PORT: "5000"
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT:-5173}
+      # MYSQL_* has precedence in the existing application configuration.
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: ${DB_NAME:-nav_site}
+      MYSQL_USER: ${DB_USER:-zhihangyu}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env}
+      REDIS_URL: redis://redis:6379/0
+      RATELIMIT_STORAGE_URI: redis://redis:6379/0
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_MASTER_KEY: ${DOCKER_MEILI_MASTER_KEY:?Set DOCKER_MEILI_MASTER_KEY in the root .env}
+      SEARCH_BACKEND: ${SEARCH_BACKEND:-meilisearch}
+      MEILI_INDEX: ${MEILI_INDEX:-websites}
+      BACKGROUND_UPLOAD_ROOT: /app/backend/uploads/backgrounds
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-5000}:5000"
+    volumes:
+      - ./backend:/app/backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health/db', timeout=5).read()"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  search-worker:
+    profiles: [search-sync]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      <<: *backend_environment
+      SEARCH_SYNC_ENABLED: "1"
+    command: ["python", "backend/scripts/search_sync.py", "worker"]
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      meilisearch:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./backend/frontend
+    environment:
+      VITE_API_BASE_URL: /api
+      API_PROXY_TARGET: http://backend:5000
+      VITE_USE_POLLING: "true"
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./backend/frontend:/app
+      # Keep Linux dependencies separate from Windows node_modules.
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+volumes:
+  mysql_data:
+  redis_data:
+  meili_data:

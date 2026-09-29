@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
+const home = read('../src/views/Home.vue');
+const poolCode = home.slice(home.indexOf('function ensureCareerSitePool('), home.indexOf('function mergeCareerSites(')).replaceAll('import.meta.env.DEV', 'false');
+const pool = new Function('normalizeCareerSiteList', 'normalizeCareerSite', 'syncFavoriteFlags', 'CAREER_SITE_POOL_MAX', 'CAREER_BATCH_SIZE', poolCode+';return ensureCareerSitePool;')(x=>x,x=>x,x=>x,48,16);
+const sites = Array.from({length:17}, (_,i)=>({id:i+1,url:`https://same.example/product/${i}`}));
+assert.deepEqual(pool('research', sites).map(x=>x.id),sites.map(x=>x.id),'distinct products must survive across batch boundary');
+assert.deepEqual(pool('research',[...sites,{id:99,canonical_site_id:1,url:'https://alias.example'}]).map(x=>x.id),sites.map(x=>x.id),'confirmed alias must be deduplicated');
+assert.equal(pool('research',[{url:'https://same.example/Case'},{url:'https://same.example/case'}]).length,2,'path case is significant');
+const tracker = read('../src/utils/behaviorTracker.js').replace(/^import .*;\r?\n/gm,'').replace(/export /g,'');
+const context = new Function('api','getAccessToken','isValidAuthToken','getStoredUserInfo',tracker+';return behaviorContext;')({},()=>'',()=>false,()=>({}));
+const visit = read('../src/utils/siteVisit.js');
+const code = visit.slice(visit.indexOf('export function recordBrowsingHistory('),visit.indexOf('export function visitSite(')).replace('export ','').replaceAll('import.meta.env.DEV','false');
+const calls=[];
+const record = new Function('sitePayload','saveLocalBrowsingHistory','siteAPI','behaviorContext','getBehaviorSessionId','hasAuthenticatedSession',code+';return recordBrowsingHistory;')(
+  (site,source)=>({...site,site_id:site.id,source}),()=>{}, {recordClick:async(id,body)=>{calls.push({id,body});}},context,()=> 'fixture-session',()=>false);
+await record({id:7,url:'https://fixture.example',recommendation_batch_id:'batch-a',event_version:'visible-v2',display_position:2,rerank_version:'diversity-v1.b5',algorithm_version:'phase1-v1',candidate_pool_id:'pool-a'},{source:'career_recommend'});
+assert.equal(calls.length,1,'one visit emits exactly one click request');
+assert.equal(calls[0].body.source,'personalized_recommendation');
+assert.equal(calls[0].body.recommendation_batch_id,'batch-a');
+assert.deepEqual(calls[0].body.metadata,{position:2,position_version:'display-position-v1',event_version:'visible-v2',rerank_version:'diversity-v1.b5',algorithm_version:'phase1-v1',candidate_pool_id:'pool-a'});
+await record({id:8,url:'https://fixture.example'},{source:'search'});
+assert.equal(calls[1].body.metadata.event_version,undefined,'ordinary search must not invent a visible recommendation exposure');
+console.log('PASS integration regression: product identity across batches, canonical aliases, path case, one click with actual display context, search context');

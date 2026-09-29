@@ -1,0 +1,24 @@
+{
+  "rebuild": {
+    "swapped": true,
+    "retained_previous_index": "websites_daily_v1_build_32c091aae8a3",
+    "indexed_revision": 0
+  },
+  "reconcile": {
+    "revision": 0,
+    "missing": [],
+    "not_public_or_removed": [],
+    "stale": [],
+    "expected_count": 1305,
+    "actual_count": 1305
+  },
+  "state": {
+    "id": 1,
+    "revision": 0,
+    "indexed_revision": 0,
+    "task_id": null,
+    "task_kind": null,
+    "target_index": "websites_daily_v1_build_32c091aae8a3",
+    "updated_at": null
+  }
+}

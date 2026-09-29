@@ -1,0 +1,68 @@
+{
+  "captured_at": "2026-09-25T06:46:31.764270+00:00",
+  "test_database": "resource_chain_512bcc0dde82_test",
+  "real_user_data_copied": false,
+  "checks": [
+    "Questionnaire rejects unauthenticated writes",
+    "research_fixture: V3 questionnaire saved through real route",
+    "research_fixture: profile persisted in MySQL",
+    "Research detail survives persistence",
+    "research_fixture: career API succeeds",
+    "research_fixture: distinct need ranks the matching website first",
+    "research_fixture: recommendation exposes actual matching fields",
+    "research_fixture: selected career graduate_student refreshes matching response",
+    "research_fixture: selected career researcher refreshes matching response",
+    "research_fixture: career switch changes actual resource IDs, not just labels",
+    "research_fixture: small candidate pool contains no fabricated/duplicate resources",
+    "research_fixture: unrelated fallback has neutral reason",
+    "api_fixture: V3 questionnaire saved through real route",
+    "api_fixture: profile persisted in MySQL",
+    "api_fixture: career API succeeds",
+    "api_fixture: distinct need ranks the matching website first",
+    "api_fixture: recommendation exposes actual matching fields",
+    "api_fixture: selected career backend_engineer refreshes matching response",
+    "api_fixture: selected career python_engineer refreshes matching response",
+    "api_fixture: career switch changes actual resource IDs, not just labels",
+    "api_fixture: small candidate pool contains no fabricated/duplicate resources",
+    "api_fixture: unrelated fallback has neutral reason",
+    "Empty profile returns questionnaire state and no fabricated careers",
+    "V2 persisted profile remains compatible",
+    "Authenticated favorite creation works",
+    "Duplicate favorite request remains idempotent",
+    "MySQL migration applies only approved tag subset",
+    "Repeated MySQL migration creates no duplicate data",
+    "Rollback reverts only owned changes and is repeatable",
+    "Favorite reference survives tag migration and rollback",
+    "MySQL field and logical-merge operations are idempotent",
+    "API retains human copy over web extraction and AI suggestions",
+    "Logical merge exposes traceable identity while original favorite ID stays addressable",
+    "Unknown pricing remains unknown",
+    "Maintenance rollback retains every website and favorite",
+    "Website pagination returns distinct pages and accurate totals",
+    "CLI refuses writes without a prior preview",
+    "CLI preview and explicit test-database apply succeed",
+    "CLI repeated apply creates no duplicate associations",
+    "CLI rollback requires and consumes current rollback preview"
+  ],
+  "migration_preview": [
+    {
+      "kind": "tag",
+      "site_id": 1,
+      "tag": "api_debugging",
+      "already_present": false,
+      "evidence": "Synthetic test review",
+      "review_url": "https://example.test/API"
+    }
+  ],
+  "rollback_preview": [
+    {
+      "id": 1,
+      "version": "20260924_resource_quality_v1",
+      "change_key": "fc6dc8e2e8011d8f6d0eaf141f65e12877f756992681b539284284826ca59a84",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 1, \"tag\": \"api_debugging\", \"already_present\": false, \"evidence\": \"Synthetic test review\", \"review_url\": \"https://example.test/API\", \"owned_id\": 7, \"tag_id\": 7}",
+      "state": "active"
+    }
+  ],
+  "status": "passed"
+}

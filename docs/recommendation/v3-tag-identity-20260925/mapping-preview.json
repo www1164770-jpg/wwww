@@ -1,0 +1,2390 @@
+{
+  "version": "20260925_v3_tag_identity_v1",
+  "source_review_sha256": "f8087cacf051bf338baaf93d273037e733c8a5f12b3736f6bd9bd1d9bdb7e8e2",
+  "catalog_snapshot_sha256": "ad61aa6e87f08c4d6ee6f2c27caa9a2101f082a45d5ed5b6e2b7f8ac415be61a",
+  "database_write_performed": false,
+  "summary": {
+    "approved_records": 39,
+    "reliably_mapped": 23,
+    "requires_new_associations": 20,
+    "no_migration_existing": 0,
+    "no_migration_duplicate_review": 3,
+    "unresolved": 16,
+    "unique_pending_associations": 29,
+    "unique_target_resources": 18
+  },
+  "rows": [
+    {
+      "source_index": 0,
+      "source_record_sha256": "ef3137e35328faff4cfd9819d1898916fdc68d2455a6cf7965bbeb7207abb2ea",
+      "old": {
+        "id": 849,
+        "name": "Insomnia",
+        "url": "https://insomnia.rest"
+      },
+      "approved_tags": [
+        "api_debugging",
+        "testing"
+      ],
+      "signal": "api_debugging",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 1,
+      "source_record_sha256": "a906c1aa8ee2d579e92e92315b1473c8b9b711274ca5d544a03a3a4762ef5a53",
+      "old": {
+        "id": 244,
+        "name": "Postman",
+        "url": "https://www.postman.com"
+      },
+      "approved_tags": [
+        "api_debugging",
+        "testing"
+      ],
+      "signal": "api_debugging",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 2,
+      "source_record_sha256": "38d2ef6ebc921661b142db7a86b450d5a5d6fdae1166d6601f2337b19ae4963d",
+      "old": {
+        "id": 245,
+        "name": "Swagger",
+        "url": "https://swagger.io"
+      },
+      "approved_tags": [
+        "api_debugging",
+        "testing"
+      ],
+      "signal": "api_debugging",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 3,
+      "source_record_sha256": "cd7a10f4411b0d552ea73fa556177984de4b855ac7696ed1c42cfdf065370bf1",
+      "old": {
+        "id": 80,
+        "name": "Cursor",
+        "url": "https://www.cursor.com"
+      },
+      "approved_tags": [
+        "code_generation"
+      ],
+      "signal": "code_generation",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3473,
+          "name": "Cursor",
+          "url": "https://www.cursor.com",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3473,
+        "name": "Cursor",
+        "url": "https://www.cursor.com",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "code_generation"
+      ]
+    },
+    {
+      "source_index": 4,
+      "source_record_sha256": "83b438c4fc2e411e333be3bbc47a5b6961b5e47fbaacf963d16cc530d3d65680",
+      "old": {
+        "id": 79,
+        "name": "GitHub Copilot",
+        "url": "https://github.com/features/copilot"
+      },
+      "approved_tags": [
+        "code_generation"
+      ],
+      "signal": "code_generation",
+      "candidate_count": 138,
+      "candidates": [
+        {
+          "id": 3494,
+          "name": "GitHub",
+          "url": "https://github.com",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3653,
+          "name": "ComfyUI",
+          "url": "https://github.com/comfyanonymous/ComfyUI",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3943,
+          "name": "ANALOG",
+          "url": "https://github.com/orangecoloured/analog",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3949,
+          "name": "EDA",
+          "url": "https://github.com/jortilles/EDA",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3970,
+          "name": "Bichon",
+          "url": "https://github.com/rustmailer/bichon",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3975,
+          "name": "mail-archiver",
+          "url": "https://github.com/s1t5/mail-archiver",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3980,
+          "name": "Wayback",
+          "url": "https://github.com/wabarc/wayback",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3987,
+          "name": "Cronmaster",
+          "url": "https://github.com/fccview/cronmaster",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3990,
+          "name": "feedmixer",
+          "url": "https://github.com/cristoper/feedmixer",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3992,
+          "name": "gocron",
+          "url": "https://github.com/flohoss/gocron",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3993,
+          "name": "HandBrake Web",
+          "url": "https://github.com/TheNickOfTime/handbrake-web",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 3996,
+          "name": "Huginn",
+          "url": "https://github.com/huginn/huginn",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4000,
+          "name": "Matchering",
+          "url": "https://github.com/sergree/matchering",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4005,
+          "name": "µTask",
+          "url": "https://github.com/ovh/utask",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4012,
+          "name": "fx",
+          "url": "https://github.com/rikhuijzer/fx",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4030,
+          "name": "Buku",
+          "url": "https://github.com/jarun/Buku",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4032,
+          "name": "Espial",
+          "url": "https://github.com/jonschoning/espial",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4039,
+          "name": "NeonLink",
+          "url": "https://github.com/AlexSciFier/neonlink",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4041,
+          "name": "Servas",
+          "url": "https://github.com/beromir/Servas",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4042,
+          "name": "Shaarli",
+          "url": "https://github.com/shaarli/Shaarli",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4043,
+          "name": "Shiori",
+          "url": "https://github.com/go-shiori/shiori",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4044,
+          "name": "Slash",
+          "url": "https://github.com/yourselfhosted/slash",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4048,
+          "name": "Davis",
+          "url": "https://github.com/tchapi/davis",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4053,
+          "name": "Xandikos",
+          "url": "https://github.com/jelmer/xandikos",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4055,
+          "name": "Apprise",
+          "url": "https://github.com/caronc/apprise",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4060,
+          "name": "Databag",
+          "url": "https://github.com/balzack/databag",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4069,
+          "name": "Notifo",
+          "url": "https://github.com/notifo-io/notifo",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4074,
+          "name": "PushBits",
+          "url": "https://github.com/pushbits/server",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4079,
+          "name": "Shhh",
+          "url": "https://github.com/smallwat3r/shhh",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4080,
+          "name": "SimpleX Chat",
+          "url": "https://github.com/simplex-chat/simplex-chat",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4085,
+          "name": "Tinode",
+          "url": "https://github.com/tinode",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4089,
+          "name": "WBO",
+          "url": "https://github.com/lovasoa/whitebophir",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4113,
+          "name": "DragonFly",
+          "url": "https://github.com/corecode/dma",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4118,
+          "name": "OpenTrashmail",
+          "url": "https://github.com/HaschekSolutions/opentrashmail",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4136,
+          "name": "Glowing Bear",
+          "url": "https://github.com/glowing-bear/glowing-bear",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4222,
+          "name": "teikei",
+          "url": "https://github.com/teikei/teikei",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4240,
+          "name": "Expressa",
+          "url": "https://github.com/thomas4019/expressa",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4297,
+          "name": "EveryDocs",
+          "url": "https://github.com/jonashellmann/everydocs-core",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4306,
+          "name": "Signature PDF",
+          "url": "https://github.com/24eme/signaturepdf",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4308,
+          "name": "Stirling-PDF",
+          "url": "https://github.com/Stirling-Tools/Stirling-PDF",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4310,
+          "name": "Bindery",
+          "url": "https://github.com/jarynclouatre/bindery",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4311,
+          "name": "BookLogr",
+          "url": "https://github.com/Mozzo1000/booklogr",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4312,
+          "name": "Calibre Web Automated",
+          "url": "https://github.com/crocodilestick/Calibre-Web-Automated",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4313,
+          "name": "Calibre Web",
+          "url": "https://github.com/janeczku/calibre-web",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4318,
+          "name": "kiwix-serve",
+          "url": "https://github.com/kiwix/kiwix-tools",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4336,
+          "name": "Open Source POS",
+          "url": "https://github.com/opensourcepos/opensourcepos",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4349,
+          "name": "Bubo Reader",
+          "url": "https://github.com/georgemandis/bubo-rss",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4353,
+          "name": "Fusion",
+          "url": "https://github.com/0x2E/fusion",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4354,
+          "name": "Goeland",
+          "url": "https://github.com/slurdge/goeland",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4356,
+          "name": "Kriss Feed",
+          "url": "https://github.com/tontof/kriss_feed",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4357,
+          "name": "Leed",
+          "url": "https://github.com/LeedRSS/Leed",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4361,
+          "name": "reader",
+          "url": "https://github.com/lemon24/reader",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4363,
+          "name": "RSS-Bridge",
+          "url": "https://github.com/RSS-Bridge/rss-bridge",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4364,
+          "name": "RSS Monster",
+          "url": "https://github.com/pietheinstrengholt/rssmonster",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4365,
+          "name": "RSS2EMail",
+          "url": "https://github.com/rss2email/rss2email",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4368,
+          "name": "Stringer",
+          "url": "https://github.com/stringer-rss/stringer",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4371,
+          "name": "Yarr",
+          "url": "https://github.com/nkanaev/yarr",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4390,
+          "name": "SeaweedFS",
+          "url": "https://github.com/seaweedfs/seaweedfs",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4398,
+          "name": "Webtor",
+          "url": "https://github.com/webtor-io/self-hosted",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4403,
+          "name": "Files Sharing",
+          "url": "https://github.com/axeloz/filesharing",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4404,
+          "name": "Flare",
+          "url": "https://github.com/FlintSH/Flare",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4405,
+          "name": "Gokapi",
+          "url": "https://github.com/Forceu/gokapi",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4409,
+          "name": "OnionShare",
+          "url": "https://github.com/onionshare/onionshare",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4410,
+          "name": "PicoShare",
+          "url": "https://github.com/mtlynch/picoshare",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4411,
+          "name": "Picsur",
+          "url": "https://github.com/CaramelFur/Picsur",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4413,
+          "name": "Pingvin Share X",
+          "url": "https://github.com/smp46/pingvin-share-x",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4414,
+          "name": "Plik",
+          "url": "https://github.com/root-gg/plik",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4416,
+          "name": "PsiTransfer",
+          "url": "https://github.com/psi-4ward/psitransfer",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4419,
+          "name": "sE2EEnd",
+          "url": "https://github.com/sE2EEnd/sE2EEnd",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4420,
+          "name": "Sharry",
+          "url": "https://github.com/eikek/sharry",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4421,
+          "name": "Shifter",
+          "url": "https://github.com/TobySuch/Shifter",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4423,
+          "name": "snowshare",
+          "url": "https://github.com/TuroYT/snowshare",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4424,
+          "name": "transfer.sh",
+          "url": "https://github.com/dutchcoders/transfer.sh",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4425,
+          "name": "Uguu",
+          "url": "https://github.com/nokonoko/uguu",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4427,
+          "name": "Zipline",
+          "url": "https://github.com/diced/zipline",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4430,
+          "name": "copyparty",
+          "url": "https://github.com/9001/copyparty",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4434,
+          "name": "FileRise",
+          "url": "https://github.com/error311/FileRise",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4436,
+          "name": "IFM",
+          "url": "https://github.com/misterunknown/ifm",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4437,
+          "name": "mikochi",
+          "url": "https://github.com/zer0tonin/Mikochi",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4438,
+          "name": "miniserve",
+          "url": "https://github.com/svenstaro/miniserve",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4445,
+          "name": "A Dark Room",
+          "url": "https://github.com/doublespeakgames/adarkroom",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4448,
+          "name": "Hypersomnia",
+          "url": "https://github.com/TeamHypersomnia/Hypersomnia",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4453,
+          "name": "piqueserver",
+          "url": "https://github.com/piqueserver/piqueserver",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4462,
+          "name": "Posio",
+          "url": "https://github.com/abrenaut/posio",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4463,
+          "name": "Razzia",
+          "url": "https://github.com/Ralex91/Razzia",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4465,
+          "name": "Scribble.rs",
+          "url": "https://github.com/scribble-rs/scribble.rs",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4467,
+          "name": "The Battle for Wesnoth",
+          "url": "https://github.com/wesnoth/wesnoth",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4479,
+          "name": "Ownfoil",
+          "url": "https://github.com/a1ex4/ownfoil",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4483,
+          "name": "Retrom",
+          "url": "https://github.com/JMBeresford/retrom",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4495,
+          "name": "LLM Harbor",
+          "url": "https://github.com/av/harbor",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4497,
+          "name": "Local Deep Research",
+          "url": "https://github.com/LearningCircuit/local-deep-research",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4501,
+          "name": "Vane",
+          "url": "https://github.com/ItzCrazyKns/Vane",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4513,
+          "name": "Tracim",
+          "url": "https://github.com/tracim/tracim",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4532,
+          "name": "LHA",
+          "url": "https://github.com/javalikescript/lha",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4550,
+          "name": "Spoolman",
+          "url": "https://github.com/Donkie/Spoolman",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4556,
+          "name": "TeamMapper",
+          "url": "https://github.com/b310-digital/teammapper",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4579,
+          "name": "Bicimon",
+          "url": "https://github.com/knrdl/bicimon",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4581,
+          "name": "Geo2tz",
+          "url": "https://github.com/noandrea/geo2tz",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4592,
+          "name": "wanderer",
+          "url": "https://github.com/open-wanderer/wanderer",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4593,
+          "name": "Deleterr",
+          "url": "https://github.com/rfsbraz/deleterr",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4595,
+          "name": "Medusa",
+          "url": "https://github.com/pymedusa/Medusa",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4596,
+          "name": "MeTube",
+          "url": "https://github.com/alexta69/metube",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4597,
+          "name": "MKVPriority",
+          "url": "https://github.com/kennethsible/mkvpriority",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4602,
+          "name": "Seerr",
+          "url": "https://github.com/seerr-team/seerr",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4604,
+          "name": "Watcharr",
+          "url": "https://github.com/sbondCo/Watcharr",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4605,
+          "name": "ydl_api_ng",
+          "url": "https://github.com/Totonyus/ydl_api_ng",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4606,
+          "name": "YoutubeDL-Server",
+          "url": "https://github.com/nbr23/youtube-dl-server",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4607,
+          "name": "yt-dlp Web UI",
+          "url": "https://github.com/marcopiovanello/yt-dlp-web-ui",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4610,
+          "name": "Audioserve",
+          "url": "https://github.com/izderadicka/audioserve",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4613,
+          "name": "Black Candy",
+          "url": "https://github.com/blackcandy-org/blackcandy",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4616,
+          "name": "gonic",
+          "url": "https://github.com/sentriz/gonic",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4619,
+          "name": "LMS",
+          "url": "https://github.com/epoupon/lms",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4628,
+          "name": "Polaris",
+          "url": "https://github.com/agersant/polaris",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4629,
+          "name": "Snapcast",
+          "url": "https://github.com/snapcast/snapcast",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4630,
+          "name": "Supysonic",
+          "url": "https://github.com/spl0k/supysonic",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4633,
+          "name": "cmyflix",
+          "url": "https://github.com/farfalleflickan/cmyflix",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4639,
+          "name": "Kyoo",
+          "url": "https://github.com/zoriya/kyoo",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4641,
+          "name": "Meelo",
+          "url": "https://github.com/Arthi-chaud/Meelo",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4646,
+          "name": "µStreamer",
+          "url": "https://github.com/pikvm/ustreamer",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4647,
+          "name": "CyTube",
+          "url": "https://github.com/calzoneman/sync",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4649,
+          "name": "OvenMediaEngine",
+          "url": "https://github.com/OvenMediaLabs/OvenMediaEngine",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4652,
+          "name": "Rapidbay",
+          "url": "https://github.com/hauxir/rapidbay/",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4655,
+          "name": "SyncTube",
+          "url": "https://github.com/RblSb/SyncTube",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4656,
+          "name": "Tiramisu",
+          "url": "https://github.com/MrRobotoGit/tiramisu",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4659,
+          "name": "2FAuth",
+          "url": "https://github.com/Bubka/2FAuth",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4663,
+          "name": "Baby Buddy",
+          "url": "https://github.com/babybuddy/babybuddy",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4664,
+          "name": "ClipCascade",
+          "url": "https://github.com/Sathvik-Rao/ClipCascade",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4666,
+          "name": "ConvertX",
+          "url": "https://github.com/C4illin/ConvertX",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4668,
+          "name": "CyberChef",
+          "url": "https://github.com/gchq/CyberChef",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4679,
+          "name": "DOCAT",
+          "url": "https://github.com/docat-org/docat",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4689,
+          "name": "IT-Tools by sharevb",
+          "url": "https://github.com/sharevb/it-tools",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4691,
+          "name": "jetlog",
+          "url": "https://github.com/pbogre/jetlog",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4706,
+          "name": "Pønskelisten",
+          "url": "https://github.com/aunefyren/poenskelisten",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4714,
+          "name": "TeslaMate",
+          "url": "https://github.com/teslamate-org/teslamate",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4716,
+          "name": "URL-to-PNG",
+          "url": "https://github.com/jasonraimondi/url-to-png",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4722,
+          "name": "Wishlist",
+          "url": "https://github.com/cmintey/wishlist",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4731,
+          "name": "ExpenseOwl",
+          "url": "https://github.com/tanq16/expenseowl",
+          "status": "approved",
+          "source": "website_seed"
+        },
+        {
+          "id": 4733,
+          "name": "Family Accounting Tool",
+          "url": "https://github.com/nymanjens/facto",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "same_host_different_path_not_identity"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "different_product_path"
+    },
+    {
+      "source_index": 5,
+      "source_record_sha256": "f3206d44a2d7a69a76ff51e673265c1c069df5244ae9f1c39c8363ca3b77b861",
+      "old": {
+        "id": 274,
+        "name": "Replit",
+        "url": "https://replit.com"
+      },
+      "approved_tags": [
+        "code_generation"
+      ],
+      "signal": "code_generation",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3731,
+          "name": "Replit",
+          "url": "https://replit.com",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3731,
+        "name": "Replit",
+        "url": "https://replit.com",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "code_generation"
+      ]
+    },
+    {
+      "source_index": 6,
+      "source_record_sha256": "0ab053b44e59e51305ed9842183ca5e32d70f3f7ecc5817f6e36dd7538f68750",
+      "old": {
+        "id": 247,
+        "name": "MongoDB",
+        "url": "https://www.mongodb.com"
+      },
+      "approved_tags": [
+        "database"
+      ],
+      "signal": "database",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 7,
+      "source_record_sha256": "173a27cd2a77e75438fcba5c5e0bfdbb887ee76b1e1c2229b87d506db884bf18",
+      "old": {
+        "id": 248,
+        "name": "PostgreSQL",
+        "url": "https://www.postgresql.org"
+      },
+      "approved_tags": [
+        "database"
+      ],
+      "signal": "database",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 8,
+      "source_record_sha256": "db7303509cb3abf317919cc091318d6976083faa0d0b73b103b4ac74ce08cb95",
+      "old": {
+        "id": 246,
+        "name": "Redis",
+        "url": "https://redis.io"
+      },
+      "approved_tags": [
+        "database"
+      ],
+      "signal": "database",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 9,
+      "source_record_sha256": "f100240d462fa9eb985ebe8b07e8dfe494b88cf93a0064ad75b8964f119cf46c",
+      "old": {
+        "id": 235,
+        "name": "Supabase",
+        "url": "https://supabase.com"
+      },
+      "approved_tags": [
+        "backend",
+        "database"
+      ],
+      "signal": "database",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 10,
+      "source_record_sha256": "905343a7d1e54f3b44f15e48a86cb2b94cafda26e5d300993750e8e2b60d871c",
+      "old": {
+        "id": 386,
+        "name": "Sentry",
+        "url": "https://sentry.io"
+      },
+      "approved_tags": [
+        "code_analysis",
+        "debugging"
+      ],
+      "signal": "debugging",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 11,
+      "source_record_sha256": "bf832acb95cfbedec9d6b0b81ffb80fbeaa43d61e964b2ccc6ab6df9b608fdb6",
+      "old": {
+        "id": 35,
+        "name": "Netlify",
+        "url": "https://www.netlify.com"
+      },
+      "approved_tags": [
+        "deployment"
+      ],
+      "signal": "deployment",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 12,
+      "source_record_sha256": "f96fd44fd418574a8146de3f18193145f06d89934bc89a8437d7f15d61e40492",
+      "old": {
+        "id": 36,
+        "name": "Railway",
+        "url": "https://railway.app"
+      },
+      "approved_tags": [
+        "deployment",
+        "devops"
+      ],
+      "signal": "deployment",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3928,
+          "name": "Railway",
+          "url": "https://railway.app",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3928,
+        "name": "Railway",
+        "url": "https://railway.app",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [
+        "devops"
+      ],
+      "new_unique_tags": [
+        "deployment"
+      ]
+    },
+    {
+      "source_index": 13,
+      "source_record_sha256": "feb79f3d3db696378bdb58fa10e4a4e739ab181b2c7a94a645837efc8d0c7e80",
+      "old": {
+        "id": 238,
+        "name": "Render",
+        "url": "https://render.com"
+      },
+      "approved_tags": [
+        "deployment",
+        "devops"
+      ],
+      "signal": "deployment",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3929,
+          "name": "Render",
+          "url": "https://render.com",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3929,
+        "name": "Render",
+        "url": "https://render.com",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "deployment",
+        "devops"
+      ]
+    },
+    {
+      "source_index": 14,
+      "source_record_sha256": "9b39c4aad0efb9d7f2ce40b8309cc22b5e129716a9c316eb955af16f23103de7",
+      "old": {
+        "id": 34,
+        "name": "Vercel",
+        "url": "https://vercel.com"
+      },
+      "approved_tags": [
+        "deployment"
+      ],
+      "signal": "deployment",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 15,
+      "source_record_sha256": "99db9934fa170574cb705b33bb1b11fea236cb8e362a9d080bb6f144e96e00d4",
+      "old": {
+        "id": 520,
+        "name": "Vercel",
+        "url": "https://vercel.com"
+      },
+      "approved_tags": [
+        "deployment"
+      ],
+      "signal": "deployment",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 16,
+      "source_record_sha256": "618490f4e6a4588456c24aedd3f9a7b38a68813208b513927a915f7660ec703b",
+      "old": {
+        "id": 767,
+        "name": "MDN Learn",
+        "url": "https://developer.mozilla.org/docs/Learn"
+      },
+      "approved_tags": [
+        "documentation"
+      ],
+      "signal": "documentation",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3852,
+          "name": "MDN Learn",
+          "url": "https://developer.mozilla.org/docs/Learn",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3852,
+        "name": "MDN Learn",
+        "url": "https://developer.mozilla.org/docs/Learn",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "documentation"
+      ]
+    },
+    {
+      "source_index": 17,
+      "source_record_sha256": "94c5db24bb4f20f0aeecf32dc1c9685754cbc8f75c86452eca7db261e19be2ba",
+      "old": {
+        "id": 27,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org"
+      },
+      "approved_tags": [
+        "documentation"
+      ],
+      "signal": "documentation",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3460,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "documentation"
+      ]
+    },
+    {
+      "source_index": 18,
+      "source_record_sha256": "4aef99ac6e2b11649b15b3d4c8bab3941a01d3fe62182bcaf770e1cdf2b66320",
+      "old": {
+        "id": 522,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org"
+      },
+      "approved_tags": [
+        "documentation"
+      ],
+      "signal": "documentation",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "no_migration_duplicate_review",
+      "target": {
+        "id": 3460,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": []
+    },
+    {
+      "source_index": 19,
+      "source_record_sha256": "1112acab5c6f41037ceb5d5dc1de191b88f4f0d12698deef737642f2b0419898",
+      "old": {
+        "id": 678,
+        "name": "Bitbucket",
+        "url": "https://bitbucket.org"
+      },
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "signal": "git_project_management",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3728,
+          "name": "Bitbucket",
+          "url": "https://bitbucket.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3728,
+        "name": "Bitbucket",
+        "url": "https://bitbucket.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "collaboration",
+        "git_project_management"
+      ]
+    },
+    {
+      "source_index": 22,
+      "source_record_sha256": "e7cf28cf151557370f51c018aaae9f424a443712faeb4381592eec415458ab3e",
+      "old": {
+        "id": 20,
+        "name": "GitHub",
+        "url": "https://github.com"
+      },
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "signal": "git_project_management",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3494,
+          "name": "GitHub",
+          "url": "https://github.com",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3494,
+        "name": "GitHub",
+        "url": "https://github.com",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "collaboration",
+        "git_project_management"
+      ]
+    },
+    {
+      "source_index": 23,
+      "source_record_sha256": "6f6109dd983e11f9c73805dee5e7a7310f262b87a114b2db00bea038caa205f8",
+      "old": {
+        "id": 518,
+        "name": "GitHub",
+        "url": "https://github.com"
+      },
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "signal": "git_project_management",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3494,
+          "name": "GitHub",
+          "url": "https://github.com",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "no_migration_duplicate_review",
+      "target": {
+        "id": 3494,
+        "name": "GitHub",
+        "url": "https://github.com",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": []
+    },
+    {
+      "source_index": 26,
+      "source_record_sha256": "8024fb5f609b44b0ce52c3440561e0c3af61148aac7fdd53d4eb363b3b3042e9",
+      "old": {
+        "id": 21,
+        "name": "GitLab",
+        "url": "https://gitlab.com"
+      },
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "signal": "git_project_management",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3495,
+          "name": "GitLab",
+          "url": "https://gitlab.com",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3495,
+        "name": "GitLab",
+        "url": "https://gitlab.com",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "collaboration",
+        "git_project_management"
+      ]
+    },
+    {
+      "source_index": 27,
+      "source_record_sha256": "835460a484ef25056d8fffb28ba696e8a78d6f7a22d37960b22b902eade55cc7",
+      "old": {
+        "id": 190,
+        "name": "Linear",
+        "url": "https://linear.app"
+      },
+      "approved_tags": [
+        "collaboration",
+        "git_project_management"
+      ],
+      "signal": "git_project_management",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3871,
+          "name": "Linear",
+          "url": "https://linear.app",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3871,
+        "name": "Linear",
+        "url": "https://linear.app",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "collaboration",
+        "git_project_management"
+      ]
+    },
+    {
+      "source_index": 31,
+      "source_record_sha256": "1443c6c1ef2261873913e8f3e0d1f4140d019e51c8f604321e3ba60ba20cb461",
+      "old": {
+        "id": 601,
+        "name": "Go",
+        "url": "https://go.dev/doc"
+      },
+      "approved_tags": [
+        "go",
+        "programming"
+      ],
+      "signal": "go",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3618,
+          "name": "Go",
+          "url": "https://go.dev/doc",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3618,
+        "name": "Go",
+        "url": "https://go.dev/doc",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "go",
+        "programming"
+      ]
+    },
+    {
+      "source_index": 32,
+      "source_record_sha256": "c378f98dfbcce065d133f8625510d843069648917c2ff18491223c83ad6d2c56",
+      "old": {
+        "id": 604,
+        "name": "Java",
+        "url": "https://dev.java/learn"
+      },
+      "approved_tags": [
+        "java",
+        "programming"
+      ],
+      "signal": "java",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3621,
+          "name": "Java",
+          "url": "https://dev.java/learn",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3621,
+        "name": "Java",
+        "url": "https://dev.java/learn",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "java",
+        "programming"
+      ]
+    },
+    {
+      "source_index": 33,
+      "source_record_sha256": "4e8e7088ca90aeeec841a2c19d9479dee7971f1f182a0d8440da2a7f3c97610b",
+      "old": {
+        "id": 767,
+        "name": "MDN Learn",
+        "url": "https://developer.mozilla.org/docs/Learn"
+      },
+      "approved_tags": [
+        "javascript"
+      ],
+      "signal": "javascript",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3852,
+          "name": "MDN Learn",
+          "url": "https://developer.mozilla.org/docs/Learn",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3852,
+        "name": "MDN Learn",
+        "url": "https://developer.mozilla.org/docs/Learn",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "javascript"
+      ]
+    },
+    {
+      "source_index": 34,
+      "source_record_sha256": "683d6bbc2e5d44629a954a8c4fc2d45128c970b8709671e75d1dd72b0566d8ed",
+      "old": {
+        "id": 27,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org"
+      },
+      "approved_tags": [
+        "javascript"
+      ],
+      "signal": "javascript",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3460,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "javascript"
+      ]
+    },
+    {
+      "source_index": 35,
+      "source_record_sha256": "97a2b16e65ba68ccd59e14aae7863e8611dc8a46f99c5458ed9291bb1c03cd49",
+      "old": {
+        "id": 522,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org"
+      },
+      "approved_tags": [
+        "javascript"
+      ],
+      "signal": "javascript",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3460,
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "no_migration_duplicate_review",
+      "target": {
+        "id": 3460,
+        "name": "MDN Web Docs",
+        "url": "https://developer.mozilla.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": []
+    },
+    {
+      "source_index": 36,
+      "source_record_sha256": "0c5f5f97bfa6827be11ad07b76a3dd208dd830dec598f9120054311f608f4f9b",
+      "old": {
+        "id": 847,
+        "name": "Corepack",
+        "url": "https://nodejs.org/api/corepack.html"
+      },
+      "approved_tags": [
+        "javascript",
+        "node"
+      ],
+      "signal": "node",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3459,
+          "name": "Node.js",
+          "url": "https://nodejs.org/docs/latest/api",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "same_host_different_path_not_identity"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "different_product_path"
+    },
+    {
+      "source_index": 37,
+      "source_record_sha256": "65e774211103331b110ba91a30a24845840b88035cd3d4c180fbaffccdf62dec",
+      "old": {
+        "id": 92,
+        "name": "Node.js",
+        "url": "https://nodejs.org"
+      },
+      "approved_tags": [
+        "javascript",
+        "node"
+      ],
+      "signal": "node",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3459,
+          "name": "Node.js",
+          "url": "https://nodejs.org/docs/latest/api",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "name_only_not_identity"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "url_or_locale_changed"
+    },
+    {
+      "source_index": 38,
+      "source_record_sha256": "71a1808046fab5769172de3ec2c4a2b3ba5de429fd2e4fb3ecdf0723a5416114",
+      "old": {
+        "id": 532,
+        "name": "Node.js",
+        "url": "https://nodejs.org/docs/latest/api"
+      },
+      "approved_tags": [
+        "javascript",
+        "node"
+      ],
+      "signal": "node",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3459,
+          "name": "Node.js",
+          "url": "https://nodejs.org/docs/latest/api",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3459,
+        "name": "Node.js",
+        "url": "https://nodejs.org/docs/latest/api",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "javascript",
+        "node"
+      ]
+    },
+    {
+      "source_index": 39,
+      "source_record_sha256": "24b816a354073e3f50ef2abc0b0dc69baca0b597c040b9a73095a816b1da1532",
+      "old": {
+        "id": 533,
+        "name": "Python 文档",
+        "url": "https://docs.python.org/3"
+      },
+      "approved_tags": [
+        "programming",
+        "python"
+      ],
+      "signal": "python",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3461,
+          "name": "Python 文档",
+          "url": "https://docs.python.org/3",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3461,
+        "name": "Python 文档",
+        "url": "https://docs.python.org/3",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "programming",
+        "python"
+      ]
+    },
+    {
+      "source_index": 40,
+      "source_record_sha256": "39af9d4c1624a4e6bb61a8d5d581bbe8e563b8e7c91e308d8d2401ed18347a50",
+      "old": {
+        "id": 85,
+        "name": "React",
+        "url": "https://react.dev"
+      },
+      "approved_tags": [
+        "react"
+      ],
+      "signal": "react",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3451,
+          "name": "React",
+          "url": "https://react.dev",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3451,
+        "name": "React",
+        "url": "https://react.dev",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "react"
+      ]
+    },
+    {
+      "source_index": 41,
+      "source_record_sha256": "4247389aa08cd729e19d5b773004b0b86da4f1addd83e5001426886bf1bdaf30",
+      "old": {
+        "id": 313,
+        "name": "Cypress",
+        "url": "https://www.cypress.io"
+      },
+      "approved_tags": [
+        "testing"
+      ],
+      "signal": "testing",
+      "candidate_count": 0,
+      "candidates": [],
+      "old_id_current_record": null,
+      "match_basis": [
+        "no_catalog_candidate"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "resource_missing"
+    },
+    {
+      "source_index": 42,
+      "source_record_sha256": "68a61c2e106679daa82b44765bb5472c1367edb188ca7c55fa490578ccdd53f6",
+      "old": {
+        "id": 125,
+        "name": "Playwright",
+        "url": "https://playwright.dev"
+      },
+      "approved_tags": [
+        "testing"
+      ],
+      "signal": "testing",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3935,
+          "name": "Playwright",
+          "url": "https://playwright.dev",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3935,
+        "name": "Playwright",
+        "url": "https://playwright.dev",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "testing"
+      ]
+    },
+    {
+      "source_index": 43,
+      "source_record_sha256": "5bdcd1bb1f2770a68db42d694e6c4a8e91f9aa2aebb1e8b47592f22bea11a40c",
+      "old": {
+        "id": 94,
+        "name": "TypeScript",
+        "url": "https://www.typescriptlang.org"
+      },
+      "approved_tags": [
+        "typescript"
+      ],
+      "signal": "typescript",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3458,
+          "name": "TypeScript",
+          "url": "https://www.typescriptlang.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3458,
+        "name": "TypeScript",
+        "url": "https://www.typescriptlang.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "typescript"
+      ]
+    },
+    {
+      "source_index": 44,
+      "source_record_sha256": "693a91d75198fb1fa597a8977d12a85fa664aa24ce6d5f0f2e298e8c885da6a1",
+      "old": {
+        "id": 84,
+        "name": "Vue.js",
+        "url": "https://cn.vuejs.org"
+      },
+      "approved_tags": [
+        "vue"
+      ],
+      "signal": "vue",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3450,
+          "name": "Vue.js",
+          "url": "https://vuejs.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "name_only_not_identity"
+      ],
+      "status": "unresolved",
+      "target": null,
+      "conflict_reason": "url_or_locale_changed"
+    },
+    {
+      "source_index": 45,
+      "source_record_sha256": "c784466c15957849e842095e6c7d52c13e21c1eb6343851dd0c9d3e8d1034071",
+      "old": {
+        "id": 530,
+        "name": "Vue.js",
+        "url": "https://vuejs.org"
+      },
+      "approved_tags": [
+        "vue"
+      ],
+      "signal": "vue",
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "id": 3450,
+          "name": "Vue.js",
+          "url": "https://vuejs.org",
+          "status": "approved",
+          "source": "website_seed"
+        }
+      ],
+      "old_id_current_record": null,
+      "match_basis": [
+        "unique_complete_normalized_url",
+        "same_product_name",
+        "active_catalog_record"
+      ],
+      "status": "resolved_pending",
+      "target": {
+        "id": 3450,
+        "name": "Vue.js",
+        "url": "https://vuejs.org",
+        "status": "approved",
+        "source": "website_seed"
+      },
+      "conflict_reason": "id_changed",
+      "existing_tags": [],
+      "new_unique_tags": [
+        "vue"
+      ]
+    }
+  ],
+  "historical_merge_status": "unknown; shared targets show duplicate review identities, not proof of a historical database merge",
+  "shared_target_old_ids": [
+    {
+      "target_id": 3460,
+      "old_ids": [
+        27,
+        522
+      ]
+    },
+    {
+      "target_id": 3494,
+      "old_ids": [
+        20,
+        518
+      ]
+    }
+  ],
+  "capture": {
+    "captured_at": "2026-09-25T06:34:12.295409+00:00",
+    "database": "nav_site",
+    "alias_column_exists": false,
+    "stored_identity_or_redirect_tables": []
+  },
+  "observed_causes": {
+    "current_id_range": [
+      3438,
+      4750
+    ],
+    "catalog_source_counts": {
+      "website_seed": 1305
+    },
+    "old_approved_ids_present": 0,
+    "operation_that_changed_ids": "unknown: no website history/merge/redirect ledger available; seed importer inserts missing URLs but does not prove which past operation replaced IDs",
+    "conflict_reason_counts": {
+      "resource_missing": 12,
+      "id_changed": 23,
+      "different_product_path": 2,
+      "url_or_locale_changed": 2
+    }
+  }
+}

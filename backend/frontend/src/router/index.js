@@ -14,15 +14,6 @@ function prefersReducedMotion() {
   );
 }
 
-const profileQuestionnaireLocation = {
-  name: "Profile",
-  hash: "#questionnaire",
-};
-
-function openProfileQuestionnaire(to) {
-  return to.hash ? true : profileQuestionnaireLocation;
-}
-
 const routes = [
   { path: "/", name: "Home", component: () => import("../views/Home.vue") },
   {
@@ -50,16 +41,6 @@ const routes = [
     meta: { requiresAuth: true, allowIncompleteQuestionnaire: true },
   },
   {
-    path: "/categories",
-    name: "Categories",
-    component: () => import("../views/Categories.vue"),
-  },
-  {
-    path: "/category/:id",
-    name: "CategoryDetail",
-    component: () => import("../views/CategoryDetail.vue"),
-  },
-  {
     path: "/site/:id",
     name: "SiteDetail",
     component: () => import("../views/SiteDetail.vue"),
@@ -80,14 +61,17 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: () => import("../views/ProfileView.vue"),
-    beforeEnter: openProfileQuestionnaire,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/profile/:section(personalization|survey|favorites|history|password)",
+    name: "ProfileSection",
+    component: () => import("../views/ProfileView.vue"),
     meta: { requiresAuth: true },
   },
   {
     path: "/personalization",
-    name: "Personalization",
-    component: () => import("../views/PersonalizationView.vue"),
-    meta: { public: true },
+    redirect: { name: "ProfileSection", params: { section: "personalization" } },
   },
   ...[
     "/profile/recommend",
@@ -97,7 +81,7 @@ const routes = [
     "/user/recommendation",
   ].map((path) => ({
     path,
-    redirect: profileQuestionnaireLocation,
+    redirect: { name: "ProfileSection", params: { section: "survey" } },
     meta: { requiresAuth: true },
   })),
   {
@@ -219,7 +203,7 @@ const router = createRouter({
 
     return {
       top: 0,
-      behavior: prefersReducedMotion() ? "auto" : "smooth",
+      behavior: "auto",
     };
   },
 });

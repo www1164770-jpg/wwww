@@ -91,7 +91,7 @@ function selectCareer(career) {
 
 .career-card:hover,
 .career-card.active {
-  border-color: #ff7058;
+  border-color: var(--color-primary);
   background: var(--app-card-hover-bg);
   transform: translateY(-5px);
   box-shadow: var(--app-card-hover-shadow);
@@ -132,7 +132,7 @@ function selectCareer(career) {
   border-radius: var(--radius-pill);
   padding: 6px 10px;
   color: var(--color-primary-dark);
-  background: rgba(255, 112, 88, 0.1);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
   font-size: 12px;
   font-style: normal;
   font-weight: 750;

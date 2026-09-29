@@ -1,0 +1,13 @@
+{
+  "source": "actual isolated HTTP after backend restart without --new-policy",
+  "login_status": 200,
+  "preferences": {
+    "enabled": false,
+    "items": []
+  },
+  "career_status": 200,
+  "career_resource_count": 21,
+  "no_new_policy_fields": true,
+  "search_status": 200,
+  "search_count": 20
+}

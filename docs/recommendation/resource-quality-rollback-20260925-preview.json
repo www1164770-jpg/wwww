@@ -1,0 +1,8 @@
+{
+  "version": "20260924_resource_quality_v1",
+  "command": "rollback-preview",
+  "database": "nav_site",
+  "captured_at": "2026-09-25T06:20:44.820640+00:00",
+  "database_write_performed": false,
+  "changes": []
+}

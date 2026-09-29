@@ -1,6 +1,5 @@
 <template>
   <div class="page">
-    <AppHeader />
     <main class="panel">
       <div class="panel-heading">
         <AnimatedPageTitle>完成你的专属问卷</AnimatedPageTitle>
@@ -33,7 +32,6 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
-import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import QuestionnaireForm from "../components/questionnaire/QuestionnaireForm.vue";
 import { getAccessToken, isValidAuthToken } from "../utils/auth";
@@ -77,8 +75,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: linear-gradient(180deg, #fff 0%, #fffaf8 100%); }
-.panel { display: grid; gap: 28px; width: min(980px, calc(100% - 40px)); margin: 52px auto 78px; border: 1px solid var(--color-border); border-radius: 24px; background: rgba(255,255,255,.96); padding: clamp(24px,4vw,42px); box-shadow: var(--shadow-card); }
+.page { min-height: 100vh; background: #ffffff; }
+.panel { display: grid; gap: 28px; width: min(980px, calc(100% - 40px)); margin: 0 auto 78px; border: 1px solid var(--color-border); border-radius: 24px; background: #ffffff; padding: clamp(24px,4vw,42px); box-shadow: var(--shadow-card); }
 .panel-heading { display: grid; gap: 10px; text-align: center; }
 h1 { margin: 0; color: var(--color-heading); font-size: clamp(34px,5vw,52px); line-height: 1.12; }
 .panel-heading p { max-width: 700px; margin: 0 auto; color: #718096; line-height: 1.7; }
@@ -86,5 +84,5 @@ h1 { margin: 0; color: var(--color-heading); font-size: clamp(34px,5vw,52px); li
 .secondary-actions { display: flex; justify-content: center; }
 .ghost { border: 1px solid rgba(255,112,88,.34); border-radius: var(--radius-pill); background: #fff; color: var(--color-primary); padding: 12px 18px; font-weight: 850; }
 .ghost:hover, .ghost:focus-visible { background: var(--color-soft-orange); color: var(--color-primary-dark); outline: none; }
-@media (max-width: 768px) { .panel { width: min(100% - 28px, 980px); margin-top: 32px; } }
+@media (max-width: 768px) { .panel { width: min(100% - 28px, 980px); } }
 </style>

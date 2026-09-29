@@ -1,0 +1,17 @@
+{
+  "version": "20260924_resource_quality_v1",
+  "command": "rollback",
+  "database": "resource_chain_7a54fb93b0d4_test",
+  "captured_at": "2026-09-27T06:11:24.048742+00:00",
+  "database_write_performed": true,
+  "changes": [
+    {
+      "id": 1,
+      "version": "20260924_resource_quality_v1",
+      "change_key": "fc6dc8e2e8011d8f6d0eaf141f65e12877f756992681b539284284826ca59a84",
+      "kind": "tag",
+      "payload": "{\"kind\": \"tag\", \"site_id\": 1, \"tag\": \"api_debugging\", \"already_present\": false, \"evidence\": \"Synthetic test review\", \"review_url\": \"https://example.test/API\", \"owned_id\": 8, \"tag_id\": 7}",
+      "state": "active"
+    }
+  ]
+}

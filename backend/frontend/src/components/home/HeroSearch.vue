@@ -7,11 +7,16 @@
   >
     <div class="hero-copy">
       <ParticleText
-        id="home-hero-title"
+        v-if="false"
+        id="home-hero-title-particles"
         class="hero-particle-title"
         :style="{ '--particle-title-color': particleTitleColor }"
         text="根据你的职业，推荐最适合的工具"
       />
+      <h1 id="home-hero-title">
+        <span>根据你的职业，</span>
+        <span>推荐<strong>最适合</strong>的资源</span>
+      </h1>
       <p>
         收集、筛选和推荐高质量网站资源，让学习、工作、创作和项目开发更高效。
       </p>
@@ -31,8 +36,6 @@
         @engine-menu-change="engineMenuOpen = $event"
       />
     </div>
-
-    <p class="hero-stats">已收录工具 · 热门分类 · 个性化推荐已开启</p>
   </section>
 </template>
 
@@ -61,7 +64,7 @@ const particleTitleColor = computed(() => {
     settings?.typography?.mode === "auto";
 
   return usesDefaultAppearance
-    ? "#111827"
+    ? "#0A234A"
     : "var(--heading-text-color, var(--app-text-primary))";
 });
 </script>
@@ -72,12 +75,12 @@ const particleTitleColor = computed(() => {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: clamp(380px, 46vh, 480px);
+  min-height: clamp(420px, 54vh, 540px);
   place-items: center;
   align-content: center;
-  gap: 28px;
+  gap: 46px;
   box-sizing: border-box;
-  padding: 32px 20px 24px;
+  padding: 0 20px;
   overflow: visible;
   background: var(--app-page-bg);
 }
@@ -95,7 +98,7 @@ const particleTitleColor = computed(() => {
   display: grid;
   width: min(var(--container), calc(100% - 40px));
   justify-items: center;
-  gap: 18px;
+  gap: 24px;
   text-align: center;
   padding: 0;
   border: 0;
@@ -107,24 +110,35 @@ const particleTitleColor = computed(() => {
 
 h1 {
   margin: 0;
-  color: var(--app-text-primary);
-  font-size: clamp(64px, 5.1vw, 88px);
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  color: #0a234a;
+  font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif;
+  font-size: clamp(52px, 4.2vw, 70px);
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: 0.025em;
   white-space: nowrap;
+}
+
+h1 span {
+  display: block;
+}
+
+h1 strong {
+  color: var(--primary);
+  font-weight: inherit;
 }
 
 .hero-copy p {
   margin: 0;
-  max-width: 700px;
-  color: var(--app-text-secondary);
-  font-size: 18px;
-  line-height: 1.75;
+  max-width: 900px;
+  color: #566a89;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: clamp(17px, 1.25vw, 20px);
+  line-height: 1.5;
 }
 
 .hero-search__bar {
-  width: min(820px, calc(100vw - 40px));
+  width: min(1000px, calc(100vw - 360px));
   justify-self: center;
 }
 
@@ -134,11 +148,59 @@ h1 {
   place-items: center;
 }
 
-.hero-stats {
-  margin: 0;
-  color: var(--app-text-muted);
-  font-size: 14px;
-  font-weight: 750;
+:deep(.hero-search__bar .search-bar) {
+  width: 100%;
+  max-width: none;
+  min-height: 70px;
+  border-color: rgba(220, 230, 245, 0.7);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 25px rgba(80, 120, 180, 0.1);
+  padding: 5px 6px;
+}
+
+:deep(.hero-search__bar .engine-picker) {
+  flex-basis: 160px;
+  height: 58px;
+  border-right: 1px solid rgba(210, 223, 244, 0.95);
+  padding-right: 12px;
+}
+
+:deep(.hero-search__bar .engine-picker__trigger) {
+  border-color: transparent;
+  background: rgba(247, 250, 255, 0.82);
+  color: #213b65;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 17px;
+}
+
+:deep(.hero-search__bar .engine-picker__chevron) {
+  color: #0a234a;
+}
+
+:deep(.hero-search__bar .search-input) {
+  height: 58px;
+  color: #213b65;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 18px;
+}
+
+:deep(.hero-search__bar .search-input::placeholder) {
+  color: #8596b3;
+  opacity: 1;
+}
+
+:deep(.hero-search__bar .search-button) {
+  flex-basis: 58px;
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  background: var(--primary);
+  box-shadow: 0 7px 16px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+:deep(.hero-search__bar .search-button:hover),
+:deep(.hero-search__bar .search-button:focus-visible) {
+  background: var(--primary-hover);
 }
 
 @media (max-width: 640px) {
@@ -156,7 +218,11 @@ h1 {
 
   h1 {
     font-size: clamp(34px, 10vw, 44px);
-    white-space: nowrap;
+    white-space: normal;
+  }
+
+  .hero-search__bar {
+    width: min(100%, calc(100vw - 32px));
   }
 }
 </style>

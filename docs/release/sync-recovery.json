@@ -1,0 +1,134 @@
+{
+  "database": "resource_chain_7a54fb93b0d4_test",
+  "original": {
+    "summary": "接口调试 HTTP API",
+    "status": "approved"
+  },
+  "checks": [
+    {
+      "label": "synthetic resource restored",
+      "at": 1790606523.8580842,
+      "data": {
+        "id": 49
+      }
+    },
+    {
+      "label": "worker stopped: committed update visible through pending-index fallback",
+      "at": 1790606552.2254415,
+      "data": {
+        "cached": false,
+        "dataVersion": "search-v2:10:7",
+        "durationMs": 8.333,
+        "fallbackReason": null,
+        "relaxed": false,
+        "source": "meilisearch+pending_database",
+        "truncated": false
+      }
+    },
+    {
+      "label": "restarted real worker confirms index task",
+      "at": 1790606617.4898727,
+      "data": {
+        "cached": false,
+        "dataVersion": "search-v2:10:10",
+        "durationMs": 20.074,
+        "fallbackReason": null,
+        "relaxed": false,
+        "source": "meilisearch",
+        "truncated": false
+      }
+    },
+    {
+      "label": "redis warm version after index success",
+      "at": 1790606617.5259707,
+      "data": {
+        "cached": true,
+        "dataVersion": "search-v2:10:10",
+        "durationMs": 9.193,
+        "fallbackReason": null,
+        "relaxed": false,
+        "source": "meilisearch",
+        "truncated": false
+      }
+    },
+    {
+      "label": "unpublished resource immediately absent before worker catches up",
+      "at": 1790606665.7319918,
+      "data": {
+        "cached": false,
+        "dataVersion": "search-v2:11:10",
+        "durationMs": 10.893,
+        "fallbackReason": null,
+        "relaxed": false,
+        "source": "meilisearch+pending_database",
+        "truncated": false
+      }
+    },
+    {
+      "label": "actual index document deleted after worker restart",
+      "at": 1790606698.6970928,
+      "data": {
+        "status": 404
+      }
+    },
+    {
+      "label": "synthetic resource restored",
+      "at": 1790606699.0565913,
+      "data": {
+        "id": 49
+      }
+    },
+    {
+      "label": "restored resource, drained outbox and no stale marker",
+      "at": 1790606701.0426269,
+      "data": {
+        "outbox": [
+          {
+            "status": "processed",
+            "n": 12
+          }
+        ],
+        "retrieval": {
+          "cached": false,
+          "dataVersion": "search-v2:12:12",
+          "durationMs": 11.117,
+          "fallbackReason": null,
+          "relaxed": false,
+          "source": "meilisearch",
+          "truncated": false
+        }
+      }
+    },
+    {
+      "label": "synthetic resource restored",
+      "at": 1790607067.3288994,
+      "data": {
+        "id": 49
+      }
+    },
+    {
+      "label": "restored resource, drained outbox and no stale marker",
+      "at": 1790607069.3389807,
+      "data": {
+        "outbox": [
+          {
+            "status": "processed",
+            "n": 13
+          }
+        ],
+        "retrieval": {
+          "cached": false,
+          "dataVersion": "search-v2:13:13",
+          "durationMs": 16.63,
+          "fallbackReason": null,
+          "relaxed": false,
+          "source": "meilisearch",
+          "truncated": false
+        }
+      }
+    }
+  ],
+  "initial_probe": "wrong assertion expected database-only; actual pending-index overlay was correct, original verified from stopped index",
+  "status": "passed",
+  "restoration_note": "Initial report read used Windows default encoding; corrected to UTF-8. Original synthetic summary independently verified against fixture generator and unchanged description."
+}

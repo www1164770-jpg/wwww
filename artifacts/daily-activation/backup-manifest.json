@@ -1,0 +1,127 @@
+{
+  "backup_directory": "C:\\Users\\ASUS\\AppData\\Local\\zhihangyu-backups\\20260929-140158",
+  "dump": "C:\\Users\\ASUS\\AppData\\Local\\zhihangyu-backups\\20260929-140158\\nav_site.sql",
+  "dump_bytes": 744171,
+  "sha256": "fdc449ce9c3f50e245a01cbafec4239da792335bb5055c3b9af859f6eb5fff92",
+  "restore_database": "nav_site_restore_20260929140158",
+  "all_tables_equal": true,
+  "tables": {
+    "app_settings": {
+      "count": 0,
+      "checksum": 0
+    },
+    "categories": {
+      "count": 18,
+      "checksum": 722374434
+    },
+    "click_logs": {
+      "count": 0,
+      "checksum": 0
+    },
+    "comments": {
+      "count": 0,
+      "checksum": 0
+    },
+    "email_verification_codes": {
+      "count": 2,
+      "checksum": 41673461
+    },
+    "favorites": {
+      "count": 0,
+      "checksum": 0
+    },
+    "occupations": {
+      "count": 0,
+      "checksum": 0
+    },
+    "password_reset_codes": {
+      "count": 2,
+      "checksum": 4123084565
+    },
+    "questionnaire_conditions": {
+      "count": 0,
+      "checksum": 0
+    },
+    "questionnaire_definitions": {
+      "count": 0,
+      "checksum": 0
+    },
+    "questionnaire_options": {
+      "count": 0,
+      "checksum": 0
+    },
+    "questionnaire_questions": {
+      "count": 0,
+      "checksum": 0
+    },
+    "questionnaire_versions": {
+      "count": 0,
+      "checksum": 0
+    },
+    "recommendation_logs": {
+      "count": 0,
+      "checksum": 0
+    },
+    "recommendation_observation_snapshots": {
+      "count": 0,
+      "checksum": 0
+    },
+    "site_occupations": {
+      "count": 563,
+      "checksum": 819979284
+    },
+    "site_tags": {
+      "count": 4645,
+      "checksum": 3447616315
+    },
+    "tags": {
+      "count": 123,
+      "checksum": 325462772
+    },
+    "user_background_settings": {
+      "count": 0,
+      "checksum": 0
+    },
+    "user_backgrounds": {
+      "count": 0,
+      "checksum": 0
+    },
+    "user_behavior_events": {
+      "count": 233,
+      "checksum": 2000723059
+    },
+    "user_behaviors": {
+      "count": 2,
+      "checksum": 1347481620
+    },
+    "user_favorites": {
+      "count": 0,
+      "checksum": 0
+    },
+    "user_personalization_settings": {
+      "count": 1,
+      "checksum": 119219135
+    },
+    "user_profiles": {
+      "count": 1,
+      "checksum": 301973249
+    },
+    "user_questionnaire_responses": {
+      "count": 1,
+      "checksum": 4075938970
+    },
+    "users": {
+      "count": 1,
+      "checksum": 1008599155
+    },
+    "websites": {
+      "count": 1305,
+      "checksum": 1772026701
+    }
+  },
+  "source": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "nav_site"
+  }
+}

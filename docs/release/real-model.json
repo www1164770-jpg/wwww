@@ -1,0 +1,10 @@
+{
+  "captured_at": "2026-09-28T14:33:07.717409+00:00",
+  "database": "ai_retrieval_80183efd0298_test",
+  "provider": "existing DeepSeek client",
+  "real_model_executed": false,
+  "cases": [],
+  "retrieval": "shared SearchService, explicit database mode, read-only isolated fixture",
+  "status": "not_executed",
+  "reason": "missing_credentials"
+}

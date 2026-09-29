@@ -784,7 +784,7 @@ onBeforeUnmount(() => {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: #ff7058;
+  color: var(--color-primary);
   pointer-events: none;
   transition: transform 0.2s ease;
 }
@@ -868,7 +868,7 @@ onBeforeUnmount(() => {
 }
 
 .engine-menu__option:focus-visible {
-  outline: 2px solid rgba(255, 112, 88, 0.45);
+  outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
   outline-offset: -2px;
 }
 
@@ -932,7 +932,7 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: var(--color-primary);
   color: var(--app-text-inverse);
-  box-shadow: 0 12px 24px rgba(255, 112, 88, 0.2);
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--primary) 20%, transparent);
   transition:
     transform var(--transition),
     background var(--transition),
@@ -948,7 +948,7 @@ onBeforeUnmount(() => {
 .search-button:focus-visible {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 16px 30px rgba(255, 112, 88, 0.26);
+  box-shadow: 0 16px 30px color-mix(in srgb, var(--primary) 26%, transparent);
   outline: none;
 }
 

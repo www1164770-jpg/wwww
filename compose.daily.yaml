@@ -1,0 +1,21 @@
+# Native MySQL/application daily mode; start only redis and meilisearch here.
+# The existing container-MySQL volumes in compose.yaml are never mounted.
+name: zhihangyu-daily
+services:
+  redis:
+    image: redis:7.4.11
+    ports:
+      - "127.0.0.1:16380:6379"
+    volumes:
+      - daily_redis_data:/data
+  meilisearch:
+    image: getmeili/meilisearch:v1.12.8
+    ports:
+      - "127.0.0.1:17701:7700"
+    volumes:
+      - daily_meili_data:/meili_data
+volumes:
+  daily_redis_data:
+    name: zhihangyu_daily_redis_data
+  daily_meili_data:
+    name: zhihangyu_daily_meili_data

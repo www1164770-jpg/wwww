@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { verifyFavoriteRaces } from './verify-favorite-account-race.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file) => readFileSync(resolve(root, file), "utf8");
@@ -10,7 +11,6 @@ const favoriteStar = read("src/components/site/FavoriteStarButton.vue");
 const normalizer = read("src/utils/normalizeSite.js");
 const recommend = read("src/components/home/RecommendSection.vue");
 const category = read("src/components/home/CategorySection.vue");
-const categoryDetail = read("src/views/CategoryDetail.vue");
 const home = read("src/views/Home.vue");
 const aiAssistant = read("src/components/ai/AiSiteAssistant.vue");
 const favoriteStack = read("src/components/home/FavoriteStack.vue");
@@ -68,12 +68,6 @@ const checks = [
     /<SiteCard[\s\S]*?variant="category"/.test(category),
   ],
   [
-    "The category detail page renders SiteCard favorites",
-    /<SiteCard[\s\S]*?variant="category"[\s\S]*?@select="handleWebsiteClick"/.test(
-      categoryDetail,
-    ),
-  ],
-  [
     "AI recommendation result cards use the shared favorite component",
     /class="ai-site-assistant__result"[\s\S]*?<FavoriteStarButton\s+:site="site"/.test(
       aiAssistant,
@@ -81,7 +75,7 @@ const checks = [
   ],
   [
     "The common-tools card keeps its link and favorite button as siblings",
-    /<article[\s\S]*?class="compact-tool-card"[\s\S]*?<a[\s\S]*?<\/a>[\s\S]*?<FavoriteStarButton/.test(
+    /<article[\s\S]*?class="compact-tool-card(?:\s[^"]*)?"[\s\S]*?<a[\s\S]*?<\/a>[\s\S]*?<FavoriteStarButton/.test(
       favoriteStack,
     ) &&
       !/<a\b[^>]*>[\s\S]*?<FavoriteStarButton[\s\S]*?<\/a>/.test(favoriteStack),
@@ -99,13 +93,9 @@ const checks = [
   ],
   [
     "Add and remove pending state is always cleared",
-    /function endPending\(favoriteKey\)/.test(store) &&
-      /favoriteAPI\.addFavorite\(site, note\)[\s\S]*?finally \{\s*endPending\(favoriteKey\)/.test(
-        store,
-      ) &&
-      /favoriteAPI\.removeFavorite\(site\)[\s\S]*?finally \{\s*endPending\(favoriteKey\)/.test(
-        store,
-      ),
+    // Execute both success/failure paths: clear the owner's pending state,
+    // never clear another account's newer operation after a late response.
+    await verifyFavoriteRaces(),
   ],
   [
     "Duplicate add and missing remove are idempotent",

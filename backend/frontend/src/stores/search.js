@@ -125,11 +125,18 @@ export const useSearchStore = defineStore("search", () => {
 
   async function search(rawParams = {}, options = {}) {
     const params = normalizeParams(rawParams);
+    // Validate the shared database/index generation before reusing public rows.
+    // A failed validation must not display a resource that may be unpublished.
+    const versionResponse = await searchAPI.version({ signal: options.signal });
+    const versionPayload = unwrapResponse(versionResponse);
+    const serverVersion = versionPayload?.dataVersion;
+    const cacheable = versionPayload?.cacheable === true;
+    if (serverVersion) dataVersion.value = serverVersion;
     const key = cacheKey(params, dataVersion.value);
     const cachedPayload = resultsByKey[key] || null;
     const cacheAge = Date.now() - Number(lastFetchedAtByKey[key] || 0);
 
-    if (!options.force && cachedPayload && cacheAge < SEARCH_CACHE_TTL_MS) {
+    if (!options.force && cacheable && cachedPayload && cacheAge < SEARCH_CACHE_TTL_MS) {
       statusByKey[key] = "ready";
       errorByKey[key] = null;
       return { payload: cachedPayload, fromCache: true, staleError: null };
@@ -162,6 +169,12 @@ export const useSearchStore = defineStore("search", () => {
       errorByKey[key] = normalizedError;
       if (normalizedError.type === "canceled") throw error;
       if (cachedPayload) {
+        const verifiedState = unwrapResponse(
+          await searchAPI.version({ signal: options.signal }),
+        );
+        if (verifiedState?.cacheable !== true || verifiedState?.dataVersion !== dataVersion.value) {
+          throw Object.assign(error, { searchError: normalizedError });
+        }
         return {
           payload: cachedPayload,
           fromCache: true,

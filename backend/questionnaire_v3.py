@@ -267,6 +267,15 @@ def answer_path(answers):
 def validate_answers(answers):
     if not isinstance(answers, dict):
         raise ValueError("answers must be an object")
+    for key, value in answers.items():
+        question_data = QUESTIONNAIRE_CONFIG["questions"].get(key)
+        if not question_data:
+            continue
+        if question_data["type"] == "multi":
+            if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+                raise ValueError(f"invalid answer for {key}")
+        elif not isinstance(value, str):
+            raise ValueError(f"invalid answer for {key}")
     clean, path = {}, answer_path(answers)
     if not path or answers.get("occupation") not in {item["value"] for item in QUESTIONNAIRE_CONFIG["questions"]["occupation"]["options"]}:
         raise ValueError("occupation is required")
@@ -280,7 +289,7 @@ def validate_answers(answers):
                 raise ValueError(f"invalid answer for {question_id}")
             if data.get("maxSelections") and len(value) > data["maxSelections"]:
                 raise ValueError(f"too many selections for {question_id}")
-            if len(value) != len(set(value)) or any(item not in valid_values for item in value):
+            if any(not isinstance(item, str) for item in value) or len(value) != len(set(value)) or any(item not in valid_values for item in value):
                 raise ValueError(f"invalid answer for {question_id}")
             clean[question_id] = list(value)
         elif not isinstance(value, str) or value not in valid_values:
@@ -307,7 +316,7 @@ def _values(answers, keys):
 def build_recommendation_profile(answers):
     occupation = answers.get("occupation", "other")
     secondary_role = answers.get("freelancer_secondary_role", "")
-    direction = _first(answers, ("developer_direction", "designer_direction", "creator_type", "product_role", "general_scenario"))
+    direction = _first(answers, ("developer_direction", "designer_direction", "creator_type", "product_role", "general_scenario", "student_stage", "office_role"))
     if occupation == "developer" or (occupation == "freelancer" and "developer_direction" in answers):
         career = DEVELOPER_DIRECTION_TO_CAREER.get(answers.get("developer_direction"), "other")
     elif occupation == "freelancer" and "designer_direction" in answers:
@@ -317,6 +326,7 @@ def build_recommendation_profile(answers):
     else:
         career = OCCUPATION_TO_CAREER.get(occupation, "other")
     primary_need = _first(answers, ("developer_need", "student_need", "designer_need", "creator_need", "teacher_need", "office_need", "product_need", "general_need"))
+    detailed_needs = _values(answers, ("research_need", "coding_need", "office_automation_need"))
     tasks = _values(answers, ("developer_tasks", "student_tasks", "designer_stage", "creator_tasks", "teacher_tasks", "office_tasks", "product_tasks"))
     pain_points = _values(answers, ("developer_pain_points", "student_pain_points", "designer_pain_points", "freelancer_business_needs"))
     skills = _values(answers, ("tech_stack", "study_field", "teacher_subject"))
@@ -324,7 +334,7 @@ def build_recommendation_profile(answers):
     # arbitrary answer values are never copied wholesale into the catalog tags.
     tags = list(dict.fromkeys([
         *PROFILE_CATEGORIES.get(occupation, ["general"]), direction, primary_need,
-        *skills, *tasks, *pain_points, *answers.get("goals", []), *answers.get("platforms", []),
+        *skills, *tasks, *pain_points, *detailed_needs, *answers.get("goals", []), *answers.get("platforms", []),
         answers.get("budget_preference", ""), answers.get("ai_usage_style", ""),
     ]))
     tags = [tag for tag in tags if tag]
@@ -332,7 +342,8 @@ def build_recommendation_profile(answers):
     return {
         "profile_schema_version": 3, "occupation": occupation, "secondary_role": secondary_role,
         "career_code": career, "direction": direction, "experience_level": answers.get("experience_level", ""),
-        "primary_need": primary_need, "secondary_needs": tasks[1:], "skills": skills, "tasks": tasks,
+        "primary_need": primary_need, "detailed_needs": detailed_needs,
+        "secondary_needs": list(dict.fromkeys([*detailed_needs, *tasks[1:]])), "skills": skills, "tasks": tasks,
         "pain_points": pain_points, "goals": list(answers.get("goals", [])), "priorities": priorities,
         "priority": priorities[0] if priorities else "", "primary_priority": priorities[0] if priorities else "",
         "platforms": list(answers.get("platforms", [])), "budget_preference": answers.get("budget_preference", ""),

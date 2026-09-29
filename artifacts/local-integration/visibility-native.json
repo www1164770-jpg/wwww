@@ -1,0 +1,50 @@
+{
+  "batch": "special-native-1790660793795",
+  "events": [
+    {
+      "ms": 3.200000047683716,
+      "ratio": 1,
+      "type": "armed",
+      "visibility": "visible"
+    },
+    {
+      "ms": 38,
+      "type": "visibilitychange",
+      "visibility": "hidden"
+    },
+    {
+      "ms": 1612.8000000715256,
+      "type": "visibilitychange",
+      "visibility": "visible"
+    },
+    {
+      "ms": 2657.8000000715256,
+      "status": 200,
+      "type": "response",
+      "visibility": "visible"
+    }
+  ],
+  "kind": "native Chromium visibility, IntersectionObserver and wall clock; real isolated HTTP",
+  "requests": [
+    {
+      "body": {
+        "event_type": "impression",
+        "metadata": {
+          "event_version": "visible-v2",
+          "position": 1,
+          "position_version": "display-position-v1",
+          "visible_ms": 1000,
+          "visible_ratio": 0.5
+        },
+        "profile_schema_version": "",
+        "profile_version": "",
+        "questionnaire_version": "",
+        "recommendation_batch_id": "special-native-1790660793795",
+        "session_id": "sess_mum97dad_b1sdf5bn",
+        "source": "other",
+        "website_id": 91002
+      },
+      "ms": 2626.600000023842
+    }
+  ]
+}

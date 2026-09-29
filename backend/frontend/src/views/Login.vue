@@ -288,10 +288,7 @@ async function submit() {
   min-height: 100dvh;
   overflow: hidden;
   padding: 0;
-  background:
-    radial-gradient(circle at 16% 18%, rgba(219, 234, 254, 0.75), transparent 34%),
-    radial-gradient(circle at 84% 18%, rgba(254, 226, 226, 0.55), transparent 34%),
-    linear-gradient(110deg, #f7fbff 0%, #ffffff 50%, #fff8f7 100%);
+  background: #ffffff;
   isolation: isolate;
 }
 
@@ -303,11 +300,7 @@ async function submit() {
   width: clamp(100px, 11vw, 180px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at 35% 35%,
-    rgba(255, 255, 255, 0.25),
-    rgba(252, 165, 165, 0.3)
-  );
+  background: #ffffff;
   filter: blur(0.2px);
   opacity: 0.65;
   content: "";
@@ -320,7 +313,7 @@ async function submit() {
   left: 83%;
   width: 110px;
   height: 90px;
-  background-image: radial-gradient(circle, rgba(226, 124, 124, 0.16) 2px, transparent 2.5px);
+  background-image: none;
   background-size: 20px 20px;
   opacity: 0.55;
   content: "";
@@ -333,7 +326,7 @@ async function submit() {
   left: 22%;
   width: 72px;
   height: 128px;
-  background-image: radial-gradient(circle, rgba(116, 153, 195, 0.35) 1.5px, transparent 2px);
+  background-image: none;
   background-size: 18px 18px;
   opacity: 0.15;
 }
@@ -371,9 +364,7 @@ async function submit() {
   aspect-ratio: 1;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 50%;
-  background:
-    linear-gradient(90deg, transparent 49.8%, rgba(255,255,255,.28) 50%, transparent 50.2%),
-    linear-gradient(transparent 49.8%, rgba(255,255,255,.28) 50%, transparent 50.2%);
+  background: #ffffff;
   box-shadow:
     inset 0 0 0 46px transparent,
     0 0 0 46px rgba(255, 255, 255, 0.08),
@@ -651,14 +642,12 @@ input:-webkit-autofill:active {
   padding: 0 18px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(100deg, #20569a 0%, #173d70 45%, #0f294b 100%);
+  background: var(--primary);
   color: #ffffff;
   -webkit-text-fill-color: #ffffff;
   font-size: 16px;
   font-weight: 700;
-  box-shadow:
-    -5px 0 20px rgba(37, 99, 235, 0.16),
-    0 8px 20px rgba(15, 41, 75, 0.14);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 12%, transparent);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -667,7 +656,7 @@ input:-webkit-autofill:active {
 
 .login-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(30, 76, 134, 0.2);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 14%, transparent);
   filter: brightness(1.04);
 }
 

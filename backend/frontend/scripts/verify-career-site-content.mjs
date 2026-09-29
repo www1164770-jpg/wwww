@@ -27,7 +27,7 @@ assert.doesNotMatch(careerBlock, /ExternalLink/);
 assert.match(siteCard, /-webkit-line-clamp: 2/);
 assert.match(home, /const CAREER_SITE_POOL_MAX = 48/);
 assert.match(home, /const CAREER_BATCH_SIZE = 16/);
-assert.match(home, /v-for="index in 16"/);
+assert.match(home, /v-for="index in visibleCareerSiteCount"/);
 assert.match(home, /visibleCareerSites/);
 assert.match(home, /refreshCareerBatch/);
 assert.match(home, /normalizeCareerSiteList/);

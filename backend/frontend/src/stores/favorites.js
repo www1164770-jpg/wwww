@@ -14,7 +14,9 @@ export { getFavoriteErrorDetails } from "../utils/favoriteError";
 
 export const FAVORITE_CACHE_KEY_PREFIX = "zhihangyu:favorites:";
 export const FAVORITE_CACHE_TTL_MS = 5 * 60_000;
-export const FAVORITE_CACHE_VERSION = 1;
+// Discard caches potentially populated by pre-fix cross-session notifications.
+// Server favorites remain authoritative and are never deleted by this upgrade.
+export const FAVORITE_CACHE_VERSION = 2;
 export const FAVORITE_STATE_CHANGED_EVENT = "favorite-state-changed";
 
 function getFavoriteUserId(userStore) {
@@ -49,9 +51,9 @@ function getFavoriteUrlKey(url) {
     const hostname = parsed.hostname.toLowerCase().replace(/^www\./, "");
     const port = parsed.port ? `:${parsed.port}` : "";
     const pathname = parsed.pathname.replace(/\/$/, "") || "/";
-    return `${hostname}${port}${pathname}${parsed.search}`.toLowerCase();
+    return `${hostname}${port}${pathname}${parsed.search}`;
   } catch {
-    return normalized.replace(/\/$/, "").toLowerCase();
+    return normalized.replace(/\/$/, "");
   }
 }
 
@@ -154,6 +156,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   let loadPromise = null;
   let loadPromiseUserId = "";
+  let scopeEpoch = 0;
+  const ownsScope = (userId, epoch) => epoch === scopeEpoch && userId === getFavoriteUserId(userStore);
   const desiredStateByKey = new Map();
   const confirmedStateByKey = new Map();
   const syncPromiseByKey = new Map();
@@ -303,6 +307,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   function persistCache(userId = activeUserId.value) {
     if (typeof localStorage === "undefined" || !userId) return;
+    if (userId !== getFavoriteUserId(userStore)) return;
 
     const savedAt = Date.now();
     const cachedItems = items.value.map((site) => ({
@@ -362,6 +367,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
   }
 
   function clearFavoriteState() {
+    scopeEpoch += 1;
     items.value = [];
     status.value = "idle";
     error.value = null;
@@ -387,6 +393,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       return nextUserId;
     }
 
+    scopeEpoch += 1;
     items.value = [];
     status.value = "idle";
     error.value = null;
@@ -414,6 +421,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       background = false,
     } = options;
     const userId = syncUserScope();
+    const epoch = scopeEpoch;
 
     if (!userId) {
       clearFavoriteState();
@@ -436,7 +444,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
     const requestPromise = favoriteAPI
       .getFavorites({ timeout: 10_000 })
       .then((response) => {
-        if (getFavoriteUserId(userStore) !== requestUserId) return items.value;
+        if (!ownsScope(requestUserId, epoch)) return items.value;
 
         const payload = response?.data?.data ?? response?.data ?? [];
         const rawItems = Array.isArray(payload)
@@ -463,7 +471,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
         return nextItems;
       })
       .catch((requestError) => {
-        if (getFavoriteUserId(userStore) !== requestUserId) return items.value;
+        if (!ownsScope(requestUserId, epoch)) return items.value;
 
         error.value = normalizeFavoriteError(requestError);
         if (keepExistingData && hasSnapshot.value) {
@@ -487,6 +495,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
   async function addFavorite(site, note = "") {
     const userId = syncUserScope();
+    const epoch = scopeEpoch;
     const favoriteKey = getFavoriteKey(site);
     const normalized = normalizeFavorite(site);
     if (
@@ -511,6 +520,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
     try {
       const response = await favoriteAPI.addFavorite(site, note);
+      if (!ownsScope(userId, epoch)) return false;
       reconcileFavoriteResponse(site, response);
       void trackFavorite(site, {
         source: site?.visit_source === "career_recommend" ? "personalized_recommendation" : "favorite",
@@ -522,6 +532,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       persistCache(userId);
       return true;
     } catch (requestError) {
+      if (!ownsScope(userId, epoch)) return false;
       if (isAlreadyDesiredFavoriteState(requestError, true)) {
         reconcileFavoriteResponse(site, requestError.response);
         persistCache(userId);
@@ -530,12 +541,13 @@ export const useFavoritesStore = defineStore("favorites", () => {
       restoreStateSnapshot(snapshot, userId);
       throw requestError;
     } finally {
-      endPending(favoriteKey);
+      if (ownsScope(userId, epoch)) endPending(favoriteKey);
     }
   }
 
   async function removeFavorite(site) {
     const userId = syncUserScope();
+    const epoch = scopeEpoch;
     const favoriteKey = getFavoriteKey(site);
     if (!userId || !favoriteKey) {
       return false;
@@ -550,10 +562,12 @@ export const useFavoritesStore = defineStore("favorites", () => {
 
     try {
       const response = await favoriteAPI.removeFavorite(site);
+      if (!ownsScope(userId, epoch)) return false;
       reconcileFavoriteResponse(site, response);
       persistCache(userId);
       return true;
     } catch (requestError) {
+      if (!ownsScope(userId, epoch)) return false;
       if (isAlreadyDesiredFavoriteState(requestError, false)) {
         persistCache(userId);
         return true;
@@ -561,7 +575,7 @@ export const useFavoritesStore = defineStore("favorites", () => {
       restoreStateSnapshot(snapshot, userId);
       throw requestError;
     } finally {
-      endPending(favoriteKey);
+      if (ownsScope(userId, epoch)) endPending(favoriteKey);
     }
   }
 
@@ -582,7 +596,8 @@ export const useFavoritesStore = defineStore("favorites", () => {
   }
 
   function persistFavoriteCacheSoon(userId) {
-    const persist = () => persistCache(userId);
+    const epoch = scopeEpoch;
+    const persist = () => { if (ownsScope(userId, epoch)) persistCache(userId); };
     if (typeof queueMicrotask === "function") queueMicrotask(persist);
     else Promise.resolve().then(persist);
   }
@@ -625,21 +640,24 @@ export const useFavoritesStore = defineStore("favorites", () => {
   }
 
   function scheduleFavoriteSync(site, favoriteKey, note, userId) {
+    const epoch = scopeEpoch;
     const existingPromise = syncPromiseByKey.get(favoriteKey);
     if (existingPromise) return existingPromise;
 
     const syncPromise = (async () => {
       let failure = null;
-      while (desiredStateByKey.has(favoriteKey)) {
+      while (ownsScope(userId, epoch) && desiredStateByKey.has(favoriteKey)) {
         const desiredState = desiredStateByKey.get(favoriteKey);
         try {
           const response = desiredState
             ? await favoriteAPI.addFavorite(site, note)
             : await favoriteAPI.removeFavorite(site);
+          if (!ownsScope(userId, epoch)) return false;
           confirmedStateByKey.set(favoriteKey, desiredState);
           if (desiredState) reconcileFavoriteResponse(site, response);
           persistFavoriteCacheSoon(userId);
         } catch (requestError) {
+          if (!ownsScope(userId, epoch)) return false;
           const alreadyInDesiredState = isAlreadyDesiredFavoriteState(
             requestError,
             desiredState,

@@ -258,7 +258,7 @@ onMounted(load);
 
 .json-box {
   min-height: 150px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--app-font-family);
 }
 
 .stats-panel {

@@ -6,9 +6,14 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [vue()],
   server: {
+    // Docker Desktop bind mounts need polling to detect Windows file edits.
+    watch: {
+      usePolling: process.env.VITE_USE_POLLING === 'true',
+      interval: 300,
+    },
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5000',
+        target: process.env.API_PROXY_TARGET || 'http://127.0.0.1:5000',
         changeOrigin: true,
       },
     },

@@ -294,7 +294,7 @@ export function resolveSiteLogo(site = {}) {
 
   const domain = getDomain(site.url);
   if (domain) {
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(`https://${domain}`)}&sz=128`;
   }
   return "";
 }
@@ -898,7 +898,8 @@ async function runFavoriteMutation(operation, target, requestConfig, request) {
   }
 }
 
-function notifyFavoriteStateChange(siteOrId, favorited) {
+function notifyFavoriteStateChange(siteOrId, favorited, requestToken) {
+  if (requestToken !== getAccessToken()) return;
   if (typeof window === "undefined") return;
   const { siteId, url } = getFavoriteTarget(siteOrId);
   window.dispatchEvent(
@@ -916,6 +917,7 @@ function notifyFavoriteStateChange(siteOrId, favorited) {
 export const favoriteAPI = {
   getFavorites: (config = {}) => api.get("/favorites", config),
   addFavorite: async (siteOrId, note = "") => {
+    const requestToken = getAccessToken();
     const target = getFavoriteTarget(siteOrId);
     const url = target.siteId
       ? `/sites/${target.siteId}/favorite`
@@ -927,10 +929,11 @@ export const favoriteAPI = {
       { url, method: "POST", timeout: FAVORITE_MUTATION_TIMEOUT_MS, payload },
       (config) => api.post(url, payload, { timeout: config.timeout }),
     );
-    notifyFavoriteStateChange(siteOrId, true);
+    notifyFavoriteStateChange(siteOrId, true, requestToken);
     return response;
   },
   removeFavorite: async (siteOrId) => {
+    const requestToken = getAccessToken();
     const target = getFavoriteTarget(siteOrId);
     const url = target.siteId
       ? `/sites/${target.siteId}/favorite`
@@ -951,7 +954,7 @@ export const favoriteAPI = {
           timeout: config.timeout,
         }),
     );
-    notifyFavoriteStateChange(siteOrId, false);
+    notifyFavoriteStateChange(siteOrId, false, requestToken);
     return response;
   },
   updateNote: (siteId, note = "") =>
@@ -959,6 +962,7 @@ export const favoriteAPI = {
 };
 
 export const searchAPI = {
+  version: (config = {}) => api.get("/search/version", config),
   search: (params = {}, config = {}) =>
     api.get("/sites/search", { ...config, params }),
   suggest: (q, config = {}) =>

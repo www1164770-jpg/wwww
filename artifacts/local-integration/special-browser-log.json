@@ -1,0 +1,896 @@
+[
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"armed\": [\n    {\n      \"ms\": 1.7000000476837158,\n      \"ratio\": 1,\n      \"type\": \"armed\",\n      \"visibility\": \"visible\"\n    }\n  ],\n  \"batch\": \"special-native-1790643862241\"\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "tab",
+      "new",
+      "about:blank"
+    ],
+    "output": "about:blank\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "true\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "tab",
+      "0"
+    ],
+    "output": "",
+    "stderr": "✗ Expected a tab id like `t0` or a label; positional integers are not accepted (run `agent-browser tab` to list stable tab ids)\n",
+    "code": 1
+  },
+  {
+    "assertion": "native background began before 1000ms",
+    "passed": true
+  },
+  {
+    "assertion": "background exceeded full exposure window",
+    "passed": true
+  },
+  {
+    "assertion": "native exposure only after foreground full 1000ms",
+    "passed": true
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "null\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e695]\n- navigation \"主导航\" [ref=e696]\n  - link \"首页\" [ref=e698]\n  - link \"收藏夹\" [ref=e699]\n  - button \"打开知航AI助手\" [expanded=false, ref=e700]\n- button \"打开用户菜单\" [expanded=false, ref=e701]\n- heading \"专项源资源\" [level=1, ref=e705]\n- button \"收藏\" [ref=e706]\n- button \"访问官网\" [ref=e707]\n- heading \"详细介绍\" [level=2, ref=e708]\n- heading \"评论区\" [level=2, ref=e709]\n- combobox \"评分\" [expanded=false, ref=e718]: 5 分\n  - option \"5 分\" [selected, ref=e737]\n  - option \"4 分\" [ref=e738]\n  - option \"3 分\" [ref=e739]\n  - option \"2 分\" [ref=e740]\n  - option \"1 分\" [ref=e741]\n- textbox \"评论内容\" [required, ref=e719]\n- button \"发表评论\" [ref=e713]\n- heading \"基础信息\" [level=2, ref=e714]\n- heading \"标签\" [level=2, ref=e715]\n- heading \"适用职业\" [level=2, ref=e716]\n- heading \"相似网站推荐\" [level=2, ref=e717]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e720] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e727]\n  - button \"访问 专项同域付费产品\" [ref=e728]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e729]\n    - button \"访问 专项同域付费产品\" [ref=e742]\n  - button \"访问网站\" [ref=e730]\n  - link \"查看详情\" [ref=e731]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e721] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e732]\n  - button \"访问 专项未知收费产品\" [ref=e733]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e734]\n    - button \"访问 专项未知收费产品\" [ref=e743]\n  - button \"访问网站\" [ref=e735]\n  - link \"查看详情\" [ref=e736]\n- region \"知航屿\" [ref=e702]\n  - link \"知航屿首页\" [ref=e710]\n- navigation \"页脚快速链接\" [ref=e703]\n  - heading \"快速链接\" [level=2, ref=e711]\n  - link \"首页\" [ref=e722]\n  - link \"分类浏览\" [ref=e723]\n  - link \"搜索资源\" [ref=e724]\n  - link \"我的收藏\" [ref=e725]\n- region \"相关信息\" [ref=e704]\n  - heading \"相关信息\" [level=2, ref=e712]\n  - link \"版权申诉\" [ref=e726]\n- button \"打开知航AI助手\" [expanded=false, ref=e697]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "A does not inherit B favorite",
+    "passed": true
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e695]\n- navigation \"主导航\" [ref=e696]\n  - link \"首页\" [ref=e698]\n  - link \"收藏夹\" [ref=e699]\n  - button \"打开知航AI助手\" [expanded=false, ref=e700]\n- button \"打开用户菜单\" [expanded=false, ref=e701]\n- heading \"专项源资源\" [level=1, ref=e705]\n- button \"收藏\" [ref=e706]\n- button \"访问官网\" [ref=e707]\n- heading \"详细介绍\" [level=2, ref=e708]\n- heading \"评论区\" [level=2, ref=e709]\n- combobox \"评分\" [expanded=false, ref=e718]: 5 分\n  - option \"5 分\" [selected, ref=e737]\n  - option \"4 分\" [ref=e738]\n  - option \"3 分\" [ref=e739]\n  - option \"2 分\" [ref=e740]\n  - option \"1 分\" [ref=e741]\n- textbox \"评论内容\" [required, ref=e719]\n- button \"发表评论\" [ref=e713]\n- heading \"基础信息\" [level=2, ref=e714]\n- heading \"标签\" [level=2, ref=e715]\n- heading \"适用职业\" [level=2, ref=e716]\n- heading \"相似网站推荐\" [level=2, ref=e717]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e720] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e727]\n  - button \"访问 专项同域付费产品\" [ref=e728]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e729]\n    - button \"访问 专项同域付费产品\" [ref=e742]\n  - button \"访问网站\" [ref=e730]\n  - link \"查看详情\" [ref=e731]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e721] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e732]\n  - button \"访问 专项未知收费产品\" [ref=e733]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e734]\n    - button \"访问 专项未知收费产品\" [ref=e743]\n  - button \"访问网站\" [ref=e735]\n  - link \"查看详情\" [ref=e736]\n- region \"知航屿\" [ref=e702]\n  - link \"知航屿首页\" [ref=e710]\n- navigation \"页脚快速链接\" [ref=e703]\n  - heading \"快速链接\" [level=2, ref=e711]\n  - link \"首页\" [ref=e722]\n  - link \"分类浏览\" [ref=e723]\n  - link \"搜索资源\" [ref=e724]\n  - link \"我的收藏\" [ref=e725]\n- region \"相关信息\" [ref=e704]\n  - heading \"相关信息\" [level=2, ref=e712]\n  - link \"版权申诉\" [ref=e726]\n- button \"打开知航AI助手\" [expanded=false, ref=e697]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e701"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e695]\n- navigation \"主导航\" [ref=e696]\n  - link \"首页\" [ref=e698]\n  - link \"收藏夹\" [ref=e699]\n  - button \"打开知航AI助手\" [expanded=false, ref=e700]\n- button \"打开用户菜单\" [expanded=true, ref=e701]\n- menuitem \"个人中心\" [ref=e744]\n- menuitem \"我的收藏\" [ref=e745]\n- menuitem \"退出登录\" [ref=e746]\n- heading \"专项源资源\" [level=1, ref=e705]\n- button \"收藏\" [ref=e706]\n- button \"访问官网\" [ref=e707]\n- heading \"详细介绍\" [level=2, ref=e708]\n- heading \"评论区\" [level=2, ref=e709]\n- combobox \"评分\" [expanded=false, ref=e718]: 5 分\n  - option \"5 分\" [selected, ref=e737]\n  - option \"4 分\" [ref=e738]\n  - option \"3 分\" [ref=e739]\n  - option \"2 分\" [ref=e740]\n  - option \"1 分\" [ref=e741]\n- textbox \"评论内容\" [required, ref=e719]\n- button \"发表评论\" [ref=e713]\n- heading \"基础信息\" [level=2, ref=e714]\n- heading \"标签\" [level=2, ref=e715]\n- heading \"适用职业\" [level=2, ref=e716]\n- heading \"相似网站推荐\" [level=2, ref=e717]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e720] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e727]\n  - button \"访问 专项同域付费产品\" [ref=e728]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e729]\n    - button \"访问 专项同域付费产品\" [ref=e742]\n  - button \"访问网站\" [ref=e730]\n  - link \"查看详情\" [ref=e731]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e721] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e732]\n  - button \"访问 专项未知收费产品\" [ref=e733]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e734]\n    - button \"访问 专项未知收费产品\" [ref=e743]\n  - button \"访问网站\" [ref=e735]\n  - link \"查看详情\" [ref=e736]\n- region \"知航屿\" [ref=e702]\n  - link \"知航屿首页\" [ref=e710]\n- navigation \"页脚快速链接\" [ref=e703]\n  - heading \"快速链接\" [level=2, ref=e711]\n  - link \"首页\" [ref=e722]\n  - link \"分类浏览\" [ref=e723]\n  - link \"搜索资源\" [ref=e724]\n  - link \"我的收藏\" [ref=e725]\n- region \"相关信息\" [ref=e704]\n  - heading \"相关信息\" [level=2, ref=e712]\n  - link \"版权申诉\" [ref=e726]\n- button \"打开知航AI助手\" [expanded=false, ref=e697]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e746"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:15173/login"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:15173/login\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿\" [ref=e748]\n- heading \"登录账号\" [level=1, ref=e749]\n- textbox \"邮箱或用户名\" [required, ref=e753]\n- textbox \"密码 显示密码\" [required, ref=e754]\n- button \"显示密码\" [ref=e755]\n- link \"忘记密码？\" [ref=e750]\n- button \"登录\" [ref=e751]\n- link \"还没有账号？ 去注册\" [ref=e752]\n- button \"打开知航AI助手\" [expanded=false, ref=e747]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "fill",
+      "input[placeholder=\"请输入邮箱或用户名\"]",
+      "research_fixture"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "fill",
+      "input[placeholder=\"请输入密码\"]",
+      "Local-Integration-Only-2026!"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿\" [ref=e748]\n- heading \"登录账号\" [level=1, ref=e749]\n- textbox \"邮箱或用户名\" [required, ref=e753]: research_fixture\n- textbox \"密码 显示密码\" [required, ref=e754]: ••••••••••••••••••••••••••••\n- button \"显示密码\" [ref=e755]\n- link \"忘记密码？\" [ref=e750]\n- button \"登录\" [ref=e751]\n- link \"还没有账号？ 去注册\" [ref=e752]\n- button \"打开知航AI助手\" [expanded=false, ref=e747]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e751"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      "button[aria-label=\"打开用户菜单\"]"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:15173/site/91001"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:15173/site/91001\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e756]\n- navigation \"主导航\" [ref=e757]\n  - link \"首页\" [ref=e759]\n  - link \"收藏夹\" [ref=e760]\n  - button \"打开知航AI助手\" [expanded=false, ref=e761]\n- button \"打开用户菜单\" [expanded=false, ref=e762]\n- heading \"专项源资源\" [level=1, ref=e766]\n- button \"收藏\" [ref=e767]\n- button \"访问官网\" [ref=e768]\n- heading \"详细介绍\" [level=2, ref=e769]\n- heading \"评论区\" [level=2, ref=e770]\n- combobox \"评分\" [expanded=false, ref=e779]: 5 分\n  - option \"5 分\" [selected, ref=e798]\n  - option \"4 分\" [ref=e799]\n  - option \"3 分\" [ref=e800]\n  - option \"2 分\" [ref=e801]\n  - option \"1 分\" [ref=e802]\n- textbox \"评论内容\" [required, ref=e780]\n- button \"发表评论\" [ref=e774]\n- heading \"基础信息\" [level=2, ref=e775]\n- heading \"标签\" [level=2, ref=e776]\n- heading \"适用职业\" [level=2, ref=e777]\n- heading \"相似网站推荐\" [level=2, ref=e778]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e781] clickable [cursor:pointer]\n  - button \"取消收藏 专项同域付费产品\" [ref=e788]\n  - button \"访问 专项同域付费产品\" [ref=e789]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e790]\n    - button \"访问 专项同域付费产品\" [ref=e803]\n  - button \"访问网站\" [ref=e791]\n  - link \"查看详情\" [ref=e792]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e782] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e793]\n  - button \"访问 专项未知收费产品\" [ref=e794]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e795]\n    - button \"访问 专项未知收费产品\" [ref=e804]\n  - button \"访问网站\" [ref=e796]\n  - link \"查看详情\" [ref=e797]\n- region \"知航屿\" [ref=e763]\n  - link \"知航屿首页\" [ref=e771]\n- navigation \"页脚快速链接\" [ref=e764]\n  - heading \"快速链接\" [level=2, ref=e772]\n  - link \"首页\" [ref=e783]\n  - link \"分类浏览\" [ref=e784]\n  - link \"搜索资源\" [ref=e785]\n  - link \"我的收藏\" [ref=e786]\n- region \"相关信息\" [ref=e765]\n  - heading \"相关信息\" [level=2, ref=e773]\n  - link \"版权申诉\" [ref=e787]\n- button \"打开知航AI助手\" [expanded=false, ref=e758]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "B favorite persists after switching back",
+    "passed": true
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e756]\n- navigation \"主导航\" [ref=e757]\n  - link \"首页\" [ref=e759]\n  - link \"收藏夹\" [ref=e760]\n  - button \"打开知航AI助手\" [expanded=false, ref=e761]\n- button \"打开用户菜单\" [expanded=false, ref=e762]\n- heading \"专项源资源\" [level=1, ref=e766]\n- button \"收藏\" [ref=e767]\n- button \"访问官网\" [ref=e768]\n- heading \"详细介绍\" [level=2, ref=e769]\n- heading \"评论区\" [level=2, ref=e770]\n- combobox \"评分\" [expanded=false, ref=e779]: 5 分\n  - option \"5 分\" [selected, ref=e798]\n  - option \"4 分\" [ref=e799]\n  - option \"3 分\" [ref=e800]\n  - option \"2 分\" [ref=e801]\n  - option \"1 分\" [ref=e802]\n- textbox \"评论内容\" [required, ref=e780]\n- button \"发表评论\" [ref=e774]\n- heading \"基础信息\" [level=2, ref=e775]\n- heading \"标签\" [level=2, ref=e776]\n- heading \"适用职业\" [level=2, ref=e777]\n- heading \"相似网站推荐\" [level=2, ref=e778]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e781] clickable [cursor:pointer]\n  - button \"取消收藏 专项同域付费产品\" [ref=e788]\n  - button \"访问 专项同域付费产品\" [ref=e789]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e790]\n    - button \"访问 专项同域付费产品\" [ref=e803]\n  - button \"访问网站\" [ref=e791]\n  - link \"查看详情\" [ref=e792]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e782] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e793]\n  - button \"访问 专项未知收费产品\" [ref=e794]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e795]\n    - button \"访问 专项未知收费产品\" [ref=e804]\n  - button \"访问网站\" [ref=e796]\n  - link \"查看详情\" [ref=e797]\n- region \"知航屿\" [ref=e763]\n  - link \"知航屿首页\" [ref=e771]\n- navigation \"页脚快速链接\" [ref=e764]\n  - heading \"快速链接\" [level=2, ref=e772]\n  - link \"首页\" [ref=e783]\n  - link \"分类浏览\" [ref=e784]\n  - link \"搜索资源\" [ref=e785]\n  - link \"我的收藏\" [ref=e786]\n- region \"相关信息\" [ref=e765]\n  - heading \"相关信息\" [level=2, ref=e773]\n  - link \"版权申诉\" [ref=e787]\n- button \"打开知航AI助手\" [expanded=false, ref=e758]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e788"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e756]\n- navigation \"主导航\" [ref=e757]\n  - link \"首页\" [ref=e759]\n  - link \"收藏夹\" [ref=e760]\n  - button \"打开知航AI助手\" [expanded=false, ref=e761]\n- button \"打开用户菜单\" [expanded=false, ref=e762]\n- heading \"专项源资源\" [level=1, ref=e766]\n- button \"收藏\" [ref=e767]\n- button \"访问官网\" [ref=e768]\n- heading \"详细介绍\" [level=2, ref=e769]\n- heading \"评论区\" [level=2, ref=e770]\n- combobox \"评分\" [expanded=false, ref=e779]: 5 分\n  - option \"5 分\" [selected, ref=e798]\n  - option \"4 分\" [ref=e799]\n  - option \"3 分\" [ref=e800]\n  - option \"2 分\" [ref=e801]\n  - option \"1 分\" [ref=e802]\n- textbox \"评论内容\" [required, ref=e780]\n- button \"发表评论\" [ref=e774]\n- heading \"基础信息\" [level=2, ref=e775]\n- heading \"标签\" [level=2, ref=e776]\n- heading \"适用职业\" [level=2, ref=e777]\n- heading \"相似网站推荐\" [level=2, ref=e778]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e781] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e788]\n  - button \"访问 专项同域付费产品\" [ref=e789]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e790]\n    - button \"访问 专项同域付费产品\" [ref=e803]\n  - button \"访问网站\" [ref=e791]\n  - link \"查看详情\" [ref=e792]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e782] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e793]\n  - button \"访问 专项未知收费产品\" [ref=e794]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e795]\n    - button \"访问 专项未知收费产品\" [ref=e804]\n  - button \"访问网站\" [ref=e796]\n  - link \"查看详情\" [ref=e797]\n- region \"知航屿\" [ref=e763]\n  - link \"知航屿首页\" [ref=e771]\n- navigation \"页脚快速链接\" [ref=e764]\n  - heading \"快速链接\" [level=2, ref=e772]\n  - link \"首页\" [ref=e783]\n  - link \"分类浏览\" [ref=e784]\n  - link \"搜索资源\" [ref=e785]\n  - link \"我的收藏\" [ref=e786]\n- region \"相关信息\" [ref=e765]\n  - heading \"相关信息\" [level=2, ref=e773]\n  - link \"版权申诉\" [ref=e787]\n- button \"打开知航AI助手\" [expanded=false, ref=e758]\n- generic \"✅已取消收藏\" [ref=e805] clickable [cursor:pointer]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "favorite toggle restored",
+    "passed": true
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "1440",
+      "1000"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"interrupted\": false\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"items\": [\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"添加收藏 专项同域付费产品\",\n      \"x\": 1241.0800170898438,\n      \"y\": 217.1672821044922\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问 专项同域付费产品\",\n      \"x\": 1020.5800170898438,\n      \"y\": 233.82727813720703\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"专项同域付费产品\",\n      \"x\": 1132.2999877929688,\n      \"y\": 218.8286895751953\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问网站\",\n      \"x\": 1033.3200073242188,\n      \"y\": 440.2857208251953\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"查看详情\",\n      \"x\": 1122.4999389648438,\n      \"y\": 440.2857208251953\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"添加收藏 专项未知收费产品\",\n      \"x\": 1241.0800170898438,\n      \"y\": 542.7453002929688\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问 专项未知收费产品\",\n      \"x\": 1020.5800170898438,\n      \"y\": 559.4053344726562\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"专项未知收费产品\",\n      \"x\": 1132.2999877929688,\n      \"y\": 544.40673828125\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问网站\",\n      \"x\": 1033.3200073242188,\n      \"y\": 765.86376953125\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"查看详情\",\n      \"x\": 1122.4999389648438,\n      \"y\": 765.86376953125\n    }\n  ],\n  \"overflow\": false,\n  \"top\": 79.8125,\n  \"width\": 1440\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "desktop visible controls unobscured",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "390",
+      "844"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"interrupted\": false\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"items\": [\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"添加收藏 专项同域付费产品\",\n      \"x\": 299.7100067138672,\n      \"y\": 218.79234313964844\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问 专项同域付费产品\",\n      \"x\": 88.03000259399414,\n      \"y\": 231.5323486328125\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"专项同域付费产品\",\n      \"x\": 199.75,\n      \"y\": 216.5337371826172\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问网站\",\n      \"x\": 187.50000762939453,\n      \"y\": 437.9907684326172\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"查看详情\",\n      \"x\": 187.50000762939453,\n      \"y\": 486.0107727050781\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"添加收藏 专项未知收费产品\",\n      \"x\": 299.7100067138672,\n      \"y\": 579.5436401367188\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问 专项未知收费产品\",\n      \"x\": 88.03000259399414,\n      \"y\": 592.2836303710938\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"专项未知收费产品\",\n      \"x\": 199.75,\n      \"y\": 577.2850341796875\n    },\n    {\n      \"clear\": true,\n      \"inViewport\": true,\n      \"text\": \"访问网站\",\n      \"x\": 187.50000762939453,\n      \"y\": 798.7420654296875\n    },\n    {\n      \"clear\": false,\n      \"inViewport\": false,\n      \"text\": \"查看详情\",\n      \"x\": 187.50000762939453,\n      \"y\": 846.7620849609375\n    }\n  ],\n  \"overflow\": false,\n  \"top\": 80.015625,\n  \"width\": 390\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "narrow visible controls unobscured",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "record",
+      "stop"
+    ],
+    "output": "",
+    "stderr": "✗ Recording encoder fell behind by more than 16 buffered frames\n",
+    "code": 1
+  },
+  {
+    "command": [
+      "record",
+      "start",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-visual-final.webm",
+      "--fps",
+      "5"
+    ],
+    "output": "✓ Recording started: D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-visual-final.webm (5 fps)\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "1440",
+      "1000"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"bottom\": 671.328125,\n  \"controls\": [\n    {\n      \"clear\": true,\n      \"text\": \"添加收藏 专项同域付费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问 专项同域付费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"专项同域付费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问网站\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"查看详情\"\n    }\n  ],\n  \"left\": 967.5,\n  \"opacity\": \"1\",\n  \"overflow\": false,\n  \"reason\": \"共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。\",\n  \"right\": 1277.5,\n  \"top\": 347.8125,\n  \"unclipped\": true,\n  \"width\": 1440\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "desktop card 0 visible, reason complete, controls unobscured",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop-final-0.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop-final-0.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"bottom\": 662,\n  \"controls\": [\n    {\n      \"clear\": true,\n      \"text\": \"添加收藏 专项未知收费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问 专项未知收费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"专项未知收费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问网站\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"查看详情\"\n    }\n  ],\n  \"left\": 967.5,\n  \"opacity\": \"1\",\n  \"overflow\": false,\n  \"reason\": \"共同标签：专项相似验收20260929。此资源收费模式待核实。\",\n  \"right\": 1277.5,\n  \"top\": 357.328125,\n  \"unclipped\": true,\n  \"width\": 1440\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "desktop card 1 visible, reason complete, controls unobscured",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop-final-1.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop-final-1.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "390",
+      "844"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"bottom\": 614.53125,\n  \"controls\": [\n    {\n      \"clear\": true,\n      \"text\": \"添加收藏 专项同域付费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问 专项同域付费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"专项同域付费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问网站\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"查看详情\"\n    }\n  ],\n  \"left\": 39,\n  \"opacity\": \"1\",\n  \"overflow\": false,\n  \"reason\": \"共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。\",\n  \"right\": 336,\n  \"top\": 250.015625,\n  \"unclipped\": true,\n  \"width\": 390\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "narrow card 0 visible, reason complete, controls unobscured",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow-final-0.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow-final-0.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"bottom\": 605.203125,\n  \"controls\": [\n    {\n      \"clear\": true,\n      \"text\": \"添加收藏 专项未知收费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问 专项未知收费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"专项未知收费产品\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"访问网站\"\n    },\n    {\n      \"clear\": true,\n      \"text\": \"查看详情\"\n    }\n  ],\n  \"left\": 39,\n  \"opacity\": \"1\",\n  \"overflow\": false,\n  \"reason\": \"共同标签：专项相似验收20260929。此资源收费模式待核实。\",\n  \"right\": 336,\n  \"top\": 259.53125,\n  \"unclipped\": true,\n  \"width\": 390\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "narrow card 1 visible, reason complete, controls unobscured",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow-final-1.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow-final-1.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "record",
+      "stop"
+    ],
+    "output": "✓ Recording saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-visual-final.webm (5 fps)\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"armed\": [\n    {\n      \"ms\": 3.200000047683716,\n      \"ratio\": 1,\n      \"type\": \"armed\",\n      \"visibility\": \"visible\"\n    }\n  ],\n  \"batch\": \"special-native-1790660793795\"\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "tab",
+      "new",
+      "about:blank"
+    ],
+    "output": "about:blank\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "true\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "tab",
+      "t1"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:15173/site/91001\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "true\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"batch\": \"special-native-1790660793795\",\n  \"events\": [\n    {\n      \"ms\": 3.200000047683716,\n      \"ratio\": 1,\n      \"type\": \"armed\",\n      \"visibility\": \"visible\"\n    },\n    {\n      \"ms\": 38,\n      \"type\": \"visibilitychange\",\n      \"visibility\": \"hidden\"\n    },\n    {\n      \"ms\": 1612.8000000715256,\n      \"type\": \"visibilitychange\",\n      \"visibility\": \"visible\"\n    },\n    {\n      \"ms\": 2657.8000000715256,\n      \"status\": 200,\n      \"type\": \"response\",\n      \"visibility\": \"visible\"\n    }\n  ],\n  \"kind\": \"native Chromium visibility, IntersectionObserver and wall clock; real isolated HTTP\",\n  \"requests\": [\n    {\n      \"body\": {\n        \"event_type\": \"impression\",\n        \"metadata\": {\n          \"event_version\": \"visible-v2\",\n          \"position\": 1,\n          \"position_version\": \"display-position-v1\",\n          \"visible_ms\": 1000,\n          \"visible_ratio\": 0.5\n        },\n        \"profile_schema_version\": \"\",\n        \"profile_version\": \"\",\n        \"questionnaire_version\": \"\",\n        \"recommendation_batch_id\": \"special-native-1790660793795\",\n        \"session_id\": \"sess_mum97dad_b1sdf5bn\",\n        \"source\": \"other\",\n        \"website_id\": 91002\n      },\n      \"ms\": 2626.600000023842\n    }\n  ]\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "native hidden before threshold",
+    "passed": true
+  },
+  {
+    "assertion": "native background > threshold",
+    "passed": true
+  },
+  {
+    "assertion": "only one native event, full foreground restart",
+    "passed": true
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "null\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:15173/site/91001"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:15173/site/91001\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "get",
+      "text",
+      ".similar"
+    ],
+    "output": "相似网站推荐\n专项同域付费产品\n\n专项同域付费产品\n\n推荐理由\n共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。\nTest resources\n专项相似验收20260929\n访问网站\n查看详情\n专项未知收费产品\n\n专项未知收费产品\n\n推荐理由\n共同标签：专项相似验收20260929。此资源收费模式待核实。\nTest resources\n专项相似验收20260929\n访问网站\n查看详情\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "same-domain paid product and unknown retained, current/alias/unpublished excluded",
+    "passed": true
+  },
+  {
+    "command": [
+      "network",
+      "route",
+      "**/api/sites/91001/similar",
+      "--abort"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "reload"
+    ],
+    "output": "http://127.0.0.1:15173/site/91001\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "get",
+      "text",
+      ".similar"
+    ],
+    "output": "相似网站推荐\n\n相似资源加载失败，请重试。 重试\n\n专项同域付费产品\n\n专项同域付费产品\n\n推荐理由\n共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。\nTest resources\n专项相似验收20260929\n访问网站\n查看详情\n专项未知收费产品\n\n专项未知收费产品\n\n推荐理由\n共同标签：专项相似验收20260929。此资源收费模式待核实。\nTest resources\n专项相似验收20260929\n访问网站\n查看详情\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "failure visible",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-failure-fixed.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-failure-fixed.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "network",
+      "unroute",
+      "**/api/sites/91001/similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e46]\n- navigation \"主导航\" [ref=e47]\n  - link \"首页\" [ref=e49]\n  - link \"收藏夹\" [ref=e50]\n  - button \"打开知航AI助手\" [expanded=false, ref=e51]\n- button \"打开用户菜单\" [expanded=false, ref=e52]\n- heading \"专项源资源\" [level=1, ref=e56]\n- button \"收藏\" [ref=e57]\n- button \"访问官网\" [ref=e58]\n- heading \"详细介绍\" [level=2, ref=e59]\n- heading \"评论区\" [level=2, ref=e60]\n- combobox \"评分\" [expanded=false, ref=e69]: 5 分\n  - option \"5 分\" [selected, ref=e89]\n  - option \"4 分\" [ref=e90]\n  - option \"3 分\" [ref=e91]\n  - option \"2 分\" [ref=e92]\n  - option \"1 分\" [ref=e93]\n- textbox \"评论内容\" [required, ref=e70]\n- button \"发表评论\" [ref=e64]\n- heading \"基础信息\" [level=2, ref=e65]\n- heading \"标签\" [level=2, ref=e66]\n- heading \"适用职业\" [level=2, ref=e67]\n- heading \"相似网站推荐\" [level=2, ref=e68]\n- button \"重试\" [ref=e71]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e72] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e79]\n  - button \"访问 专项同域付费产品\" [ref=e80]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e81]\n    - button \"访问 专项同域付费产品\" [ref=e94]\n  - button \"访问网站\" [ref=e82]\n  - link \"查看详情\" [ref=e83]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e73] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e84]\n  - button \"访问 专项未知收费产品\" [ref=e85]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e86]\n    - button \"访问 专项未知收费产品\" [ref=e95]\n  - button \"访问网站\" [ref=e87]\n  - link \"查看详情\" [ref=e88]\n- region \"知航屿\" [ref=e53]\n  - link \"知航屿首页\" [ref=e61]\n- navigation \"页脚快速链接\" [ref=e54]\n  - heading \"快速链接\" [level=2, ref=e62]\n  - link \"首页\" [ref=e74]\n  - link \"分类浏览\" [ref=e75]\n  - link \"搜索资源\" [ref=e76]\n  - link \"我的收藏\" [ref=e77]\n- region \"相关信息\" [ref=e55]\n  - heading \"相关信息\" [level=2, ref=e63]\n  - link \"版权申诉\" [ref=e78]\n- button \"打开知航AI助手\" [expanded=false, ref=e48]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e71"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      "--fn",
+      "!document.querySelector('.similar [role=alert]')"
+    ],
+    "output": "true\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "get",
+      "text",
+      ".similar"
+    ],
+    "output": "相似网站推荐\n专项同域付费产品\n\n专项同域付费产品\n\n推荐理由\n共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。\nTest resources\n专项相似验收20260929\n访问网站\n查看详情\n专项未知收费产品\n\n专项未知收费产品\n\n推荐理由\n共同标签：专项相似验收20260929。此资源收费模式待核实。\nTest resources\n专项相似验收20260929\n访问网站\n查看详情\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "retry completed real response",
+    "passed": true
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e46]\n- navigation \"主导航\" [ref=e47]\n  - link \"首页\" [ref=e49]\n  - link \"收藏夹\" [ref=e50]\n  - button \"打开知航AI助手\" [expanded=false, ref=e51]\n- button \"打开用户菜单\" [expanded=false, ref=e52]\n- heading \"专项源资源\" [level=1, ref=e56]\n- button \"收藏\" [ref=e57]\n- button \"访问官网\" [ref=e58]\n- heading \"详细介绍\" [level=2, ref=e59]\n- heading \"评论区\" [level=2, ref=e60]\n- combobox \"评分\" [expanded=false, ref=e69]: 5 分\n  - option \"5 分\" [selected, ref=e89]\n  - option \"4 分\" [ref=e90]\n  - option \"3 分\" [ref=e91]\n  - option \"2 分\" [ref=e92]\n  - option \"1 分\" [ref=e93]\n- textbox \"评论内容\" [required, ref=e70]\n- button \"发表评论\" [ref=e64]\n- heading \"基础信息\" [level=2, ref=e65]\n- heading \"标签\" [level=2, ref=e66]\n- heading \"适用职业\" [level=2, ref=e67]\n- heading \"相似网站推荐\" [level=2, ref=e68]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e72] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e79]\n  - button \"访问 专项同域付费产品\" [ref=e80]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e81]\n    - button \"访问 专项同域付费产品\" [ref=e94]\n  - button \"访问网站\" [ref=e82]\n  - link \"查看详情\" [ref=e83]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e73] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e84]\n  - button \"访问 专项未知收费产品\" [ref=e85]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e86]\n    - button \"访问 专项未知收费产品\" [ref=e95]\n  - button \"访问网站\" [ref=e87]\n  - link \"查看详情\" [ref=e88]\n- region \"知航屿\" [ref=e53]\n  - link \"知航屿首页\" [ref=e61]\n- navigation \"页脚快速链接\" [ref=e54]\n  - heading \"快速链接\" [level=2, ref=e62]\n  - link \"首页\" [ref=e74]\n  - link \"分类浏览\" [ref=e75]\n  - link \"搜索资源\" [ref=e76]\n  - link \"我的收藏\" [ref=e77]\n- region \"相关信息\" [ref=e55]\n  - heading \"相关信息\" [level=2, ref=e63]\n  - link \"版权申诉\" [ref=e78]\n- button \"打开知航AI助手\" [expanded=false, ref=e48]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "scrollintoview",
+      "@e83"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "null\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      "--fn",
+      "location.pathname==='/site/91002' && [...document.querySelectorAll('h1')].some(e=>e.textContent.includes('专项同域付费产品'))"
+    ],
+    "output": "true\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "get",
+      "text",
+      "h1"
+    ],
+    "output": "专项同域付费产品\n专项同域付费产品\n专项同域付费产品\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "SPA detail heading follows route",
+    "passed": true
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:15173/site/91006"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:15173/site/91006\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "get",
+      "text",
+      ".similar"
+    ],
+    "output": "相似网站推荐\n◇\n暂无相似网站\n\n后续会根据标签和职业推荐更多相似资源\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "empty result",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-empty.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-empty.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "open",
+      "http://127.0.0.1:15173/site/91001"
+    ],
+    "output": "✓ 知航屿｜智能网站导航与资源推荐平台\n  http://127.0.0.1:15173/site/91001\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "wait",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "1440",
+      "1000"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "scrollintoview",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"cards\": [\n    {\n      \"left\": 970.5999755859376,\n      \"right\": 1274.4000244140625,\n      \"width\": 303.800048828125\n    },\n    {\n      \"left\": 970.5999755859376,\n      \"right\": 1274.4000244140625,\n      \"width\": 303.800048828125\n    }\n  ],\n  \"overflow\": false,\n  \"width\": 1440\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "desktop horizontal bounds",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-desktop.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "390",
+      "844"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "scrollintoview",
+      ".similar"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "eval",
+      "--stdin"
+    ],
+    "output": "{\n  \"cards\": [\n    {\n      \"left\": 41.970001220703125,\n      \"right\": 333.0299987792969,\n      \"width\": 291.05999755859375\n    },\n    {\n      \"left\": 41.970001220703125,\n      \"right\": 333.0299987792969,\n      \"width\": 291.05999755859375\n    }\n  ],\n  \"overflow\": false,\n  \"width\": 390\n}\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "narrow horizontal bounds",
+    "passed": true
+  },
+  {
+    "command": [
+      "screenshot",
+      "D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow.png"
+    ],
+    "output": "✓ Screenshot saved to D:\\study\\智汇\\wwww_git\\artifacts\\local-integration\\similar-narrow.png\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "snapshot",
+      "-i"
+    ],
+    "output": "- link \"知航屿首页\" [ref=e96]\n- navigation \"主导航\" [ref=e97]\n  - link \"首页\" [ref=e99]\n  - link \"收藏夹\" [ref=e100]\n  - button \"打开知航AI助手\" [expanded=false, ref=e101]\n- button \"打开用户菜单\" [expanded=false, ref=e102]\n- heading \"专项源资源\" [level=1, ref=e106]\n- button \"收藏\" [ref=e107]\n- button \"访问官网\" [ref=e108]\n- heading \"详细介绍\" [level=2, ref=e109]\n- heading \"评论区\" [level=2, ref=e110]\n- combobox \"评分\" [expanded=false, ref=e119]: 5 分\n  - option \"5 分\" [selected, ref=e138]\n  - option \"4 分\" [ref=e139]\n  - option \"3 分\" [ref=e140]\n  - option \"2 分\" [ref=e141]\n  - option \"1 分\" [ref=e142]\n- textbox \"评论内容\" [required, ref=e120]\n- button \"发表评论\" [ref=e114]\n- heading \"基础信息\" [level=2, ref=e115]\n- heading \"标签\" [level=2, ref=e116]\n- heading \"适用职业\" [level=2, ref=e117]\n- heading \"相似网站推荐\" [level=2, ref=e118]\n- article \"专项同域付费产品专项同域付费产品推荐理由共同标签：专项相似验收20260929。收费模式不同：当前资源为完全免费，此资源为付费。Test resources专项相似验收20260929 访问网站  查\" [ref=e121] clickable [cursor:pointer]\n  - button \"添加收藏 专项同域付费产品\" [ref=e128]\n  - button \"访问 专项同域付费产品\" [ref=e129]\n  - heading \"访问 专项同域付费产品\" [level=3, ref=e130]\n    - button \"访问 专项同域付费产品\" [ref=e143]\n  - button \"访问网站\" [ref=e131]\n  - link \"查看详情\" [ref=e132]\n- article \"专项未知收费产品专项未知收费产品推荐理由共同标签：专项相似验收20260929。此资源收费模式待核实。Test resources专项相似验收20260929 访问网站  查看详情\" [ref=e122] clickable [cursor:pointer]\n  - button \"添加收藏 专项未知收费产品\" [ref=e133]\n  - button \"访问 专项未知收费产品\" [ref=e134]\n  - heading \"访问 专项未知收费产品\" [level=3, ref=e135]\n    - button \"访问 专项未知收费产品\" [ref=e144]\n  - button \"访问网站\" [ref=e136]\n  - link \"查看详情\" [ref=e137]\n- region \"知航屿\" [ref=e103]\n  - link \"知航屿首页\" [ref=e111]\n- navigation \"页脚快速链接\" [ref=e104]\n  - heading \"快速链接\" [level=2, ref=e112]\n  - link \"首页\" [ref=e123]\n  - link \"分类浏览\" [ref=e124]\n  - link \"搜索资源\" [ref=e125]\n  - link \"我的收藏\" [ref=e126]\n- region \"相关信息\" [ref=e105]\n  - heading \"相关信息\" [level=2, ref=e113]\n  - link \"版权申诉\" [ref=e127]\n- button \"打开知航AI助手\" [expanded=false, ref=e98]\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "click",
+      "@e131"
+    ],
+    "output": "✓ Done\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "command": [
+      "tab",
+      "list"
+    ],
+    "output": "  [t1] 知航屿｜智能网站导航与资源推荐平台 - http://127.0.0.1:15173/site/91001\n  [t2] about:blank - about:blank\n→ [t3] 127.0.0.1:15000/fixture/91002 - http://127.0.0.1:15000/fixture/91002\n",
+    "stderr": "",
+    "code": 0
+  },
+  {
+    "assertion": "similar visit opens local fixture destination",
+    "passed": true
+  }
+]

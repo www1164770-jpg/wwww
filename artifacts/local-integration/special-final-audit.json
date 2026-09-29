@@ -1,0 +1,119 @@
+{
+  "captured_at": "2026-09-29T05:48:19.472989+00:00",
+  "daily_target": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "nav_site"
+  },
+  "config_files": {
+    "backend/.env": {
+      "exists": true,
+      "configured_keys": [
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "DB_HOST",
+        "DB_USER",
+        "DB_PASSWORD",
+        "DB_NAME",
+        "DB_PORT",
+        "DATABASE_URL",
+        "JWT_SECRET_KEY",
+        "AUTHING_ISSUER",
+        "AUTHING_APP_ID",
+        "AUTHING_APP_SECRET",
+        "AUTHING_REDIRECT_URI",
+        "FRONTEND_URL",
+        "MAIL_SERVER",
+        "MAIL_PORT",
+        "MAIL_USERNAME",
+        "MAIL_PASSWORD"
+      ]
+    },
+    ".env": {
+      "exists": true,
+      "configured_keys": [
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "MYSQL_ROOT_PASSWORD",
+        "FRONTEND_PORT",
+        "BACKEND_PORT",
+        "MYSQL_PUBLISHED_PORT",
+        "DOCKER_MEILI_MASTER_KEY"
+      ]
+    }
+  },
+  "model_key_present": false,
+  "daily_migration_tables": {
+    "resource_field_claims": false,
+    "resource_identity_links": false,
+    "resource_quality_changes": false,
+    "search_sync_state": false,
+    "outbox_events": false,
+    "recommendation_feedback_migrations": false,
+    "recommendation_preferences": false
+  },
+  "isolated_exposure_events": [
+    {
+      "id": 202,
+      "user_id": 2,
+      "event_type": "impression",
+      "website_id": 91002,
+      "recommendation_batch_id": "special-clock-1790643628151",
+      "metadata_json": "{\"position\": \"1\", \"visible_ms\": \"1000\", \"event_version\": \"visible-v2\", \"visible_ratio\": \"0.5\", \"position_version\": \"display-position-v1\", \"algorithm_version\": \"phase1-v1\", \"collection_version\": \"server-time-v1\"}",
+      "created_at": "2026-09-29 09:00:28"
+    },
+    {
+      "id": 203,
+      "user_id": 2,
+      "event_type": "impression",
+      "website_id": 91002,
+      "recommendation_batch_id": "special-clock-1790643657650",
+      "metadata_json": "{\"position\": \"1\", \"visible_ms\": \"1000\", \"event_version\": \"visible-v2\", \"visible_ratio\": \"0.5\", \"position_version\": \"display-position-v1\", \"algorithm_version\": \"phase1-v1\", \"collection_version\": \"server-time-v1\"}",
+      "created_at": "2026-09-29 09:00:57"
+    },
+    {
+      "id": 204,
+      "user_id": 1,
+      "event_type": "impression",
+      "website_id": 91002,
+      "recommendation_batch_id": "special-clock-1790643657650",
+      "metadata_json": "{\"position\": \"1\", \"visible_ms\": \"1000\", \"event_version\": \"visible-v2\", \"visible_ratio\": \"0.5\", \"position_version\": \"display-position-v1\", \"algorithm_version\": \"phase1-v1\", \"collection_version\": \"server-time-v1\"}",
+      "created_at": "2026-09-29 09:00:57"
+    },
+    {
+      "id": 206,
+      "user_id": 2,
+      "event_type": "impression",
+      "website_id": 91002,
+      "recommendation_batch_id": "special-native-1790643862241",
+      "metadata_json": "{\"position\": \"1\", \"visible_ms\": \"1000\", \"event_version\": \"visible-v2\", \"visible_ratio\": \"0.5\", \"position_version\": \"display-position-v1\", \"algorithm_version\": \"phase1-v1\", \"collection_version\": \"server-time-v1\"}",
+      "created_at": "2026-09-29 09:04:50"
+    },
+    {
+      "id": 207,
+      "user_id": 2,
+      "event_type": "impression",
+      "website_id": 91002,
+      "recommendation_batch_id": "special-native-1790660793795",
+      "metadata_json": "{\"position\": \"1\", \"visible_ms\": \"1000\", \"event_version\": \"visible-v2\", \"visible_ratio\": \"0.5\", \"position_version\": \"display-position-v1\", \"algorithm_version\": \"phase1-v1\", \"collection_version\": \"server-time-v1\"}",
+      "created_at": "2026-09-29 13:46:36"
+    }
+  ],
+  "synthetic_accounts": [
+    {
+      "id": 2,
+      "username": "api_fixture"
+    },
+    {
+      "id": 1,
+      "username": "research_fixture"
+    }
+  ],
+  "restored_fixture_favorites": [],
+  "assertions": {
+    "clock_batch_one_per_account": true,
+    "native_batch_one_event": true,
+    "fixture_favorites_restored": true
+  }
+}

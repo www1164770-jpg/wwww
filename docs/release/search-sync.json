@@ -1,0 +1,291 @@
+{
+  "captured_at": "2026-09-27T06:11:40.557454+00:00",
+  "database": "search_sync_88d11013562c_test",
+  "index": "stage2_test_88d11013562c",
+  "source_database_modified": false,
+  "environment": {
+    "mysql": "local",
+    "meilisearch": "isolated Docker v1.12 port 17700",
+    "redis": "isolated Docker 7 port 16379",
+    "mysql_version": "9.7.1",
+    "meilisearch_version": "1.12.8",
+    "redis_version": "7.4.11",
+    "python_version": "3.14.5"
+  },
+  "initial_sample_count": 8,
+  "checks": [
+    "migration repeat creates no duplicate triggers",
+    "business rollback also rolls back revision and outbox event",
+    "temporary index settings/data validated before successful atomic swap",
+    "only six approved enabled resources enter public index",
+    "existing outbox batch processed only after successful task completion",
+    "repeat worker is idempotent",
+    "concurrent worker cannot submit while another owns database lock",
+    "Paper Atlas cold expected top result 1",
+    "Paper Atlas cold cache state",
+    "Paper Atlas warm expected top result 1",
+    "Paper Atlas warm cache state",
+    "文献检索 cold expected top result 1",
+    "文献检索 cold cache state",
+    "文献检索 warm expected top result 1",
+    "文献检索 warm cache state",
+    "literature cold expected top result 1",
+    "literature cold cache state",
+    "literature warm expected top result 1",
+    "literature warm cache state",
+    "接口调试 cold expected top result 2",
+    "接口调试 cold cache state",
+    "接口调试 warm expected top result 2",
+    "接口调试 warm cache state",
+    "科研人员 cold expected top result 1",
+    "科研人员 cold cache state",
+    "科研人员 warm expected top result 1",
+    "科研人员 warm cache state",
+    "Vue cold expected top result 3",
+    "Vue cold cache state",
+    "Vue warm expected top result 3",
+    "Vue warm cache state",
+    "healthy zero results never trigger DB fault fallback",
+    "category filter prevents cross-category result",
+    "AI route uses shared candidates with existing final ranking",
+    "AI invalid query contract remains HTTP/business 400",
+    "AI invalid query contract remains HTTP/business 400",
+    "AI invalid query contract remains HTTP/business 400",
+    "AI invalid query contract remains HTTP/business 400",
+    "AI invalid query contract remains HTTP/business 400",
+    "AI invalid query contract remains HTTP/business 400",
+    "route pagination uses current validated candidates without holes",
+    "frontend version validation endpoint",
+    "existing sort accepted: name",
+    "existing sort accepted: latest",
+    "existing sort accepted: recommend",
+    "existing sort accepted: relevance",
+    "exact sort order Paper name",
+    "exact sort order Paper latest",
+    "exact sort order Vue recommend",
+    "exact sort order Vue relevance",
+    "second service instance shares Redis cache",
+    "separate Python process shares versioned Redis candidates",
+    "tag change is searchable via pending consistency overlay before sync",
+    "pending index version never caches old index candidates",
+    "tag update reaches Meilisearch",
+    "unpublish hidden immediately before index cleanup",
+    "unpublished document deleted after sync",
+    "late old payload cannot resurrect an unpublished document",
+    "Meilisearch connection outage falls back to DB",
+    "missing index/configuration errors remain explicit",
+    "Redis outage allows uncached search",
+    "rebuild includes changed and newly inserted documents during initial build",
+    "post-rebuild DB/index reconciliation is clean",
+    "worker restart reclaims expired lease and retries current data",
+    "bounded retries preserve dead events and failure reason",
+    "manual retry restores dead events without rewriting business data",
+    "final DB/index reconciliation clean",
+    "timeout retains durable task ID without marking sync done",
+    "new worker confirms persisted task before further submissions",
+    "ambiguous submission blocks subsequent writes",
+    "explicit recovery and fresh rebuild restore exact current catalog",
+    "commit at swap boundary hidden immediately by current DB validation",
+    "commit at swap boundary remains queued for incremental processing",
+    "post-swap increment is not lost",
+    "actual failed async task cannot advance indexed revision",
+    "reconcile distinguishes stale, missing and nonpublic documents",
+    "unreviewed stray indexed document is filtered by current DB",
+    "physical deletion hidden before index synchronization",
+    "physical deletion cleans index idempotently",
+    "migration rollback retains all resources and outbox history",
+    "capture migration can be re-applied after rollback",
+    "CLI requires and accepts matching migration preview",
+    "CLI reviewed rollback succeeds without deleting resources",
+    "CLI status and reconciliation work against retained test database",
+    "Rollback invalidates cache generation; CLI reapply and safe rebuild restore indexed state"
+  ],
+  "queries": [
+    {
+      "query": "Paper Atlas",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1
+      ],
+      "condition": "cold",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": false,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 7.483,
+      "truncated": false
+    },
+    {
+      "query": "Paper Atlas",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1
+      ],
+      "condition": "warm",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": true,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 3.483,
+      "truncated": false
+    },
+    {
+      "query": "文献检索",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1,
+        7
+      ],
+      "condition": "cold",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": false,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 5.142,
+      "truncated": false
+    },
+    {
+      "query": "文献检索",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1,
+        7
+      ],
+      "condition": "warm",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": true,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 2.74,
+      "truncated": false
+    },
+    {
+      "query": "literature",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1
+      ],
+      "condition": "cold",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": false,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 5.098,
+      "truncated": false
+    },
+    {
+      "query": "literature",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1
+      ],
+      "condition": "warm",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": true,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 3.417,
+      "truncated": false
+    },
+    {
+      "query": "接口调试",
+      "expected_top_id": 2,
+      "actual_ids": [
+        2
+      ],
+      "condition": "cold",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": false,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 5.425,
+      "truncated": false
+    },
+    {
+      "query": "接口调试",
+      "expected_top_id": 2,
+      "actual_ids": [
+        2
+      ],
+      "condition": "warm",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": true,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 4.067,
+      "truncated": false
+    },
+    {
+      "query": "科研人员",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1
+      ],
+      "condition": "cold",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": false,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 6.63,
+      "truncated": false
+    },
+    {
+      "query": "科研人员",
+      "expected_top_id": 1,
+      "actual_ids": [
+        1
+      ],
+      "condition": "warm",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": true,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 3.971,
+      "truncated": false
+    },
+    {
+      "query": "Vue",
+      "expected_top_id": 3,
+      "actual_ids": [
+        3,
+        4
+      ],
+      "condition": "cold",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": false,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 6.109,
+      "truncated": false
+    },
+    {
+      "query": "Vue",
+      "expected_top_id": 3,
+      "actual_ids": [
+        3,
+        4
+      ],
+      "condition": "warm",
+      "source": "meilisearch",
+      "fallbackReason": null,
+      "cached": true,
+      "dataVersion": "search-v2:16:16",
+      "relaxed": false,
+      "durationMs": 4.234,
+      "truncated": false
+    }
+  ],
+  "status": "passed",
+  "retained_previous_index": "stage2_test_88d11013562c_build_1d0696507bcc"
+}

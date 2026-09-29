@@ -11,8 +11,6 @@
 | 问卷修改 | 个人中心可查看和修改问卷 | `backend/v1_routes.py`, `src/views/ProfileView.vue`, `src/views/Questionnaire.vue` | 是 | 修改后推荐变化需结合演示数据验收 |
 | 职业推荐网站 | `/api/sites/recommend` 支持职业推荐与兜底排序 | `backend/recommend_service.py`, `backend/v1_routes.py`, `src/views/Home.vue` | 是 | 推荐规则后台已补入口，算法可继续接入更多权重 |
 | 首页导航 | 首页包含搜索、分类、推荐、热门、最新和工具区 | `src/views/Home.vue`, `src/components/home/*.vue` | 是 | 源码中部分历史中文文案存在乱码，建议单独机械修复 |
-| 分类导航 | `/api/categories` 返回父子分类，前台有分类页 | `backend/v1_routes.py`, `src/views/Categories.vue` | 是 | 需要真实数据保证每类至少 4 个网站 |
-| 分类详情 | 支持分类下网站展示和筛选排序 | `backend/v1_routes.py`, `src/views/CategoryDetail.vue` | 是 | 无数据时依赖前端兜底网站 |
 | 网站详情 | 展示网站字段、收藏、访问、相似网站和评论 | `backend/v1_routes.py`, `src/views/SiteDetail.vue` | 是 | 管理员评语字段暂无独立结构 |
 | 搜索功能 | 支持站内搜索、联想、热门关键词和行为记录 | `backend/v1_routes.py`, `src/views/SearchResults.vue`, `src/components/common/SearchBar.vue` | 是 | 搜索热词依赖行为数据积累 |
 | 收藏功能 | 支持收藏、取消收藏、备注和列表移除 | `backend/v1_routes.py`, `src/views/Favorites.vue`, `src/components/site/SiteCard.vue` | 是 | 未登录跳转需浏览器验收 |

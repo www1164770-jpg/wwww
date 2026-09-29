@@ -9,8 +9,6 @@ const read = (relativePath) =>
 const footer = read("src/components/layout/AppFooter.vue");
 const home = read("src/views/Home.vue");
 const publicViews = [
-  "src/views/Categories.vue",
-  "src/views/CategoryDetail.vue",
   "src/views/SearchResults.vue",
   "src/views/SiteDetail.vue",
 ].map(read);

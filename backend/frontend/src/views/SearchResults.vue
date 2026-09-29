@@ -1,6 +1,5 @@
 <template>
   <div class="page">
-    <AppHeader />
     <main class="search-page">
       <header class="search-page__header">
         <div class="search-page__heading">
@@ -81,7 +80,6 @@
           <p>换一个关键词，或尝试搜索网站功能、分类和使用场景。</p>
           <div class="empty-actions">
             <button type="button" @click="clearKeyword">清除关键词</button>
-            <RouterLink to="/categories">查看全部分类</RouterLink>
             <RouterLink to="/#recommend-tools">查看热门推荐</RouterLink>
             <RouterLink to="/">询问知航AI</RouterLink>
           </div>
@@ -144,7 +142,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
-import AppHeader from "../components/layout/AppHeader.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SearchBar from "../components/common/SearchBar.vue";
 import SearchFilterDropdown from "../components/search/SearchFilterDropdown.vue";
@@ -378,14 +375,9 @@ onBeforeUnmount(() => requestController?.abort());
   width: min(1440px, calc(100% - 48px));
   min-width: 0;
   margin: 0 auto;
-  padding: 42px 0 76px;
+  padding: 0 0 76px;
   color: var(--app-text-secondary);
-  font-family:
-    Inter,
-    "PingFang SC",
-    "Noto Sans SC",
-    "Microsoft YaHei",
-    sans-serif;
+  font-family: var(--app-font-family);
 }
 
 .search-page__header {
@@ -507,7 +499,7 @@ h1 {
 
 .category-warning {
   margin: 16px 0 0;
-  border-left: 3px solid rgba(255, 112, 88, 0.72);
+  border-left: 3px solid color-mix(in srgb, var(--primary) 58%, transparent);
   background: var(--app-panel-soft-bg);
   color: var(--app-text-secondary);
   padding: 11px 14px;

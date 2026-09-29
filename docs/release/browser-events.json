@@ -1,0 +1,108 @@
+{
+  "captured_at_utc": "2026-09-29T00:37:36.497985+00:00",
+  "database": "resource_chain_7a54fb93b0d4_test",
+  "clock": {
+    "database_now": "2026-09-29 08:37:36",
+    "utc_now": "2026-09-29 00:37:36",
+    "session_timezone": "SYSTEM"
+  },
+  "source": "real browser operations against isolated Flask; includes pre-fix clicks as legacy, never production evidence",
+  "counts": {
+    "favorite": 4,
+    "impression": 178,
+    "feedback": 9,
+    "feedback_undo": 6,
+    "click": 4
+  },
+  "visible_v2_by_account": {
+    "2": 100,
+    "1": 54
+  },
+  "visible_v2_missing_time": 0,
+  "visible_v2_missing_position": 0,
+  "duplicate_visible_impressions": 0,
+  "visible_clicks": 2,
+  "visible_clicks_linked_to_prior_same_account_batch_position": 1,
+  "visible_clicks_with_same_account_batch_position_exposure": 2,
+  "test_exclusions": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "events_after_explicit_test_exclusion": 0,
+  "offscreen_batch_impressions": 0,
+  "preferences": [
+    {
+      "user_id": 1,
+      "website_id": 1,
+      "reason": "irrelevant",
+      "revision": 1,
+      "expires_at": null
+    },
+    {
+      "user_id": 1,
+      "website_id": 11,
+      "reason": null,
+      "revision": 6,
+      "expires_at": null
+    },
+    {
+      "user_id": 2,
+      "website_id": 1,
+      "reason": null,
+      "revision": 7,
+      "expires_at": null
+    },
+    {
+      "user_id": 2,
+      "website_id": 11,
+      "reason": "irrelevant",
+      "revision": 1,
+      "expires_at": null
+    }
+  ],
+  "recent_visible_click_evidence": [
+    {
+      "user_id": 2,
+      "website_id": 11,
+      "batch": "rec_0c43776a3fc248cc85d7f6c2e0fba31f:backend_engineer:0:size-8",
+      "created_at": "2026-09-27 18:58:30",
+      "metadata": {
+        "position": "2",
+        "match_score": "50.12",
+        "event_version": "visible-v2",
+        "rerank_version": "diversity-v1.b5",
+        "position_version": "display-position-v1",
+        "algorithm_version": "phase1-v1",
+        "candidate_pool_id": "pool_backend_engineer_6f1d474e242d4c12a8fa453976f69c1b",
+        "collection_version": "server-time-v1",
+        "personalization_type": "personalized",
+        "profile_schema_version": "3"
+      }
+    },
+    {
+      "user_id": 1,
+      "website_id": 11,
+      "batch": "rec_e1d88473ec974897bc315a97a85b0b8a:backend_engineer:0:size-8",
+      "created_at": "2026-09-28 09:13:43",
+      "metadata": {
+        "position": "2",
+        "match_score": "50.12",
+        "event_version": "visible-v2",
+        "rerank_version": "diversity-v1.b5",
+        "position_version": "display-position-v1",
+        "algorithm_version": "phase1-v1",
+        "candidate_pool_id": "pool_backend_engineer_ec13cab0096547f68e23acb1de01db52",
+        "collection_version": "server-time-v1",
+        "personalization_type": "personalized",
+        "profile_schema_version": "3"
+      }
+    }
+  ],
+  "limits": [
+    "no historical event backfill",
+    "background-tab and slow network races require separate browser evidence",
+    "counts are test operations, not recommendation effectiveness"
+  ]
+}

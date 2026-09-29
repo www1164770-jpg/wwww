@@ -36,11 +36,12 @@ const checks = [
     ),
   ],
   [
-    "signed-in entry opens the shared assistant store",
+    "signed-in entry toggles the shared assistant store without navigation",
     header.includes("useAiAssistantStore") &&
-      /function handleAiAssistantEntry\(\)\s*\{[\s\S]*?if \(loggedIn\.value\) \{[\s\S]*?aiAssistantStore\.openAssistant\(\)/.test(
+      /function handleAiAssistantEntry\(\)\s*\{[\s\S]*?if \(loggedIn\.value\) \{[\s\S]*?aiAssistantStore\.toggleAssistant\(\)/.test(
         header,
-      ),
+      ) &&
+      !/function handleAiAssistantEntry\(\)[\s\S]*?router\.push\(\s*["']\/["']\s*\)/.test(header),
   ],
   [
     "the shared navigation keeps the entry available on small screens",

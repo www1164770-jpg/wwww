@@ -1,0 +1,32 @@
+import json
+from verify_special_browser import ab,js,snap,click,check,loaded,OUT
+state=json.loads((OUT/'visibility-native.json').read_text(encoding='utf-8-sig'))
+hidden=next(e for e in state['events'] if e['type']=='visibilitychange' and e['visibility']=='hidden')
+visible=next(e for e in state['events'] if e['type']=='visibilitychange' and e['visibility']=='visible')
+armed=next(e for e in state['events'] if e['type']=='armed')
+check('native background began before 1000ms',hidden['ms']-armed['ms']<1000)
+check('background exceeded full exposure window',visible['ms']-hidden['ms']>1000)
+check('native exposure only after foreground full 1000ms',len(state['requests'])==1 and state['requests'][0]['ms']-visible['ms']>=1000)
+ab('eval','--stdin',script='window.__stopNative()')
+check('A does not inherit B favorite','添加收藏 专项同域付费产品' in snap())
+click('打开用户菜单');click('退出登录','menuitem')
+ab('open','http://127.0.0.1:15173/login');snap()
+ab('fill','input[placeholder="请输入邮箱或用户名"]','research_fixture')
+ab('fill','input[placeholder="请输入密码"]','Local-Integration-Only-2026!')
+click('登录');ab('wait','button[aria-label="打开用户菜单"]')
+ab('open','http://127.0.0.1:15173/site/91001');loaded()
+check('B favorite persists after switching back','取消收藏 专项同域付费产品' in snap())
+click('取消收藏 专项同域付费产品')
+check('favorite toggle restored','添加收藏 专项同域付费产品' in snap())
+for width,height,name in [(1440,1000,'desktop'),(390,844,'narrow')]:
+    ab('set','viewport',str(width),str(height))
+    ab('eval','--stdin',script="window.scrollTo({top:document.querySelector('.similar').getBoundingClientRect().top+scrollY-80,behavior:'instant'})")
+    # Wait for two stable animation frames, then collect actual hit testing.
+    geometry=js("""new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>{const el=document.querySelector('.similar');const r=el.getBoundingClientRect();const items=[...el.querySelectorAll('button,a')].map(e=>{const b=e.getBoundingClientRect();const x=b.x+b.width/2,y=b.y+b.height/2;return {text:e.textContent.trim()||e.getAttribute('aria-label'),inViewport:y>=80&&y<innerHeight,x,y,clear:e.contains(document.elementFromPoint(x,y))}});resolve({width:innerWidth,overflow:document.documentElement.scrollWidth>innerWidth,top:r.top,items})})))""")
+    check(name+' visible controls unobscured',not geometry['overflow'] and all(e['clear'] for e in geometry['items'] if e['inViewport']))
+    (OUT/f'similar-{name}-geometry.json').write_text(json.dumps(geometry,ensure_ascii=False,indent=2),encoding='utf-8')
+    ab('screenshot',str(OUT/f'similar-{name}.png'))
+try:ab('record','stop')
+except RuntimeError as exc:
+    (OUT/'special-recording-limitation.txt').write_text(str(exc),encoding='utf-8')
+print('PASS native visibility, favorite account isolation, geometry and screenshots')

@@ -22,10 +22,8 @@ assert.match(home, /career\.reason/);
 assert.match(home, /careerAbilityTags/);
 assert.match(home, /careerInterestTags/);
 assert.match(homeTemplate, /<h3 id="career-selection-title">选择职业<\/h3>/);
-assert.match(
-  homeTemplate,
-  /v-if="careerAbilityTags\.length"[\s\S]*?>能力标签</,
-);
+assert.doesNotMatch(homeTemplate, /能力标签/);
+assert.doesNotMatch(homeTemplate, /career-tag-group/);
 assert.doesNotMatch(homeTemplate, /兴趣与目标/);
 assert.doesNotMatch(homeTemplate, /v-for="tag in careerInterestTags"/);
 assert.match(

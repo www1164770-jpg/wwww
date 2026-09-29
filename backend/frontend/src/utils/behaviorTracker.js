@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { getAccessToken, isValidAuthToken } from "./auth";
+import { getAccessToken, isValidAuthToken, getStoredUserInfo } from "./auth";
 
 export const BEHAVIOR_SESSION_STORAGE_KEY = "zhihangyu_behavior_session_id";
 const IMPRESSION_DEDUPE_KEY = "zhihangyu:behavior:impressions:v1";
@@ -45,6 +45,10 @@ function context(site = {}, options = {}) {
     session_id: options.session_id || getBehaviorSessionId(),
     metadata: {
       ...(options.metadata || {}),
+      ...(site.event_version === 'visible-v2' && Number.isInteger(site.display_position)
+        ? { position: site.display_position, position_version: 'display-position-v1' } : {}),
+      ...(site.event_version ? { event_version: site.event_version } : {}),
+      ...(site.rerank_version ? { rerank_version: site.rerank_version } : {}),
       ...(site.candidate_pool_id
         ? { candidate_pool_id: site.candidate_pool_id }
         : {}),
@@ -86,6 +90,14 @@ export function trackClick(site, options = {}) {
   return send({ event_type: "click", ...context(site, options) });
 }
 
+// Reuse the same context for the existing click-count endpoint; do not emit a
+// second click event just to carry visibility/version metadata.
+export const behaviorContext = context;
+
+export function trackVisibleImpression(site) {
+  return send({event_type:'impression',...context(site,{metadata:{event_version:'visible-v2',visible_ratio:.5,visible_ms:1000}})});
+}
+
 export function trackFavorite(site, options = {}) {
   return send({ event_type: "favorite", ...context(site, { ...options, source: options.source || "favorite" }) });
 }
@@ -116,12 +128,15 @@ function writeImpressionKeys(keys) {
 export async function trackImpressions(sites, options = {}) {
   const list = Array.isArray(sites) ? sites : [];
   const batchId = options.recommendation_batch_id || options.batch_id || "";
+  const account = getStoredUserInfo()?.id;
+  if (!authenticated() || !account) return { recorded: 0, anonymous: true };
+  const dedupeKey = (id) => `${account}:${batchId}:${id}`;
   const keys = readImpressionKeys();
   const websiteIds = list
     .map((site) => siteId(site))
     .filter(Boolean)
     .filter((id) => {
-      const key = `${batchId}:${id}`;
+      const key = dedupeKey(id);
       if (keys.has(key)) return false;
       keys.add(key);
       return true;
@@ -137,7 +152,7 @@ export async function trackImpressions(sites, options = {}) {
     }, { timeout: 3000 });
     return response?.data?.data || response?.data || { recorded: 0 };
   } catch (error) {
-    websiteIds.forEach((id) => keys.delete(`${batchId}:${id}`));
+    websiteIds.forEach((id) => keys.delete(dedupeKey(id)));
     writeImpressionKeys(keys);
     console.warn("[behaviorTracker] impression batch failed", error?.message || error);
     return { recorded: 0, error: true };

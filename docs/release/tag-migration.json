@@ -1,0 +1,25 @@
+{
+  "test_database": "v3_tag_identity_44019823ef1b_test",
+  "source_database_modified": false,
+  "user_data_copied": false,
+  "migration_version": "20260925_v3_tag_identity_v1",
+  "source_plan_unique_pairs": 30,
+  "checks": [
+    "Original approved associations plus one prior-batch fixture are recognized",
+    "Revised preview skips original and prior approved associations",
+    "CLI applies precisely the missing approved subset",
+    "Identical CLI migration is idempotent",
+    "No original link was changed or removed",
+    "Every reliably mapped approved code is now present in the test DB",
+    "Other migration version remains active",
+    "Rollback preview owns only this migration's inserted links",
+    "Rollback exactly restores original and prior-batch associations",
+    "Rollback deletes no existing tag dictionary row",
+    "Rollback is isolated to the new version",
+    "Repeated rollback is a no-op"
+  ],
+  "status": "passed",
+  "new_associations": 28,
+  "protected_existing_associations": 4646,
+  "artifacts": "artifacts\\v3_tag_identity_44019823ef1b_test"
+}

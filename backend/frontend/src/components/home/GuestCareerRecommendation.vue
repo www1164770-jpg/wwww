@@ -536,12 +536,12 @@ function selectGuestCareer(careerCode) {
 }
 .guest-career__tabs button:hover {
   color: var(--app-text-primary);
-  border-color: rgba(255, 112, 88, 0.46);
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
 }
 .guest-career__tabs button.active {
   color: var(--app-text-primary);
-  border-color: rgba(255, 112, 88, 0.58);
-  background: rgba(255, 112, 88, 0.13);
+  border-color: color-mix(in srgb, var(--primary) 38%, transparent);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 .guest-career__label-row {
   display: flex;
@@ -578,7 +578,7 @@ function selectGuestCareer(careerCode) {
   transition: 180ms ease;
 }
 .guest-site-card:hover {
-  border-color: rgba(255, 112, 88, 0.42);
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
   background: var(--app-card-hover-bg);
   box-shadow: var(--app-card-hover-shadow);
   transform: translateY(-2px);
@@ -588,6 +588,19 @@ function selectGuestCareer(careerCode) {
   align-items: center;
   min-width: 0;
   gap: 9px;
+}
+.guest-site-card__head :deep(.site-logo) {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  object-fit: contain;
+  object-position: center;
 }
 .guest-site-card__head strong {
   overflow: hidden;

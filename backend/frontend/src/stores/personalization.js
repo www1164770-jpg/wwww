@@ -5,8 +5,9 @@ import { getAccessToken } from "../utils/auth";
 import { analyzeBackground, analyzeImageBlob, applyPersonalization, cloneSettings, defaultPersonalization, mergeAccountWithGuestBackground, personalizationConflictHash, readBackgroundSyncState, readGuestImage, readGuestSettings, readPersonalizationConflictPreference, readabilityFor, rememberedConflictDecision, saveBackgroundSyncState, saveGuestImage, saveGuestSettings, savePersonalizationConflictPreference } from "../utils/personalization";
 
 export const usePersonalizationStore = defineStore("personalization", () => {
-  const settings = ref(defaultPersonalization());
-  const originalSettings = ref(defaultPersonalization());
+  const initialSettings = readGuestSettings();
+  const settings = ref(initialSettings);
+  const originalSettings = ref(cloneSettings(initialSettings));
   const imageUrl = ref("");
   const backgrounds = ref([]);
   const loading = ref(false);

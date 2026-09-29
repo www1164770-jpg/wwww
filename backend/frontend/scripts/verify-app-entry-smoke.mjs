@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createServer } from "vite";
 
 const HOST = "127.0.0.1";
 const PORT = 4173;
+const routerSource = readFileSync(resolve(import.meta.dirname, "../src/router/index.js"), "utf8");
 const routes = [
   "/",
   "/login",
   "/register",
   "/forgot-password",
   "/search",
-  "/categories",
 ];
 
 const server = await createServer({
@@ -20,6 +22,9 @@ const server = await createServer({
   },
   logLevel: "error",
 });
+
+assert.doesNotMatch(routerSource, /path:\s*["']\/categories["']/);
+assert.doesNotMatch(routerSource, /path:\s*["']\/category\/:id["']/);
 
 try {
   await server.listen();
@@ -50,5 +55,8 @@ try {
 
   console.log(`Frontend entry smoke test passed: ${routes.length} routes.`);
 } finally {
-  await server.close();
+  // Vite 8 can keep a dependency-optimizer handle alive after all fetches
+  // finish. Closing initiates shutdown synchronously; awaiting its internal
+  // promise causes Node 24 to report an unsettled top-level await.
+  server.close();
 }

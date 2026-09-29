@@ -8,18 +8,20 @@ from functools import wraps
 from urllib.parse import urlsplit
 
 import pymysql
-from flask import jsonify, request
+from flask import jsonify, request, g
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from ai_site_recommend_service import normalize_text, recommend_sites_for_query
+from ai_site_recommend_service import normalize_text, recommend_sites_for_query, extract_query_terms
 from career_catalog import career_site_keywords
 from career_recommend_service import build_career_recommendations
+from career_resource_coverage import MIN_RESOURCES_PER_CAREER, select_catalog_resources
 from occupation_utils import (
     OCCUPATION_LABELS,
     get_occupation_label,
     normalize_occupation,
 )
 from recommend_service import rank_sites
+from resource_fields import enrich_resources
 from questionnaire_v2 import (
     QUESTIONNAIRE_VERSION,
     build_recommendation_profile,
@@ -41,9 +43,13 @@ SEARCH_CACHE_TTL_SECONDS = 5 * 60
 SEARCH_DATA_VERSION = "site-search-v1"
 RECOMMENDATION_ALGORITHM_VERSION = "phase1-v1"
 
+class InvalidSearchCategory(ValueError):
+    pass
+
 
 def is_search_database_unavailable(error):
     """Distinguish connectivity/pool failures from broken search SQL."""
+    error = getattr(error, "orig", error)
     if type(error).__name__ == "TooManyConnectionsError":
         return True
     if not isinstance(error, pymysql.err.OperationalError):
@@ -298,9 +304,19 @@ def rank_search_sites(items, query, sort="relevance"):
     return ranked
 
 
-def register_v1_routes(app, get_db_connection):
+def register_v1_routes(app, get_db_connection, search_service=None):
     columns_cache = {}
     search_cache = {}
+    from search_service import SearchConfigurationError, SearchUnavailable
+
+    @app.errorhandler(SearchConfigurationError)
+    def search_configuration_error(_error):
+        app.logger.error("search_configuration_error")
+        return api_error("搜索配置或查询处理失败", "SEARCH_INTERNAL_ERROR", 500)
+
+    @app.errorhandler(SearchUnavailable)
+    def search_unavailable(_error):
+        return api_error("搜索服务暂时不可用，请稍后重试", "SEARCH_DATABASE_ERROR", 503)
 
     CATEGORY_CODE_ALIASES = {
         "常用推荐": "common",
@@ -383,6 +399,9 @@ def register_v1_routes(app, get_db_connection):
             raise
         finally:
             safe_close(conn)
+
+    from recommendation_feedback_routes import register as register_feedback
+    apply_recommendation_preferences = register_feedback(app, get_db_connection, current_user_row, api_success, api_error, search_service.catalog if search_service else None)
 
     behavior_schema_ready = False
     observation_snapshot_schema_ready = False
@@ -474,11 +493,13 @@ def register_v1_routes(app, get_db_connection):
             metadata = {}
         # Do not persist raw form fields, credentials, or arbitrary URLs.
         safe_metadata = {}
-        for key in ("display_batch_index", "candidate_pool_id", "position", "surface", "personalization_type", "match_score", "algorithm_version", "profile_schema_version"):
+        for key in ("display_batch_index", "candidate_pool_id", "position", "position_version", "surface", "personalization_type", "match_score", "algorithm_version", "profile_schema_version", "event_version", "rerank_version", "visible_ratio", "visible_ms"):
             value = metadata.get(key)
             if value is not None:
                 safe_metadata[key] = str(value)[:128]
         safe_metadata.setdefault("algorithm_version", RECOMMENDATION_ALGORITHM_VERSION)
+        # Version the write fix, not the exposure definition. Never infer old times.
+        safe_metadata["collection_version"] = "server-time-v1"
         return {
             "recommendation_batch_id": str(payload.get("recommendation_batch_id") or "").strip()[:128] or None,
             "questionnaire_version": str(payload.get("questionnaire_version") or "").strip()[:64] or None,
@@ -489,6 +510,10 @@ def register_v1_routes(app, get_db_connection):
 
     def insert_behavior_event(user_id, website_id, event_type, source, context, cursor, *, dedupe=False):
         """Insert one event and return whether a row was written."""
+        version = json.loads(context.get("metadata_json") or "{}").get("event_version", "legacy-v1")
+        if dedupe and version == "visible-v2":
+            cursor.execute("SELECT id FROM users WHERE id=%s FOR UPDATE", (user_id,))
+            cursor.fetchone()
         if dedupe:
             cursor.execute(
                 """
@@ -497,10 +522,11 @@ def register_v1_routes(app, get_db_connection):
                   AND COALESCE(source,'')=COALESCE(%s,'')
                   AND COALESCE(recommendation_batch_id,'')=COALESCE(%s,'')
                   AND COALESCE(session_id,'')=COALESCE(%s,'')
+                  AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(metadata_json,'$.event_version')),'legacy-v1')=%s
                 LIMIT 1
-                """,
+                """ + (" FOR UPDATE" if version == "visible-v2" else ""),
                 (user_id, website_id, event_type, source,
-                 context.get("recommendation_batch_id"), context.get("session_id")),
+                 context.get("recommendation_batch_id"), context.get("session_id"), version),
             )
             if cursor.fetchone():
                 return False
@@ -508,8 +534,8 @@ def register_v1_routes(app, get_db_connection):
             """
             INSERT INTO user_behavior_events
               (user_id, website_id, event_type, source, recommendation_batch_id,
-               questionnaire_version, profile_version, session_id, metadata_json)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+               questionnaire_version, profile_version, session_id, metadata_json, created_at)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
             """,
             (user_id, website_id, event_type, source,
              context.get("recommendation_batch_id"), context.get("questionnaire_version"),
@@ -643,6 +669,38 @@ def register_v1_routes(app, get_db_connection):
             "name",
         )
 
+    def resource_details(sites):
+        if not sites:
+            return sites
+        rows = []
+        if table_columns("resource_field_claims"):
+            ids = [site["id"] for site in sites]
+            placeholders = ",".join(["%s"] * len(ids))
+            conn = get_db_connection()
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(f"SELECT * FROM resource_field_claims WHERE state='active' AND site_id IN ({placeholders})", ids)
+                    rows = cursor.fetchall()
+            finally:
+                conn.close()
+        sites = enrich_resources(sites, rows)
+        if table_columns("resource_identity_links"):
+            ids = [site["id"] for site in sites]
+            placeholders = ",".join(["%s"] * len(ids))
+            conn = get_db_connection()
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(f"SELECT source_id, target_id, evidence FROM resource_identity_links WHERE state='active' AND source_id IN ({placeholders})", ids)
+                    links = {row["source_id"]: row for row in cursor.fetchall()}
+            finally:
+                conn.close()
+            for site in sites:
+                link = links.get(site["id"])
+                if link:
+                    site["canonical_site_id"] = link["target_id"]
+                    site["identity_evidence"] = link["evidence"]
+        return sites
+
     def site_occupations(site_ids):
         return grouped_values(
             "SELECT site_id, occupation FROM site_occupations WHERE site_id IN ({placeholders})",
@@ -728,11 +786,19 @@ def register_v1_routes(app, get_db_connection):
             row = cursor.fetchone() or {}
             if not row:
                 return {}
+            stored_profile = json.loads(row.get("profile_json") or "{}")
+            stored_answers = json.loads(row.get("answers_json") or "{}")
+            if version == QUESTIONNAIRE_V3_VERSION and "detailed_needs" not in stored_profile:
+                try:
+                    clean_answers, _ = validate_questionnaire_v3_answers(stored_answers)
+                    stored_profile = build_questionnaire_v3_profile(clean_answers)
+                except ValueError:
+                    pass  # Historical answers remain readable without rewriting data.
             return {
                 "version": row.get("questionnaire_version"),
                 "occupation": row.get("occupation"),
-                "answers": json.loads(row.get("answers_json") or "{}"),
-                "profile": json.loads(row.get("profile_json") or "{}"),
+                "answers": stored_answers,
+                "profile": stored_profile,
                 "updated_at": row.get("updated_at"),
             }
         except Exception:
@@ -987,6 +1053,12 @@ def register_v1_routes(app, get_db_connection):
             "occupations": occupations or [],
             "is_free": bool(row.get("is_free", True)),
             "need_login": bool(row.get("need_login", False)),
+            "is_free_known": row.get("is_free") is not None,
+            "need_login_known": row.get("need_login") is not None,
+            "pricing_model": None,
+            "language": None,
+            "audience": None,
+            "entry_requirements": None,
             "region": row.get("region") or "domestic",
             "quality_score": float(row.get("quality_score") or 0),
             "recommend_level": row.get("recommend_level") or 0,
@@ -1341,8 +1413,10 @@ def register_v1_routes(app, get_db_connection):
         where = []
         params = []
         joins = "LEFT JOIN categories c ON c.id = w.category_id"
+        if "enabled" in website_columns:
+            where.append("w.enabled=1")
         if "status" in website_columns:
-            where.append("COALESCE(w.status, 'approved') IN ('approved', 'active')")
+            where.append("w.status IN ('approved', 'active')")
         if category_id:
             category_value = str(category_id).strip()
             if category_value.isdigit():
@@ -1361,7 +1435,14 @@ def register_v1_routes(app, get_db_connection):
                 else:
                     where.append("c.name=%s")
                     params.append(category_value)
-        if keyword:
+        if keyword and search_service is not None:
+            candidate_ids = [site["id"] for site in shared_candidates(keyword, search_term_groups(keyword))]
+            if candidate_ids:
+                where.append("w.id IN (" + ",".join(["%s"] * len(candidate_ids)) + ")")
+                params.extend(candidate_ids)
+            else:
+                where.append("1=0")
+        elif keyword:
             joins += " LEFT JOIN site_tags st_search ON st_search.site_id = w.id LEFT JOIN tags t_search ON t_search.id = st_search.tag_id"
             joins += " LEFT JOIN site_occupations so_search ON so_search.site_id = w.id"
             search_fields = []
@@ -1482,7 +1563,7 @@ def register_v1_routes(app, get_db_connection):
         ids = [row["id"] for row in rows]
         tags = site_tags(ids)
         occupations = site_occupations(ids)
-        return [normalize_site(row, tags.get(row["id"], []), occupations.get(row["id"], [])) for row in rows]
+        return resource_details([normalize_site(row, tags.get(row["id"], []), occupations.get(row["id"], [])) for row in rows])
 
     def count_sites(category_id=None, keyword=None, tag=None, is_free=None, region=None):
         """Count the same filtered site set used by /api/sites without loading cards."""
@@ -1491,8 +1572,10 @@ def register_v1_routes(app, get_db_connection):
         where = []
         params = []
         joins = "LEFT JOIN categories c ON c.id = w.category_id"
+        if "enabled" in website_columns:
+            where.append("w.enabled=1")
         if "status" in website_columns:
-            where.append("COALESCE(w.status, 'approved') IN ('approved', 'active')")
+            where.append("w.status IN ('approved', 'active')")
         if category_id:
             category_value = str(category_id).strip()
             if category_value.isdigit():
@@ -1510,7 +1593,14 @@ def register_v1_routes(app, get_db_connection):
                 else:
                     where.append("c.name=%s")
                     params.append(category_value)
-        if keyword:
+        if keyword and search_service is not None:
+            candidate_ids = [site["id"] for site in shared_candidates(keyword, search_term_groups(keyword))]
+            if candidate_ids:
+                where.append("w.id IN (" + ",".join(["%s"] * len(candidate_ids)) + ")")
+                params.extend(candidate_ids)
+            else:
+                where.append("1=0")
+        elif keyword:
             search_fields = []
             for column in ("name", "summary", "description", "url"):
                 if column in website_columns:
@@ -1580,7 +1670,16 @@ def register_v1_routes(app, get_db_connection):
                         f"WHERE LOWER(name)=LOWER(%s) {status_where} LIMIT 1",
                         (value,),
                     )
-                return cursor.fetchone()
+                matched = cursor.fetchone()
+                if matched or value.isdigit():
+                    return matched
+                # /categories exposes a generated code for legacy rows without
+                # code. Accept that same code here, but never choose an ambiguous
+                # generated value (e.g. two untranslated names -> "category").
+                cursor.execute(f"SELECT id, name, {code_expr} FROM categories WHERE 1=1 {status_where}")
+                matches = [row for row in cursor.fetchall() if not row.get('code')
+                           and category_code_for_name(row.get('name')).lower() == value.lower()]
+                return matches[0] if len(matches) == 1 else None
         finally:
             conn.close()
 
@@ -1683,12 +1782,9 @@ def register_v1_routes(app, get_db_connection):
                 parsed_url = urlsplit(
                     raw_url if "://" in raw_url else f"https://{raw_url}"
                 )
-                url_key = (
-                    f"{(parsed_url.hostname or '').lower().removeprefix('www.')}"
-                    f"{parsed_url.path.rstrip('/') or '/'}"
-                )
+                url_key = parsed_url._replace(scheme=parsed_url.scheme.lower(), netloc=parsed_url.netloc.lower()).geturl()
             except ValueError:
-                url_key = raw_url.rstrip("/").casefold()
+                url_key = raw_url
             if not url_key or url_key in seen_urls:
                 continue
             seen_urls.add(url_key)
@@ -1705,10 +1801,26 @@ def register_v1_routes(app, get_db_connection):
             candidates.append(site)
         return candidates
 
-    def cached_site_search(query, category, sort):
+    def shared_candidates(query, groups, **options):
+        rows, meta = search_service.retrieve(query, groups, **options)
+        g.search_meta = meta
+        result = []
+        for row in rows:
+            site = normalize_site(row, row.get("tags", []), row.get("occupations", []))
+            for field in ("aliases", "use_cases", "updated_at"):
+                site[field] = row.get(field)
+            result.append(site)
+        return result
+
+    def cached_site_search(query, category, sort, page=1, page_size=20):
         category_row = resolve_search_category(category) if category else None
         if category and not category_row:
-            raise ValueError("INVALID_CATEGORY")
+            raise InvalidSearchCategory("INVALID_CATEGORY")
+        if search_service is not None:
+            items = shared_candidates(query, search_term_groups(query),
+                category=category_row["id"] if category_row else None,
+                sort=sort, page=page, page_size=page_size)
+            return rank_search_sites(items, query, sort), category_row, g.search_meta["relaxed"], g.search_meta["cached"]
         cache_key = (
             query.casefold(),
             int(category_row["id"]) if category_row else None,
@@ -2030,8 +2142,20 @@ def register_v1_routes(app, get_db_connection):
             career_profile,
             limit=8,
         )
+        # A selected career is always identified by its stable catalog code;
+        # display labels never participate in database/resource matching.
+        requested_career_code = normalize_occupation(request.args.get("career"))
+        if requested_career_code:
+            careers = [
+                career for career in careers
+                if career["code"] == requested_career_code
+            ]
 
         source_sites = query_sites(limit=1000, sort="recommend")
+        page = source_sites
+        while len(page) == 1000:
+            page = query_sites(limit=1000, offset=len(source_sites), sort="recommend")
+            source_sites.extend(page)
         recommend_rules = load_json_setting("recommend_rules", default_recommend_rules())
         profile_interest_values = list(profile["interests"]) + list(profile["purposes"])
         recommendation_session_id = f"rec_{uuid4().hex}"
@@ -2043,7 +2167,13 @@ def register_v1_routes(app, get_db_connection):
             # Rank the full catalog. Career filtering alone would discard a
             # design or API tool before a V2 primary-need signal (for example,
             # frontend + ui_generation) has a chance to promote it.
-            career_candidates = source_sites
+            # Use the catalog career/resource mapping first.  The selector
+            # reads the same metadata persisted by the importer, so older
+            # databases remain safe until their next idempotent seed import.
+            mapped_sites = [site for site in source_sites if career_code in site.get("occupations", [])]
+            career_candidates = select_catalog_resources(
+                career_code, mapped_sites or source_sites, limit=MIN_RESOURCES_PER_CAREER * 4,
+            ) or source_sites
             ranked_sites = rank_sites(
                 career_candidates,
                 {
@@ -2051,6 +2181,7 @@ def register_v1_routes(app, get_db_connection):
                     "interests": profile_interest_values,
                     "direction": recommendation_profile.get("direction", ""),
                     "primary_need": recommendation_profile.get("primary_need", ""),
+                    "detailed_needs": recommendation_profile.get("detailed_needs", []),
                     "priority": recommendation_profile.get("priority", ""),
                 },
                 # Keep a high-relevance pool for the homepage's 16-item
@@ -2059,6 +2190,12 @@ def register_v1_routes(app, get_db_connection):
                 limit=60,
                 rules=recommend_rules,
             )
+            if not ranked_sites and source_sites:
+                ranked_sites = rank_sites(
+                    source_sites, {"occupation": career_code},
+                    limit=MIN_RESOURCES_PER_CAREER, rules=recommend_rules,
+                )
+            ranked_sites = apply_recommendation_preferences(ranked_sites, user["id"])
             for site in ranked_sites:
                 site["career_code"] = career_code
                 site["career_codes"] = [career_code]
@@ -2114,6 +2251,7 @@ def register_v1_routes(app, get_db_connection):
                 "ability_tags": list(dict.fromkeys(ability_tags)),
                 "interest_tags": list(dict.fromkeys(profile["interests"] + profile["purposes"])),
                 "careers": careers,
+                "requested_career": requested_career_code or "",
                 "selected_career": selected_career["code"] if selected_career else "",
                 # `items` is a compatibility alias for clients that consume
                 # a generic recommendation envelope; `websites` remains the
@@ -2340,18 +2478,22 @@ def register_v1_routes(app, get_db_connection):
     @jwt_required(optional=True)
     def v1_recommend_sites():
         limit = max(1, min(request.args.get("limit", 8, type=int), 50))
+        from recommendation_stage4 import enabled as stage4_enabled
+        expanded_pool = stage4_enabled(app, "RECOMMENDATION_RERANK_ENABLED") or stage4_enabled(app, "RECOMMENDATION_FEEDBACK_ENABLED")
+        pool_limit = 200 if expanded_pool else limit
         exclude_ids = parse_id_list(request.args.get("exclude_ids"))
         occupation = request.args.get("occupation")
         rules = load_json_setting("recommend_rules", default_recommend_rules())
+        recommendation_user = current_user_row() if get_jwt_identity() else None
         if occupation:
             return api_success(
-                query_career_sites(
+                apply_recommendation_preferences(query_career_sites(
                     occupation=occupation,
-                    limit=limit,
+                    limit=pool_limit,
                     exclude_ids=exclude_ids,
                     ai_only=request.args.get("ai_only") in ("1", "true", "True"),
                     rules=rules,
-                )
+                ), recommendation_user["id"] if recommendation_user else None)[:limit]
             )
         profile = {"occupation": "", "interests": []}
         if get_jwt_identity():
@@ -2362,23 +2504,25 @@ def register_v1_routes(app, get_db_connection):
                     with conn.cursor() as cursor:
                         cursor.execute("SELECT occupation, interests FROM user_profiles WHERE user_id=%s", (user["id"],))
                         row = cursor.fetchone() or {}
+                        response = load_questionnaire_v3_response(cursor, user["id"]) or load_questionnaire_v2_response(cursor, user["id"])
                     profile = {"occupation": row.get("occupation") or "", "interests": json.loads(row.get("interests") or "[]")}
+                    profile.update(response.get("profile") or {})
                 except Exception:
                     profile = {"occupation": "", "interests": []}
                 finally:
                     conn.close()
-        source_sites = query_sites(limit=40, exclude_ids=exclude_ids)
+        source_sites = query_sites(limit=200 if expanded_pool else 40, exclude_ids=exclude_ids)
         if not profile.get("occupation") and not profile.get("interests"):
-            source_sites = query_sites(limit=40, sort="hot", exclude_ids=exclude_ids) or source_sites
-        ranked = rank_sites(source_sites, profile, limit, rules)
+            source_sites = query_sites(limit=200 if expanded_pool else 40, sort="hot", exclude_ids=exclude_ids) or source_sites
+        ranked = rank_sites(source_sites, profile, pool_limit, rules)
         if not ranked:
             ranked = rank_sites(
-                query_sites(limit=40, sort="hot", exclude_ids=exclude_ids),
+                query_sites(limit=200 if expanded_pool else 40, sort="hot", exclude_ids=exclude_ids),
                 {},
-                limit,
+                pool_limit,
                 rules,
             )
-        return api_success(ranked)
+        return api_success(apply_recommendation_preferences(ranked, recommendation_user["id"] if recommendation_user else None)[:limit])
 
     @app.route("/api/ai/site-recommend", methods=["POST"])
     @jwt_required()
@@ -2407,8 +2551,9 @@ def register_v1_routes(app, get_db_connection):
             limit = 5
 
         profile = {"occupation": "", "interests": []}
-        conn = get_db_connection()
+        conn = None
         try:
+            conn = get_db_connection()
             with conn.cursor() as cursor:
                 cursor.execute("SELECT occupation, interests FROM user_profiles WHERE user_id=%s", (user["id"],))
                 profile_row = cursor.fetchone() or {}
@@ -2425,16 +2570,21 @@ def register_v1_routes(app, get_db_connection):
         except Exception:
             profile = {"occupation": "", "interests": []}
         finally:
-            conn.close()
+            safe_close(conn)
 
         try:
-            matches = recommend_sites_for_query(
-                query,
-                query_sites(limit=AI_SITE_CANDIDATE_LIMIT),
-                occupation=profile["occupation"],
-                interests=profile["interests"],
-                limit=limit,
-            )
+            structured = None
+            if search_service is not None:
+                from ai_retrieval import retrieve_recommendations, configured_model
+                structured = retrieve_recommendations(raw_query.strip(), search_service,
+                    occupation=profile["occupation"], interests=profile["interests"], limit=limit,
+                    model=app.config.get("AI_REQUIREMENTS_MODEL") or configured_model())
+                matches = structured["matches"]
+            else:
+                matches = recommend_sites_for_query(
+                    query, query_sites(limit=AI_SITE_CANDIDATE_LIMIT),
+                    occupation=profile["occupation"], interests=profile["interests"], limit=limit,
+                )
         except Exception as exc:
             app.logger.error("ai site recommendation failed: %s", type(exc).__name__)
             return api_error("推荐服务暂时不可用", 500, 500)
@@ -2453,9 +2603,14 @@ def register_v1_routes(app, get_db_connection):
                 "tags": site.get("tags") or [],
                 "reason": match["reason"],
                 "match_score": match["score"],
+                **({"match_status":match["status"],"condition_checks":match["checks"],
+                    "unmet_conditions":[c["label"] for c in match["checks"] if c["state"]=="unmet"],
+                    "unknown_conditions":[c["label"] for c in match["checks"] if c["state"]=="unknown"],
+                    "match_evidence":[c["evidence"] for c in match["checks"] if c["state"]=="met" and c["evidence"]]}
+                   if structured is not None else {}),
             })
         return api_success(
-            {"query": query, "items": items},
+            {"query": query, "items": items, **({key:structured[key] for key in ("requirements","clarifications","degraded","notice","coverage")} if structured is not None else {})},
             msg="未找到匹配网站" if not items else "success",
         )
 
@@ -2485,11 +2640,29 @@ def register_v1_routes(app, get_db_connection):
         tags = site_tags([site_id]).get(site_id, [])
         occupations = site_occupations([site_id]).get(site_id, [])
         site = normalize_site(row, tags, occupations)
-        site["similar_sites"] = [item for item in query_sites(limit=6, category_id=site["category_id"]) if item["id"] != site_id][:4]
+        resource_details([site])
+        site["similar_sites"] = structured_similar(site_id,4) if search_service is not None else [item for item in query_sites(limit=6, category_id=site["category_id"]) if item["id"] != site_id][:4]
         return api_success(site)
+
+    def structured_similar(site_id,limit=6):
+        from ai_retrieval import similar_resources
+        candidates,meta=search_service.retrieve("",[],ai=True)
+        source=next((site for site in candidates if site["id"]==site_id),None)
+        if source is None: return []
+        ranked=similar_resources(source,candidates,limit)
+        result=[]
+        for row in ranked:
+            site=normalize_site(row,row.get("tags",[]),row.get("occupations",[]))
+            site.update({key:row[key] for key in ("reason","differences","similarity_score","similarity_evidence")})
+            result.append(site)
+        return result
 
     @app.route("/api/sites/<int:site_id>/similar", methods=["GET"])
     def v1_similar_sites(site_id):
+        if search_service is not None:
+            if not any(row["id"]==site_id for row in search_service.catalog.snapshot()[2]):
+                return api_error("site not found", 404, 404)
+            return api_success(structured_similar(site_id))
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -2547,6 +2720,14 @@ def register_v1_routes(app, get_db_connection):
             return None, api_error("unsupported event_type", "INVALID_EVENT_TYPE", 400)
         if source not in BEHAVIOR_SOURCES:
             return None, api_error("unsupported source", "INVALID_SOURCE", 400)
+        metadata = payload.get("metadata") or payload.get("metadata_json") or {}
+        if not isinstance(metadata, dict):
+            return None, api_error("invalid metadata", "INVALID_EVENT", 400)
+        if metadata.get("event_version") not in (None, "legacy-v1", "visible-v2"):
+            return None, api_error("invalid event version", "INVALID_EVENT", 400)
+        if event_type == "impression" and metadata.get("event_version") == "visible-v2":
+            if not payload.get("recommendation_batch_id") or metadata.get("visible_ratio") != .5 or metadata.get("visible_ms") != 1000:
+                return None, api_error("invalid visibility evidence", "INVALID_EVENT", 400)
         if batch:
             raw_ids = payload.get("website_ids")
             if not isinstance(raw_ids, list) or not raw_ids:
@@ -2746,7 +2927,10 @@ def register_v1_routes(app, get_db_connection):
         return value not in {"0", "false", "no", "off"}
 
     def metric_filters(args, *, user_id=None):
-        clauses = []
+        event_version = str(args.get("event_version") or "legacy-v1")
+        if event_version not in {"legacy-v1", "visible-v2"}:
+            raise ValueError("unsupported event_version")
+        clauses = ["COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.metadata_json, '$.event_version')),'legacy-v1')='" + event_version + "'"]
         params = []
         raw_days = args.get("lookback_days", BEHAVIOR_LOOKBACK_DAYS)
         if str(raw_days).strip().lower() in {"all", "0"}:
@@ -2782,6 +2966,7 @@ def register_v1_routes(app, get_db_connection):
             ("recommendation_batch_id", "e.recommendation_batch_id"),
             ("website_id", "e.website_id"),
             ("source", "e.source"),
+            ("rerank_version", "COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.metadata_json, '$.rerank_version')),'baseline')"),
         ):
             value = str(args.get(argument) or "").strip()
             if not value:
@@ -3001,8 +3186,20 @@ def register_v1_routes(app, get_db_connection):
         quality = query_data_quality(args)
         where_sql, params, _ = metric_filters(args)
         conn = get_db_connection()
+        integrity = {}
         try:
             with conn.cursor() as cursor:
+                # Time-filtered metrics hide NULL timestamps. Diagnose the same
+                # selected cohort across all dates without rewriting old counters.
+                integrity_args = {k: v for k, v in args.items() if k not in {'date_from', 'date_to'}}
+                integrity_args['lookback_days'] = 'all'
+                integrity_where, integrity_params, _ = metric_filters(integrity_args)
+                cursor.execute(f"""SELECT COUNT(*) AS stored_events,
+                    SUM(e.created_at IS NULL) AS missing_timestamps,
+                    COUNT(DISTINCT COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.metadata_json,'$.algorithm_version')),'unknown')) AS algorithm_versions,
+                    COUNT(DISTINCT COALESCE(JSON_UNQUOTE(JSON_EXTRACT(e.metadata_json,'$.rerank_version')),'baseline')) AS rerank_versions
+                    {METRIC_PROFILE_FROM}{integrity_where}""", integrity_params)
+                integrity = cursor.fetchone() or {}
                 cursor.execute(
                     f"""
                     SELECT COUNT(*) AS qualifying_occupations FROM (
@@ -3100,6 +3297,15 @@ def register_v1_routes(app, get_db_connection):
             remaining.append({"metric": "observation_days", "remaining": trend_stability["minimum_observed_days"] - trend_stability["observed_days"]})
         return {
             "ready": all(readiness_groups), "lookback_days": lookback_days,
+            "readiness_version": "observation-v1-with-integrity-v1",
+            "experiment_status": "cannot_evaluate" if (
+                int(integrity.get('missing_timestamps') or 0)
+                or not os.getenv('RECOMMENDATION_METRICS_TEST_USER_IDS', '').strip()
+                or int(integrity.get('algorithm_versions') or 0) > 1
+                or int(integrity.get('rerank_versions') or 0) > 1
+            ) else "manual_review_required" if all(readiness_groups) else "not_ready",
+            "integrity": integrity,
+            "experiment_note": "观察门槛不等于算法实验许可；须核实测试账号、历史画像、批次位置与实际可见性。缺失时间的历史事件不补写。",
             "events": events, "profile_coverage": profile_coverage,
             "batch_coverage": batch_coverage, "data_quality": data_quality, "trend_stability": trend_stability,
             "remaining": remaining, "thresholds": PHASE_2_3_READINESS_THRESHOLDS,
@@ -3163,6 +3369,8 @@ def register_v1_routes(app, get_db_connection):
     @app.route("/api/recommendation/metrics/observation-snapshots", methods=["POST"])
     @admin_required
     def v1_create_recommendation_observation_snapshot():
+        if request.args.get("event_version", "legacy-v1") != "legacy-v1":
+            return api_error("新版曝光请使用分版本指标，历史快照仅支持旧口径", "INVALID_METRIC_FILTER", 400)
         try:
             snapshot = observation_snapshot_data(request.args)
         except ValueError as error:
@@ -4059,9 +4267,9 @@ def register_v1_routes(app, get_db_connection):
 
         try:
             ranked, category_row, relaxed, cached = cached_site_search(
-                query, category, sort
+                query, category, sort, page, page_size
             )
-        except ValueError:
+        except InvalidSearchCategory:
             return api_error("搜索分类无效", "INVALID_SEARCH_CATEGORY", 400)
         except Exception as error:
             app.logger.exception(
@@ -4108,7 +4316,8 @@ def register_v1_routes(app, get_db_connection):
                 "sort": sort,
                 "relaxed": relaxed,
                 "cached": cached,
-                "dataVersion": SEARCH_DATA_VERSION,
+                "dataVersion": getattr(g, "search_meta", {}).get("dataVersion", SEARCH_DATA_VERSION),
+                "retrieval": getattr(g, "search_meta", {}),
                 "durationMs": duration_ms,
                 "pagination": {
                     "page": page,
@@ -4119,6 +4328,19 @@ def register_v1_routes(app, get_db_connection):
                 },
             }
         )
+
+    @app.route("/api/search/version", methods=["GET"])
+    def v1_search_version():
+        if search_service is None:
+            return api_success({"dataVersion": SEARCH_DATA_VERSION})
+        try:
+            revision, indexed, _ = search_service.catalog.snapshot()
+            from search_service import VERSION
+            response, status = api_success({"dataVersion": f"{VERSION}:{revision}:{indexed}", "cacheable": search_service.meili is not None and revision is not None and revision == indexed})
+            response.headers["Cache-Control"] = "no-store"
+            return response, status
+        except Exception:
+            return api_error("搜索服务暂时不可用，请稍后重试", "SEARCH_DATABASE_ERROR", 503)
 
     @app.route("/api/sites/search/suggest", methods=["GET"])
     @app.route("/api/search/suggest", methods=["GET"])

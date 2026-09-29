@@ -1,0 +1,87 @@
+{
+  "batch": "special-clock-1790643657650",
+  "checks": [
+    {
+      "at": 1000,
+      "name": "below half",
+      "requests": 0
+    },
+    {
+      "at": 11999,
+      "name": "999ms hidden and background excluded",
+      "requests": 0
+    },
+    {
+      "at": 12998,
+      "name": "foreground restarts",
+      "requests": 0
+    },
+    {
+      "at": 12999,
+      "name": "1000ms emits",
+      "requests": 1
+    },
+    {
+      "at": 14199,
+      "name": "rapid toggles no duplicate while inflight",
+      "requests": 1
+    },
+    {
+      "at": 15199,
+      "name": "old token timer cannot emit",
+      "requests": 1
+    },
+    {
+      "at": 16199,
+      "name": "new account independent event",
+      "requests": 2
+    }
+  ],
+  "kind": "real Chromium + actual modules + real isolated HTTP; simulated clock/visibility/IntersectionObserver",
+  "requests": [
+    {
+      "at": 12999,
+      "batch": "special-clock-1790643657650",
+      "body": {
+        "event_type": "impression",
+        "metadata": {
+          "event_version": "visible-v2",
+          "position": 1,
+          "position_version": "display-position-v1",
+          "visible_ms": 1000,
+          "visible_ratio": 0.5
+        },
+        "profile_schema_version": "",
+        "profile_version": "",
+        "questionnaire_version": "",
+        "recommendation_batch_id": "special-clock-1790643657650",
+        "session_id": "sess_mulyze61_lrhpskif",
+        "source": "other",
+        "website_id": 91002
+      },
+      "user": 2
+    },
+    {
+      "at": 16199,
+      "batch": "special-clock-1790643657650",
+      "body": {
+        "event_type": "impression",
+        "metadata": {
+          "event_version": "visible-v2",
+          "position": 1,
+          "position_version": "display-position-v1",
+          "visible_ms": 1000,
+          "visible_ratio": 0.5
+        },
+        "profile_schema_version": "",
+        "profile_version": "",
+        "questionnaire_version": "",
+        "recommendation_batch_id": "special-clock-1790643657650",
+        "session_id": "sess_mulyze61_lrhpskif",
+        "source": "other",
+        "website_id": 91002
+      },
+      "user": 1
+    }
+  ]
+}

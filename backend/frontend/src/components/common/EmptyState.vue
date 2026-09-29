@@ -49,7 +49,7 @@ defineProps({
   border-radius: 18px;
   background: var(--color-soft-orange);
   color: var(--color-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--app-display-font);
   font-size: 22px;
   font-weight: 850;
 }
@@ -76,7 +76,7 @@ p {
   padding: 0 18px;
   text-decoration: none;
   font-weight: 850;
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--primary) 18%, transparent);
   transition:
     transform var(--transition),
     background var(--transition),
@@ -88,7 +88,7 @@ p {
   background: var(--color-primary-dark);
   color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(255, 112, 88, 0.24);
+  box-shadow: 0 18px 34px color-mix(in srgb, var(--primary) 24%, transparent);
   outline: none;
 }
 </style>

@@ -25,6 +25,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from db_pool import get_connection, validate_database_config  # noqa: E402
+from career_resource_coverage import build_coverage_assignments  # noqa: E402
 
 
 CATEGORY_META = {
@@ -239,6 +240,7 @@ def main() -> int:
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()
     catalog = load_catalog()
+    coverage_assignments = build_coverage_assignments(catalog)
     if args.validate_only:
         print(json.dumps({"catalog": len(catalog), "valid": True}, ensure_ascii=False))
         return 0
@@ -251,6 +253,7 @@ def main() -> int:
             category_columns = columns(cursor, "categories")
             website_columns = columns(cursor, "websites")
             tag_columns = columns(cursor, "tags")
+            occupation_columns = columns(cursor, "site_occupations")
 
             if "code" not in category_columns:
                 try:
@@ -349,11 +352,14 @@ def main() -> int:
                         f"INSERT INTO websites ({','.join(fields)}) VALUES ({placeholders})",
                         tuple(values[field] for field in fields),
                     )
-                    cursor.execute("SELECT id FROM websites WHERE url=%s LIMIT 1", (url,))
-                    created_site = cursor.fetchone()
-                    if not created_site:
-                        raise RuntimeError(f"website insert did not persist: {url}")
-                    site_id = created_site["id"]
+                    # Do not issue another SQL statement before committing:
+                    # DBUtils may recycle a connection at maxusage, which
+                    # would otherwise discard this uncommitted insert before
+                    # the follow-up SELECT can retrieve its id.
+                    site_id = cursor.lastrowid
+                    if not site_id:
+                        raise RuntimeError(f"website insert did not return an id: {url}")
+                    conn.commit()
                     known_urls[normalized] = site_id
                     counts["inserted"] += 1
 
@@ -380,6 +386,20 @@ def main() -> int:
                                    WHERE st.site_id=w.id AND st.tag_id=t.id
                                  )""",
                             (site_id, tag_name),
+                        )
+
+                # Persist the detailed, catalog-derived career mapping.  This
+                # is data-layer metadata, not a frontend fallback: searches
+                # and every recommendation endpoint can reuse it.
+                if {"site_id", "occupation"}.issubset(occupation_columns):
+                    for career_code in coverage_assignments.get(url, ()):
+                        relation = {"site_id": site_id, "occupation": career_code}
+                        if "weight" in occupation_columns:
+                            relation["weight"] = 1
+                        fields = tuple(relation)
+                        cursor.execute(
+                            f"INSERT IGNORE INTO site_occupations ({','.join(fields)}) VALUES ({','.join(['%s'] * len(fields))})",
+                            tuple(relation[field] for field in fields),
                         )
 
                 # The shared DBUtils pool recycles a physical connection after

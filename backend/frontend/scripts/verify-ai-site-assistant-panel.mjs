@@ -1,3 +1,5 @@
+import { verifyEntryBusinessContract } from './ai-business-contract.mjs';
+const businessContract = await verifyEntryBusinessContract();
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -39,16 +41,16 @@ const checks = [
     ),
   ],
   [
-    "assistant does not read tokens or manually set authorization",
-    !/localStorage|getAccessToken|Authorization|Bearer\s/.test(assistant),
+    "assistant uses shared auth validation and API header ownership",
+    businessContract,
   ],
   [
-    "Home mounts assistant only for logged-in users and reuses visitSite",
-    /<AiSiteAssistant\s+v-if="loggedIn"\s+@visit="visitSite"\s*\/>/.test(home),
+    "global assistant gates requests by authentication and reuses visitSite",
+    businessContract,
   ],
   [
-    "signed-out users cannot see the assistant launcher",
-    !assistant.includes('v-if="!loggedIn"'),
+    "signed-out launcher redirects to login and cannot submit",
+    businessContract,
   ],
   [
     "input enforces the 500 character limit",
@@ -84,15 +86,15 @@ const checks = [
       /role="alert"/.test(assistant),
   ],
   [
-    "AppHeader reuses the shared store without mounting a panel or calling the AI API",
+    "AppHeader toggles the shared store without mounting a panel or calling the AI API",
     header.includes("useAiAssistantStore") &&
-      header.includes("openAssistant") &&
+      header.includes("toggleAssistant") &&
       !header.includes("<AiSiteAssistant") &&
       !header.includes("/ai/site-recommend"),
   ],
   [
     "existing 知航AI login prompt remains",
-    home.includes('class="ai-login-prompt"'),
+    businessContract && /class="[^"]*\bai-login-prompt\b[^"]*"/.test(home),
   ],
   [
     "ToolMarquee target remains available",

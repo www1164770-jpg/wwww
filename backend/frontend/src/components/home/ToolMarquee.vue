@@ -139,12 +139,12 @@ function recordVisit(site, event) {
 
 .brand-marquee__viewport::before {
   left: 0;
-  background: linear-gradient(to right, var(--app-overlay), transparent);
+  background: #ffffff;
 }
 
 .brand-marquee__viewport::after {
   right: 0;
-  background: linear-gradient(to left, var(--app-overlay), transparent);
+  background: #ffffff;
 }
 
 .brand-marquee__track {
@@ -193,25 +193,19 @@ function recordVisit(site, event) {
 .brand-marquee__item:focus-visible {
   border-radius: 10px;
   color: var(--app-text-primary);
-  outline: 3px solid rgba(255, 112, 88, 0.28);
+  outline: 3px solid color-mix(in srgb, var(--primary) 18%, transparent);
   outline-offset: 5px;
   transform: translateY(-2px);
 }
 
-:deep(.brand-marquee__logo.site-logo--image) {
-  filter: grayscale(1);
-  opacity: 0.55;
-  transition:
-    filter 180ms ease,
-    opacity 180ms ease,
-    transform 180ms ease;
+:deep(.brand-marquee__logo.site-logo) {
+  width: 22px;
+  height: 22px;
+  transition: transform 180ms ease;
 }
 
-.brand-marquee__item:hover :deep(.brand-marquee__logo.site-logo--image),
-.brand-marquee__item:focus-visible
-  :deep(.brand-marquee__logo.site-logo--image) {
-  filter: grayscale(0);
-  opacity: 1;
+.brand-marquee__item:hover :deep(.brand-marquee__logo.site-logo),
+.brand-marquee__item:focus-visible :deep(.brand-marquee__logo.site-logo) {
   transform: scale(1.06);
 }
 
@@ -241,8 +235,8 @@ function recordVisit(site, event) {
   }
 
   :deep(.brand-marquee__logo.site-logo) {
-    width: 25px;
-    height: 25px;
+    width: 22px;
+    height: 22px;
   }
 
   .brand-marquee__viewport::before,

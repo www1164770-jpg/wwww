@@ -1,6 +1,5 @@
 <template>
   <div class="page">
-    <AppHeader />
     <main class="detail">
       <LoadingState v-if="loading" text="正在加载网站详情..." />
       <EmptyState
@@ -135,11 +134,11 @@
               <h2>基础信息</h2>
               <div>
                 <strong>是否免费</strong>
-                <span>{{ site.is_free ? "是" : "否" }}</span>
+                <span>{{ site.is_free_known === false || site.is_free == null ? "未知" : site.is_free ? "是" : "否" }}</span>
               </div>
               <div>
                 <strong>是否需要登录</strong>
-                <span>{{ site.need_login ? "是" : "否" }}</span>
+                <span>{{ site.need_login_known === false || site.need_login == null ? "未知" : site.need_login ? "是" : "否" }}</span>
               </div>
               <div>
                 <strong>地区</strong>
@@ -180,10 +179,17 @@
               </div>
             </section>
 
-            <section class="similar">
+            <section ref="similarPanel" class="similar">
               <h2>相似网站推荐</h2>
+              <p v-if="similarError" role="alert">
+                {{ similarError }}
+                <button type="button" :disabled="similarLoading" @click="loadSimilarSites">
+                  {{ similarLoading ? "正在重试…" : "重试" }}
+                </button>
+              </p>
               <SiteList
                 :sites="site.similar_sites || []"
+                :show-reason="true"
                 empty-title="暂无相似网站"
                 empty-description="后续会根据标签和职业推荐更多相似资源"
                 @visit="visitSimilar"
@@ -198,11 +204,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import AnimatedPageTitle from "../components/common/AnimatedPageTitle.vue";
 import AppFooter from "../components/layout/AppFooter.vue";
-import AppHeader from "../components/layout/AppHeader.vue";
 import EmptyState from "../components/common/EmptyState.vue";
 import LoadingState from "../components/common/LoadingState.vue";
 import SiteList from "../components/site/SiteList.vue";
@@ -226,6 +231,23 @@ const favoritesStore = useFavoritesStore();
 const site = ref(null);
 const loading = ref(false);
 const error = ref("");
+const similarError = ref("");
+const similarLoading = ref(false);
+const similarPanel = ref(null);
+let similarCardsObserver;
+watch([similarPanel, () => site.value?.similar_sites], () => {
+  similarCardsObserver?.disconnect();
+  const elements = similarPanel.value?.querySelectorAll(".reveal-on-scroll") || [];
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+    elements.forEach(element => element.classList.add("is-visible"));
+    return;
+  }
+  similarCardsObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => entry.target.classList.toggle("is-visible", entry.isIntersecting));
+  }, { threshold: 0.16, rootMargin: "0px 0px -40px 0px" });
+  elements.forEach(element => similarCardsObserver.observe(element));
+}, { flush: "post" });
+onBeforeUnmount(() => similarCardsObserver?.disconnect());
 const comments = ref([]);
 const commentsLoading = ref(false);
 const commentSubmitting = ref(false);
@@ -264,6 +286,7 @@ function goLogin() {
 async function load() {
   loading.value = true;
   error.value = "";
+  similarError.value = "";
   try {
     const response = await siteAPI.getSite(route.params.id);
     site.value = unwrapResponse(response) ?? null;
@@ -279,11 +302,17 @@ async function load() {
 }
 async function loadSimilarSites() {
   if (!site.value?.id) return;
+  const currentSite = site.value;
+  similarLoading.value = true;
+  similarError.value = "";
   try {
-    const response = await siteAPI.getSimilar(site.value.id);
-    site.value.similar_sites = unwrapResponse(response) ?? [];
+    const response = await siteAPI.getSimilar(currentSite.id);
+    if (site.value === currentSite)
+      currentSite.similar_sites = unwrapResponse(response) ?? [];
   } catch {
-    site.value.similar_sites = site.value.similar_sites || [];
+    if (site.value === currentSite) similarError.value = "相似资源加载失败，请重试。";
+  } finally {
+    if (site.value === currentSite) similarLoading.value = false;
   }
 }
 async function loadComments() {
@@ -371,7 +400,7 @@ onMounted(load);
   display: grid;
   gap: 26px;
   width: min(1180px, calc(100% - 40px));
-  margin: 48px auto 78px;
+  margin: 0 auto 78px;
 }
 
 .hero,
@@ -392,13 +421,7 @@ onMounted(load);
   gap: 24px;
   align-items: center;
   border-radius: 24px;
-  background:
-    radial-gradient(
-      circle at 12% 22%,
-      rgba(191, 245, 237, 0.32),
-      transparent 30%
-    ),
-    linear-gradient(135deg, #ffffff 0%, #fff4f1 100%);
+  background: #ffffff;
   padding: clamp(30px, 5vw, 62px);
 }
 
@@ -500,7 +523,7 @@ button {
 
 button:hover,
 button:focus-visible {
-  border-color: rgba(255, 112, 88, 0.38);
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
   color: var(--color-primary);
   transform: translateY(-1px);
   outline: none;
@@ -517,7 +540,7 @@ button.primary,
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.18);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
 button.primary:hover,
@@ -610,6 +633,13 @@ button.primary:focus-visible,
   grid-template-columns: 1fr;
 }
 
+/* Similarity differences are acceptance-critical information, not a teaser. */
+.similar :deep(.site-card__reason-text) {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
 @media (max-width: 960px) {
   .detail-layout {
     grid-template-columns: 1fr;
@@ -623,7 +653,7 @@ button.primary:focus-visible,
 @media (max-width: 768px) {
   .detail {
     width: min(100% - 28px, 1180px);
-    margin-top: 32px;
+    margin-top: 0;
   }
 }
 

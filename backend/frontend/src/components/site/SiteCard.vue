@@ -1,11 +1,14 @@
 ﻿<template>
   <div
+    v-if="!activeRecommendation || !recommendationPreferences.excluded(site)"
+    ref="visibilityElement"
     class="site-card-reveal"
     :class="{
       'reveal-on-scroll':
         (!isCategoryVariant && !isCareerVariant) || selectable,
     }"
   >
+    <RecommendationFeedback v-if="activeRecommendation" :site="site" />
     <article
       class="site-card website-card"
       :class="{
@@ -212,7 +215,10 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, onBeforeUnmount } from "vue";
+import RecommendationFeedback from "./RecommendationFeedback.vue";
+import { useRecommendationPreferencesStore } from "../../stores/recommendationPreferences";
+import { observeRecommendationVisibility } from "../../utils/recommendationVisibility";
 import AppTooltip from "../common/AppTooltip.vue";
 import FavoriteStarButton from "./FavoriteStarButton.vue";
 import SiteLogo from "./SiteLogo.vue";
@@ -221,6 +227,7 @@ import { cleanSiteDescription } from "../../utils/siteText";
 
 const props = defineProps({
   site: { type: Object, required: true },
+  activeRecommendation: { type: Boolean, default: false },
   variant: { type: String, default: "default" },
   showReason: { type: Boolean, default: false },
   favorited: { type: Boolean, default: false },
@@ -230,6 +237,14 @@ const props = defineProps({
   hideActions: { type: Boolean, default: false },
   compact: { type: Boolean, default: false },
 });
+const recommendationPreferences = useRecommendationPreferencesStore();
+const visibilityElement = ref(null);
+let stopVisibility;
+watch([visibilityElement, () => props.site], ([element, site]) => {
+  stopVisibility?.();
+  stopVisibility = element && props.activeRecommendation && site.event_version === "visible-v2" ? observeRecommendationVisibility(element, site) : undefined;
+}, { flush: "post" });
+onBeforeUnmount(() => stopVisibility?.());
 const emit = defineEmits(["visit", "select"]);
 
 const allTags = computed(() =>
@@ -255,7 +270,7 @@ const recommendationReason = computed(
     props.site.match_reason ||
     props.site.summary ||
     props.site.description ||
-    "该网站的功能与你当前选择的职业需求较为匹配。",
+    "暂无明确画像匹配依据，供探索参考。",
 );
 const recommendationReasons = computed(() => {
   const reasons = Array.isArray(props.site.match_reasons)
@@ -308,7 +323,9 @@ function openSite() {
 <style scoped>
 .site-card-reveal {
   min-width: 0;
+  position: relative;
 }
+.site-card-reveal:has(.recommendation-feedback[open]) { z-index: 20; }
 
 .website-card {
   position: relative;
@@ -377,15 +394,27 @@ function openSite() {
   height: 44px;
   min-width: 44px;
   min-height: 44px;
-  border-radius: 12px;
+  padding: 0;
+  overflow: visible;
+  border-radius: 0;
 }
 
 .website-card--category-compact .site-card__logo-button img,
-.website-card--category-compact .site-card__logo-button .site-logo,
 .website-card--category-compact .site-card__text-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.website-card--category-compact .site-card__logo-button .site-logo {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
 }
 
 .website-card--category-compact .site-card__copy {
@@ -435,7 +464,7 @@ function openSite() {
   border-color: var(--color-primary) !important;
   box-shadow:
     var(--app-card-shadow),
-    0 0 0 2px rgba(255, 112, 88, 0.13) !important;
+    0 0 0 2px color-mix(in srgb, var(--primary) 13%, transparent) !important;
 }
 
 .website-card--career {
@@ -474,13 +503,13 @@ function openSite() {
 
 @media (hover: hover) and (pointer: fine) {
   .website-card:hover {
-    border-color: #111111 !important;
+    border-color: color-mix(in srgb, var(--primary) 40%, transparent) !important;
     transform: translateY(-2px);
     box-shadow: var(--app-card-hover-shadow) !important;
   }
 
   .website-card--career:hover {
-    border-color: rgba(240, 100, 80, 0.48) !important;
+    border-color: color-mix(in srgb, var(--primary) 42%, transparent) !important;
     transform: translateY(-4px);
     box-shadow: var(--app-card-hover-shadow) !important;
   }
@@ -497,15 +526,15 @@ function openSite() {
 }
 
 .website-card:focus-visible {
-  border-color: #111111 !important;
+  border-color: color-mix(in srgb, var(--primary) 48%, transparent) !important;
   transform: translateY(-2px);
   box-shadow: var(--app-card-hover-shadow) !important;
-  outline: 3px solid rgba(17, 17, 17, 0.14);
+  outline: 3px solid color-mix(in srgb, var(--primary) 14%, transparent);
   outline-offset: 3px;
 }
 
 .website-card:focus-within {
-  border-color: #111111 !important;
+  border-color: color-mix(in srgb, var(--primary) 48%, transparent) !important;
   box-shadow: var(--app-card-hover-shadow) !important;
 }
 
@@ -522,10 +551,12 @@ function openSite() {
   width: 48px;
   height: 48px;
   place-items: center;
-  overflow: hidden;
-  border: 1px solid #e7e9ee;
-  border-radius: 12px;
-  background: #ffffff;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   text-decoration: none;
 }
 
@@ -536,13 +567,14 @@ function openSite() {
   height: 100%;
   border: 0;
   border-radius: 0;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .site-card-icon .site-logo {
-  width: 100%;
-  height: 100%;
+  width: 36px;
+  height: 36px;
   border-radius: 0;
+  object-fit: contain;
 }
 
 .site-card-icon .site-card__text-logo {
@@ -652,9 +684,11 @@ function openSite() {
   min-height: 56px;
   place-items: center;
   border: 0;
-  border-radius: 18px;
+  border-radius: 0;
   background: transparent;
   padding: 0;
+  overflow: visible;
+  box-shadow: none;
   cursor: pointer;
 }
 
@@ -670,32 +704,32 @@ function openSite() {
 
 .site-card__logo-button img,
 .site-card__text-logo {
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 18px;
-  background: var(--color-soft);
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .site-card__logo-button .site-logo {
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 18px;
-  background: var(--color-soft);
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
 }
 
 .site-card__logo-button img {
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .site-card__text-logo {
   display: grid;
   place-items: center;
-  color: var(--color-primary-dark);
-  background: #fff7f4;
-  font-size: 20px;
-  font-weight: 900;
+  color: #475569;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 h3 {
@@ -720,7 +754,7 @@ h3 {
 
 .site-card__title-button:hover,
 .site-card__title-button:focus-visible {
-  color: #ff7058;
+  color: var(--color-primary);
   text-decoration: underline;
   outline: none;
 }
@@ -748,7 +782,7 @@ p {
 .site-card__reason {
   display: grid;
   gap: 4px;
-  border: 1px solid rgba(255, 112, 88, 0.16);
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
   border-radius: 10px;
   background: var(--color-soft-orange);
   padding: 10px 12px;
@@ -852,8 +886,8 @@ p {
 .actions a:hover,
 .actions button:focus-visible,
 .actions a:focus-visible {
-  border-color: rgba(255, 112, 88, 0.38);
-  color: #9a3412;
+  border-color: color-mix(in srgb, var(--primary) 38%, transparent);
+  color: var(--color-primary-dark);
   transform: translateY(-1px);
   outline: none;
 }
@@ -868,14 +902,14 @@ p {
   border-color: var(--color-primary) !important;
   background: var(--color-primary) !important;
   color: #ffffff !important;
-  box-shadow: 0 10px 22px rgba(255, 112, 88, 0.18);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .visit:hover,
 .visit:focus-visible {
   background: var(--color-primary-dark) !important;
   color: #ffffff !important;
-  box-shadow: 0 14px 28px rgba(255, 112, 88, 0.26);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--primary) 26%, transparent);
 }
 
 @media (max-width: 520px) {

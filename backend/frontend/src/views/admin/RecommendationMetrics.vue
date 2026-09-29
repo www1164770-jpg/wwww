@@ -7,6 +7,8 @@
         <p>观察个性化推荐曝光、点击、收藏、回访和候选池质量；本页不会修改推荐排序。</p>
       </div>
       <div class="controls">
+        <label>重排版本<input v-model="rerankVersion" placeholder="全部版本" :disabled="loading" @change="refreshCore" /></label>
+        <label>曝光口径<select v-model="eventVersion" :disabled="loading" @change="refreshCore"><option value="legacy-v1">历史口径</option><option value="visible-v2">可见 50% 持续 1 秒</option></select></label>
         <label>
           时间范围
           <select v-model="lookbackDays" :disabled="loading" @change="refreshCore">
@@ -17,7 +19,7 @@
           </select>
         </label>
         <label class="test-user-toggle"><input v-model="excludeTestUsers" type="checkbox" @change="refreshCore" /> 排除测试账号</label>
-        <button type="button" class="snapshot-button" :disabled="loading || snapshotSaving" @click="saveObservationSnapshot">{{ snapshotSaving ? "正在保存…" : "保存本次观察快照" }}</button>
+        <button type="button" class="snapshot-button" :disabled="loading || snapshotSaving || eventVersion !== 'legacy-v1'" @click="saveObservationSnapshot">{{ snapshotSaving ? "正在保存…" : "保存本次观察快照" }}</button>
         <button type="button" :disabled="loading" @click="refreshCore">
           {{ loading ? "正在刷新…" : "刷新数据" }}
         </button>
@@ -51,6 +53,7 @@
       </section>
 
       <section class="panel readiness-panel">
+        <p v-if="readiness.experiment_note" class="empty-banner">{{ readiness.experiment_status === 'cannot_evaluate' ? '实验条件无法评估。' : '尚未进入算法实验。' }}{{ readiness.experiment_note }} 已存事件 {{ readiness.integrity?.stored_events ?? '未知' }}，缺失时间 {{ readiness.integrity?.missing_timestamps ?? '未知' }}。</p>
         <div class="panel-head"><div><h2>Phase 2.3 数据准备度</h2><span>达到全部观察门槛前，不会启用行为画像融合。</span></div><span class="diagnostic" :class="readiness.ready ? 'good' : 'warning'">{{ readiness.ready ? '已满足启动条件' : '尚未达到启动条件' }}</span></div>
         <div class="readiness-grid"><div v-for="item in readinessGroups" :key="item.key"><span>{{ item.label }}</span><b>{{ item.percent }}%</b><i><em :style="{ width: `${item.percent}%` }"></em></i></div></div>
         <p v-if="readinessRemaining.length" class="readiness-remaining">还需要：{{ readinessRemaining.map((item) => `${readinessLabel(item.metric)} ${item.remaining}`).join('；') }}</p>
@@ -173,6 +176,8 @@ import LoadingState from "../../components/common/LoadingState.vue";
 import { recommendationMetricsAPI, unwrapResponse } from "../../utils/api";
 import { errorToast, successToast } from "../../utils/toast";
 
+const eventVersion = ref("legacy-v1");
+const rerankVersion = ref("");
 const loading = ref(false); const error = ref(""); const lookbackDays = ref("30"); const activeTab = ref("overview"); const excludeTestUsers = ref(true);
 const summary = ref({}); const trend = ref([]); const batches = ref([]); const segments = ref([]); const websites = ref([]); const overlaps = ref([]); const dataQuality = ref({}); const readiness = ref({});
 const matchScoreRows = ref([]); const primaryNeedRows = ref([]); const tagRows = ref([]); const personalizationRows = ref([]);
@@ -182,7 +187,7 @@ const sectionLoading = reactive({ segments: false, websites: false, overlap: fal
 const segmentOptions = [{ value: "occupation", label: "职业" }, { value: "direction", label: "方向" }, { value: "primary_need", label: "核心需求" }, { value: "source", label: "来源" }, { value: "tag", label: "标签" }];
 const segmentSorts = [{ value: "ctr", label: "CTR" }, { value: "clicks", label: "点击数" }, { value: "favorites", label: "收藏数" }, { value: "impressions", label: "曝光数" }];
 const websiteSorts = [{ value: "impressions", label: "曝光最高" }, { value: "ctr", label: "CTR 最高" }, { value: "favorites", label: "收藏最多" }, { value: "repeat_visits", label: "回访最多" }];
-const params = () => ({ lookback_days: lookbackDays.value, exclude_test_users: excludeTestUsers.value });
+const params = () => ({ rerank_version: rerankVersion.value, event_version: eventVersion.value, lookback_days: lookbackDays.value, exclude_test_users: excludeTestUsers.value });
 const hasCoreData = computed(() => Object.keys(summary.value).length > 0);
 const hasEvents = computed(() => Number(summary.value.event_count || 0) > 0);
 const sourceRatios = computed(() => { const total = batches.value.reduce((sum, item) => sum + Number(item.impressions || 0), 0); const ratio = (key) => total ? batches.value.reduce((sum, item) => sum + Number(item[key] || 0), 0) * 100 / total : 0; return { personalized: formatPercent(ratio("personalized_impressions")), general: formatPercent(ratio("general_impressions")), fallback: formatPercent(ratio("fallback_impressions")) }; });

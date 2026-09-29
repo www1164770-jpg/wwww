@@ -111,7 +111,7 @@ const checks = [
   ["503 errors are distinct", /搜索服务暂时不可用/.test(store)],
   [
     "empty state has commands",
-    /清除关键词/.test(results) && /查看全部分类/.test(results),
+    /清除关键词/.test(results) && /查看热门推荐/.test(results),
   ],
   ["error state retries", /retrySearch/.test(results)],
   ["result list reuses site cards", /<SiteList :sites="sites"/.test(results)],
